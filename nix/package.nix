@@ -110,7 +110,10 @@ rustPlatform.buildRustPackage (finalAttrs: {
     '';
 
   # build the frontend before Tauri build
+  # disable bundle signing since we don't have the signing keys
   preBuild = ''
+    unset TAURI_SIGNING_PRIVATE_KEY
+    unset TAURI_SIGNING_PUBLIC_KEY
     pnpm build
   '';
 
