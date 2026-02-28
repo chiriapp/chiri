@@ -294,7 +294,7 @@ export function TaskList() {
 
   const metaKey = getMetaKeyLabel();
   const modifierJoiner = getModifierJoiner();
-  const newTaskShortcut = `${metaKey}${modifierJoiner}N`;
+  const newTaskShortcut = `${metaKey}+${modifierJoiner}N`;
 
   // only enable dragging for manual/smart sort modes
   const isDragEnabled = sortConfig.mode === 'manual' || sortConfig.mode === 'smart';
