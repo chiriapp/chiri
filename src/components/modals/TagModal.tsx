@@ -131,7 +131,7 @@ export function TagModal({ tagId, onClose }: TagModalProps) {
                 value={color}
                 onChange={setColor}
                 placeholder={FALLBACK_ITEM_COLOR}
-                className="flex-1 px-3 py-1.5 text-sm font-mono text-surface-800 dark:text-surface-200 bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300"
+                className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
               />
             </div>
           </div>
