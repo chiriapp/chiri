@@ -137,7 +137,22 @@ class Logger {
 
     // Format message with args for Tauri logging
     const fullMessage =
-      args.length > 0 ? `${message} ${args.map((a) => JSON.stringify(a)).join(' ')}` : message;
+      args.length > 0
+        ? `${message} ${args
+            .map((a) => {
+              // Handle Error objects specially since JSON.stringify returns {}
+              if (a instanceof Error) {
+                return JSON.stringify({
+                  ...a, // Include any custom properties
+                  name: a.name,
+                  message: a.message,
+                  stack: a.stack,
+                });
+              }
+              return JSON.stringify(a);
+            })
+            .join(' ')}`
+        : message;
 
     // Forward to Tauri for file persistence
     forwardToTauri(level, this.category, fullMessage);
