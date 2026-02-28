@@ -16,7 +16,7 @@ import Clock from 'lucide-react/icons/clock';
 import Sun from 'lucide-react/icons/sun';
 import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSettingsStore } from '@/context/settingsContext';
 import {
   createAllDayDate,
   createPaddedDaysArray,
@@ -194,9 +194,13 @@ export function DateTimePicker({
           </div>
 
           <div className="grid grid-cols-7 gap-1 p-2">
-            {paddedDays.map((day, index) => {
+            {paddedDays.map((day, _) => {
               if (!day) {
-                return <div key={`empty-${index}`} />;
+                return (
+                  <div
+                    key={`empty-${currentMonth.getDay()}-${currentMonth.getMonth()}-${currentMonth.getFullYear()}`}
+                  />
+                );
               }
 
               const isSelected = value && isSameDay(day, value);
@@ -260,7 +264,8 @@ export function DateTimePicker({
                       className="px-2 py-1 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-surface-700 dark:text-surface-300 focus:outline-none focus:border-primary-300"
                     >
                       {Array.from({ length: 24 }, (_, i) => (
-                        <option key={i} value={i}>
+                        // biome-ignore lint/suspicious/noArrayIndexKey: Hour options are static and order is stable
+                        <option key={`hour-${i}`} value={i}>
                           {i.toString().padStart(2, '0')}
                         </option>
                       ))}
@@ -271,8 +276,9 @@ export function DateTimePicker({
                       onChange={(e) => handleTimeChange('minutes', parseInt(e.target.value, 10))}
                       className="px-2 py-1 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-surface-700 dark:text-surface-300 focus:outline-none focus:border-primary-300"
                     >
-                      {Array.from({ length: 24 }, (_, i) => (
-                        <option key={i} value={i}>
+                      {Array.from({ length: 60 }, (_, i) => (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: Minute options are static and order is stable
+                        <option key={`minute-${i}`} value={i}>
                           {i.toString().padStart(2, '0')}
                         </option>
                       ))}

@@ -104,11 +104,13 @@ export function CalendarModal({ calendar, accountId, onClose }: CalendarModalPro
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
-      <div
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in">
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
             Edit Calendar
@@ -124,12 +126,16 @@ export function CalendarModal({ calendar, accountId, onClose }: CalendarModalPro
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="calendar-name"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Calendar Name
             </label>
             <div className="flex items-center gap-2">
               <IconPicker value={icon} onChange={setIcon} color={color} />
               <ComposedInput
+                id="calendar-name"
                 type="text"
                 value={displayName}
                 onChange={setDisplayName}
@@ -141,9 +147,9 @@ export function CalendarModal({ calendar, accountId, onClose }: CalendarModalPro
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
               Color
-            </label>
+            </p>
             <div className="flex items-center gap-2 flex-wrap">
               {COLOR_PRESETS.map((preset) => (
                 <button

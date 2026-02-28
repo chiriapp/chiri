@@ -118,10 +118,7 @@ export function ReminderPickerModal({
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 animate-fade-in">
-      <div
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-xs animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-xs animate-scale-in">
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">{title}</h2>
           <button
@@ -196,7 +193,7 @@ export function ReminderPickerModal({
           <div className="grid grid-cols-7 gap-1 mb-4">
             {paddedDays.map((day, index) => {
               if (!day) {
-                return <div key={`empty-${index}`} />;
+                return <div key={`empty-${index}-${day}`} />;
               }
 
               const isSelected = selectedDate && isSameDay(day, selectedDate);
@@ -238,7 +235,7 @@ export function ReminderPickerModal({
                 className="px-2 py-1 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-surface-700 dark:text-surface-300 focus:outline-none focus:border-primary-300"
               >
                 {Array.from({ length: 24 }, (_, i) => (
-                  <option key={i} value={i}>
+                  <option key={`hour-${selectedTime.hours}-${i}`} value={i}>
                     {i.toString().padStart(2, '0')}
                   </option>
                 ))}
@@ -250,7 +247,7 @@ export function ReminderPickerModal({
                 className="px-2 py-1 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-surface-700 dark:text-surface-300 focus:outline-none focus:border-primary-300"
               >
                 {Array.from({ length: 60 }, (_, i) => (
-                  <option key={i} value={i}>
+                  <option key={`minute-${selectedTime.minutes}-${i}`} value={i}>
                     {i.toString().padStart(2, '0')}
                   </option>
                 ))}

@@ -107,21 +107,20 @@ export function KeyboardShortcutModal({
   if (!isOpen || !shortcut) return null;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; intentionally captures all keyboard for shortcut capture mode
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 animate-fade-in"
-      onClick={onClose}
+      onClick={(e) => e.stopPropagation()}
     >
-      <div
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in">
         <div className="flex items-start justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <div>
             <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
               Edit Shortcut
             </h2>
             <p className="text-sm text-surface-600 dark:text-surface-400 mt-1">
-              {shortcut.description}
+              {shortcut?.description}
             </p>
           </div>
           <button
@@ -141,16 +140,19 @@ export function KeyboardShortcutModal({
 
             <div
               ref={inputRef}
+              role="application"
+              // biome-ignore lint/a11y/noNoninteractiveTabindex: we need to make this div focusable to capture key events, but it doesn't have typical interactive behavior
               tabIndex={0}
               onKeyDown={handleKeyCapture}
               className="w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-500 focus:bg-primary-50 dark:focus:bg-primary-900/20 transition-colors cursor-text"
+              aria-label="Press keys to set shortcut"
             >
               {displayShortcut ? (
                 <div className="flex items-center">
                   {formatShortcut(displayShortcut)
                     .split(' + ')
                     .map((key, idx, arr) => (
-                      <span key={`${key}-${idx}`} className="flex items-center">
+                      <span key={`key-${idx}-${key}`} className="flex items-center">
                         <kbd
                           className={`px-3 py-2 rounded-lg text-sm font-mono shadow-sm ${
                             pendingShortcut

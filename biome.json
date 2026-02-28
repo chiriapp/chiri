@@ -43,7 +43,8 @@
       },
       "a11y": {
         "useAltText": "warn",
-        "useKeyWithClickEvents": "warn"
+        "useKeyWithClickEvents": "warn",
+        "noNoninteractiveTabindex": "warn"
       },
       "complexity": {
         "noExcessiveCognitiveComplexity": {

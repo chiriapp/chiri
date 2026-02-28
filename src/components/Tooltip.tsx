@@ -158,16 +158,15 @@ export function Tooltip({
 
   return (
     <>
-      <div
+      <span
         ref={triggerRef}
         onMouseEnter={showTooltip}
         onMouseLeave={hideTooltip}
-        onFocus={showTooltip}
-        onBlur={hideTooltip}
         className="inline-flex"
+        role="tooltip"
       >
         {children}
-      </div>
+      </span>
       {isVisible &&
         content &&
         createPortal(

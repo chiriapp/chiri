@@ -116,12 +116,12 @@ function parseICalDate(value: string): Date | undefined {
       const [, year, month, day, hour, minute, second] = match;
       return new Date(
         Date.UTC(
-          parseInt(year),
-          parseInt(month) - 1,
-          parseInt(day),
-          parseInt(hour),
-          parseInt(minute),
-          parseInt(second),
+          parseInt(year, 10),
+          parseInt(month, 10) - 1,
+          parseInt(day, 10),
+          parseInt(hour, 10),
+          parseInt(minute, 10),
+          parseInt(second, 10),
         ),
       );
     }

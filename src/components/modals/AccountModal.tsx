@@ -139,7 +139,6 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
         const tempId = generateUUID();
 
         log.debug(`Connecting to ${serverUrl}...`);
-        log.debug(`Connecting to ${serverUrl}...`);
         await caldavService.connect(tempId, serverUrl, username, effectivePassword, serverType);
 
         log.debug(`Fetching calendars...`);
@@ -187,11 +186,13 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-fade-in">
-      <div
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-fade-in"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in">
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
             {account ? 'Edit Account' : 'Add CalDAV Account'}
@@ -207,11 +208,15 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="account-name"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Account Display Name
             </label>
             <ComposedInput
               ref={nameInputRef}
+              id="account-name"
               type="text"
               value={name}
               onChange={setName}
@@ -222,10 +227,14 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="server-type"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Server Type
             </label>
             <select
+              id="server-type"
               value={serverType}
               onChange={(e) => setServerType(e.target.value as ServerType)}
               className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
@@ -242,10 +251,14 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="server-url"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Server URL
             </label>
             <ComposedInput
+              id="server-url"
               type="url"
               value={serverUrl}
               onChange={setServerUrl}
@@ -262,10 +275,14 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="username"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Username
             </label>
             <ComposedInput
+              id="username"
               type="text"
               value={username}
               onChange={setUsername}
@@ -276,10 +293,14 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Password
             </label>
             <ComposedInput
+              id="password"
               type="password"
               value={password}
               onChange={setPassword}

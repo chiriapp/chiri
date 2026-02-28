@@ -112,7 +112,9 @@ export function Sidebar({
 
     if (newAccountIds.length > 0) {
       // Mark these accounts as initialized
-      newAccountIds.forEach((id) => initializedAccountIdsRef.current.add(id));
+      for (const id of newAccountIds) {
+        initializedAccountIdsRef.current.add(id);
+      }
 
       // If they should be expanded by default, add them to the expanded list
       if (defaultAccountsExpanded) {
@@ -249,6 +251,8 @@ export function Sidebar({
 
   return (
     <>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: Container onClick for closing context menu on outside click */}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Container onClick for closing context menu on outside click */}
       <div
         className={`bg-surface-100 dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700 flex flex-col h-full relative overflow-hidden ${!isResizing ? 'transition-[width] duration-200 ease-in-out' : ''}`}
         style={{ width: isCollapsed ? 48 : width }}
@@ -256,6 +260,7 @@ export function Sidebar({
       >
         {/* Resize handle */}
         {!isCollapsed && !isTransitioning && (
+          // biome-ignore lint/a11y/noStaticElementInteractions: Resize handle requires mouse events for drag functionality
           <div
             ref={resizeHandleRef}
             onMouseDown={handleResizeStart}
@@ -269,7 +274,7 @@ export function Sidebar({
               type="button"
               onClick={onToggleCollapse}
               className="p-2 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors"
-              title="Expand sidebar"
+              aria-label="Expand sidebar"
             >
               <PanelLeftOpen className="w-5 h-5" />
             </button>
@@ -285,7 +290,7 @@ export function Sidebar({
                 type="button"
                 onClick={onToggleCollapse}
                 className="p-1.5 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors shrink-0"
-                title="Collapse sidebar"
+                aria-label="Collapse sidebar"
               >
                 <PanelLeftClose className="w-5 h-5" />
               </button>
@@ -352,9 +357,13 @@ export function Sidebar({
                 ) : (
                   accounts.map((account) => (
                     <div key={account.id} data-context-menu>
+                      {/* biome-ignore lint/a11y/useSemanticElements: Account toggle div contains icon+text layout that button element can't replicate */}
                       <div
                         onClick={() => toggleAccount(account.id)}
+                        onKeyDown={(e) => e.key === 'Enter' && toggleAccount(account.id)}
                         onContextMenu={(e) => handleContextMenu(e, 'account', account.id)}
+                        role="button"
+                        tabIndex={0}
                         className={`relative w-full flex items-center gap-2 px-4 py-1.5 text-sm ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''} transition-colors group cursor-pointer`}
                       >
                         {expandedAccounts.has(account.id) ? (
@@ -387,7 +396,11 @@ export function Sidebar({
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleContextMenu(e as any, 'account', account.id);
+                              handleContextMenu(
+                                e as React.MouseEvent<HTMLButtonElement>,
+                                'account',
+                                account.id,
+                              );
                             }}
                             onContextMenu={(e) => {
                               e.stopPropagation();
@@ -674,11 +687,13 @@ export function Sidebar({
       </div>
 
       {contextMenu && (
+        // biome-ignore lint/a11y/noStaticElementInteractions: Context menu container uses stopPropagation to prevent backdrop close
+        // biome-ignore lint/a11y/useKeyWithClickEvents: Context menu container uses stopPropagation to prevent backdrop close
         <div
           data-context-menu-content
-          className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 py-1 z-50 min-w-[160px] animate-scale-in"
+          className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 animate-scale-in"
           style={{ left: contextMenu.x, top: contextMenu.y }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
         >
           {contextMenu.type === 'account' && (
             <button

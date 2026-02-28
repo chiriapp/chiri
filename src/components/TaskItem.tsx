@@ -158,13 +158,17 @@ export function TaskItem({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
 
   return (
     <>
+      {/* biome-ignore lint/a11y/useSemanticElements: Task item div contains complex drag-drop layout that button element can't support */}
       <div
         ref={setNodeRef}
         style={{ ...style, marginLeft: `${marginLeft}px`, paddingLeft: `${paddingLeft}px` }}
         {...attributes}
         {...(isDragEnabled ? listeners : {})}
         onClick={handleClick}
+        onKeyDown={(e) => e.key === 'Enter' && handleClick(e as unknown as React.MouseEvent)}
         onContextMenu={handleContextMenu}
+        role="button"
+        tabIndex={0}
         data-context-menu
         className={`
           group relative flex items-start gap-3 pr-3 py-3 bg-white dark:bg-surface-800 rounded-lg border transition-all focus:outline-none
@@ -339,6 +343,8 @@ export function TaskItem({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
 
       {contextMenu && (
         <>
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: Context menu backdrop for closing on outside click */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: Context menu backdrop for closing on outside click */}
           <div
             className="fixed inset-0 z-40"
             onClick={handleCloseContextMenu}

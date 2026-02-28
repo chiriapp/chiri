@@ -149,6 +149,30 @@ export async function createMacMenu(options?: {
     ],
   });
 
+  const syncItem = await IconMenuItem.new({
+    id: 'sync',
+    text: 'Sync',
+    icon: 'Refresh',
+    accelerator: getAcceleratorById(shortcuts, 'sync') || 'CmdOrCtrl+R',
+    enabled: false,
+    action: () => {
+      emit(MENU_EVENTS.SYNC);
+    },
+  });
+  menuItemRefs.sync = syncItem;
+
+  const exportItem = await IconMenuItem.new({
+    id: 'export',
+    text: 'Export...',
+    icon: 'Share',
+    accelerator: 'CmdOrCtrl+E',
+    enabled: false,
+    action: () => {
+      emit(MENU_EVENTS.EXPORT_TASKS);
+    },
+  });
+  menuItemRefs.export = exportItem;
+
   const fileSubmenu = await Submenu.new({
     text: 'File',
     items: [
@@ -162,16 +186,7 @@ export async function createMacMenu(options?: {
         },
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
-      (menuItemRefs.sync = await IconMenuItem.new({
-        id: 'sync',
-        text: 'Sync',
-        icon: 'Refresh',
-        accelerator: getAcceleratorById(shortcuts, 'sync') || 'CmdOrCtrl+R',
-        enabled: false,
-        action: () => {
-          emit(MENU_EVENTS.SYNC);
-        },
-      })),
+      syncItem,
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await IconMenuItem.new({
         id: 'import',
@@ -182,16 +197,7 @@ export async function createMacMenu(options?: {
           emit(MENU_EVENTS.IMPORT_TASKS);
         },
       }),
-      (menuItemRefs.export = await IconMenuItem.new({
-        id: 'export',
-        text: 'Export...',
-        icon: 'Share',
-        accelerator: 'CmdOrCtrl+E',
-        enabled: false,
-        action: () => {
-          emit(MENU_EVENTS.EXPORT_TASKS);
-        },
-      })),
+      exportItem,
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await PredefinedMenuItem.new({
         text: 'Close Window',
@@ -241,72 +247,96 @@ export async function createMacMenu(options?: {
   });
 
   // View submenu
+  const toggleCompletedItem = await CheckMenuItem.new({
+    id: 'toggle-completed',
+    text: 'Show Completed Tasks',
+    accelerator: getAcceleratorById(shortcuts, 'toggle-show-completed') || 'CmdOrCtrl+Shift+H',
+    checked: showCompleted,
+    action: () => {
+      emit(MENU_EVENTS.TOGGLE_COMPLETED);
+    },
+  });
+  menuItemRefs.toggleCompleted = toggleCompletedItem;
+
+  const sortManualItem = await MenuItem.new({
+    id: 'sort-manual',
+    text: sortMode === 'manual' ? '✓ Manual' : 'Manual',
+    action: () => {
+      emit(MENU_EVENTS.SORT_MANUAL);
+    },
+  });
+  menuItemRefs.sortManual = sortManualItem;
+
+  const sortSmartItem = await MenuItem.new({
+    id: 'sort-smart',
+    text: sortMode === 'smart' ? '✓ Smart Sort' : 'Smart Sort',
+    action: () => {
+      emit(MENU_EVENTS.SORT_SMART);
+    },
+  });
+  menuItemRefs.sortSmart = sortSmartItem;
+
+  const sortDueDateItem = await MenuItem.new({
+    id: 'sort-due-date',
+    text: sortMode === 'due-date' ? '✓ Due Date' : 'Due Date',
+    action: () => {
+      emit(MENU_EVENTS.SORT_DUE_DATE);
+    },
+  });
+  menuItemRefs.sortDueDate = sortDueDateItem;
+
+  const sortPriorityItem = await MenuItem.new({
+    id: 'sort-priority',
+    text: sortMode === 'priority' ? '✓ Priority' : 'Priority',
+    action: () => {
+      emit(MENU_EVENTS.SORT_PRIORITY);
+    },
+  });
+  menuItemRefs.sortPriority = sortPriorityItem;
+
+  const sortTitleItem = await MenuItem.new({
+    id: 'sort-title',
+    text: sortMode === 'title' ? '✓ Title' : 'Title',
+    action: () => {
+      emit(MENU_EVENTS.SORT_TITLE);
+    },
+  });
+  menuItemRefs.sortTitle = sortTitleItem;
+
+  const sortCreatedItem = await MenuItem.new({
+    id: 'sort-created',
+    text: sortMode === 'created' ? '✓ Date Created' : 'Date Created',
+    action: () => {
+      emit(MENU_EVENTS.SORT_CREATED);
+    },
+  });
+  menuItemRefs.sortCreated = sortCreatedItem;
+
+  const sortModifiedItem = await MenuItem.new({
+    id: 'sort-modified',
+    text: sortMode === 'modified' ? '✓ Date Modified' : 'Date Modified',
+    action: () => {
+      emit(MENU_EVENTS.SORT_MODIFIED);
+    },
+  });
+  menuItemRefs.sortModified = sortModifiedItem;
+
   const viewSubmenu = await Submenu.new({
     text: 'View',
     items: [
-      (menuItemRefs.toggleCompleted = await CheckMenuItem.new({
-        id: 'toggle-completed',
-        text: 'Show Completed Tasks',
-        accelerator: getAcceleratorById(shortcuts, 'toggle-show-completed') || 'CmdOrCtrl+Shift+H',
-        checked: showCompleted,
-        action: () => {
-          emit(MENU_EVENTS.TOGGLE_COMPLETED);
-        },
-      })),
+      toggleCompletedItem,
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await Submenu.new({
         icon: 'ListView',
-        text: 'Sort By',
+        text: 'Sort Tasks By',
         items: [
-          (menuItemRefs.sortManual = await MenuItem.new({
-            id: 'sort-manual',
-            text: sortMode === 'manual' ? '✓ Manual' : 'Manual',
-            action: () => {
-              emit(MENU_EVENTS.SORT_MANUAL);
-            },
-          })),
-          (menuItemRefs.sortSmart = await MenuItem.new({
-            id: 'sort-smart',
-            text: sortMode === 'smart' ? '✓ Smart Sort' : 'Smart Sort',
-            action: () => {
-              emit(MENU_EVENTS.SORT_SMART);
-            },
-          })),
-          (menuItemRefs.sortDueDate = await MenuItem.new({
-            id: 'sort-due-date',
-            text: sortMode === 'due-date' ? '✓ Due Date' : 'Due Date',
-            action: () => {
-              emit(MENU_EVENTS.SORT_DUE_DATE);
-            },
-          })),
-          (menuItemRefs.sortPriority = await MenuItem.new({
-            id: 'sort-priority',
-            text: sortMode === 'priority' ? '✓ Priority' : 'Priority',
-            action: () => {
-              emit(MENU_EVENTS.SORT_PRIORITY);
-            },
-          })),
-          (menuItemRefs.sortTitle = await MenuItem.new({
-            id: 'sort-title',
-            text: sortMode === 'title' ? '✓ Title' : 'Title',
-            action: () => {
-              emit(MENU_EVENTS.SORT_TITLE);
-            },
-          })),
-          (menuItemRefs.sortCreated = await MenuItem.new({
-            id: 'sort-created',
-            text: sortMode === 'created' ? '✓ Date Created' : 'Date Created',
-            action: () => {
-              emit(MENU_EVENTS.SORT_CREATED);
-            },
-          })),
-          (menuItemRefs.sortModified = await MenuItem.new({
-            id: 'sort-modified',
-            text: sortMode === 'modified' ? '✓ Date Modified' : 'Date Modified',
-            action: () => {
-              emit(MENU_EVENTS.SORT_MODIFIED);
-            },
-          })),
+          sortManualItem,
+          sortSmartItem,
+          sortDueDateItem,
+          sortPriorityItem,
+          sortTitleItem,
+          sortCreatedItem,
+          sortModifiedItem,
         ],
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
@@ -318,6 +348,16 @@ export async function createMacMenu(options?: {
   });
 
   // Calendar submenu
+  const addCalendarItem = await MenuItem.new({
+    id: 'add-calendar',
+    text: 'Add Calendar...',
+    enabled: false,
+    action: () => {
+      emit(MENU_EVENTS.ADD_CALENDAR);
+    },
+  });
+  menuItemRefs.addCalendar = addCalendarItem;
+
   const calendarSubmenu = await Submenu.new({
     text: 'Calendar',
     items: [
@@ -328,14 +368,7 @@ export async function createMacMenu(options?: {
           emit(MENU_EVENTS.ADD_ACCOUNT);
         },
       }),
-      (menuItemRefs.addCalendar = await MenuItem.new({
-        id: 'add-calendar',
-        text: 'Add Calendar...',
-        enabled: false,
-        action: () => {
-          emit(MENU_EVENTS.ADD_CALENDAR);
-        },
-      })),
+      addCalendarItem,
     ],
   });
 

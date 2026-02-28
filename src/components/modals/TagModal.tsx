@@ -50,11 +50,13 @@ export function TagModal({ tagId, onClose }: TagModalProps) {
   const IconComponent = getIconByName(icon);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
-      <div
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in">
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
             {existingTag ? 'Edit Tag' : 'New Tag'}
@@ -70,13 +72,17 @@ export function TagModal({ tagId, onClose }: TagModalProps) {
 
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="tag-name"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Tag Name
             </label>
             <div className="flex items-center gap-2">
               <IconPicker value={icon} onChange={setIcon} color={color} />
               <ComposedInput
                 ref={nameInputRef}
+                id="tag-name"
                 type="text"
                 value={name}
                 onChange={setName}
@@ -88,9 +94,9 @@ export function TagModal({ tagId, onClose }: TagModalProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
               Color
-            </label>
+            </p>
             <div className="flex flex-wrap gap-2">
               {COLOR_PRESETS.map((preset) => (
                 <button
@@ -124,9 +130,9 @@ export function TagModal({ tagId, onClose }: TagModalProps) {
           </div>
 
           <div className="pt-2">
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
               Preview
-            </label>
+            </p>
             <span
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium"
               style={{

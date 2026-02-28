@@ -5,7 +5,25 @@
 
 import Database from '@tauri-apps/plugin-sql';
 import { useSettingsStore } from '@/store/settingsStore';
-import type { Account, Calendar, Priority, SortConfig, Tag, Task } from '@/types';
+
+import type {
+  Account,
+  AccountRow,
+  Calendar,
+  CalendarRow,
+  PendingDeletionRow,
+  Priority,
+  ReminderRow,
+  ServerType,
+  SortConfig,
+  SortDirection,
+  SortMode,
+  Tag,
+  TagRow,
+  Task,
+  TaskRow,
+  UIStateRow,
+} from '@/types';
 import { DEFAULT_SORT_CONFIG, FALLBACK_ITEM_COLOR } from '@/utils/constants';
 import { toAppleEpoch } from '@/utils/ical';
 import { generateUUID } from '@/utils/misc';
@@ -99,7 +117,7 @@ async function getDb(): Promise<Database> {
 }
 
 // Helper to convert database row to Task
-function rowToTask(row: any): Task {
+function rowToTask(row: TaskRow): Task {
   return {
     id: row.id,
     uid: row.uid,
@@ -113,38 +131,38 @@ function rowToTask(row: any): Task {
     categoryId: row.category_id || undefined,
     priority: row.priority as Priority,
     startDate: row.start_date ? new Date(row.start_date) : undefined,
-    startDateAllDay: row.start_date_all_day === 1,
+    startDateAllDay: row.start_date_all_day === null ? undefined : row.start_date_all_day === 1,
     dueDate: row.due_date ? new Date(row.due_date) : undefined,
-    dueDateAllDay: row.due_date_all_day === 1,
+    dueDateAllDay: row.due_date_all_day === null ? undefined : row.due_date_all_day === 1,
     createdAt: new Date(row.created_at),
     modifiedAt: new Date(row.modified_at),
     reminders: row.reminders
-      ? JSON.parse(row.reminders).map((r: any) => ({
+      ? JSON.parse(row.reminders).map((r: ReminderRow) => ({
           ...r,
           trigger: new Date(r.trigger),
         }))
       : undefined,
     subtasks: row.subtasks ? JSON.parse(row.subtasks) : [],
     parentUid: row.parent_uid || undefined,
-    isCollapsed: row.is_collapsed === 1,
+    isCollapsed: row.is_collapsed === null ? undefined : row.is_collapsed === 1,
     sortOrder: row.sort_order,
     url: row.url || undefined,
     accountId: row.account_id || '',
     calendarId: row.calendar_id || '',
     synced: row.synced === 1,
-    localOnly: row.local_only === 1,
+    localOnly: row.local_only === null ? undefined : row.local_only === 1,
   };
 }
 
 // Helper to convert database row to Account (with calendars)
-function rowToAccount(row: any, calendars: Calendar[]): Account {
+function rowToAccount(row: AccountRow, calendars: Calendar[]): Account {
   return {
     id: row.id,
     name: row.name,
     serverUrl: row.server_url,
     username: row.username,
     password: row.password,
-    serverType: row.server_type || undefined,
+    serverType: (row.server_type as ServerType) || undefined,
     calendars: calendars.filter((c) => c.accountId === row.id),
     lastSync: row.last_sync ? new Date(row.last_sync) : undefined,
     isActive: row.is_active === 1,
@@ -152,7 +170,7 @@ function rowToAccount(row: any, calendars: Calendar[]): Account {
 }
 
 // Helper to convert database row to Calendar
-function rowToCalendar(row: any): Calendar {
+function rowToCalendar(row: CalendarRow): Calendar {
   return {
     id: row.id,
     displayName: row.display_name,
@@ -169,7 +187,7 @@ function rowToCalendar(row: any): Calendar {
 }
 
 // Helper to convert database row to Tag
-function rowToTag(row: any): Tag {
+function rowToTag(row: TagRow): Tag {
   return {
     id: row.id,
     name: row.name,
@@ -182,25 +200,25 @@ function rowToTag(row: any): Tag {
 
 export async function getAllTasks(): Promise<Task[]> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM tasks');
+  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks');
   return rows.map(rowToTask);
 }
 
 export async function getTaskById(id: string): Promise<Task | undefined> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM tasks WHERE id = $1', [id]);
+  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE id = $1', [id]);
   return rows.length > 0 ? rowToTask(rows[0]) : undefined;
 }
 
 export async function getTaskByUid(uid: string): Promise<Task | undefined> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM tasks WHERE uid = $1', [uid]);
+  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE uid = $1', [uid]);
   return rows.length > 0 ? rowToTask(rows[0]) : undefined;
 }
 
 export async function getTasksByCalendar(calendarId: string): Promise<Task[]> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM tasks WHERE calendar_id = $1', [
+  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE calendar_id = $1', [
     calendarId,
   ]);
   return rows.map(rowToTask);
@@ -208,7 +226,7 @@ export async function getTasksByCalendar(calendarId: string): Promise<Task[]> {
 
 export async function getTasksByTag(tagId: string): Promise<Task[]> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM tasks WHERE tags LIKE $1', [
+  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE tags LIKE $1', [
     `%"${tagId}"%`,
   ]);
   return rows.map(rowToTask);
@@ -216,7 +234,7 @@ export async function getTasksByTag(tagId: string): Promise<Task[]> {
 
 export async function getChildTasks(parentUid: string): Promise<Task[]> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM tasks WHERE parent_uid = $1', [
+  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE parent_uid = $1', [
     parentUid,
   ]);
   return rows.map(rowToTask);
@@ -224,7 +242,7 @@ export async function getChildTasks(parentUid: string): Promise<Task[]> {
 
 export async function countChildren(parentUid: string): Promise<number> {
   const database = await getDb();
-  const rows = await database.select<any[]>(
+  const rows = await database.select<Array<{ count: number }>>(
     'SELECT COUNT(*) as count FROM tasks WHERE parent_uid = $1',
     [parentUid],
   );
@@ -235,7 +253,7 @@ export async function createTask(taskData: Partial<Task>): Promise<Task> {
   const database = await getDb();
 
   const now = new Date();
-  const { defaultCalendarId, defaultPriority, defaultTags } = useSettingsStore.getState();
+  const { defaultCalendarId, defaultPriority, defaultTags } = settingsStore.getState();
 
   // Get UI state for active context
   const uiState = await getUIState();
@@ -277,7 +295,7 @@ export async function createTask(taskData: Partial<Task>): Promise<Task> {
   }
 
   // Calculate sort order
-  const maxOrderRows = await database.select<any[]>(
+  const maxOrderRows = await database.select<Array<{ max_order: number | null }>>(
     'SELECT MAX(sort_order) as max_order FROM tasks',
   );
   const maxSortOrder = maxOrderRows[0]?.max_order ?? toAppleEpoch(now.getTime()) - 1;
@@ -469,13 +487,13 @@ export async function toggleTaskComplete(id: string): Promise<void> {
 
 export async function getAllTags(): Promise<Tag[]> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM tags');
+  const rows = await database.select<TagRow[]>('SELECT * FROM tags');
   return rows.map(rowToTag);
 }
 
 export async function getTagById(id: string): Promise<Tag | undefined> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM tags WHERE id = $1', [id]);
+  const rows = await database.select<TagRow[]>('SELECT * FROM tags WHERE id = $1', [id]);
   return rows.length > 0 ? rowToTag(rows[0]) : undefined;
 }
 
@@ -487,14 +505,13 @@ export async function createTag(tagData: Partial<Tag>): Promise<Tag> {
     name: tagData.name || 'New Tag',
     color: tagData.color ?? FALLBACK_ITEM_COLOR,
     icon: tagData.icon,
+    emoji: tagData.emoji,
   };
 
-  await database.execute(`INSERT INTO tags (id, name, color, icon) VALUES ($1, $2, $3, $4)`, [
-    tag.id,
-    tag.name,
-    tag.color,
-    tag.icon || null,
-  ]);
+  await database.execute(
+    `INSERT INTO tags (id, name, color, icon, emoji) VALUES ($1, $2, $3, $4, $5)`,
+    [tag.id, tag.name, tag.color, tag.icon || null, tag.emoji || null],
+  );
 
   notifyListeners();
   return tag;
@@ -544,8 +561,8 @@ export async function deleteTag(id: string): Promise<void> {
 export async function getAllAccounts(): Promise<Account[]> {
   const database = await getDb();
 
-  const accountRows = await database.select<any[]>('SELECT * FROM accounts');
-  const calendarRows = await database.select<any[]>('SELECT * FROM calendars');
+  const accountRows = await database.select<AccountRow[]>('SELECT * FROM accounts');
+  const calendarRows = await database.select<CalendarRow[]>('SELECT * FROM calendars');
   const calendars = calendarRows.map(rowToCalendar);
 
   return accountRows.map((row) => rowToAccount(row, calendars));
@@ -720,7 +737,7 @@ export async function deleteCalendar(_accountId: string, calendarId: string): Pr
 
 export async function getPendingDeletions(): Promise<PendingDeletion[]> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM pending_deletions');
+  const rows = await database.select<PendingDeletionRow[]>('SELECT * FROM pending_deletions');
   return rows.map((row) => ({
     uid: row.uid,
     href: row.href,
@@ -739,7 +756,7 @@ export async function clearPendingDeletion(uid: string): Promise<void> {
 
 export async function getUIState(): Promise<UIState> {
   const database = await getDb();
-  const rows = await database.select<any[]>('SELECT * FROM ui_state WHERE id = 1');
+  const rows = await database.select<UIStateRow[]>('SELECT * FROM ui_state WHERE id = 1');
 
   if (rows.length === 0) {
     return defaultUIState;
@@ -753,8 +770,8 @@ export async function getUIState(): Promise<UIState> {
     selectedTaskId: row.selected_task_id,
     searchQuery: row.search_query,
     sortConfig: {
-      mode: row.sort_mode,
-      direction: row.sort_direction,
+      mode: row.sort_mode as SortMode,
+      direction: row.sort_direction as SortDirection,
     },
     showCompletedTasks: row.show_completed_tasks === 1,
     isEditorOpen: row.is_editor_open === 1,

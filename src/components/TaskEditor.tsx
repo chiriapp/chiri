@@ -116,7 +116,7 @@ export function TaskEditor({ task }: TaskEditorProps) {
     if (!task.title && titleRef.current) {
       titleRef.current.focus();
     }
-  }, [task.id]);
+  }, [task.title]);
 
   // Handle escape key to close editor
   // first unfocus any focused input, then close on second ESC press
@@ -284,7 +284,7 @@ export function TaskEditor({ task }: TaskEditorProps) {
             type="button"
             onClick={() => setEditorOpenMutation.mutate(false)}
             className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
-            title="Close (Esc)"
+            aria-label="Close editor"
           >
             <X className="w-5 h-5" />
           </button>
@@ -293,11 +293,15 @@ export function TaskEditor({ task }: TaskEditorProps) {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6 flex overscroll-contain flex-col">
         <div>
-          <label className="block text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+          <label
+            htmlFor="task-title"
+            className="block text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+          >
             Title
           </label>
           <ComposedInput
             ref={titleRef}
+            id="task-title"
             type="text"
             value={pendingTitle}
             onChange={handleTitleChange}
@@ -307,11 +311,15 @@ export function TaskEditor({ task }: TaskEditorProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+          <label
+            htmlFor="task-description"
+            className="block text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+          >
             Description
           </label>
           <ComposedTextarea
             ref={descriptionRef}
+            id="task-description"
             value={filterCalDavDescription(pendingDescription)}
             onChange={handleDescriptionChange}
             placeholder="Add a description..."
@@ -321,13 +329,17 @@ export function TaskEditor({ task }: TaskEditorProps) {
         </div>
 
         <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+          <label
+            htmlFor="task-url"
+            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+          >
             <Link className="w-4 h-4" />
             URL
           </label>
           <div className="flex items-center gap-2">
             <ComposedInput
               ref={urlRef}
+              id="task-url"
               type="url"
               value={pendingUrl}
               onChange={handleUrlChange}
@@ -350,13 +362,17 @@ export function TaskEditor({ task }: TaskEditorProps) {
 
         <div className="space-y-4">
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+            <div
+              id="start-date-label"
+              className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+            >
               <Clock className="w-4 h-4" />
               Start Date
-            </label>
+            </div>
             <button
               type="button"
               onClick={() => setShowStartDatePicker(true)}
+              aria-labelledby="start-date-label"
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50 transition-colors"
             >
               <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
@@ -367,20 +383,24 @@ export function TaskEditor({ task }: TaskEditorProps) {
               >
                 {task.startDate
                   ? task.startDateAllDay
-                    ? format(new Date(task.startDate), 'MMM d, yyyy') + ' (All day)'
+                    ? `${format(new Date(task.startDate), 'MMM d, yyyy')} (All day)`
                     : format(new Date(task.startDate), 'MMM d, yyyy h:mm a')
                   : 'Set start date...'}
               </span>
             </button>
           </div>
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+            <div
+              id="due-date-label"
+              className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+            >
               <Calendar className="w-4 h-4" />
               Due Date
-            </label>
+            </div>
             <button
               type="button"
               onClick={() => setShowDueDatePicker(true)}
+              aria-labelledby="due-date-label"
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50 transition-colors"
             >
               <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
@@ -391,7 +411,7 @@ export function TaskEditor({ task }: TaskEditorProps) {
               >
                 {task.dueDate
                   ? task.dueDateAllDay
-                    ? format(new Date(task.dueDate), 'MMM d, yyyy') + ' (All day)'
+                    ? `${format(new Date(task.dueDate), 'MMM d, yyyy')} (All day)`
                     : format(new Date(task.dueDate), 'MMM d, yyyy h:mm a')
                   : 'Set due date...'}
               </span>
@@ -400,11 +420,15 @@ export function TaskEditor({ task }: TaskEditorProps) {
         </div>
 
         <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+          <div
+            id="priority-label"
+            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+          >
             <Flag className="w-4 h-4" />
             Priority
-          </label>
-          <div className="flex gap-2">
+          </div>
+          {/* biome-ignore lint/a11y/useSemanticElements: fieldset would change semantic structure; div with role="group" is appropriate here */}
+          <div className="flex gap-2" role="group" aria-labelledby="priority-label">
             {PRIORITIES.map((p) => (
               <button
                 type="button"
@@ -426,13 +450,17 @@ export function TaskEditor({ task }: TaskEditorProps) {
         </div>
 
         <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+          <label
+            htmlFor="task-calendar"
+            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+          >
             <FolderSync className="w-4 h-4" />
             Calendar
           </label>
           {allCalendars.length > 0 ? (
             <>
               <select
+                id="task-calendar"
                 value={task.calendarId}
                 onChange={(e) => handleCalendarChange(e.target.value)}
                 className="w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
@@ -469,11 +497,15 @@ export function TaskEditor({ task }: TaskEditorProps) {
         </div>
 
         <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+          <div
+            id="tag-label"
+            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+          >
             <Tag className="w-4 h-4" />
-            Tag
-          </label>
-          <div className="flex flex-wrap gap-2">
+            Tags
+          </div>
+          {/* biome-ignore lint/a11y/useSemanticElements: fieldset would change semantic structure; div with role="group" is appropriate here */}
+          <div className="flex flex-wrap gap-2" role="group" aria-labelledby="tag-label">
             {taskTags.map((tag) => {
               if (!tag) return null;
               const TagIcon = getIconByName(tag.icon || 'tag');
@@ -514,11 +546,15 @@ export function TaskEditor({ task }: TaskEditorProps) {
         </div>
 
         <div>
-          <label className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+          <div
+            id="reminders-label"
+            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+          >
             <Bell className="w-4 h-4" />
             Reminders {(task.reminders?.length || 0) > 0 && `(${task.reminders?.length})`}
-          </label>
-          <div className="space-y-2">
+          </div>
+          {/* biome-ignore lint/a11y/useSemanticElements: fieldset would change semantic structure; div with role="group" is appropriate here */}
+          <div className="space-y-2" role="group" aria-labelledby="reminders-label">
             {(task.reminders || []).map((reminder) => (
               <div key={reminder.id}>
                 <div className="flex items-center gap-2 px-3 py-2 bg-surface-50 dark:bg-surface-700 rounded-lg group">
@@ -559,13 +595,17 @@ export function TaskEditor({ task }: TaskEditorProps) {
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400">
+            <div
+              id="subtasks-label"
+              className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400"
+            >
               <CheckCircle2 className="w-4 h-4" />
               Subtasks {childCount > 0 && `(${childCount})`}
-            </label>
+            </div>
           </div>
 
-          <div className="space-y-1">
+          {/* biome-ignore lint/a11y/useSemanticElements: fieldset would change semantic structure; div with role="group" is appropriate here */}
+          <div className="space-y-1" role="group" aria-labelledby="subtasks-label">
             {childTasks.map((childTask) => (
               <SubtaskTreeItem
                 key={childTask.id}

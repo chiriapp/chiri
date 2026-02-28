@@ -94,11 +94,13 @@ export function SettingsModal({ onClose, initialCategory, initialSubtab }: Setti
   const currentSubtab = activeSubtabs[activeCategory];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in">
-      <div
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-3xl h-[80vh] flex flex-col animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
+    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-3xl h-[80vh] flex flex-col animate-scale-in">
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Settings</h2>
           <button

@@ -62,9 +62,10 @@ export function ImportModal({ isOpen, onClose, preloadedFile }: ImportModalProps
         }
       }
     }
-  }, [selectedAccountId]);
+  }, [selectedAccountId, allCalendars.filter, selectedCalendarId]);
 
   // handle preloaded file
+  // biome-ignore lint/correctness/useExhaustiveDependencies: handleFileContent uses only stable setters and is called only when preloadedFile changes
   useEffect(() => {
     if (isOpen && preloadedFile) {
       handleFileContent(preloadedFile.name, preloadedFile.content);
@@ -240,11 +241,8 @@ export function ImportModal({ isOpen, onClose, preloadedFile }: ImportModalProps
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 animate-fade-in">
-      <div
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] animate-fade-in">
+      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in">
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
             Import Tasks
@@ -259,10 +257,14 @@ export function ImportModal({ isOpen, onClose, preloadedFile }: ImportModalProps
         </div>
 
         <div className="p-4 space-y-4">
+          {/* biome-ignore lint/a11y/useSemanticElements: Requires div for drag-drop functionality */}
           <div
+            role="button"
+            tabIndex={0}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => e.key === 'Enter' && fileInputRef.current?.click()}
             className="border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg p-8 text-center cursor-pointer hover:border-primary dark:hover:border-primary transition-colors"
           >
             {fileName ? (
@@ -328,10 +330,14 @@ export function ImportModal({ isOpen, onClose, preloadedFile }: ImportModalProps
           )}
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="import-account-select"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Account
             </label>
             <select
+              id="import-account-select"
               value={selectedAccountId}
               onChange={(e) => setSelectedAccountId(e.target.value)}
               disabled={!hasAccounts}
@@ -352,10 +358,14 @@ export function ImportModal({ isOpen, onClose, preloadedFile }: ImportModalProps
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">
+            <label
+              htmlFor="import-calendar-select"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
               Import to Calendar
             </label>
             <select
+              id="import-calendar-select"
               value={selectedCalendarId}
               onChange={(e) => setSelectedCalendarId(e.target.value)}
               className={`w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent ${availableCalendars.length === 0 ? 'cursor-not-allowed text-surface-400 dark:text-surface-500' : ''}`}

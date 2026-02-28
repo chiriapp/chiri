@@ -131,3 +131,91 @@ export type SettingsSubtab =
 
 export type ExportFormat = 'ics' | 'json' | 'markdown' | 'csv';
 export type ExportType = 'tasks' | 'all-calendars' | 'single-calendar';
+
+// Database row types
+export interface TaskRow {
+  id: string;
+  uid: string;
+  etag: string | null;
+  href: string | null;
+  title: string;
+  description: string;
+  completed: number;
+  completed_at: string | null;
+  tags: string | null;
+  category_id: string | null;
+  priority: string;
+  start_date: string | null;
+  start_date_all_day: number | null; // Nullable in database schema
+  due_date: string | null;
+  due_date_all_day: number | null; // Nullable in database schema
+  created_at: string;
+  modified_at: string;
+  reminders: string | null;
+  subtasks: string;
+  parent_uid: string | null;
+  is_collapsed: number | null; // Nullable in database schema (DEFAULT 0)
+  sort_order: number;
+  account_id: string | null; // Made nullable in v002 migration
+  calendar_id: string | null; // Made nullable in v002 migration
+  synced: number;
+  local_only: number | null; // Nullable in database schema (DEFAULT 0)
+  url: string | null;
+}
+
+export interface AccountRow {
+  id: string;
+  name: string;
+  server_url: string;
+  username: string;
+  password: string;
+  server_type: string | null;
+  last_sync: string | null;
+  is_active: number;
+}
+
+export interface CalendarRow {
+  id: string;
+  account_id: string;
+  display_name: string;
+  url: string;
+  ctag: string | null;
+  sync_token: string | null;
+  color: string | null;
+  icon: string | null;
+  emoji: string | null;
+  supported_components: string | null;
+}
+
+export interface TagRow {
+  id: string;
+  name: string;
+  color: string;
+  icon: string | null;
+  emoji: string | null;
+}
+
+export interface PendingDeletionRow {
+  uid: string;
+  href: string;
+  account_id: string;
+  calendar_id: string;
+}
+
+export interface UIStateRow {
+  id: number;
+  active_account_id: string | null;
+  active_calendar_id: string | null;
+  active_tag_id: string | null;
+  selected_task_id: string | null;
+  search_query: string;
+  sort_mode: string;
+  sort_direction: string;
+  show_completed_tasks: number;
+  is_editor_open: number;
+}
+
+export interface ReminderRow {
+  trigger: string;
+  [key: string]: unknown;
+}

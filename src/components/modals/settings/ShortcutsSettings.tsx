@@ -1,7 +1,7 @@
 import Pencil from 'lucide-react/icons/pencil';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import { useState } from 'react';
-import { type KeyboardShortcut, useSettingsStore } from '@/store/settingsStore';
+import { type KeyboardShortcut, useSettingsStore } from '@/context/settingsContext';
 import { formatShortcut } from '@/utils/keyboard';
 import { KeyboardShortcutModal } from '../KeyboardShortcutModal';
 
@@ -62,7 +62,7 @@ export function ShortcutsSettings({
                   {formatShortcut(shortcut)
                     .split(' + ')
                     .map((key, keyIndex, arr) => (
-                      <span key={`${key}-${keyIndex}`} className="flex items-center">
+                      <span key={`${key}-${shortcut.id}`} className="flex items-center">
                         <kbd className="px-2 py-1 bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-xs font-mono text-surface-700 dark:text-surface-300">
                           {key}
                         </kbd>

@@ -63,10 +63,13 @@ export function ConfirmDialog({
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-description"
       onClick={onCancel}
+      onKeyDown={(e) => e.key === 'Escape' && onCancel()}
     >
       <div
+        role="document"
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in"
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between p-4 border-b border-surface-200 dark:border-surface-700 rounded-t-xl">
           <div className="flex-1 min-w-0">

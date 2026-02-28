@@ -25,10 +25,14 @@ export function SyncSettings() {
         </label>
         {autoSync && (
           <div>
-            <label className="block text-sm text-surface-600 dark:text-surface-400 mb-2">
+            <label
+              htmlFor="sync-interval"
+              className="block text-sm text-surface-600 dark:text-surface-400 mb-2"
+            >
               Sync interval
             </label>
             <select
+              id="sync-interval"
               value={syncInterval.toString()}
               onChange={(e) => setSyncInterval(Number(e.target.value))}
               className="w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300"

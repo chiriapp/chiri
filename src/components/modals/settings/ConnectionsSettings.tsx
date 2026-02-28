@@ -66,8 +66,9 @@ export function ConnectionsSettings({ accounts }: ConnectionsSettingsProps) {
                 key={account.id}
                 className="rounded-lg border border-surface-200 dark:border-surface-600 overflow-hidden"
               >
-                <div
-                  className="flex items-center justify-between p-3 cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors"
+                <button
+                  type="button"
+                  className="flex items-center justify-between p-3 cursor-pointer hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors w-full text-left"
                   onClick={() => toggleExpanded(account.id)}
                 >
                   <div className="flex items-center gap-3">
@@ -83,7 +84,7 @@ export function ConnectionsSettings({ accounts }: ConnectionsSettingsProps) {
                       </p>
                     </div>
                   </div>
-                </div>
+                </button>
 
                 {isExpanded && (
                   <div className="border-t border-surface-200 dark:border-surface-600 p-3 bg-surface-50 dark:bg-surface-900/50 space-y-3">

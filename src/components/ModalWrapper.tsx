@@ -33,12 +33,19 @@ export function ModalWrapper({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 animate-fade-in cursor-default"
       onClick={handleBackdropClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') handleBackdropClick();
+      }}
     >
       <div
+        role="document"
         className={`bg-white dark:bg-surface-800 rounded-xl shadow-xl ${MODAL_SIZE_CLASSES[size]} w-full max-h-[90vh] flex flex-col animate-scale-in`}
         onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.stopPropagation()}
       >
         {title && (
           <div className="bg-white dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700 p-6 flex-shrink-0 flex items-start justify-between rounded-t-xl">
