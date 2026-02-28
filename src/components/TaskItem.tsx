@@ -10,12 +10,13 @@ import Edit2 from 'lucide-react/icons/edit-2';
 import Link from 'lucide-react/icons/link';
 import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   useAccounts,
   useSetActiveAccount,
   useSetActiveCalendar,
   useSetActiveTag,
+  useSetEditorOpen,
   useSetSelectedTask,
   useToggleTaskComplete,
   useUIState,
@@ -25,6 +26,7 @@ import { useContextMenu } from '@/hooks/useContextMenu';
 import * as taskData from '@/lib/taskData';
 import { useSettingsStore } from '@/store/settingsStore';
 import type { Priority, Task } from '@/types';
+
 import { FALLBACK_ITEM_COLOR } from '@/utils/constants';
 import { formatDueDate } from '@/utils/date';
 import { filterCalDavDescription } from '@/utils/ical';
@@ -47,6 +49,7 @@ export function TaskItem({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
   const { data: accounts = [] } = useAccounts();
   const toggleTaskCompleteMutation = useToggleTaskComplete();
   const setSelectedTaskMutation = useSetSelectedTask();
+  const setEditorOpenMutation = useSetEditorOpen();
   const setActiveTagMutation = useSetActiveTag();
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveAccountMutation = useSetActiveAccount();
@@ -56,9 +59,25 @@ export function TaskItem({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
   const [showExportModal, setShowExportModal] = useState(false);
   const { confirmAndDelete } = useConfirmTaskDelete();
 
+  // Ref for the task element to manage focus
+  const taskElementRef = useRef<HTMLDivElement>(null);
+
   const selectedTaskId = uiState?.selectedTaskId ?? null;
   const activeCalendarId = uiState?.activeCalendarId ?? null;
   const showCompletedTasks = uiState?.showCompletedTasks ?? true;
+  const isEditorOpen = uiState?.isEditorOpen ?? false;
+  const isSelected = selectedTaskId === task.id;
+
+  // Focus the task element when it becomes selected via keyboard navigation
+  useEffect(() => {
+    if (isSelected && !isOverlay) {
+      // Only focus if this element is not already focused
+      // This prevents re-focusing when clicking with mouse
+      if (document.activeElement !== taskElementRef.current) {
+        taskElementRef.current?.focus();
+      }
+    }
+  }, [isSelected, isOverlay]);
 
   // get contrast color for checkbox checkmark
   const checkmarkColor = getContrastTextColor(accentColor);
@@ -94,6 +113,12 @@ export function TaskItem({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
     animateLayoutChanges,
   });
 
+  // Merge refs: need both sortable's setNodeRef and our taskElementRef for focus management
+  const mergedRef = (node: HTMLDivElement | null) => {
+    setNodeRef(node);
+    taskElementRef.current = node;
+  };
+
   // Disable all transitions - items will snap to positions immediately.
   // This prevents the "jumping" animation when drag ends and displaced items
   // return to their natural positions.
@@ -119,6 +144,13 @@ export function TaskItem({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
     ) {
       return;
     }
+
+    // If the task is already selected and editor is open, close the editor
+    if (isSelected && isEditorOpen) {
+      setEditorOpenMutation.mutate(false);
+      return;
+    }
+
     setSelectedTaskMutation.mutate(task.id);
   };
 
@@ -159,7 +191,7 @@ export function TaskItem({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
     <>
       {/* biome-ignore lint/a11y/useSemanticElements: Task item div contains complex drag-drop layout that button element can't support */}
       <div
-        ref={setNodeRef}
+        ref={mergedRef}
         style={{ ...style, marginLeft: `${marginLeft}px`, paddingLeft: `${paddingLeft}px` }}
         {...attributes}
         {...(isDragEnabled ? listeners : {})}
@@ -183,6 +215,7 @@ export function TaskItem({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
         <div className="task-checkbox-wrapper flex-shrink-0">
           <button
             type="button"
+            onClick={handleCheckboxClick}
             className={`
               w-5 h-5 rounded border-2 flex items-center justify-center transition-all
               ${
