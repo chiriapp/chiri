@@ -100,10 +100,16 @@ export async function createMacMenu(options?: {
   showCompleted?: boolean;
   sortMode?: SortMode;
   shortcuts?: KeyboardShortcut[];
+  hasAccounts?: boolean;
+  hasTasks?: boolean;
+  isSyncing?: boolean;
 }): Promise<Menu> {
   const showCompleted = options?.showCompleted ?? true;
   const sortMode = options?.sortMode ?? 'manual';
   const shortcuts = options?.shortcuts;
+  const hasAccounts = options?.hasAccounts ?? false;
+  const hasTasks = options?.hasTasks ?? false;
+  const isSyncing = options?.isSyncing ?? false;
 
   const appSubmenu = await Submenu.new({
     text: 'caldav-tasks',
@@ -155,7 +161,7 @@ export async function createMacMenu(options?: {
     text: 'Sync',
     icon: 'Refresh',
     accelerator: getAcceleratorById(shortcuts, 'sync') || 'CmdOrCtrl+R',
-    enabled: false,
+    enabled: hasAccounts && !isSyncing,
     action: () => {
       emit(MENU_EVENTS.SYNC);
     },
@@ -167,7 +173,7 @@ export async function createMacMenu(options?: {
     text: 'Export...',
     icon: 'Share',
     accelerator: 'CmdOrCtrl+E',
-    enabled: false,
+    enabled: hasTasks,
     action: () => {
       emit(MENU_EVENTS.EXPORT_TASKS);
     },
@@ -352,7 +358,7 @@ export async function createMacMenu(options?: {
   const addCalendarItem = await MenuItem.new({
     id: 'add-calendar',
     text: 'Add Calendar...',
-    enabled: false,
+    enabled: hasAccounts,
     action: () => {
       emit(MENU_EVENTS.ADD_CALENDAR);
     },
@@ -432,6 +438,9 @@ export async function initAppMenu(options?: {
   showCompleted?: boolean;
   sortMode?: SortMode;
   shortcuts?: KeyboardShortcut[];
+  hasAccounts?: boolean;
+  hasTasks?: boolean;
+  isSyncing?: boolean;
 }): Promise<void> {
   // Only create menu on macOS
   if (!isMacPlatform()) return;
@@ -453,6 +462,9 @@ export async function rebuildAppMenu(options?: {
   showCompleted?: boolean;
   sortMode?: SortMode;
   shortcuts?: KeyboardShortcut[];
+  hasAccounts?: boolean;
+  hasTasks?: boolean;
+  isSyncing?: boolean;
 }): Promise<void> {
   await initAppMenu(options);
 }
@@ -537,10 +549,13 @@ export async function updateMenuState(options: {
   hasTasks?: boolean;
   showCompleted?: boolean;
   sortMode?: SortMode;
+  isSyncing?: boolean;
 }): Promise<void> {
-  if (options.hasAccounts !== undefined) {
-    await updateMenuItem('add-calendar', { enabled: options.hasAccounts });
-    await updateMenuItem('sync', { enabled: options.hasAccounts });
+  if (options.hasAccounts !== undefined || options.isSyncing !== undefined) {
+    const hasAccounts = options.hasAccounts ?? true;
+    const isSyncing = options.isSyncing ?? false;
+    await updateMenuItem('add-calendar', { enabled: hasAccounts });
+    await updateMenuItem('sync', { enabled: hasAccounts && !isSyncing });
   }
   if (options.hasTasks !== undefined) {
     await updateMenuItem('export', { enabled: options.hasTasks });
