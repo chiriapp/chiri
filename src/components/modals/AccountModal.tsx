@@ -75,6 +75,12 @@ export function AccountModal({ account, onClose }: AccountModalProps) {
   const fetchTasksForCalendar = async (accountId: string, calendar: Calendar) => {
     try {
       const remoteTasks = await caldavService.fetchTasks(accountId, calendar);
+
+      if (!remoteTasks) {
+        log.warn(`No tasks fetched from ${calendar.displayName}`);
+        return;
+      }
+
       log.info(`Fetched ${remoteTasks.length} tasks from ${calendar.displayName}`);
 
       for (const remoteTask of remoteTasks) {
