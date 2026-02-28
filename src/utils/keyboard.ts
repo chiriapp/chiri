@@ -1,4 +1,4 @@
-import type { KeyboardShortcut } from '@/store/settingsStore';
+import type { KeyboardShortcut } from '@/types';
 import { isMacPlatform } from './misc';
 
 export function getMetaKeyLabel(): string {
