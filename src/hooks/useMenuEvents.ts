@@ -184,6 +184,7 @@ export function useMenuEvents(callbacks: {
       const sortModeMap: Record<string, SortMode> = {
         [MENU_EVENTS.SORT_MANUAL]: 'manual',
         [MENU_EVENTS.SORT_SMART]: 'smart',
+        [MENU_EVENTS.SORT_START_DATE]: 'start-date',
         [MENU_EVENTS.SORT_DUE_DATE]: 'due-date',
         [MENU_EVENTS.SORT_PRIORITY]: 'priority',
         [MENU_EVENTS.SORT_TITLE]: 'title',

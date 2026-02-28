@@ -28,6 +28,7 @@ export const MENU_EVENTS = {
   TOGGLE_COMPLETED: 'menu:toggle-completed',
   SORT_MANUAL: 'menu:sort-manual',
   SORT_SMART: 'menu:sort-smart',
+  SORT_START_DATE: 'menu:sort-start-date',
   SORT_DUE_DATE: 'menu:sort-due-date',
   SORT_PRIORITY: 'menu:sort-priority',
   SORT_TITLE: 'menu:sort-title',
@@ -283,6 +284,15 @@ export async function createMacMenu(options?: {
   });
   menuItemRefs.sortSmart = sortSmartItem;
 
+  const sortStartDateItem = await MenuItem.new({
+    id: 'sort-start-date',
+    text: sortMode === 'start-date' ? '✓ Start Date' : 'Start Date',
+    action: () => {
+      emit(MENU_EVENTS.SORT_START_DATE);
+    },
+  });
+  menuItemRefs.sortStartDate = sortStartDateItem;
+
   const sortDueDateItem = await MenuItem.new({
     id: 'sort-due-date',
     text: sortMode === 'due-date' ? '✓ Due Date' : 'Due Date',
@@ -339,6 +349,7 @@ export async function createMacMenu(options?: {
         items: [
           sortManualItem,
           sortSmartItem,
+          sortStartDateItem,
           sortDueDateItem,
           sortPriorityItem,
           sortTitleItem,
@@ -503,6 +514,9 @@ export async function updateMenuItem(
       case 'sort-smart':
         item = menuItemRefs.sortSmart;
         break;
+      case 'sort-start-date':
+        item = menuItemRefs.sortStartDate;
+        break;
       case 'sort-due-date':
         item = menuItemRefs.sortDueDate;
         break;
@@ -568,6 +582,7 @@ export async function updateMenuState(options: {
     const sortOptions: Record<string, string> = {
       manual: 'Manual',
       smart: 'Smart Sort',
+      'start-date': 'Start Date',
       'due-date': 'Due Date',
       priority: 'Priority',
       title: 'Title',
@@ -578,7 +593,6 @@ export async function updateMenuState(options: {
     log.debug('Updating sort menu checkmarks, active mode:', options.sortMode);
     for (const [mode, label] of Object.entries(sortOptions)) {
       const hasCheck = mode === options.sortMode;
-      log.debug(`Setting sort-${mode} to: ${hasCheck ? '✓ ' : ''}${label}`);
       await updateMenuItem(`sort-${mode}`, {
         text: hasCheck ? `✓ ${label}` : label,
       });
