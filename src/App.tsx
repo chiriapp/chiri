@@ -23,6 +23,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { useTray } from '@/hooks/useTray';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
 import { useSettingsStore } from '@/store/settingsStore';
+import type { CalDAVConfig } from '@/utils/mobileconfig';
 import { initWebKitDragFix } from './utils/webkit';
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
   const [preloadedFile, setPreloadedFile] = useState<{ name: string; content: string } | null>(
     null,
   );
+  const [preloadedConfig, setPreloadedConfig] = useState<CalDAVConfig | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const { isSyncing, isOffline, lastSyncTime, syncAll } = useSyncQuery();
@@ -83,6 +85,10 @@ function App() {
     onFileDrop: (file) => {
       setPreloadedFile(file);
       menuHandlers.setShowImport(true);
+    },
+    onConfigProfileDrop: (config) => {
+      setPreloadedConfig(config);
+      menuHandlers.setShowAccountModal(true);
     },
   });
 
@@ -185,7 +191,6 @@ function App() {
               <p>You're offline. Changes will sync when you reconnect.</p>
             </div>
           )}
-
           <div className="flex-1 flex min-h-0 overflow-hidden">
             <div
               className={`flex-1 flex flex-col min-w-0 min-h-0 ${isEditorOpen && selectedTask ? 'hidden lg:flex' : ''}`}
@@ -228,7 +233,19 @@ function App() {
         )}
 
         {menuHandlers.showAccountModal && (
-          <AccountModal account={null} onClose={() => menuHandlers.setShowAccountModal(false)} />
+          <AccountModal
+            account={
+              menuHandlers.editingAccountId
+                ? accounts.find((a) => a.id === menuHandlers.editingAccountId) || null
+                : null
+            }
+            preloadedConfig={preloadedConfig || undefined}
+            onClose={() => {
+              menuHandlers.setShowAccountModal(false);
+              menuHandlers.setEditingAccountId(null);
+              setPreloadedConfig(null);
+            }}
+          />
         )}
 
         {menuHandlers.showCreateCalendar && accounts.length > 0 && (

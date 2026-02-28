@@ -5,7 +5,7 @@ interface DragOverlayProps {
 export function DragOverlay({ isUnsupportedFile }: DragOverlayProps) {
   return (
     <div
-      className={`pointer-events-none fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-sm ${
+      className={`pointer-events-none fixed inset-0 z-[80] flex items-center justify-center backdrop-blur-sm ${
         isUnsupportedFile ? 'bg-red-600/10' : 'bg-primary-600/10'
       }`}
     >
@@ -17,8 +17,8 @@ export function DragOverlay({ isUnsupportedFile }: DragOverlayProps) {
         }`}
       >
         {isUnsupportedFile
-          ? 'Unsupported file format. Only .ics and .json files are supported.'
-          : 'Drop .ics or .json files anywhere to import tasks'}
+          ? 'Unsupported file format. Only .ics, .json, and .mobileconfig files are supported.'
+          : 'Drop .ics or .json files to import tasks, or .mobileconfig to add an account'}
       </div>
     </div>
   );

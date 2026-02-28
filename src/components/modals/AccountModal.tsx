@@ -14,25 +14,29 @@ import * as taskData from '@/lib/taskData';
 import type { Account, Calendar, ServerType } from '@/types';
 import { generateTagColor } from '@/utils/color';
 import { generateUUID } from '@/utils/misc';
+import type { CalDAVConfig } from '@/utils/mobileconfig';
 
 const log = createLogger('Account', '#f97316');
 
 interface AccountModalProps {
   account: Account | null;
   onClose: () => void;
+  preloadedConfig?: CalDAVConfig;
 }
 
-export function AccountModal({ account, onClose }: AccountModalProps) {
+export function AccountModal({ account, onClose, preloadedConfig }: AccountModalProps) {
   const queryClient = useQueryClient();
   const { confirm } = useConfirmDialog();
   const createAccountMutation = useCreateAccount();
   const updateAccountMutation = useUpdateAccount();
   const addCalendarMutation = useAddCalendar();
 
-  const [name, setName] = useState(account?.name || '');
-  const [serverUrl, setServerUrl] = useState(account?.serverUrl || '');
-  const [username, setUsername] = useState(account?.username || '');
-  const [password, setPassword] = useState('');
+  const [name, setName] = useState(account?.name || preloadedConfig?.accountName || '');
+  const [serverUrl, setServerUrl] = useState(
+    account?.serverUrl || preloadedConfig?.serverUrl || '',
+  );
+  const [username, setUsername] = useState(account?.username || preloadedConfig?.username || '');
+  const [password, setPassword] = useState(preloadedConfig?.password || '');
   const [serverType, setServerType] = useState<ServerType>(account?.serverType ?? 'generic');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');

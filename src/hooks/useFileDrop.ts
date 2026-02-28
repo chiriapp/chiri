@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
 import { createLogger } from '@/lib/logger';
+import { type CalDAVConfig, parseAppleConfigProfile } from '@/utils/mobileconfig';
 
 const log = createLogger('FileDrop', '#eab308');
 
 // Supported file extensions for import
-const SUPPORTED_EXTENSIONS = ['.ics', '.ical', '.json'];
+const SUPPORTED_EXTENSIONS = ['.ics', '.ical', '.json', '.mobileconfig'];
 
 function isSupportedFile(filename: string): boolean {
   const lower = filename.toLowerCase();
@@ -18,6 +19,7 @@ export interface FileDropResult {
 
 export interface UseFileDropOptions {
   onFileDrop?: (file: FileDropResult) => void;
+  onConfigProfileDrop?: (config: CalDAVConfig) => void;
 }
 
 export interface UseFileDropReturn {
@@ -27,33 +29,26 @@ export interface UseFileDropReturn {
   handleDragOver: (e: React.DragEvent) => void;
   handleDragEnter: (e: React.DragEvent) => void;
   handleDragLeave: (e: React.DragEvent) => void;
+  clearDragState: () => void;
 }
 
 /**
  * Hook for handling file drag and drop functionality
  * Supports .ics, .ical, and .json files for task import
+ * Supports .mobileconfig files for CalDAV account configuration
  */
 export function useFileDrop(options: UseFileDropOptions = {}): UseFileDropReturn {
-  const { onFileDrop } = options;
+  const { onFileDrop, onConfigProfileDrop } = options;
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUnsupportedFile, setIsUnsupportedFile] = useState(false);
 
   // Check if dragged files are supported
+  // Note: In Tauri/WebKit, dataTransfer.items is empty during drag for security reasons
+  // We can only show a generic message listing all supported file types
   const checkDraggedFiles = useCallback((e: React.DragEvent): boolean => {
-    const items = e.dataTransfer?.items;
-    if (!items || items.length === 0) return true; // Default to supported if we can't check
-
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i];
-      if (item.kind === 'file') {
-        // Try to get filename from type or check DataTransferItemList
-        const file = item.getAsFile?.();
-        if (file && !isSupportedFile(file.name)) {
-          return false;
-        }
-      }
-    }
-    return true;
+    const types = e.dataTransfer?.types || [];
+    // Tauri only exposes ["Files"] in types array during drag, no specific file info
+    return types.includes('Files');
   }, []);
 
   // handle file drop for import
@@ -65,11 +60,31 @@ export function useFileDrop(options: UseFileDropOptions = {}): UseFileDropReturn
       setIsUnsupportedFile(false);
 
       const file = e.dataTransfer?.files?.[0];
-      if (!file) return;
+      if (!file) {
+        log.warn('No file in drop event');
+        return;
+      }
 
       // Check if it's a supported file type
       if (!isSupportedFile(file.name)) {
         // Unsupported file - don't do anything (already showed feedback during drag)
+        return;
+      }
+
+      // Check if it's an Apple Configuration Profile
+      const isMobileConfig = file.name.toLowerCase().endsWith('.mobileconfig');
+      if (isMobileConfig) {
+        try {
+          const content = await file.text();
+          const config = parseAppleConfigProfile(content);
+          if (config) {
+            onConfigProfileDrop?.(config);
+          } else {
+            log.warn('Failed to parse Apple Configuration Profile');
+          }
+        } catch (err) {
+          log.error('Failed to read Apple Configuration Profile:', err);
+        }
         return;
       }
 
@@ -99,7 +114,7 @@ export function useFileDrop(options: UseFileDropOptions = {}): UseFileDropReturn
         }
       }
     },
-    [onFileDrop],
+    [onFileDrop, onConfigProfileDrop],
   );
 
   const handleDragOver = useCallback(
@@ -107,7 +122,7 @@ export function useFileDrop(options: UseFileDropOptions = {}): UseFileDropReturn
       e.preventDefault();
       e.stopPropagation();
 
-      // Check if files are supported and update visual feedback
+      // Check if files are being dragged
       const isSupported = checkDraggedFiles(e);
       setIsUnsupportedFile(!isSupported);
 
@@ -143,6 +158,11 @@ export function useFileDrop(options: UseFileDropOptions = {}): UseFileDropReturn
     }
   }, []);
 
+  const clearDragState = useCallback(() => {
+    setIsDragOver(false);
+    setIsUnsupportedFile(false);
+  }, []);
+
   return {
     isDragOver,
     isUnsupportedFile,
@@ -150,5 +170,6 @@ export function useFileDrop(options: UseFileDropOptions = {}): UseFileDropReturn
     handleDragOver,
     handleDragEnter,
     handleDragLeave,
+    clearDragState,
   };
 }
