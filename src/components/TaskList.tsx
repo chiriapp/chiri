@@ -133,7 +133,7 @@ export function TaskList() {
   // truncate task name if too long
   const truncateName = (name: string, maxLength: number = 20): string => {
     if (name.length <= maxLength) return name;
-    return name.substring(0, maxLength - 1) + '…';
+    return `${name.substring(0, maxLength - 1)}…`;
   };
 
   // calculate the max indent allowed at a given position
@@ -291,7 +291,6 @@ export function TaskList() {
       },
     );
   };
-
   const metaKey = getMetaKeyLabel();
   const modifierJoiner = getModifierJoiner();
   const newTaskShortcut = `${metaKey}+${modifierJoiner}N`;
