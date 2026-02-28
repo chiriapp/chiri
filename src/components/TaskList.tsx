@@ -291,6 +291,7 @@ export function TaskList() {
       },
     );
   };
+
   const metaKey = getMetaKeyLabel();
   const modifierJoiner = getModifierJoiner();
   const newTaskShortcut = `${metaKey}+${modifierJoiner}N`;
@@ -309,14 +310,14 @@ export function TaskList() {
         </h3>
         <p className="text-surface-500 dark:text-surface-400 mb-6 max-w-sm">
           {isSearching ? (
-            'No tasks match your search query. Try adjusting your search terms.'
+            'Try adjusting your search terms.'
           ) : (
             <>
-              Create your first task to get started. Press{' '}
+              Click the button below or press{' '}
               <kbd className="px-2 py-1 bg-surface-100 dark:bg-surface-700 rounded text-sm font-mono">
                 {newTaskShortcut}
               </kbd>{' '}
-              or click the button below.
+              to create a new task.
             </>
           )}
         </p>
