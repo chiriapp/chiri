@@ -6,8 +6,7 @@ import EyeOff from 'lucide-react/icons/eye-off';
 import Plus from 'lucide-react/icons/plus';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Search from 'lucide-react/icons/search';
-import WifiOff from 'lucide-react/icons/wifi-off';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '@/components/ComposedInput';
 import { useModalState } from '@/context/modalStateContext';
 import {
@@ -18,7 +17,7 @@ import {
   useSetSortConfig,
   useUIState,
 } from '@/hooks/queries';
-import type { SortMode } from '@/types';
+import type { SortDirection, SortMode } from '@/types';
 import { DEFAULT_SORT_CONFIG, SORT_OPTIONS } from '@/utils/constants';
 import { getMetaKeyLabel, getModifierJoiner } from '../utils/keyboard';
 import { Tooltip } from './Tooltip';
@@ -51,6 +50,7 @@ export function Header({
 
   const { isAnyModalOpen } = useModalState();
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const lastNonManualDirectionRef = useRef<SortDirection>(sortConfig.direction);
   const metaKey = getMetaKeyLabel();
   const modifierJoiner = getModifierJoiner();
   const searchShortcut = `${metaKey}${modifierJoiner}F`;
@@ -79,14 +79,40 @@ export function Header({
   };
 
   const toggleSortDirection = () => {
+    const newDirection = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+    // Save direction preference for non-manual modes
+    if (sortConfig.mode !== 'manual') {
+      lastNonManualDirectionRef.current = newDirection;
+    }
     setSortConfigMutation.mutate({
       ...sortConfig,
-      direction: sortConfig.direction === 'asc' ? 'desc' : 'asc',
+      direction: newDirection,
     });
   };
 
   const handleSortChange = (mode: SortMode) => {
-    setSortConfigMutation.mutate({ ...sortConfig, mode });
+    let direction = sortConfig.direction;
+
+    // save current direction if leaving a non-manual mode
+    if (sortConfig.mode !== 'manual') {
+      lastNonManualDirectionRef.current = sortConfig.direction;
+    }
+
+    // determine direction for new mode
+    if (mode === 'manual') {
+      // manual mode always uses 'asc' (though it's not actually used)
+      direction = 'asc';
+    } else if (sortConfig.mode === 'manual') {
+      // switching from manual to another mode: restore saved direction
+      direction = lastNonManualDirectionRef.current;
+    }
+    // otherwise keep current direction (switching between non-manual modes)
+
+    setSortConfigMutation.mutate({
+      ...sortConfig,
+      mode,
+      direction,
+    });
     setShowSortMenu(false);
   };
 
@@ -182,6 +208,8 @@ export function Header({
 
             {showSortMenu && (
               <>
+                {/* biome-ignore lint/a11y/noStaticElementInteractions: Sort menu backdrop for closing on outside click */}
+                {/* biome-ignore lint/a11y/useKeyWithClickEvents: Sort menu backdrop for closing on outside click */}
                 <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
                 <div
                   data-context-menu-content
@@ -202,23 +230,35 @@ export function Header({
                     </button>
                   ))}
                   <div className="border-t border-surface-200 dark:border-surface-700 my-1" />
-                  <button
-                    type="button"
-                    onClick={toggleSortDirection}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
-                  >
-                    {sortConfig.direction === 'asc' ? (
-                      <>
-                        <SortAsc className="w-4 h-4" />
-                        Ascending
-                      </>
-                    ) : (
-                      <>
-                        <SortDesc className="w-4 h-4" />
-                        Descending
-                      </>
+                  <div className="relative group">
+                    <button
+                      type="button"
+                      onClick={sortConfig.mode === 'manual' ? () => {} : toggleSortDirection}
+                      disabled={sortConfig.mode === 'manual'}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm ${
+                        sortConfig.mode === 'manual'
+                          ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
+                          : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
+                      }`}
+                    >
+                      {sortConfig.direction === 'asc' ? (
+                        <>
+                          <SortAsc className="w-4 h-4" />
+                          Ascending
+                        </>
+                      ) : (
+                        <>
+                          <SortDesc className="w-4 h-4" />
+                          Descending
+                        </>
+                      )}
+                    </button>
+                    {sortConfig.mode === 'manual' && (
+                      <div className="invisible group-hover:visible absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-white bg-surface-900 dark:bg-surface-700 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
+                        Sort direction is not available for manual sorting
+                      </div>
                     )}
-                  </button>
+                  </div>
                 </div>
               </>
             )}
