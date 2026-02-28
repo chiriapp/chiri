@@ -5,6 +5,7 @@ import { createLogger } from '@/lib/logger';
 import type { SortDirection, SortMode } from '@/types';
 import { DEFAULT_SORT_CONFIG } from '@/utils/constants';
 import { MENU_EVENTS } from '@/utils/menu';
+import { isCEF } from '@/utils/platform';
 
 const log = createLogger('Menu', '#0ea5e9');
 
@@ -32,6 +33,13 @@ export function useMenuEvents(callbacks: {
   const { data: uiState } = useUIState();
 
   useEffect(() => {
+    // Skip menu event listeners under CEF - menu IPC causes deadlocks
+    // TODO: Figure out how to support the app menu on macOS under CEF.
+    if (isCEF()) {
+      log.debug('Skipping menu event listeners (CEF runtime)');
+      return;
+    }
+
     let isActive = true;
     const unlistenCallbacks: (() => void)[] = [];
 

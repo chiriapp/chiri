@@ -10,7 +10,14 @@ use tauri::{Manager, RunEvent, WindowEvent};
 use tauri_plugin_log::{Target, TargetKind};
 use tauri_plugin_sql::Builder;
 
+#[cfg_attr(feature = "cef", tauri::cef_entry_point)]
 fn main() {
+    // Initialize default crypto provider for rustls (required for reqwest in CEF)
+    #[cfg(feature = "cef")]
+    {
+        let _ = rustls::crypto::ring::default_provider().install_default();
+    }
+
     let db_migrations = migrations::get_migrations();
 
     tauri::Builder::default()
@@ -58,15 +65,37 @@ fn main() {
             if let WindowEvent::CloseRequested { api, .. } = event {
                 // check if tray is enabled
                 if tray::is_tray_enabled() {
-                    let _ = window.hide();
                     api.prevent_close();
 
-                    // on macOS, hide the dock icon when the window is hidden
-                    #[cfg(target_os = "macos")]
+                    // CEF: spawn hide operation asynchronously to avoid blocking the message loop
+                    #[cfg(feature = "cef")]
                     {
-                        let _ = window
-                            .app_handle()
-                            .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                        let window = window.clone();
+                        std::thread::spawn(move || {
+                            let _ = window.hide();
+
+                            // on macOS, hide the dock icon when the window is hidden
+                            #[cfg(target_os = "macos")]
+                            {
+                                let _ = window
+                                    .app_handle()
+                                    .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                            }
+                        });
+                    }
+
+                    // Wry: can do synchronously
+                    #[cfg(not(feature = "cef"))]
+                    {
+                        let _ = window.hide();
+
+                        // on macOS, hide the dock icon when the window is hidden
+                        #[cfg(target_os = "macos")]
+                        {
+                            let _ = window
+                                .app_handle()
+                                .set_activation_policy(tauri::ActivationPolicy::Accessory);
+                        }
                     }
                 }
                 // if tray is disabled, let the window close normally

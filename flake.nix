@@ -30,6 +30,9 @@
             "rust-src"
             "rust-analyzer"
           ];
+          targets = pkgs.lib.optionals pkgs.stdenv.isDarwin [
+            "x86_64-apple-darwin"
+          ];
         };
 
         # macOS-specific dependencies for dev shell
@@ -80,6 +83,8 @@
               # Build tools
               pkg-config
               openssl
+              cmake
+              ninja
 
               # Tauri dependencies
               libiconv
@@ -95,6 +100,10 @@
             echo "  just dev        - start development server"
             echo "  just build      - build app"
             echo "  nix build       - build app with nix"
+            echo ""
+            echo "CEF build:"
+            echo "  just build-cef  - build with Chromium"
+            echo "  just dev-cef    - dev mode with Chromium"
             echo ""
           '';
 

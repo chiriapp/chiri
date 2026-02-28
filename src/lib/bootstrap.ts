@@ -8,6 +8,7 @@ import { initializeDataStore } from '@/lib/taskData';
 import { useSettingsStore } from '@/store/settingsStore';
 import type { SortMode } from '@/types';
 import { initAppMenu } from '@/utils/menu';
+import { isCEF } from '@/utils/platform';
 import { version as AppVersion } from '../../package.json';
 
 const [currentPlatform, currentArch, currentVersion, currentExtension, currentLocale] =
@@ -51,12 +52,25 @@ export async function initializeApp(): Promise<void> {
   log.debug('Loaded keyboard shortcuts');
 
   // initialize macOS application menu with current state and user shortcuts
-  log.debug('Initializing app menu...');
-  await initAppMenu({
-    showCompleted: uiState.showCompletedTasks,
-    sortMode: menuSortMode,
-    shortcuts,
-  });
+  // Skip under CEF to avoid IPC deadlock
+  // TODO: Figure out how to support the app menu on macOS under CEF.
+  const skipMenu = isCEF();
+  log.debug(
+    `CEF runtime check: ${skipMenu ? 'CEF detected, skipping menu' : 'Not CEF, initializing menu'}`,
+  );
+
+  if (!skipMenu) {
+    log.debug('Initializing app menu...');
+    await initAppMenu({
+      showCompleted: uiState.showCompletedTasks,
+      sortMode: menuSortMode,
+      shortcuts,
+    }).catch((error) => {
+      log.error('Failed to initialize app menu:', error);
+    });
+  } else {
+    log.debug('Skipping app menu initialization (CEF runtime)');
+  }
 
   log.info('Application initialization complete');
 }

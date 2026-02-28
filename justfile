@@ -18,8 +18,14 @@ cargo:
 build:
   pnpm tauri build {{build_args}}
 
+build-cef:
+  cd src-tauri && cargo tauri build --features cef
+
 dev:
   pnpm tauri dev
+
+dev-cef:
+  cd src-tauri && cargo tauri dev --features cef
 
 hash:
   ./nix/update-hashes.sh

@@ -21,7 +21,7 @@ tauri-plugin-sql = { version = "2", features = ["sqlite"] }
 tauri-plugin-log = { version = "2", features = ["colored"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-lazy_static = "1.4"
+lazy_static = "1.5.0"
 tauri-plugin-process = "2"
 tauri-plugin-os = "2"
 log = "0.4"
@@ -31,6 +31,32 @@ tauri-plugin-updater = "2.9.0"
 [features]
 default = []
 custom-protocol = ["tauri/custom-protocol"]
+cef = ["tauri/cef", "dep:rustls"]
+
+[dependencies.rustls]
+version = "0.23"
+features = ["ring"]
+optional = true
+
+[patch.crates-io]
+tauri = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
+tauri-build = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
+tauri-plugin = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
+tauri-utils = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
+tauri-macros = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
+tauri-runtime = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
+tauri-runtime-wry = { git = "https://github.com/tauri-apps/tauri", branch = "feat/cef" }
+tauri-plugin-shell = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-http = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-dialog = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-fs = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-notification = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-sql = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-process = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-os = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-opener = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
+tauri-plugin-updater = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "feat/cef" }
 
 [profile.dev]
 incremental = true # Compile your binary in smaller steps.
@@ -38,6 +64,6 @@ incremental = true # Compile your binary in smaller steps.
 [profile.release]
 codegen-units = 1     # Allows LLVM to perform better optimization.
 lto = true            # Enables link-time-optimizations.
-opt-level = "s"      # Prioritizes small binary size. Use `3` if you prefer speed.
+opt-level = "z"      # Prioritizes small binary size. Use `3` if you prefer speed.
 panic = "abort"       # Higher performance by disabling panic handlers.
 strip = true          # Ensures debug symbols are removed.
