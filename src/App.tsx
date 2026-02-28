@@ -78,6 +78,7 @@ function App() {
     handleDragOver,
     handleDragEnter,
     handleDragLeave,
+    clearDragState,
   } = useFileDrop({
     onFileDrop: (file) => {
       setPreloadedFile(file);
@@ -215,6 +216,7 @@ function App() {
           isOpen={menuHandlers.showImport}
           onClose={handleImportClose}
           preloadedFile={preloadedFile}
+          onFileDrop={clearDragState}
         />
 
         {menuHandlers.showExport && (

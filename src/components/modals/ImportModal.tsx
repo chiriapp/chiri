@@ -18,9 +18,10 @@ interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   preloadedFile?: { name: string; content: string } | null;
+  onFileDrop?: () => void;
 }
 
-export function ImportModal({ isOpen, onClose, preloadedFile }: ImportModalProps) {
+export function ImportModal({ isOpen, onClose, preloadedFile, onFileDrop }: ImportModalProps) {
   const { data: accounts = [] } = useAccounts();
   const createTaskMutation = useCreateTask();
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
@@ -193,6 +194,9 @@ export function ImportModal({ isOpen, onClose, preloadedFile }: ImportModalProps
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Notify parent that a drop occurred so it can reset drag state
+    onFileDrop?.();
 
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
