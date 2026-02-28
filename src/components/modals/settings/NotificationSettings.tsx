@@ -1,5 +1,5 @@
-import { useSettingsStore } from '@/store/settingsStore';
-import { isMacPlatform } from '@/utils/misc';
+import { useSettingsStore } from '@/context/settingsContext';
+import { isMacPlatform } from '@/utils/platform';
 
 export function NotificationSettings() {
   const { notifications, setNotifications } = useSettingsStore();

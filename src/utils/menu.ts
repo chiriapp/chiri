@@ -9,7 +9,7 @@ import {
 } from '@tauri-apps/api/menu';
 import { loggers } from '@/lib/logger';
 import type { KeyboardShortcut, SortMode } from '@/types';
-import { isMacPlatform } from './misc';
+import { isMacPlatform } from './platform';
 
 const log = loggers.menu;
 

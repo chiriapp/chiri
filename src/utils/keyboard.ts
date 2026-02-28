@@ -1,5 +1,5 @@
 import type { KeyboardShortcut } from '@/types';
-import { isMacPlatform } from './misc';
+import { isMacPlatform } from './platform';
 
 export function getMetaKeyLabel(): string {
   return isMacPlatform() ? '⌘' : 'Ctrl';
