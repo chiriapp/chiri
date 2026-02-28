@@ -175,12 +175,12 @@ export function Header({
                 type="button"
                 onClick={onSync}
                 disabled={isSyncing || isOffline || disableSync}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`p-2 rounded-lg border text-sm transition-colors ${
                   isSyncing
-                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 cursor-not-allowed'
+                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-400 cursor-not-allowed'
                     : isOffline || disableSync
-                      ? 'text-surface-300 dark:text-surface-600 cursor-not-allowed'
-                      : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
+                      ? 'text-surface-300 dark:text-surface-600 border-transparent cursor-not-allowed'
+                      : `text-surface-500 dark:text-surface-400 border-transparent ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
                 }`}
               >
                 <RefreshCw className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
@@ -195,10 +195,10 @@ export function Header({
             <button
               type="button"
               onClick={() => setShowCompletedTasksMutation.mutate(!showCompletedTasks)}
-              className={`p-2 rounded-lg transition-colors ${
+              className={`p-2 rounded-lg border text-sm transition-colors ${
                 showCompletedTasks
-                  ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                  : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
+                  ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 border-primary-400'
+                  : `text-surface-500 dark:text-surface-400 border-transparent ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
               }`}
             >
               {showCompletedTasks ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
@@ -210,7 +210,7 @@ export function Header({
               <button
                 type="button"
                 onClick={() => setShowSortMenu(!showSortMenu)}
-                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex items-center border border-transparent gap-1 px-3 py-2 rounded-lg text-sm transition-colors ${
                   showSortMenu
                     ? 'bg-surface-200 dark:bg-surface-600 text-surface-700 dark:text-surface-200'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
