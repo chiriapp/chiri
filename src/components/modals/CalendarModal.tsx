@@ -162,26 +162,34 @@ export function CalendarModal({ calendar, accountId, onClose }: CalendarModalPro
             <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
               Color
             </p>
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap gap-2">
               {COLOR_PRESETS.map((preset) => (
                 <button
                   key={preset}
                   type="button"
                   onClick={() => setColor(preset)}
-                  className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    color === preset
-                      ? 'border-surface-800 dark:border-white scale-110'
-                      : 'border-transparent hover:scale-105'
-                  }`}
+                  className={`
+                    w-8 h-8 rounded-full transition-all
+                    ${color === preset ? 'ring-2 ring-offset-2 dark:ring-offset-surface-800 ring-primary-500 scale-110' : 'hover:scale-110'}
+                  `}
                   style={{ backgroundColor: preset }}
                 />
               ))}
+            </div>
+
+            <div className="mt-3 flex items-center gap-2">
               <input
                 type="color"
                 value={color}
                 onChange={(e) => setColor(e.target.value)}
-                className="w-8 h-8 rounded cursor-pointer"
-                title="Custom color"
+                className="w-10 h-10 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 flex items-center justify-center hover:border-surface-300 dark:hover:border-surface-500 transition-colors cursor-pointer [&::-webkit-color-swatch-wrapper]:p-2 [&::-webkit-color-swatch]:rounded-full"
+              />
+              <ComposedInput
+                type="text"
+                value={color}
+                onChange={setColor}
+                placeholder={FALLBACK_ITEM_COLOR}
+                className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
               />
             </div>
           </div>
