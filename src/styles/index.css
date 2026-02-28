@@ -59,13 +59,13 @@ input[type="datetime-local"] {
   color-scheme: light;
 }
 
-/* prevent text selection on UI elements (buttons, headers, etc.) but allow on content */
-button,
-.no-select {
+/* Prevent text selection on all UI elements by default, only allow in input fields */
+* {
   user-select: none;
   -webkit-user-select: none;
 }
 
+/* Explicitly allow selection only in input fields and editable content */
 input,
 textarea,
 [contenteditable="true"],
