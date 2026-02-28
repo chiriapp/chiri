@@ -1,3 +1,4 @@
+import { WifiOff } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { DragOverlay } from '@/components/DragOverlay';
 import { Header } from '@/components/Header';
@@ -138,12 +139,6 @@ function App() {
       />
 
       <main className="flex-1 flex flex-col min-w-0">
-        {isOffline && (
-          <div className="bg-amber-500 text-white text-center py-1 text-sm font-medium">
-            You're offline. Changes will sync when you reconnect.
-          </div>
-        )}
-
         <Header
           isSyncing={isSyncing}
           onSync={syncAll}
@@ -151,6 +146,13 @@ function App() {
           isOffline={isOffline}
           lastSyncTime={lastSyncTime}
         />
+
+        {isOffline && (
+          <div className="flex flex-row items-center text-center justify-center gap-2 p-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+            <WifiOff className="w-5 h-5" />
+            <p>You're offline. Changes will sync when you reconnect.</p>
+          </div>
+        )}
 
         <div className="flex-1 flex min-h-0 overflow-hidden">
           <div

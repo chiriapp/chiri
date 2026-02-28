@@ -132,13 +132,6 @@ export function Header({
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          {isOffline && (
-            <div className="flex items-center gap-1 px-2 py-1 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 rounded-lg text-sm">
-              <WifiOff className="w-4 h-4" />
-              <span className="hidden sm:inline">Offline</span>
-            </div>
-          )}
-
           {onSync && (
             <Tooltip
               content={

@@ -64,17 +64,19 @@ export function useSyncQuery() {
   const autoSyncIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get current accounts from data layer
-  const getAccounts = () => taskData.getAllAccounts();
+  const syncAllRef = useRef<(() => Promise<void>) | null>(null);
 
   // Handle online/offline status
-  const { isOffline } = useOffline({
+  const { isOffline, isOfflineRef } = useOffline({
     onOnline: () => {
       log.info('Back online, triggering sync...');
-      pendingSyncRef.current = true;
-      syncAll();
+      if (syncAllRef.current) {
+        pendingSyncRef.current = true;
+        syncAllRef.current();
+      }
     },
     onOffline: () => {
-      log.info('Going offline, changes will be synced when back online');
+      log.info('Going offline');
     },
   });
 
@@ -355,8 +357,8 @@ export function useSyncQuery() {
    * Sync all calendars for all accounts
    */
   const syncAll = useCallback(async () => {
-    // Skip if offline
-    if (!navigator.onLine) {
+    // Skip if offline (use ref for immediate read, not state which may be stale)
+    if (isOfflineRef.current) {
       log.info('Skipping sync - offline');
       setLastSyncError('You are offline. Changes will sync when you reconnect.');
       return;
@@ -407,7 +409,7 @@ export function useSyncQuery() {
       setIsSyncing(false);
       setLastSyncTime(new Date());
     }
-  }, [reconnectAccounts, syncCalendar, syncCalendarsForAccount]);
+  }, [reconnectAccounts, syncCalendar, syncCalendarsForAccount, isOfflineRef]);
 
   /**
    * Push a task to the server
