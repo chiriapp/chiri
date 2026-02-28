@@ -23,6 +23,7 @@ import {
   useSetActiveCalendar,
   useSetActiveTag,
   useSetAllTasksView,
+  useSyncQuery,
   useTags,
   useTasks,
   useUIState,
@@ -75,6 +76,7 @@ export function Sidebar({
   const setAllTasksViewMutation = useSetAllTasksView();
 
   const { handleDeleteAccount, handleDeleteTag, handleDeleteCalendar } = useDeleteHandlers();
+  const { syncCalendar, syncingCalendarId } = useSyncQuery();
 
   const activeCalendarId = uiState?.activeCalendarId ?? null;
   const activeTagId = uiState?.activeTagId ?? null;
@@ -877,18 +879,21 @@ export function Sidebar({
             <>
               <button
                 type="button"
-                onClick={() => {
-                  // trigger sync for this calendar
-                  if (contextMenu.accountId) {
-                    setActiveAccountMutation.mutate(contextMenu.accountId);
-                  }
-                  setActiveCalendarMutation.mutate(contextMenu.id);
+                onClick={async () => {
                   handleCloseContextMenu();
+                  syncCalendar(contextMenu.id);
                 }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+                disabled={syncingCalendarId === contextMenu.id}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
+                  syncingCalendarId === contextMenu.id
+                    ? 'text-surface-400 dark:text-surface-500 cursor-not-allowed'
+                    : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
+                }`}
               >
-                <RefreshCw className="w-4 h-4" />
-                Sync
+                <RefreshCw
+                  className={`w-4 h-4 ${syncingCalendarId === contextMenu.id ? 'animate-spin' : ''}`}
+                />
+                {syncingCalendarId === contextMenu.id ? 'Syncing...' : 'Sync'}
               </button>
 
               <div className="border-t border-surface-200 dark:border-surface-700" />
