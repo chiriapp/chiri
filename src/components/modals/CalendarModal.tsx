@@ -7,6 +7,7 @@ import { useModalEscapeKey } from '@/hooks/useModalEscapeKey';
 import { caldavService } from '@/lib/caldav';
 import type { Calendar } from '@/types';
 import { COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '@/utils/constants';
+import { getIconByName } from '../../data/icons';
 import { IconEmojiPicker } from '../IconEmojiPicker';
 
 interface CalendarModalProps {
@@ -26,6 +27,8 @@ export function CalendarModal({ calendar, accountId, onClose }: CalendarModalPro
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
+
+  const IconComponent = getIconByName(icon);
 
   // handle ESC key to close modal
   useModalEscapeKey(onClose);
@@ -181,6 +184,27 @@ export function CalendarModal({ calendar, accountId, onClose }: CalendarModalPro
                 title="Custom color"
               />
             </div>
+          </div>
+
+          <div className="pt-2">
+            <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Preview
+            </p>
+            <span
+              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border"
+              style={{
+                borderColor: color,
+                backgroundColor: `${color}15`,
+                color: color,
+              }}
+            >
+              {emoji ? (
+                <span className="text-sm">{emoji}</span>
+              ) : (
+                <IconComponent className="w-3.5 h-3.5" />
+              )}
+              {displayName ?? 'My Calendar'}
+            </span>
           </div>
 
           {warning && (
