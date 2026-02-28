@@ -46,6 +46,7 @@ import { DatePickerModal } from './modals/DatePickerModal';
 import { ReminderPickerModal } from './modals/ReminderPickerModal';
 import { TagPickerModal } from './modals/TagPickerModal';
 import { SubtaskTreeItem } from './SubtaskTreeItem';
+import { Tooltip } from './Tooltip';
 
 interface TaskEditorProps {
   task: Task;
@@ -286,14 +287,16 @@ export function TaskEditor({ task }: TaskEditorProps) {
       <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
         <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Edit Task</h2>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="p-2 text-surface-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-            title="Delete task"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
+          <Tooltip content="Delete" position="bottom">
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="p-2 text-surface-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+              aria-label="Delete task"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </Tooltip>
 
           <button
             type="button"
