@@ -6,7 +6,6 @@ import { getUIState } from '@/lib/database';
 import { createLogger, initLogger } from '@/lib/logger';
 import { initializeDataStore } from '@/lib/taskData';
 import { useSettingsStore } from '@/store/settingsStore';
-import type { SortMode } from '@/types';
 import { initAppMenu } from '@/utils/menu';
 import { isCEF } from '@/utils/platform';
 import { version as AppVersion } from '../../package.json';
@@ -34,6 +33,7 @@ export async function initializeApp(): Promise<void> {
   log.debug('Initializing system tray...');
   const { invoke } = await import('@tauri-apps/api/core');
   const enableSystemTray = useSettingsStore.getState().enableSystemTray;
+
   try {
     await invoke('initialize_tray', { enabled: enableSystemTray });
     log.debug(`System tray initialized (enabled: ${enableSystemTray})`);
@@ -46,7 +46,6 @@ export async function initializeApp(): Promise<void> {
   log.debug('Getting UI state...');
   const uiState = await getUIState();
   const sortMode = uiState.sortConfig?.mode ?? 'manual';
-  const menuSortMode: SortMode = sortMode === 'start-date' ? 'manual' : sortMode;
 
   const shortcuts = useSettingsStore.getState().keyboardShortcuts;
   log.debug('Loaded keyboard shortcuts');
@@ -63,7 +62,7 @@ export async function initializeApp(): Promise<void> {
     log.debug('Initializing app menu...');
     await initAppMenu({
       showCompleted: uiState.showCompletedTasks,
-      sortMode: menuSortMode,
+      sortMode,
       shortcuts,
     }).catch((error) => {
       log.error('Failed to initialize app menu:', error);
