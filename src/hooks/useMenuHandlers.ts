@@ -18,6 +18,7 @@ export function useMenuHandlers() {
   const [showImport, setShowImport] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
   const [showCreateCalendar, setShowCreateCalendar] = useState(false);
 
   const createTaskMutation = useCreateTask();
@@ -32,6 +33,7 @@ export function useMenuHandlers() {
   const onOpenImportRef = useRef<(() => void) | null>(null);
   const onOpenExportRef = useRef<(() => void) | null>(null);
   const onOpenAccountRef = useRef<(() => void) | null>(null);
+  const onEditAccountRef = useRef<((accountId: string) => void) | null>(null);
   const onOpenCreateCalendarRef = useRef<(() => void) | null>(null);
   const onSearchRef = useRef<(() => void) | null>(null);
   const onOpenAboutRef = useRef<(() => void) | null>(null);
@@ -66,6 +68,12 @@ export function useMenuHandlers() {
   }, []);
 
   const handleOpenAccount = useCallback(() => {
+    setEditingAccountId(null);
+    setShowAccountModal(true);
+  }, []);
+
+  const handleEditAccount = useCallback((accountId: string) => {
+    setEditingAccountId(accountId);
     setShowAccountModal(true);
   }, []);
 
@@ -117,6 +125,7 @@ export function useMenuHandlers() {
   onOpenSettingsRef.current = handleOpenSettings;
   onOpenImportRef.current = handleOpenImport;
   onOpenExportRef.current = handleOpenExport;
+  onEditAccountRef.current = handleEditAccount;
   onOpenAccountRef.current = handleOpenAccount;
   onOpenCreateCalendarRef.current = handleOpenCreateCalendar;
   onSearchRef.current = handleSearch;
@@ -130,6 +139,7 @@ export function useMenuHandlers() {
     onNewTask: onNewTaskRef,
     onOpenSettings: onOpenSettingsRef,
     onOpenImport: onOpenImportRef,
+    onEditAccount: onEditAccountRef,
     onOpenExport: onOpenExportRef,
     onOpenAccount: onOpenAccountRef,
     onOpenCreateCalendar: onOpenCreateCalendarRef,
@@ -146,6 +156,7 @@ export function useMenuHandlers() {
     showImport,
     showExport,
     showAccountModal,
+    editingAccountId,
     showCreateCalendar,
     settingsInitialTab,
 
@@ -154,6 +165,7 @@ export function useMenuHandlers() {
     setShowImport,
     setShowExport,
     setShowAccountModal,
+    setEditingAccountId,
     setShowCreateCalendar,
     setSettingsInitialTab,
 

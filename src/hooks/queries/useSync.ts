@@ -4,7 +4,9 @@
  */
 
 import { useQueryClient } from '@tanstack/react-query';
+import { emit } from '@tauri-apps/api/event';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toastManager } from '@/hooks/useToast.tsx';
 import { caldavService } from '@/lib/caldav';
 import { createLogger } from '@/lib/logger';
 import { queryKeys } from '@/lib/queryClient';
@@ -12,46 +14,10 @@ import * as taskData from '@/lib/taskData';
 import { useSettingsStore } from '@/store/settingsStore';
 import type { Calendar, Task } from '@/types';
 import { generateTagColor } from '@/utils/color';
+import { MENU_EVENTS } from '@/utils/menu';
 import { useOffline } from '../useOffline';
 
 const log = createLogger('Sync', '#06b6d4');
-
-// Check if we're in a Tauri environment
-const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
-
-async function showSyncErrorNotification(
-  calendarName: string,
-  errorMessage: string,
-): Promise<void> {
-  if (isTauri) {
-    try {
-      const notification = await import('@tauri-apps/plugin-notification');
-      const { isPermissionGranted, requestPermission, sendNotification } = notification;
-
-      let permissionGranted = await isPermissionGranted();
-      if (!permissionGranted) {
-        const permission = await requestPermission();
-        permissionGranted = permission === 'granted';
-      }
-
-      if (permissionGranted) {
-        sendNotification({
-          title: `Sync Failed: ${calendarName}`,
-          body: errorMessage,
-        });
-      }
-    } catch (error) {
-      log.error('Failed to show sync error notification:', error);
-    }
-  } else {
-    // Browser fallback
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(`Sync Failed: ${calendarName}`, {
-        body: errorMessage,
-      });
-    }
-  }
-}
 
 export function useSyncQuery() {
   const queryClient = useQueryClient();
@@ -91,7 +57,19 @@ export function useSyncQuery() {
           await caldavService.reconnect(account);
           log.info(`Reconnected to account: ${account.name}`);
         } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           log.error(`Failed to reconnect account ${account.name}:`, error);
+          toastManager.error(
+            `Account sync failed: ${account.name}`,
+            errorMessage,
+            `sync-error-account-${account.id}`,
+            {
+              label: 'Edit Account',
+              onClick: () => {
+                emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
+              },
+            },
+          );
         }
       }
     }
@@ -111,7 +89,19 @@ export function useSyncQuery() {
         await caldavService.reconnect(account);
       }
 
-      const remoteCalendars = await caldavService.fetchCalendars(accountId);
+      let remoteCalendars: Calendar[];
+      try {
+        remoteCalendars = await caldavService.fetchCalendars(accountId);
+      } catch (error) {
+        log.error(`Failed to fetch calendars for ${account.name}:`, error);
+        toastManager.error(
+          'Calendar Sync Error',
+          `Could not fetch calendars from "${account.name}". Server returned ${error instanceof Error ? error.message : 'an error'}.`,
+          'calendar-fetch-error',
+        );
+        return; // skip calendar sync to avoid deleting calendars based on failed fetch
+      }
+
       log.info(`Found ${remoteCalendars.length} calendars on server for ${account.name}`);
 
       const localCalendars = account.calendars;
@@ -152,15 +142,22 @@ export function useSyncQuery() {
       const currentUIState = taskData.getUIState();
       let needsRedirectToAllTasks = false;
 
-      // Remove calendars that were deleted on server
+      // remove calendars that were deleted on server
       for (const localCalendar of localCalendars) {
         if (!remoteCalendarIds.has(localCalendar.id)) {
+          log.warn(
+            `Calendar "${localCalendar.displayName}" (${localCalendar.id}) not found on server. Removing locally.`,
+          );
+
           // check if this was the active calendar
           if (currentUIState.activeCalendarId === localCalendar.id) {
             needsRedirectToAllTasks = true;
           }
-          // Remove tasks for this calendar
+
+          // remove tasks for this calendar
           const tasks = taskData.getTasksByCalendar(localCalendar.id);
+          log.warn(`Deleting ${tasks.length} tasks from calendar "${localCalendar.displayName}"`);
+
           for (const task of tasks) {
             taskData.deleteTask(task.id);
           }
@@ -199,6 +196,7 @@ export function useSyncQuery() {
       name: tagName,
       color: generateTagColor(tagName),
     });
+
     return newTag.id;
   }, []);
 
@@ -235,7 +233,10 @@ export function useSyncQuery() {
           await caldavService.deleteTask(account.id, { href: deletion.href } as any);
           taskData.clearPendingDeletion(deletion.uid);
         } catch (error) {
-          log.error(`Failed to delete task from server:`, error);
+          log.error(
+            `Failed to delete task from calendar ${calendar.displayName} from server:`,
+            error,
+          );
           // Still clear the pending deletion to avoid infinite retries
           taskData.clearPendingDeletion(deletion.uid);
         }
@@ -259,16 +260,39 @@ export function useSyncQuery() {
             // Create new task on server
             const result = await caldavService.createTask(account.id, calendar, task);
             if (result) {
-              taskData.updateTask(task.id, { href: result.href, etag: result.etag, synced: true });
+              taskData.updateTask(task.id, {
+                href: result.href,
+                etag: result.etag,
+                synced: true,
+              });
             }
           }
         } catch (error) {
-          log.error(`Failed to push task ${task.title}:`, error);
+          log.error(
+            `Failed to push task ${task.title} to calendar ${calendar.displayName}:`,
+            error,
+          );
         }
       }
 
       // STEP 2: Fetch tasks from server
       const remoteTasks = await caldavService.fetchTasks(account.id, calendar);
+
+      // If fetchTasks returns null, it indicates a server error (not just empty)
+      // We can't trust the response, so skip the comparison/deletion logic
+      // But we already pushed local changes above, so new tasks are safe
+      if (remoteTasks === null) {
+        log.warn(
+          `Failed to fetch tasks from ${calendar.displayName}. Local changes were pushed successfully, but skipping server comparison to prevent data loss.`,
+        );
+        toastManager.error(
+          'Partial Sync',
+          `Pushed changes to "${calendar.displayName}", but could not verify server state. Your local tasks are safe.`,
+          'sync-fetch-error',
+        );
+        return; // Exit early, preserve local tasks (but pushes already happened)
+      }
+
       log.info(`Fetched ${remoteTasks.length} tasks from ${calendar.displayName}`);
 
       // Re-get local tasks (may have been updated by push)
@@ -381,7 +405,17 @@ export function useSyncQuery() {
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
           log.error(`Failed to sync calendars for ${account.name}:`, error);
-          await showSyncErrorNotification(account.name, errorMessage);
+          toastManager.error(
+            `Account sync failed: ${account.name}`,
+            errorMessage,
+            `sync-error-account-${account.id}`,
+            {
+              label: 'Edit Account',
+              onClick: () => {
+                emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
+              },
+            },
+          );
         }
       }
 
@@ -396,7 +430,17 @@ export function useSyncQuery() {
           } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             log.error(`Failed to sync calendar ${calendar.displayName}:`, error);
-            await showSyncErrorNotification(calendar.displayName, errorMessage);
+            toastManager.error(
+              `Calendar sync failed: ${calendar.displayName}`,
+              errorMessage,
+              `sync-error-calendar-${calendar.id}`,
+              {
+                label: 'Edit Account',
+                onClick: () => {
+                  emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
+                },
+              },
+            );
           }
         }
       }
@@ -404,7 +448,7 @@ export function useSyncQuery() {
       const message = error instanceof Error ? error.message : 'Sync failed';
       setLastSyncError(message);
       log.error('Sync error:', error);
-      await showSyncErrorNotification('Sync', message);
+      toastManager.error('Sync Failed', message, 'sync-error');
     } finally {
       setIsSyncing(false);
       setLastSyncTime(new Date());

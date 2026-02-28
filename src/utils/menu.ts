@@ -8,8 +8,7 @@ import {
   Submenu,
 } from '@tauri-apps/api/menu';
 import { loggers } from '@/lib/logger';
-import type { KeyboardShortcut } from '@/store/settingsStore';
-import type { SortMode } from '@/types';
+import type { KeyboardShortcut, SortMode } from '@/types';
 import { isMacPlatform } from './misc';
 
 const log = loggers.menu;
@@ -20,6 +19,7 @@ export const MENU_EVENTS = {
   SYNC: 'menu:sync',
   PREFERENCES: 'menu:preferences',
   ADD_ACCOUNT: 'menu:add-account',
+  EDIT_ACCOUNT: 'menu:edit-account',
   ADD_CALENDAR: 'menu:add-calendar',
   IMPORT_TASKS: 'menu:import-tasks',
   EXPORT_TASKS: 'menu:export-tasks',
@@ -43,6 +43,7 @@ const menuItemRefs: {
   toggleCompleted?: CheckMenuItem;
   sortManual?: MenuItem;
   sortSmart?: MenuItem;
+  sortStartDate?: MenuItem;
   sortDueDate?: MenuItem;
   sortPriority?: MenuItem;
   sortTitle?: MenuItem;

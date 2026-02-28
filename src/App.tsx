@@ -1,5 +1,6 @@
 import { WifiOff } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { Toaster } from 'sonner';
 import { DragOverlay } from '@/components/DragOverlay';
 import { Header } from '@/components/Header';
 import { AccountModal } from '@/components/modals/AccountModal';
@@ -54,7 +55,7 @@ function App() {
 
   // system tray integration (sync button, status updates)
   useTray({
-    isSyncing,
+    isSyncing: isSyncing,
     lastSyncTime,
     onSyncRequest: syncAll,
   });
@@ -121,121 +122,151 @@ function App() {
   };
 
   return (
-    <div
-      role="application"
-      className="flex h-screen bg-surface-50 dark:bg-surface-900 overflow-hidden"
-      onContextMenu={handleContextMenu}
-      onDrop={handleFileDrop}
-      onDragOver={handleDragOver}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-    >
-      {isDragOver && <DragOverlay isUnsupportedFile={isUnsupportedFile} />}
-
-      <Sidebar
-        onOpenSettings={menuHandlers.handleOpenSettings}
-        onOpenImport={() => menuHandlers.setShowImport(true)}
-        isCollapsed={sidebarCollapsed}
-        width={sidebarWidth}
-        onToggleCollapse={toggleSidebarCollapsed}
-        onWidthChange={setSidebarWidth}
-        updateAvailable={!!updateAvailable}
-        onUpdateClick={() => setShowUpdateModal(true)}
+    <>
+      <Toaster
+        position="bottom-right"
+        expand={false}
+        closeButton
+        style={{ zIndex: 40 }}
+        toastOptions={{
+          classNames: {
+            toast:
+              'group !bg-white dark:!bg-surface-800 !border !border-surface-200 dark:!border-surface-700 !shadow-lg !rounded-lg',
+            title: '!text-surface-900 dark:!text-surface-100 !font-semibold',
+            description: '!text-surface-600 dark:!text-surface-400',
+            actionButton: '!bg-primary-500 hover:!bg-primary-600 !text-white !border-0 !rounded-md',
+            cancelButton:
+              '!bg-surface-100 dark:!bg-surface-700 hover:!bg-surface-200 dark:hover:!bg-surface-600 !text-surface-700 dark:!text-surface-300 !border-0 !rounded-md',
+            closeButton:
+              '!bg-surface-100 dark:!bg-surface-700 hover:!bg-surface-200 dark:hover:!bg-surface-600 !text-surface-500 dark:!text-surface-400 !border !border-surface-200 dark:!border-surface-600 !rounded-md',
+            success: '!text-green-600 dark:!text-green-500',
+            error: '!text-red-600 dark:!text-red-500',
+            warning: '!text-amber-600 dark:!text-amber-500',
+            info: '!text-blue-600 dark:!text-blue-500',
+          },
+        }}
       />
 
-      <main className="flex-1 flex flex-col min-w-0">
-        <Header
-          isSyncing={isSyncing}
-          onSync={syncAll}
-          disableSync={accounts.length === 0}
-          isOffline={isOffline}
-          lastSyncTime={lastSyncTime}
+      <div
+        role="application"
+        className="flex h-screen bg-surface-50 dark:bg-surface-900 overflow-hidden"
+        onContextMenu={handleContextMenu}
+        onDrop={handleFileDrop}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+      >
+        {isDragOver && <DragOverlay isUnsupportedFile={isUnsupportedFile} />}
+
+        <Sidebar
+          onOpenSettings={menuHandlers.handleOpenSettings}
+          onOpenImport={() => menuHandlers.setShowImport(true)}
+          isCollapsed={sidebarCollapsed}
+          width={sidebarWidth}
+          onToggleCollapse={toggleSidebarCollapsed}
+          onWidthChange={setSidebarWidth}
+          updateAvailable={!!updateAvailable}
+          onUpdateClick={() => setShowUpdateModal(true)}
         />
 
-        {isOffline && (
-          <div className="flex flex-row items-center text-center justify-center gap-2 p-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
-            <WifiOff className="w-5 h-5" />
-            <p>You're offline. Changes will sync when you reconnect.</p>
-          </div>
-        )}
+        <main className="flex-1 flex flex-col min-w-0">
+          <Header
+            isSyncing={isSyncing}
+            onSync={syncAll}
+            disableSync={accounts.length === 0}
+            isOffline={isOffline}
+            lastSyncTime={lastSyncTime}
+          />
 
-        <div className="flex-1 flex min-h-0 overflow-hidden">
-          <div
-            className={`flex-1 flex flex-col min-w-0 min-h-0 ${isEditorOpen && selectedTask ? 'hidden lg:flex' : ''}`}
-          >
-            <TaskList />
-          </div>
-
-          {isEditorOpen && selectedTask && (
-            <div className="w-full lg:w-[400px] flex-shrink-0 border-l border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 overflow-hidden">
-              <TaskEditor task={selectedTask} />
+          {isOffline && (
+            <div className="flex flex-row items-center text-center justify-center gap-2 p-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
+              <WifiOff className="w-5 h-5" />
+              <p>You're offline. Changes will sync when you reconnect.</p>
             </div>
           )}
-        </div>
-      </main>
 
-      {menuHandlers.showSettings && (
-        <SettingsModal
-          onClose={() => {
-            menuHandlers.setShowSettings(false);
-            menuHandlers.setSettingsInitialTab({});
-          }}
-          initialCategory={menuHandlers.settingsInitialTab.category}
-          initialSubtab={menuHandlers.settingsInitialTab.subtab}
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+            <div
+              className={`flex-1 flex flex-col min-w-0 min-h-0 ${isEditorOpen && selectedTask ? 'hidden lg:flex' : ''}`}
+            >
+              <TaskList />
+            </div>
+
+            {isEditorOpen && selectedTask && (
+              <div className="w-full lg:w-[400px] flex-shrink-0 border-l border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 overflow-hidden">
+                <TaskEditor task={selectedTask} />
+              </div>
+            )}
+          </div>
+        </main>
+
+        {menuHandlers.showSettings && (
+          <SettingsModal
+            onClose={() => {
+              menuHandlers.setShowSettings(false);
+              menuHandlers.setSettingsInitialTab({});
+            }}
+            initialCategory={menuHandlers.settingsInitialTab.category}
+            initialSubtab={menuHandlers.settingsInitialTab.subtab}
+          />
+        )}
+
+        <ImportModal
+          isOpen={menuHandlers.showImport}
+          onClose={handleImportClose}
+          preloadedFile={preloadedFile}
         />
-      )}
 
-      <ImportModal
-        isOpen={menuHandlers.showImport}
-        onClose={handleImportClose}
-        preloadedFile={preloadedFile}
-      />
+        {menuHandlers.showExport && (
+          <ExportModal
+            tasks={tasks}
+            type="tasks"
+            onClose={() => menuHandlers.setShowExport(false)}
+          />
+        )}
 
-      {menuHandlers.showExport && (
-        <ExportModal tasks={tasks} type="tasks" onClose={() => menuHandlers.setShowExport(false)} />
-      )}
+        {menuHandlers.showAccountModal && (
+          <AccountModal account={null} onClose={() => menuHandlers.setShowAccountModal(false)} />
+        )}
 
-      {menuHandlers.showAccountModal && (
-        <AccountModal account={null} onClose={() => menuHandlers.setShowAccountModal(false)} />
-      )}
+        {menuHandlers.showCreateCalendar && accounts.length > 0 && (
+          <CreateCalendarModal
+            accountId={accounts[0].id}
+            onClose={() => menuHandlers.setShowCreateCalendar(false)}
+          />
+        )}
 
-      {menuHandlers.showCreateCalendar && accounts.length > 0 && (
-        <CreateCalendarModal
-          accountId={accounts[0].id}
-          onClose={() => menuHandlers.setShowCreateCalendar(false)}
-        />
-      )}
+        {menuHandlers.showCreateCalendar &&
+          accounts.length === 0 &&
+          (() => {
+            menuHandlers.setShowCreateCalendar(false);
+            return null;
+          })()}
 
-      {menuHandlers.showCreateCalendar &&
-        accounts.length === 0 &&
-        (() => {
-          menuHandlers.setShowCreateCalendar(false);
-          return null;
-        })()}
+        {showOnboarding && (
+          <OnboardingModal
+            onComplete={() => setShowOnboarding(false)}
+            onAddAccount={() => {
+              menuHandlers.setShowAccountModal(true);
+            }}
+          />
+        )}
 
-      {showOnboarding && (
-        <OnboardingModal
-          onComplete={() => setShowOnboarding(false)}
-          onAddAccount={() => {
-            menuHandlers.setShowAccountModal(true);
-          }}
-        />
-      )}
-
-      {showUpdateModal && updateAvailable && (
-        <UpdateModal
-          updateInfo={updateAvailable}
-          onDownload={downloadAndInstall}
-          onDismiss={() => {
-            dismissUpdate();
-            setShowUpdateModal(false);
-          }}
-          onClose={() => setShowUpdateModal(false)}
-          isDownloading={isDownloading}
-          downloadProgress={downloadProgress}
-        />
-      )}
-    </div>
+        {showUpdateModal && updateAvailable && (
+          <UpdateModal
+            updateInfo={updateAvailable}
+            onDownload={downloadAndInstall}
+            onDismiss={() => {
+              dismissUpdate();
+              setShowUpdateModal(false);
+            }}
+            onClose={() => setShowUpdateModal(false)}
+            isDownloading={isDownloading}
+            downloadProgress={downloadProgress}
+          />
+        )}
+      </div>
+    </>
   );
 }
 

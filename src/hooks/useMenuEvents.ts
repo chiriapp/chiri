@@ -18,6 +18,7 @@ export function useMenuEvents(callbacks: {
   onOpenImport?: React.RefObject<(() => void) | null>;
   onOpenExport?: React.RefObject<(() => void) | null>;
   onOpenAccount?: React.RefObject<(() => void) | null>;
+  onEditAccount?: React.RefObject<((accountId: string) => void) | null>;
   onOpenCreateCalendar?: React.RefObject<(() => void) | null>;
   onSearch?: React.RefObject<(() => void) | null>;
   onOpenAbout?: React.RefObject<(() => void) | null>;
@@ -78,6 +79,20 @@ export function useMenuEvents(callbacks: {
         return;
       }
       unlistenCallbacks.push(unlistenAddAccount);
+
+      // Edit Account
+      const unlistenEditAccount = await listen<{ accountId: string }>(
+        MENU_EVENTS.EDIT_ACCOUNT,
+        (event) => {
+          log.debug('Edit Account triggered', event.payload.accountId);
+          callbacks.onEditAccount?.current?.(event.payload.accountId);
+        },
+      );
+      if (!isActive) {
+        unlistenEditAccount();
+        return;
+      }
+      unlistenCallbacks.push(unlistenEditAccount);
 
       // Add Calendar
       const unlistenAddCalendar = await listen(MENU_EVENTS.ADD_CALENDAR, () => {
