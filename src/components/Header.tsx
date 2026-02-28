@@ -18,7 +18,11 @@ import {
   useUIState,
 } from '@/hooks/queries';
 import type { SortDirection, SortMode } from '@/types';
-import { DEFAULT_SORT_CONFIG, SORT_OPTIONS } from '@/utils/constants';
+import {
+  DEFAULT_SORT_CONFIG,
+  JUST_NOW_SYNC_TEXT_MS_THRESHOLD,
+  SORT_OPTIONS,
+} from '@/utils/constants';
 import { getMetaKeyLabel, getModifierJoiner } from '../utils/keyboard';
 import { Tooltip } from './Tooltip';
 
@@ -50,11 +54,29 @@ export function Header({
 
   const { isAnyModalOpen } = useModalState();
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showJustNow, setShowJustNow] = useState(false);
+  const justSyncedRef = useRef(false);
   const lastNonManualDirectionRef = useRef<SortDirection>(sortConfig.direction);
   const metaKey = getMetaKeyLabel();
   const modifierJoiner = getModifierJoiner();
   const searchShortcut = `${metaKey}${modifierJoiner}F`;
   const syncShortcut = `${metaKey}${modifierJoiner}R`;
+
+  // Track when sync completes and show "just now" for 3 seconds
+  useEffect(() => {
+    if (!isSyncing && justSyncedRef.current) {
+      // Sync just completed
+      setShowJustNow(true);
+      justSyncedRef.current = false;
+
+      const timer = setTimeout(() => setShowJustNow(false), JUST_NOW_SYNC_TEXT_MS_THRESHOLD);
+
+      return () => clearTimeout(timer);
+    } else if (isSyncing) {
+      // Mark that we're syncing
+      justSyncedRef.current = true;
+    }
+  }, [isSyncing]);
 
   // handle ESC key to close sort dropdown
   useEffect(() => {
@@ -127,7 +149,7 @@ export function Header({
             placeholder={`Search tasks... (${searchShortcut})`}
             value={searchQuery}
             onChange={(value) => setSearchQueryMutation.mutate(value)}
-            className="w-full pl-9 pr-4 py-2 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg text-sm text-surface-800 dark:text-surface-200 placeholder:text-surface-400 focus:outline-none focus:border-primary-300 focus:bg-white dark:focus:bg-surface-600 transition-colors"
+            className="w-full pl-9 pr-4 py-2 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg text-sm text-surface-800 dark:text-surface-200 placeholder:text-surface-400 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
           />
         </div>
 
@@ -139,9 +161,13 @@ export function Header({
                   ? 'Add an account to be able to use sync'
                   : isOffline
                     ? 'Cannot sync while offline'
-                    : lastSyncTime
-                      ? `Last synced ${formatDistanceToNow(lastSyncTime, { addSuffix: true })}`
-                      : `Sync with server (${syncShortcut})`
+                    : isSyncing
+                      ? 'Sync in progress...'
+                      : lastSyncTime && showJustNow
+                        ? 'Last synced just now'
+                        : lastSyncTime
+                          ? `Last synced ${formatDistanceToNow(lastSyncTime, { addSuffix: true })}`
+                          : `Sync with server (${syncShortcut})`
               }
               position="bottom"
             >
