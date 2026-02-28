@@ -14,7 +14,7 @@ interface OnboardingModalProps {
 
 export function OnboardingModal({ onComplete, onAddAccount }: OnboardingModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [initialAccountCount, setInitialAccountCount] = useState(0);
+  const [initialAccountCount, setInitialAccountCount] = useState<number | null>(null);
   const { setOnboardingCompleted } = useSettingsStore();
   const { data: accounts = [] } = useAccounts();
 
@@ -22,13 +22,18 @@ export function OnboardingModal({ onComplete, onAddAccount }: OnboardingModalPro
   useEffect(() => {
     if (currentStep === 1) {
       // Just entered account step, record the current account count
-      if (initialAccountCount === 0) {
+      if (initialAccountCount === null) {
         setInitialAccountCount(accounts.length);
       }
       // If account count increased, advance to next step
       else if (accounts.length > initialAccountCount) {
         setCurrentStep(currentStep + 1);
+        // Reset for potential future use
+        setInitialAccountCount(null);
       }
+    } else {
+      // Reset when leaving the account step
+      setInitialAccountCount(null);
     }
   }, [accounts, currentStep, initialAccountCount]);
 
