@@ -141,9 +141,10 @@ export function TagModal({ tagId, onClose }: TagModalProps) {
               Preview
             </p>
             <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium"
+              className="inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium border"
               style={{
-                backgroundColor: `${color}20`,
+                borderColor: color,
+                backgroundColor: `${color}15`,
                 color: color,
               }}
             >
