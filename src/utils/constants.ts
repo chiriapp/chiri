@@ -34,6 +34,8 @@ export const MODAL_SIZE_CLASSES = {
   lg: 'max-w-lg',
 } as const;
 
+export const JUST_NOW_SYNC_TEXT_MS_THRESHOLD = 10000;
+
 export const DEFAULT_SORT_CONFIG = {
   mode: 'manual' as const satisfies SortMode,
   direction: 'asc' as const satisfies SortDirection,
