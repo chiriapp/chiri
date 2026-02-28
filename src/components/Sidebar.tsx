@@ -1,4 +1,3 @@
-import { useQueryClient } from '@tanstack/react-query';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Download from 'lucide-react/icons/download';
@@ -16,10 +15,10 @@ import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import User from 'lucide-react/icons/user';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useModalState } from '@/context/modalStateContext';
+import { settingsStore, useSettingsStore } from '@/context/settingsContext';
 import {
   useAccounts,
-  useDeleteAccount,
-  useDeleteTag,
   useSetActiveAccount,
   useSetActiveCalendar,
   useSetActiveTag,
@@ -28,16 +27,9 @@ import {
   useTasks,
   useUIState,
 } from '@/hooks/queries';
+import { useDeleteHandlers } from '@/hooks/useDeleteHandlers';
 import { useGlobalContextMenuClose } from '@/hooks/useGlobalContextMenu';
-import { createLogger } from '@/lib/logger';
 import * as taskData from '@/lib/taskData';
-
-const log = createLogger('Sidebar', '#ec4899');
-
-import { useModalState } from '@/context/modalStateContext';
-import { useConfirmDialog } from '@/hooks/useConfirmDialog';
-import { caldavService } from '@/lib/caldav';
-import { useSettingsStore } from '@/store/settingsStore';
 import type { Account, Calendar as CalendarType } from '@/types';
 import { FALLBACK_ITEM_COLOR, MAX_SIDEBAR_WIDTH, MIN_SIDEBAR_WIDTH } from '@/utils/constants';
 import { getIconByName } from '../data/icons';
@@ -72,7 +64,6 @@ export function Sidebar({
   updateAvailable,
   onUpdateClick,
 }: SidebarProps) {
-  const queryClient = useQueryClient();
   const { data: accounts = [] } = useAccounts();
   const { data: tags = [] } = useTags();
   const { data: uiState } = useUIState();
@@ -82,14 +73,13 @@ export function Sidebar({
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveTagMutation = useSetActiveTag();
   const setAllTasksViewMutation = useSetAllTasksView();
-  const deleteAccountMutation = useDeleteAccount();
-  const deleteTagMutation = useDeleteTag();
+
+  const { handleDeleteAccount, handleDeleteTag, handleDeleteCalendar } = useDeleteHandlers();
 
   const activeCalendarId = uiState?.activeCalendarId ?? null;
   const activeTagId = uiState?.activeTagId ?? null;
 
   const { isAnyModalOpen } = useModalState();
-  const { confirm } = useConfirmDialog();
   const {
     expandedAccountIds,
     defaultAccountsExpanded,
@@ -140,7 +130,7 @@ export function Sidebar({
     accountId: string;
   } | null>(null);
   const [contextMenu, setContextMenu] = useState<{
-    type: 'account' | 'calendar' | 'tag';
+    type: 'account' | 'calendar' | 'tag' | 'accounts-section';
     id: string;
     accountId?: string;
     x: number;
@@ -153,6 +143,9 @@ export function Sidebar({
   // Resizing logic
   const [isResizing, setIsResizing] = useState(false);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
+
+  // Track last menu close time to prevent immediate reopening
+  const lastMenuCloseTimeRef = useRef<number>(0);
 
   // Track transition state for smoother animations
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -218,13 +211,43 @@ export function Sidebar({
     toggleAccountExpanded(id);
   };
 
+  const handleExpandAllAccounts = () => {
+    const allAccountIds = accounts.map((a) => a.id);
+    setExpandedAccountIds(allAccountIds);
+    // Also expand the accounts section itself
+    settingsStore.setState({ accountsSectionCollapsed: false });
+  };
+
+  const handleCollapseAllAccounts = () => {
+    setExpandedAccountIds([]);
+    // Also collapse the accounts section itself
+    settingsStore.setState({ accountsSectionCollapsed: true });
+  };
+
   const handleContextMenu = (
     e: React.MouseEvent,
-    type: 'account' | 'calendar' | 'tag',
+    type: 'account' | 'calendar' | 'tag' | 'accounts-section',
     id: string,
     accountId?: string,
   ) => {
     e.preventDefault();
+    e.stopPropagation();
+
+    // If the context menu is already open for this exact item, close it
+    if (contextMenu && contextMenu.type === type && contextMenu.id === id) {
+      setContextMenu(null);
+      // Set timestamp to prevent immediate reopening
+      lastMenuCloseTimeRef.current = Date.now();
+      return;
+    }
+
+    // Prevent reopening if menu was just closed (within 250ms)
+    // This handles race conditions with React state updates
+    const timeSinceClose = Date.now() - lastMenuCloseTimeRef.current;
+    if (timeSinceClose < 100) {
+      return;
+    }
+
     // dispatch event to close other context menus first
     document.dispatchEvent(new CustomEvent('closeAllContextMenus'));
     const { x, y } = clampToViewport(e.clientX, e.clientY);
@@ -233,6 +256,7 @@ export function Sidebar({
 
   const handleCloseContextMenu = useCallback(() => {
     setContextMenu(null);
+    lastMenuCloseTimeRef.current = Date.now(); // Prevent immediate reopening
   }, []);
 
   // register for global context menu close
@@ -330,6 +354,7 @@ export function Sidebar({
                 <div
                   onClick={toggleAccountsSectionCollapsed}
                   onKeyDown={(e) => e.key === 'Enter' && toggleAccountsSectionCollapsed()}
+                  onContextMenu={(e) => handleContextMenu(e, 'accounts-section', 'accounts')}
                   role="button"
                   tabIndex={0}
                   className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
@@ -344,12 +369,14 @@ export function Sidebar({
                       Accounts
                     </span>
                   </div>
-
                   <div className="flex items-center gap-1">
                     <Tooltip content="Import tasks" position="top">
                       <button
                         type="button"
-                        onClick={onOpenImport}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenImport?.();
+                        }}
                         className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors`}
                       >
                         <Import className="w-4 h-4" />
@@ -358,7 +385,8 @@ export function Sidebar({
                     <Tooltip content="Add account" position="top">
                       <button
                         type="button"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingAccount(null);
                           setShowAccountModal(true);
                         }}
@@ -373,7 +401,7 @@ export function Sidebar({
                 {!accountsSectionCollapsed &&
                   (accounts.length === 0 ? (
                     <div className="px-4 py-3 text-sm text-surface-500 dark:text-surface-400">
-                      No accounts yet. Add one to get started.
+                      No accounts connected yet.
                     </div>
                   ) : (
                     accounts.map((account) => (
@@ -520,11 +548,11 @@ export function Sidebar({
                       Tags
                     </span>
                   </div>
-
                   <Tooltip content="Add a new tag" position="top">
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setEditingTagId(null);
                         setShowTagModal(true);
                       }}
@@ -772,6 +800,7 @@ export function Sidebar({
         )}
       </div>
 
+      {/* Context menu */}
       {contextMenu && (
         // biome-ignore lint/a11y/noStaticElementInteractions: Context menu container uses stopPropagation to prevent backdrop close
         // biome-ignore lint/a11y/useKeyWithClickEvents: Context menu container uses stopPropagation to prevent backdrop close
@@ -782,177 +811,205 @@ export function Sidebar({
           onClick={(e: React.MouseEvent) => e.stopPropagation()}
         >
           {contextMenu.type === 'account' && (
-            <button
-              type="button"
-              onClick={() => {
-                setShowCreateCalendarModal(contextMenu.id);
-                handleCloseContextMenu();
-              }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
-            >
-              <Plus className="w-4 h-4" />
-              New Calendar
-            </button>
-          )}
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreateCalendarModal(contextMenu.id);
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              >
+                <Plus className="w-4 h-4" />
+                New Calendar
+              </button>
 
-          {contextMenu.type === 'account' && (
-            <button
-              type="button"
-              onClick={() => {
-                setExportAccountId(contextMenu.id);
-                setShowExportModal(true);
-                handleCloseContextMenu();
-              }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
-            >
-              <Share2 className="w-4 h-4" />
-              Export All Calendars
-            </button>
+              <div className="border-t border-surface-200 dark:border-surface-700" />
+
+              <button
+                type="button"
+                onClick={async () => {
+                  const account = accounts.find((a) => a.id === contextMenu.id);
+                  if (account) {
+                    setEditingAccount(account);
+                    setShowAccountModal(true);
+                  }
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit
+              </button>
+
+              <div className="border-t border-surface-200 dark:border-surface-700" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setExportAccountId(contextMenu.id);
+                  setShowExportModal(true);
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              >
+                <Share2 className="w-4 h-4" />
+                Export Calendars
+              </button>
+
+              <div className="border-t border-surface-200 dark:border-surface-700" />
+
+              <button
+                type="button"
+                onClick={async () => {
+                  handleCloseContextMenu();
+                  await handleDeleteAccount(contextMenu.id, accounts);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            </>
           )}
 
           {contextMenu.type === 'calendar' && (
-            <button
-              type="button"
-              onClick={() => {
-                // trigger sync for this calendar
-                if (contextMenu.accountId) {
-                  setActiveAccountMutation.mutate(contextMenu.accountId);
-                }
-                setActiveCalendarMutation.mutate(contextMenu.id);
-                handleCloseContextMenu();
-              }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Sync
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  // trigger sync for this calendar
+                  if (contextMenu.accountId) {
+                    setActiveAccountMutation.mutate(contextMenu.accountId);
+                  }
+                  setActiveCalendarMutation.mutate(contextMenu.id);
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Sync
+              </button>
+
+              <div className="border-t border-surface-200 dark:border-surface-700" />
+
+              <button
+                type="button"
+                onClick={async () => {
+                  if (contextMenu.accountId) {
+                    const account = accounts.find((a) => a.id === contextMenu.accountId);
+                    const calendar = account?.calendars.find((c) => c.id === contextMenu.id);
+                    if (calendar) {
+                      setEditingCalendar({ calendar, accountId: contextMenu.accountId });
+                      setShowCalendarModal(true);
+                    }
+                  }
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit
+              </button>
+
+              <div className="border-t border-surface-200 dark:border-surface-700" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setExportCalendarId(contextMenu.id);
+                  setShowExportModal(true);
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              >
+                <Share2 className="w-4 h-4" />
+                Export
+              </button>
+
+              <div className="border-t border-surface-200 dark:border-surface-700" />
+
+              <button
+                type="button"
+                onClick={async () => {
+                  handleCloseContextMenu();
+                  if (contextMenu.accountId) {
+                    await handleDeleteCalendar(
+                      contextMenu.id,
+                      contextMenu.accountId,
+                      accounts,
+                      activeCalendarId,
+                    );
+                  }
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            </>
           )}
 
-          {contextMenu.type === 'calendar' && (
-            <button
-              type="button"
-              onClick={() => {
-                setExportCalendarId(contextMenu.id);
-                setShowExportModal(true);
-                handleCloseContextMenu();
-              }}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
-            >
-              <Share2 className="w-4 h-4" />
-              Export
-            </button>
+          {contextMenu.type === 'accounts-section' && (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  handleExpandAllAccounts();
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-t-md"
+              >
+                <ChevronDown className="w-4 h-4" />
+                Expand All
+              </button>
+
+              <div className="border-t border-surface-200 dark:border-surface-700" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleCollapseAllAccounts();
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              >
+                <ChevronRight className="w-4 h-4" />
+                Collapse All
+              </button>
+            </>
           )}
 
-          <button
-            type="button"
-            onClick={async () => {
-              if (contextMenu.type === 'account') {
-                const account = accounts.find((a) => a.id === contextMenu.id);
-                if (account) {
-                  setEditingAccount(account);
-                  setShowAccountModal(true);
-                }
-              } else if (contextMenu.type === 'tag') {
-                setEditingTagId(contextMenu.id);
-                setShowTagModal(true);
-              } else if (contextMenu.type === 'calendar' && contextMenu.accountId) {
-                const account = accounts.find((a) => a.id === contextMenu.accountId);
-                const calendar = account?.calendars.find((c) => c.id === contextMenu.id);
-                if (calendar && contextMenu.accountId) {
-                  setEditingCalendar({ calendar, accountId: contextMenu.accountId });
-                  setShowCalendarModal(true);
-                }
-              }
-              handleCloseContextMenu();
-            }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
-          >
-            <Edit2 className="w-4 h-4" />
-            Edit
-          </button>
+          {contextMenu.type === 'tag' && (
+            <>
+              <button
+                type="button"
+                onClick={async () => {
+                  setEditingTagId(contextMenu.id);
+                  setShowTagModal(true);
+                  handleCloseContextMenu();
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit
+              </button>
 
-          <div className="border-t border-surface-200 dark:border-surface-700 my-1" />
-          <button
-            type="button"
-            onClick={async () => {
-              // Close context menu immediately before showing confirmation
-              handleCloseContextMenu();
+              <div className="border-t border-surface-200 dark:border-surface-700" />
 
-              if (contextMenu.type === 'account') {
-                const account = accounts.find((a) => a.id === contextMenu.id);
-                if (confirmBeforeDeleteAccount) {
-                  const confirmed = await confirm({
-                    title: 'Remove account',
-                    subtitle: account?.name,
-                    message:
-                      'Are you sure? All tasks from this account will be removed from the app. They will remain on the server.',
-                    confirmLabel: 'Remove',
-                    destructive: true,
-                  });
-                  if (!confirmed) {
-                    return;
-                  }
-                }
-                deleteAccountMutation.mutate(contextMenu.id);
-              } else if (contextMenu.type === 'tag') {
-                const tag = tags.find((t) => t.id === contextMenu.id);
-                if (confirmBeforeDeleteTag) {
-                  const confirmed = await confirm({
-                    title: 'Delete tag',
-                    subtitle: tag?.name,
-                    message: 'Are you sure? Tasks with this tag will not be affected.',
-                    confirmLabel: 'Delete',
-                    destructive: true,
-                  });
-                  if (!confirmed) {
-                    return;
-                  }
-                }
-                deleteTagMutation.mutate(contextMenu.id);
-              } else if (contextMenu.type === 'calendar' && contextMenu.accountId) {
-                const account = accounts.find((a) => a.id === contextMenu.accountId);
-                const calendar = account?.calendars.find((c) => c.id === contextMenu.id);
-                if (confirmBeforeDeleteCalendar) {
-                  const confirmed = await confirm({
-                    title: 'Delete calendar',
-                    subtitle: calendar?.displayName,
-                    message:
-                      'Are you sure? This calendar and all its tasks will be deleted from the server.',
-                    confirmLabel: 'Delete',
-                    destructive: true,
-                  });
-                  if (!confirmed) {
-                    return;
-                  }
-                }
-                // check if this is the active calendar
-                const isActiveCalendar = uiState?.activeCalendarId === contextMenu.id;
-
-                // delete calendar from server
-                try {
-                  await caldavService.deleteCalendar(contextMenu.accountId, contextMenu.id);
-                  // delete calendar and its tasks from local state
-                  taskData.deleteCalendar(contextMenu.accountId, contextMenu.id);
-
-                  // if this was the active calendar, redirect to All Tasks
-                  if (isActiveCalendar) {
-                    setAllTasksViewMutation.mutate();
-                  }
-
-                  // Invalidate queries to refresh UI
-                  queryClient.invalidateQueries({ queryKey: ['accounts'] });
-                  queryClient.invalidateQueries({ queryKey: ['tasks'] });
-                  queryClient.invalidateQueries({ queryKey: ['uiState'] });
-                } catch (error) {
-                  log.error('Failed to delete calendar:', error);
-                }
-              }
-            }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete
-          </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  handleCloseContextMenu();
+                  await handleDeleteTag(contextMenu.id, tags);
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </button>
+            </>
+          )}
         </div>
       )}
 
