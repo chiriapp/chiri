@@ -35,7 +35,6 @@ import { useDebouncedTaskUpdate } from '@/hooks/useDebouncedTaskUpdate';
 import { useModalEscapeKey } from '@/hooks/useModalEscapeKey';
 import * as taskData from '@/lib/taskData';
 import { useSettingsStore } from '@/store/settingsStore';
-
 import type { Priority, Task } from '@/types';
 import { filterCalDavDescription } from '@/utils/ical';
 import { hasOpenModalElements } from '@/utils/misc';
@@ -44,6 +43,7 @@ import { getIconByName } from '../data/icons';
 import { getContrastTextColor } from '../utils/color';
 import { DatePickerModal } from './modals/DatePickerModal';
 import { ReminderPickerModal } from './modals/ReminderPickerModal';
+import { SubtaskModal } from './modals/SubtaskModal';
 import { TagPickerModal } from './modals/TagPickerModal';
 import { SubtaskTreeItem } from './SubtaskTreeItem';
 import { Tooltip } from './Tooltip';
@@ -72,7 +72,7 @@ export function TaskEditor({ task }: TaskEditorProps) {
   // get contrast color for checkbox checkmarks
   const checkmarkColor = getContrastTextColor(accentColor);
 
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [showSubtaskModal, setShowSubtaskModal] = useState(false);
   const [showTagPicker, setShowTagPicker] = useState(false);
   const [expandedSubtasks, setExpandedSubtasks] = useState<Set<string>>(new Set());
   const [showReminderPicker, setShowReminderPicker] = useState(false);
@@ -253,25 +253,15 @@ export function TaskEditor({ task }: TaskEditorProps) {
     setEditReminderDate(undefined);
   };
 
-  const handleAddChildTask = () => {
-    if (newSubtaskTitle.trim()) {
-      // create a new task with parentUid set to this task's UID
-      createTaskMutation.mutate({
-        title: newSubtaskTitle.trim(),
-        parentUid: task.uid,
-        accountId: task.accountId,
-        calendarId: task.calendarId,
-        priority: 'none',
-      });
-      setNewSubtaskTitle('');
-    }
-  };
-
-  const handleSubtaskKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddChildTask();
-    }
+  const handleAddChildTask = (title: string) => {
+    // create a new task with parentUid set to this task's UID
+    createTaskMutation.mutate({
+      title: title,
+      parentUid: task.uid,
+      accountId: task.accountId,
+      calendarId: task.calendarId,
+      priority: 'none',
+    });
   };
 
   const handleDelete = async () => {
@@ -728,26 +718,14 @@ export function TaskEditor({ task }: TaskEditorProps) {
               </div>
             )}
 
-            <div className="flex items-center gap-2 mt-2">
-              <Plus className="w-5 h-5 text-surface-400" />
-              <ComposedInput
-                type="text"
-                value={newSubtaskTitle}
-                onChange={setNewSubtaskTitle}
-                onKeyDown={handleSubtaskKeyDown}
-                placeholder="Add a subtask..."
-                className="flex-1 px-2 py-1 text-sm text-surface-700 dark:text-surface-300 bg-transparent border-0 focus:outline-none focus:ring-0 placeholder:text-surface-400"
-              />
-              {newSubtaskTitle && (
-                <button
-                  type="button"
-                  onClick={handleAddChildTask}
-                  className="text-primary-600 dark:text-primary-400 text-sm font-medium hover:text-primary-700 dark:hover:text-primary-300"
-                >
-                  Add
-                </button>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowSubtaskModal(true)}
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-300 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors"
+            >
+              <Plus className="w-3 h-3" />
+              Add a subtask
+            </button>
           </div>
         </div>
       </div>
@@ -823,6 +801,15 @@ export function TaskEditor({ task }: TaskEditorProps) {
             }
           }}
           title="Edit Reminder"
+        />
+      )}
+
+      {/* Add Subtask Modal */}
+      {showSubtaskModal && (
+        <SubtaskModal
+          isOpen={showSubtaskModal}
+          onClose={() => setShowSubtaskModal(false)}
+          onAdd={handleAddChildTask}
         />
       )}
     </div>
