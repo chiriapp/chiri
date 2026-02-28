@@ -91,13 +91,14 @@ export function Sidebar({
   const { isAnyModalOpen } = useModalState();
   const { confirm } = useConfirmDialog();
   const {
-    confirmBeforeDeleteCalendar,
-    confirmBeforeDeleteAccount,
-    confirmBeforeDeleteTag,
     expandedAccountIds,
     defaultAccountsExpanded,
     toggleAccountExpanded,
     setExpandedAccountIds,
+    accountsSectionCollapsed,
+    tagsSectionCollapsed,
+    toggleAccountsSectionCollapsed,
+    toggleTagsSectionCollapsed,
   } = useSettingsStore();
 
   // Track which account IDs we've already initialized (to avoid re-processing)
@@ -321,10 +322,25 @@ export function Sidebar({
               </button>
 
               <div className="mb-4">
-                <div className="flex items-center justify-between px-4 py-2">
-                  <span className="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                    Accounts
-                  </span>
+                {/* biome-ignore lint/a11y/useSemanticElements: Section header toggle div contains icon+text layout that button element can't replicate */}
+                <div
+                  onClick={toggleAccountsSectionCollapsed}
+                  onKeyDown={(e) => e.key === 'Enter' && toggleAccountsSectionCollapsed()}
+                  role="button"
+                  tabIndex={0}
+                  className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+                >
+                  <div className="flex items-center gap-1.5">
+                    {accountsSectionCollapsed ? (
+                      <ChevronRight className="w-4 h-4 text-surface-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-surface-400" />
+                    )}
+                    <span className="text-sm font-semibold text-surface-500 dark:text-surface-400 tracking-wider">
+                      Accounts
+                    </span>
+                  </div>
+
                   <div className="flex items-center gap-1">
                     <Tooltip content="Import tasks" position="top">
                       <button
@@ -350,130 +366,146 @@ export function Sidebar({
                   </div>
                 </div>
 
-                {accounts.length === 0 ? (
-                  <div className="px-4 py-3 text-sm text-surface-500 dark:text-surface-400">
-                    No accounts yet. Add one to get started.
-                  </div>
-                ) : (
-                  accounts.map((account) => (
-                    <div key={account.id} data-context-menu>
-                      {/* biome-ignore lint/a11y/useSemanticElements: Account toggle div contains icon+text layout that button element can't replicate */}
-                      <div
-                        onClick={() => toggleAccount(account.id)}
-                        onKeyDown={(e) => e.key === 'Enter' && toggleAccount(account.id)}
-                        onContextMenu={(e) => handleContextMenu(e, 'account', account.id)}
-                        role="button"
-                        tabIndex={0}
-                        className={`relative w-full flex items-center gap-2 px-4 py-1.5 text-sm ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''} transition-colors group cursor-pointer`}
-                      >
-                        {expandedAccounts.has(account.id) ? (
-                          <ChevronDown className="w-4 h-4 text-surface-400 flex-shrink-0" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4 text-surface-400 flex-shrink-0" />
-                        )}
-                        <User className="w-4 h-4 text-surface-500 dark:text-surface-400 flex-shrink-0" />
-                        <span className="flex-1 text-left truncate text-surface-700 dark:text-surface-300">
-                          {account.name}
-                        </span>
-                        <Tooltip content="Add a new calendar" position="top">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowCreateCalendarModal(account.id);
-                            }}
-                            onContextMenu={(e) => {
-                              e.stopPropagation();
-                              handleContextMenu(e, 'account', account.id);
-                            }}
-                            className={`p-1.5 rounded bg-transparent ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-600 dark:hover:text-surface-300' : ''} text-surface-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0`}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </button>
-                        </Tooltip>
-                        <Tooltip content="Account menu" position="top">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleContextMenu(
-                                e as React.MouseEvent<HTMLButtonElement>,
-                                'account',
-                                account.id,
-                              );
-                            }}
-                            onContextMenu={(e) => {
-                              e.stopPropagation();
-                              handleContextMenu(e, 'account', account.id);
-                            }}
-                            className="p-1.5 rounded bg-transparent hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                        </Tooltip>
-                      </div>
-
-                      {expandedAccounts.has(account.id) && (
-                        <div>
-                          {account.calendars.length === 0 ? (
-                            <div className="px-4 py-2 text-sm text-surface-500 dark:text-surface-400">
-                              No calendars yet.
-                            </div>
-                          ) : (
-                            account.calendars.map((calendar) => {
-                              const CalendarIcon = getIconByName(calendar.icon || 'calendar');
-                              const isActive = activeCalendarId === calendar.id;
-                              const calendarColor = calendar.color ?? FALLBACK_ITEM_COLOR;
-                              const textColor = isActive
-                                ? getContrastTextColor(calendarColor)
-                                : undefined;
-                              return (
-                                <button
-                                  type="button"
-                                  key={calendar.id}
-                                  data-context-menu
-                                  onClick={() => {
-                                    setActiveAccountMutation.mutate(account.id);
-                                    setActiveCalendarMutation.mutate(calendar.id);
-                                  }}
-                                  onContextMenu={(e) =>
-                                    handleContextMenu(e, 'calendar', calendar.id, account.id)
-                                  }
-                                  className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
-                                    isActive
-                                      ? ''
-                                      : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
-                                  }`}
-                                  style={
-                                    isActive
-                                      ? { backgroundColor: calendarColor, color: textColor }
-                                      : undefined
-                                  }
-                                >
-                                  <CalendarIcon
-                                    className="w-4 h-4"
-                                    style={{ color: isActive ? textColor : calendarColor }}
-                                  />
-                                  <span className="flex-1 text-left truncate">
-                                    {calendar.displayName}
-                                  </span>
-                                  <span className="text-xs">{getTaskCount(calendar.id)}</span>
-                                </button>
-                              );
-                            })
-                          )}
-                        </div>
-                      )}
+                {!accountsSectionCollapsed &&
+                  (accounts.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-surface-500 dark:text-surface-400">
+                      No accounts yet. Add one to get started.
                     </div>
-                  ))
-                )}
+                  ) : (
+                    accounts.map((account) => (
+                      <div key={account.id} data-context-menu>
+                        {/* biome-ignore lint/a11y/useSemanticElements: Account toggle div contains icon+text layout that button element can't replicate */}
+                        <div
+                          onClick={() => toggleAccount(account.id)}
+                          onKeyDown={(e) => e.key === 'Enter' && toggleAccount(account.id)}
+                          onContextMenu={(e) => handleContextMenu(e, 'account', account.id)}
+                          role="button"
+                          tabIndex={0}
+                          className={`relative w-full flex items-center gap-2 px-4 py-1.5 text-sm ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''} transition-colors group cursor-pointer`}
+                        >
+                          {expandedAccounts.has(account.id) ? (
+                            <ChevronDown className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                          )}
+                          <User className="w-4 h-4 text-surface-500 dark:text-surface-400 flex-shrink-0" />
+                          <span className="flex-1 text-left truncate text-surface-700 dark:text-surface-300">
+                            {account.name}
+                          </span>
+                          <Tooltip content="Add a new calendar" position="top">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowCreateCalendarModal(account.id);
+                              }}
+                              onContextMenu={(e) => {
+                                e.stopPropagation();
+                                handleContextMenu(e, 'account', account.id);
+                              }}
+                              className={`p-1.5 rounded bg-transparent ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-600 dark:hover:text-surface-300' : ''} text-surface-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0`}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+                          <Tooltip content="Account menu" position="top">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleContextMenu(
+                                  e as React.MouseEvent<HTMLButtonElement>,
+                                  'account',
+                                  account.id,
+                                );
+                              }}
+                              onContextMenu={(e) => {
+                                e.stopPropagation();
+                                handleContextMenu(e, 'account', account.id);
+                              }}
+                              className="p-1.5 rounded bg-transparent hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </button>
+                          </Tooltip>
+                        </div>
+
+                        {expandedAccounts.has(account.id) && (
+                          <div>
+                            {account.calendars.length === 0 ? (
+                              <div className="px-4 py-2 text-sm text-surface-500 dark:text-surface-400">
+                                No calendars yet.
+                              </div>
+                            ) : (
+                              account.calendars.map((calendar) => {
+                                const CalendarIcon = getIconByName(calendar.icon || 'calendar');
+                                const isActive = activeCalendarId === calendar.id;
+                                const calendarColor = calendar.color ?? FALLBACK_ITEM_COLOR;
+                                const textColor = isActive
+                                  ? getContrastTextColor(calendarColor)
+                                  : undefined;
+                                return (
+                                  <button
+                                    type="button"
+                                    key={calendar.id}
+                                    data-context-menu
+                                    onClick={() => {
+                                      setActiveAccountMutation.mutate(account.id);
+                                      setActiveCalendarMutation.mutate(calendar.id);
+                                    }}
+                                    onContextMenu={(e) =>
+                                      handleContextMenu(e, 'calendar', calendar.id, account.id)
+                                    }
+                                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                                      isActive
+                                        ? ''
+                                        : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
+                                    }`}
+                                    style={
+                                      isActive
+                                        ? { backgroundColor: calendarColor, color: textColor }
+                                        : undefined
+                                    }
+                                  >
+                                    <CalendarIcon
+                                      className="w-4 h-4"
+                                      style={{ color: isActive ? textColor : calendarColor }}
+                                    />
+                                    <span className="flex-1 text-left truncate">
+                                      {calendar.displayName}
+                                    </span>
+                                    <span className="text-xs">{getTaskCount(calendar.id)}</span>
+                                  </button>
+                                );
+                              })
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ))}
               </div>
 
               <div className="mb-4">
-                <div className="flex items-center justify-between px-4 py-2">
-                  <span className="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                    Tags
-                  </span>
+                {/* biome-ignore lint/a11y/useSemanticElements: Section header toggle div contains icon+text layout that button element can't replicate */}
+                <div
+                  onClick={toggleTagsSectionCollapsed}
+                  onKeyDown={(e) => e.key === 'Enter' && toggleTagsSectionCollapsed()}
+                  role="button"
+                  tabIndex={0}
+                  className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+                >
+                  <div className="flex items-center gap-1.5">
+                    {tagsSectionCollapsed ? (
+                      <ChevronRight className="w-4 h-4 text-surface-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-surface-400" />
+                    )}
+                    <span className="text-sm font-semibold text-surface-500 dark:text-surface-400 tracking-wider">
+                      Tags
+                    </span>
+                  </div>
+
                   <Tooltip content="Add a new tag" position="top">
                     <button
                       type="button"
@@ -488,42 +520,48 @@ export function Sidebar({
                   </Tooltip>
                 </div>
 
-                {tags.length === 0 ? (
-                  <div className="px-4 py-3 text-sm text-surface-500 dark:text-surface-400">
-                    No tags yet.
-                  </div>
-                ) : (
-                  tags.map((tag) => {
-                    const TagIcon = getIconByName(tag.icon || 'tag');
-                    const isActive = activeTagId === tag.id;
-                    return (
-                      <button
-                        type="button"
-                        key={tag.id}
-                        data-context-menu
-                        onClick={() => setActiveTagMutation.mutate(tag.id)}
-                        onContextMenu={(e) => handleContextMenu(e, 'tag', tag.id)}
-                        className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
-                          isActive
-                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
-                            : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
-                        }`}
-                        style={
-                          isActive
-                            ? { backgroundColor: tag.color, color: getContrastTextColor(tag.color) }
-                            : undefined
-                        }
-                      >
-                        <TagIcon
-                          className="w-3.5 h-3.5"
-                          style={{ color: isActive ? getContrastTextColor(tag.color) : tag.color }}
-                        />
-                        <span className="flex-1 text-left truncate">{tag.name}</span>
-                        <span className="text-xs">{getTagTaskCount(tag.id)}</span>
-                      </button>
-                    );
-                  })
-                )}
+                {!tagsSectionCollapsed &&
+                  (tags.length === 0 ? (
+                    <div className="px-4 py-3 text-sm text-surface-500 dark:text-surface-400">
+                      No tags yet.
+                    </div>
+                  ) : (
+                    tags.map((tag) => {
+                      const TagIcon = getIconByName(tag.icon || 'tag');
+                      const isActive = activeTagId === tag.id;
+                      return (
+                        <button
+                          type="button"
+                          key={tag.id}
+                          data-context-menu
+                          onClick={() => setActiveTagMutation.mutate(tag.id)}
+                          onContextMenu={(e) => handleContextMenu(e, 'tag', tag.id)}
+                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                            isActive
+                              ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                              : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
+                          }`}
+                          style={
+                            isActive
+                              ? {
+                                  backgroundColor: tag.color,
+                                  color: getContrastTextColor(tag.color),
+                                }
+                              : undefined
+                          }
+                        >
+                          <TagIcon
+                            className="w-3.5 h-3.5"
+                            style={{
+                              color: isActive ? getContrastTextColor(tag.color) : tag.color,
+                            }}
+                          />
+                          <span className="flex-1 text-left truncate">{tag.name}</span>
+                          <span className="text-xs">{getTagTaskCount(tag.id)}</span>
+                        </button>
+                      );
+                    })
+                  ))}
               </div>
             </div>
 
