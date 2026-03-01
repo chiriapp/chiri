@@ -1,4 +1,4 @@
-import type { Account, Calendar, Task } from '@/types';
+import type { Account, Calendar, ServerType, Task } from '@/types';
 import { normalizeHexColor } from '@/utils/color';
 import { taskToVTodo, vtodoToTask } from '../utils/ical';
 import { createLogger } from './logger';
@@ -20,7 +20,7 @@ interface AccountConnection {
   credentials: CalDAVCredentials;
   principalUrl: string;
   calendarHome: string;
-  serverType: 'rustical' | 'radicale' | 'baikal' | 'nextcloud' | 'generic';
+  serverType: ServerType;
 }
 
 if (import.meta.hot) {
@@ -44,7 +44,7 @@ class CalDAVService {
     serverUrl: string,
     username: string,
     password: string,
-    serverType: 'rustical' | 'radicale' | 'baikal' | 'nextcloud' | 'generic' = 'rustical',
+    serverType: ServerType = 'generic',
   ): Promise<{ principalUrl: string; displayName: string }> {
     const credentials: CalDAVCredentials = { username, password };
 
@@ -758,7 +758,7 @@ class CalDAVService {
       account.serverUrl,
       account.username,
       account.password,
-      account.serverType || 'rustical',
+      account.serverType ?? 'generic',
     );
   }
 }
