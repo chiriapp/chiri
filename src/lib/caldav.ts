@@ -23,6 +23,10 @@ interface AccountConnection {
   serverType: 'rustical' | 'radicale' | 'baikal' | 'nextcloud' | 'generic';
 }
 
+if (import.meta.hot) {
+  import.meta.hot.accept();
+}
+
 class CalDAVService {
   private connections: Map<string, AccountConnection> = new Map();
 
