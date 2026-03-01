@@ -107,29 +107,19 @@ class CalDAVService {
 
         // Check for specific HTTP error codes at the well-known endpoint
         if (wellKnownResponse.status === 429) {
-          throw new Error(
-            'Server reported a 429 error (Rate limit exceeded). Please wait a moment and try again.',
-          );
+          throw new Error('Rate limit exceeded. Try again in a moment.');
         }
         if (wellKnownResponse.status === 401) {
-          throw new Error(
-            'Server reported a 401 error (Authentication failed). Please check your username and password.',
-          );
+          throw new Error('Authentication failed (401). Check your credentials.');
         }
         if (wellKnownResponse.status === 403) {
-          throw new Error(
-            'Server reported a 403 error (Access forbidden). Please check your credentials and permissions.',
-          );
+          throw new Error('Authentication failed (403). Check your credentials.');
         }
         if (wellKnownResponse.status === 404) {
-          throw new Error(
-            'Server reported a 404 error (Not Found). The CalDAV service may not be found at this URL. Please check the server URL.',
-          );
+          throw new Error('CalDAV service not found at this URL.');
         }
         if (wellKnownResponse.status >= 500) {
-          throw new Error(
-            `Server reported a ${wellKnownResponse.status} error. Please try again later or contact your server administrator.`,
-          );
+          throw new Error(`Server error (${wellKnownResponse.status}). Try again later.`);
         }
 
         // step 2: discover current-user-principal
@@ -188,7 +178,7 @@ class CalDAVService {
     const response = await propfind(principalUrl, credentials, propfindBody, '0');
 
     if (response.status === 401) {
-      throw new Error('Authentication failed. Please check your username and password.');
+      throw new Error('Authentication failed. Check your credentials.');
     }
 
     if (response.status !== 207) {
@@ -548,21 +538,19 @@ class CalDAVService {
 
     // Check for specific HTTP error codes and throw meaningful errors
     if (response.status === 429) {
-      throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+      throw new Error('Rate limit exceeded. Try again in a moment.');
     }
     if (response.status === 401) {
-      throw new Error('Authentication failed. Please check your username and password.');
+      throw new Error('Authentication failed. Check your credentials.');
     }
     if (response.status === 403) {
-      throw new Error('Access forbidden. Please check your credentials and permissions.');
+      throw new Error('Access forbidden. Check your permissions.');
     }
     if (response.status === 404) {
-      throw new Error('CalDAV service not found at this URL. Please check the server URL.');
+      throw new Error('CalDAV service not found at this URL.');
     }
     if (response.status >= 500) {
-      throw new Error(
-        `Server error (${response.status}). Please try again later or contact your server administrator.`,
-      );
+      throw new Error(`Server error (${response.status}). Try again later.`);
     }
     if (response.status !== 207) {
       return null;
@@ -602,21 +590,19 @@ class CalDAVService {
 
     // Check for specific HTTP error codes and throw meaningful errors
     if (response.status === 429) {
-      throw new Error('Rate limit exceeded. Please wait a moment and try again.');
+      throw new Error('Rate limit exceeded. Try again in a moment.');
     }
     if (response.status === 401) {
-      throw new Error('Authentication failed. Please check your username and password.');
+      throw new Error('Authentication failed. Check your credentials.');
     }
     if (response.status === 403) {
-      throw new Error('Access forbidden. Please check your credentials and permissions.');
+      throw new Error('Access forbidden. Check your permissions.');
     }
     if (response.status === 404) {
-      throw new Error('CalDAV principal not found. Please check the server URL.');
+      throw new Error('CalDAV principal not found.');
     }
     if (response.status >= 500) {
-      throw new Error(
-        `Server error (${response.status}). Please try again later or contact your server administrator.`,
-      );
+      throw new Error(`Server error (${response.status}). Try again later.`);
     }
     if (response.status !== 207) {
       return null;
