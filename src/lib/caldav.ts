@@ -423,8 +423,16 @@ class CalDAVService {
     created: Task[];
     updated: Task[];
     deleted: string[];
-  }> {
+  } | null> {
     const remoteTasks = await this.fetchTasks(accountId, calendar);
+
+    // If fetchTasks returns null, it indicates a fetch failure (not empty)
+    // We should NOT delete local tasks in this case
+    if (remoteTasks === null) {
+      log.error(`Failed to fetch tasks from server for calendar: ${calendar.displayName}`);
+      log.error(`Server returned null. Skipping sync to avoid data loss.`);
+      return null; // Indicate sync failure
+    }
 
     const created: Task[] = [];
     const updated: Task[] = [];
