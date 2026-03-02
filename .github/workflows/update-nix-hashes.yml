@@ -95,12 +95,12 @@ jobs:
           # Update version in binary package
           sed -i "s/version ? \"[^\"]*\"/version ? \"$VERSION\"/" "$BIN_PACKAGE_FILE"
 
-          # Update hashes for each platform using sed (more reliable than perl for this)
-          # Use @ as delimiter to avoid conflicts with forward slashes in hashes
-          sed -i '/x86_64-linux/,/hash = / s@hash = "sha256-[^"]*"@hash = "'"$X64_LINUX_HASH"'"@' "$BIN_PACKAGE_FILE"
-          sed -i '/aarch64-linux/,/hash = / s@hash = "sha256-[^"]*"@hash = "'"$ARM64_LINUX_HASH"'"@' "$BIN_PACKAGE_FILE"
-          sed -i '/x86_64-darwin/,/hash = / s@hash = "sha256-[^"]*"@hash = "'"$X64_DARWIN_HASH"'"@' "$BIN_PACKAGE_FILE"
-          sed -i '/aarch64-darwin/,/hash = / s@hash = "sha256-[^"]*"@hash = "'"$ARM64_DARWIN_HASH"'"@' "$BIN_PACKAGE_FILE"
+          # Update hashes for each platform using line offset ranges
+          # Use | as delimiter to avoid conflicts with forward slashes in hashes
+          sed -i '/"x86_64-linux"/,+3 s|hash = "sha256-[^"]*"|hash = "'"$X64_LINUX_HASH"'"|' "$BIN_PACKAGE_FILE"
+          sed -i '/"aarch64-linux"/,+3 s|hash = "sha256-[^"]*"|hash = "'"$ARM64_LINUX_HASH"'"|' "$BIN_PACKAGE_FILE"
+          sed -i '/"x86_64-darwin"/,+3 s|hash = "sha256-[^"]*"|hash = "'"$X64_DARWIN_HASH"'"|' "$BIN_PACKAGE_FILE"
+          sed -i '/"aarch64-darwin"/,+3 s|hash = "sha256-[^"]*"|hash = "'"$ARM64_DARWIN_HASH"'"|' "$BIN_PACKAGE_FILE"
 
           echo "✓ Binary package updated"
           echo ""
@@ -126,7 +126,7 @@ jobs:
 
           # Update source hash (the fetchFromGitHub hash)
           # Find the line after the comment and update it
-          sed -i '/# Update this hash when releasing a new version/{n;s@hash = "sha256-[^"]*"@hash = "'"$SOURCE_HASH"'"@;}' "$SRC_PACKAGE_FILE"
+          sed -i '/# Update this hash when releasing a new version/{n;s|hash = "sha256-[^"]*"|hash = "'"$SOURCE_HASH"'"|;}' "$SRC_PACKAGE_FILE"
 
           echo "✓ Source package updated"
           echo ""
