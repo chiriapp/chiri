@@ -115,7 +115,7 @@ export function ExportModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-shrink-0 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors"
+            className="flex-shrink-0 p-1.5 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
