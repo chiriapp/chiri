@@ -1,10 +1,16 @@
 name: 'Update Nix Binary Hashes'
 
 # Runs when a release is published (after you manually publish the draft)
+# or can be manually triggered with a version input
 on:
-  workflow_dispatch:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to update hashes for (without "app-v" prefix)'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -12,8 +18,10 @@ permissions:
 jobs:
   update-hashes:
     runs-on: ubuntu-latest
-    # Only run for app releases (not other types of releases)
-    if: startsWith(github.event.release.tag_name, 'app-v')
+    # Run for app releases or manual dispatch
+    if: |
+      (github.event_name == 'release' && startsWith(github.event.release.tag_name, 'app-v')) ||
+      github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,11 +33,15 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: Extract version from tag
+      - name: Extract version from tag or input
         id: version
         run: |
-          TAG="${{ github.event.release.tag_name }}"
-          VERSION="${TAG#app-v}"
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+            VERSION="${TAG#app-v}"
+          else
+            VERSION="${{ github.event.inputs.version }}"
+          fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Detected version: $VERSION"
 
