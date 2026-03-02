@@ -131,6 +131,13 @@ export function useUpdateChecker(): UseUpdateCheckerResult {
       return;
     }
 
+    // Check if automatic updates are enabled
+    const { checkForUpdatesAutomatically } = settingsStore.getState();
+    if (!checkForUpdatesAutomatically) {
+      log.info('Automatic update checks are disabled');
+      return;
+    }
+
     const timer = setTimeout(() => {
       checkForUpdates();
     }, 5000); // Check 5 seconds after app starts

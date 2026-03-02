@@ -36,6 +36,7 @@ interface SettingsState {
   defaultCalendarId: string | null;
   keyboardShortcuts: KeyboardShortcut[];
   enableSystemTray: boolean;
+  checkForUpdatesAutomatically: boolean;
   defaultPriority: Priority;
   defaultTags: string[];
   sidebarCollapsed: boolean;
@@ -81,6 +82,7 @@ interface SettingsActions {
   setEnableSystemTray: (enabled: boolean) => void;
   setSystemTrayRestartNeeded: (needed: boolean) => void;
   setSystemTrayAppliedValue: (value: boolean) => void;
+  setCheckForUpdatesAutomatically: (enabled: boolean) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;
 }
@@ -117,6 +119,7 @@ const defaultState: SettingsState = {
   enableSystemTray: true,
   systemTrayRestartNeeded: false,
   systemTrayAppliedValue: true,
+  checkForUpdatesAutomatically: true,
 };
 
 function loadFromStorage(): SettingsState {
@@ -227,6 +230,8 @@ export const settingsStore = {
     setState({ systemTrayRestartNeeded }),
   setSystemTrayAppliedValue: (systemTrayAppliedValue: boolean) =>
     setState({ systemTrayAppliedValue }),
+  setCheckForUpdatesAutomatically: (checkForUpdatesAutomatically: boolean) =>
+    setState({ checkForUpdatesAutomatically }),
 
   exportSettings: () => {
     const exportData = {
@@ -277,6 +282,8 @@ export const settingsStore = {
         systemTrayRestartNeeded:
           data.systemTrayRestartNeeded ?? defaultState.systemTrayRestartNeeded,
         systemTrayAppliedValue: data.systemTrayAppliedValue ?? defaultState.systemTrayAppliedValue,
+        checkForUpdatesAutomatically:
+          data.checkForUpdatesAutomatically ?? defaultState.checkForUpdatesAutomatically,
       });
       return true;
     } catch (e) {
@@ -398,6 +405,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     (value: boolean) => settingsStore.setSystemTrayAppliedValue(value),
     [],
   );
+  const setCheckForUpdatesAutomatically = useCallback(
+    (enabled: boolean) => settingsStore.setCheckForUpdatesAutomatically(enabled),
+    [],
+  );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
 
@@ -434,6 +445,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setEnableSystemTray,
     setSystemTrayRestartNeeded,
     setSystemTrayAppliedValue,
+    setCheckForUpdatesAutomatically,
     exportSettings,
     importSettings,
   };
