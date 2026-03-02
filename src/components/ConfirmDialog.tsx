@@ -92,7 +92,6 @@ export function ConfirmDialog({
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-description"
-      onClick={onCancel}
       onKeyDown={(e) => e.key === 'Escape' && onCancel()}
     >
       <div
