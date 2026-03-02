@@ -82,11 +82,12 @@ jobs:
           # Update version in binary package
           sed -i "s/version ? \"[^\"]*\"/version ? \"$VERSION\"/" "$BIN_PACKAGE_FILE"
 
-          # Update hashes for each platform
-          perl -i -0pe "s/(\"x86_64-linux\" = \{\s*asset = \"[^\"]+\";\s*hash = \")sha256-[^\"]+(\";)/$1$X64_LINUX_HASH$2/g" "$BIN_PACKAGE_FILE"
-          perl -i -0pe "s/(\"aarch64-linux\" = \{\s*asset = \"[^\"]+\";\s*hash = \")sha256-[^\"]+(\";)/$1$ARM64_LINUX_HASH$2/g" "$BIN_PACKAGE_FILE"
-          perl -i -0pe "s/(\"x86_64-darwin\" = \{\s*asset = \"[^\"]+\";\s*hash = \")sha256-[^\"]+(\";)/$1$X64_DARWIN_HASH$2/g" "$BIN_PACKAGE_FILE"
-          perl -i -0pe "s/(\"aarch64-darwin\" = \{\s*asset = \"[^\"]+\";\s*hash = \")sha256-[^\"]+(\";)/$1$ARM64_DARWIN_HASH$2/g" "$BIN_PACKAGE_FILE"
+          # Update hashes for each platform using sed (more reliable than perl for this)
+          # Use @ as delimiter to avoid conflicts with forward slashes in hashes
+          sed -i '/x86_64-linux/,/hash = / s@hash = "sha256-[^"]*"@hash = "'"$X64_LINUX_HASH"'"@' "$BIN_PACKAGE_FILE"
+          sed -i '/aarch64-linux/,/hash = / s@hash = "sha256-[^"]*"@hash = "'"$ARM64_LINUX_HASH"'"@' "$BIN_PACKAGE_FILE"
+          sed -i '/x86_64-darwin/,/hash = / s@hash = "sha256-[^"]*"@hash = "'"$X64_DARWIN_HASH"'"@' "$BIN_PACKAGE_FILE"
+          sed -i '/aarch64-darwin/,/hash = / s@hash = "sha256-[^"]*"@hash = "'"$ARM64_DARWIN_HASH"'"@' "$BIN_PACKAGE_FILE"
 
           echo "✓ Binary package updated"
           echo ""
@@ -111,8 +112,8 @@ jobs:
           sed -i "s/version = \"[^\"]*\";/version = \"$VERSION\";/" "$SRC_PACKAGE_FILE"
 
           # Update source hash (the fetchFromGitHub hash)
-          # Find the line with "# Update this hash when releasing a new version" and update the hash on the next line
-          perl -i -0pe "s/(# Update this hash when releasing a new version\s*hash = \")sha256-[^\"]+(\";)/$1$SOURCE_HASH$2/g" "$SRC_PACKAGE_FILE"
+          # Find the line after the comment and update it
+          sed -i '/# Update this hash when releasing a new version/{n;s@hash = "sha256-[^"]*"@hash = "'"$SOURCE_HASH"'"@;}' "$SRC_PACKAGE_FILE"
 
           echo "✓ Source package updated"
           echo ""
