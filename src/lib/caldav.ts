@@ -1,3 +1,4 @@
+import { connectionStore } from '@/context/connectionContext';
 import type { Account, Calendar, ServerType, Task } from '@/types';
 import { normalizeHexColor } from '@/utils/color';
 import { taskToVTodo, vtodoToTask } from '../utils/ical';
@@ -15,21 +16,11 @@ import {
 
 const log = createLogger('CalDAV', '#3b82f6');
 
-interface AccountConnection {
-  serverUrl: string;
-  credentials: CalDAVCredentials;
-  principalUrl: string;
-  calendarHome: string;
-  serverType: ServerType;
-}
-
 if (import.meta.hot) {
   import.meta.hot.accept();
 }
 
 class CalDAVService {
-  private connections: Map<string, AccountConnection> = new Map();
-
   /**
    * connect to a CalDAV account
    * supports multiple server types with different URL structures for the moment:
@@ -194,7 +185,7 @@ class CalDAVService {
     const displayName = results[0]?.props.displayname || username;
 
     // store the connection
-    this.connections.set(accountId, {
+    connectionStore.setConnection(accountId, {
       serverUrl: baseUrl,
       credentials,
       principalUrl,
@@ -209,7 +200,7 @@ class CalDAVService {
    * fetch calendars for an account
    */
   async fetchCalendars(accountId: string): Promise<Calendar[]> {
-    const conn = this.connections.get(accountId);
+    const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
     // PROPFIND on calendar home to get calendars
@@ -298,7 +289,7 @@ class CalDAVService {
    * 2. calendar-multiget REPORT to fetch actual calendar-data for each tasks.
    */
   async fetchTasks(accountId: string, calendar: Calendar): Promise<Task[] | null> {
-    const conn = this.connections.get(accountId);
+    const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
     // get list of task URLs and ETags using calendar-query
@@ -436,7 +427,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
     calendar: Calendar,
     task: Task,
   ): Promise<{ href: string; etag: string } | null> {
-    const conn = this.connections.get(accountId);
+    const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
     try {
@@ -460,7 +451,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
   }
 
   async updateTask(accountId: string, task: Task): Promise<{ etag: string } | null> {
-    const conn = this.connections.get(accountId);
+    const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
     if (!task.href) {
@@ -486,7 +477,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
   }
 
   async deleteTask(accountId: string, task: Task): Promise<boolean> {
-    const conn = this.connections.get(accountId);
+    const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
     if (!task.href) {
@@ -559,7 +550,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
     calendarUrl: string,
     updates: { displayName?: string; color?: string },
   ): Promise<{ success: boolean; failedProperties: string[] }> {
-    const conn = this.connections.get(accountId);
+    const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
     const failedProperties: string[] = [];
@@ -745,7 +736,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
    * delete a calendar from the server
    */
   async deleteCalendar(accountId: string, calendarUrl: string): Promise<boolean> {
-    const conn = this.connections.get(accountId);
+    const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
     try {
@@ -767,7 +758,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
    * create a new calendar collection on the server
    */
   async createCalendar(accountId: string, displayName: string, color?: string): Promise<Calendar> {
-    const conn = this.connections.get(accountId);
+    const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
     // generate a URL-safe name for the calendar
@@ -823,14 +814,14 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
    * disconnect an account
    */
   disconnect(accountId: string): void {
-    this.connections.delete(accountId);
+    connectionStore.deleteConnection(accountId);
   }
 
   /**
    * check if an account is connected
    */
   isConnected(accountId: string): boolean {
-    return this.connections.has(accountId);
+    return connectionStore.hasConnection(accountId);
   }
 
   /**
