@@ -479,6 +479,11 @@ export function useSyncQuery() {
     }
   }, [reconnectAccounts, syncCalendar, syncCalendarsForAccount, isOfflineRef]);
 
+  // Update ref when syncAll changes
+  useEffect(() => {
+    syncAllRef.current = syncAll;
+  }, [syncAll]);
+
   /**
    * Push a task to the server
    */
