@@ -116,6 +116,19 @@ fn main() {
                 }
                 // if tray is disabled, let the window close normally
             }
+
+            // workaround for KDE/Wayland environments on Linux:
+            // on KDE with Wayland, after hiding and showing the window,
+            // the title-bar buttons (close, minimize, maximize) may stop working
+            // toggling the resizable property appears to resolve this issue
+            // see: https://github.com/tauri-apps/tao/issues/1046
+            //      https://github.com/safing/portmaster/issues/1909
+            //      https://github.com/nymtech/nym-vpn-client/issues/2768
+            #[cfg(target_os = "linux")]
+            if let WindowEvent::Focused(true) = event {
+                let _ = window.set_resizable(false);
+                let _ = window.set_resizable(true);
+            }
         })
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
