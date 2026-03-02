@@ -42,12 +42,12 @@ nix run github:SapphoSys/caldav-tasks
 ### Precompiled Binary
 If you prefer to use the precompiled binary instead of building from source, you can use:
 ```
-nix run github:SapphoSys/caldav-tasks#caldav-tasks-bin
+nix run github:SapphoSys/caldav-tasks#bin
 ```
 
 Or install it in your configuration:
 ```nix
-inputs.caldav-tasks.packages.${pkgs.system}.caldav-tasks-bin
+inputs.caldav-tasks.packages.${pkgs.system}.bin
 ```
 
 ### Flakes
