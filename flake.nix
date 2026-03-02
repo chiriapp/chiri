@@ -67,8 +67,8 @@
           in
           {
             default = if pkgs.stdenv.hostPlatform.isDarwin then bin else source;
-            caldav-tasks = source;
-            caldav-tasks-bin = bin;
+            source = source;
+            bin = bin;
           };
 
         devShells.default = pkgs.mkShell {
