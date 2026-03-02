@@ -1,10 +1,10 @@
 [package]
 name = "caldav-tasks"
 version = "0.5.31"
-description = "a cross-platform CalDAV task management app"
-authors = ["you"]
-license = ""
-repository = ""
+description = "A cross-platform CalDAV task management app. Currently in very early alpha!"
+authors = ["Sapphic Angels"]
+license = "zlib"
+repository = "https://github.com/SapphoSys/caldav-tasks.git"
 edition = "2021"
 
 [build-dependencies]
