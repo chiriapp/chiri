@@ -43,6 +43,7 @@ export function useDeleteHandlers() {
       if (!confirmed) return;
     }
     deleteAccountMutation.mutate(accountId);
+    close();
   };
 
   /**
@@ -61,6 +62,7 @@ export function useDeleteHandlers() {
       if (!confirmed) return;
     }
     deleteTagMutation.mutate(tagId);
+    close();
   };
 
   /**

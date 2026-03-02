@@ -8,7 +8,7 @@ export function useConfirmTaskDelete() {
   const { confirmBeforeDelete, deleteSubtasksWithParent } = useSettingsStore();
   const { data: tasks = [] } = useTasks();
   const deleteTaskMutation = useDeleteTask();
-  const { confirm } = useConfirmDialog();
+  const { confirm, close } = useConfirmDialog();
 
   const confirmAndDelete = useCallback(
     async (taskId: string | null | undefined) => {
@@ -31,6 +31,7 @@ export function useConfirmTaskDelete() {
       const isUntitledTask = !task.title || task.title.trim() === '';
       if (isUntitledTask || !confirmBeforeDelete) {
         deleteTaskMutation.mutate({ id: taskId, deleteChildren });
+        close();
         return true;
       }
 
@@ -56,9 +57,10 @@ export function useConfirmTaskDelete() {
       if (!confirmed) return false;
 
       deleteTaskMutation.mutate({ id: taskId, deleteChildren });
+      close();
       return true;
     },
-    [confirmBeforeDelete, deleteSubtasksWithParent, deleteTaskMutation, confirm, tasks],
+    [confirmBeforeDelete, deleteSubtasksWithParent, deleteTaskMutation, confirm, close, tasks],
   );
 
   return { confirmAndDelete };
