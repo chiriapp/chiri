@@ -1,5 +1,5 @@
+import { useSettingsStore } from '@/context/settingsContext';
 import { SYNC_INTERVAL_OPTIONS } from '@/data/settings';
-import { useSettingsStore } from '@/store/settingsStore';
 
 export function SyncSettings() {
   const { autoSync, setAutoSync, syncInterval, setSyncInterval, syncOnStartup, setSyncOnStartup } =

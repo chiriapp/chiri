@@ -1,9 +1,9 @@
 import { isTauri } from '@tauri-apps/api/core';
 import { differenceInSeconds, isPast } from 'date-fns';
 import { useEffect, useRef } from 'react';
+import { useSettingsStore } from '@/context/settingsContext';
 import { useTasks } from '@/hooks/queries';
 import { createLogger } from '@/lib/logger';
-import { useSettingsStore } from '@/store/settingsStore';
 
 const log = createLogger('Notifications', '#f43f5e');
 

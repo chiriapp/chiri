@@ -13,6 +13,7 @@ import { UpdateModal } from '@/components/modals/UpdateModal';
 import { Sidebar } from '@/components/Sidebar';
 import { TaskEditor } from '@/components/TaskEditor';
 import { TaskList } from '@/components/TaskList';
+import { useSettingsStore } from '@/context/settingsContext';
 import { useAccounts, useSyncQuery, useTasks, useUIState } from '@/hooks/queries';
 import { useAppMenu } from '@/hooks/useAppMenu';
 import { useFileDrop } from '@/hooks/useFileDrop';
@@ -22,7 +23,6 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useTheme } from '@/hooks/useTheme';
 import { useTray } from '@/hooks/useTray';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
-import { useSettingsStore } from '@/store/settingsStore';
 import type { CalDAVConfig } from '@/utils/mobileconfig';
 import { initWebKitDragFix } from './utils/webkit';
 

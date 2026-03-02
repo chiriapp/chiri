@@ -2,8 +2,8 @@ import Plus from 'lucide-react/icons/plus';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { TagPickerModal } from '@/components/modals/TagPickerModal';
+import { useSettingsStore } from '@/context/settingsContext';
 import { useTags } from '@/hooks/queries';
-import { useSettingsStore } from '@/store/settingsStore';
 import { PRIORITIES } from '@/utils/priority';
 import { getIconByName } from '../../../data/icons';
 

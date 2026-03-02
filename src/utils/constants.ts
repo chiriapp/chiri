@@ -1,4 +1,4 @@
-import type { SortDirection, SortMode } from '@/types';
+import type { KeyboardShortcut, SortDirection, SortMode } from '@/types';
 
 // color presets for calendars, tags, etc
 export const COLOR_PRESETS = [
@@ -50,6 +50,25 @@ export const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: 'title', label: 'Title' },
   { value: 'modified', label: 'Last Modified' },
   { value: 'created', label: 'Created' },
+];
+
+export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
+  { id: 'new-task', key: 'n', meta: true, description: 'Create new task' },
+  { id: 'search', key: 'f', meta: true, description: 'Focus search' },
+  { id: 'settings', key: ',', meta: true, description: 'Open settings' },
+  { id: 'sync', key: 'r', meta: true, description: 'Sync with server' },
+  { id: 'delete', key: 'Backspace', meta: true, description: 'Delete selected task' },
+  { id: 'toggle-complete', key: 'z', description: 'Toggle task completion' },
+  {
+    id: 'toggle-show-completed',
+    key: 'h',
+    meta: true,
+    shift: true,
+    description: 'Toggle completed tasks',
+  },
+  { id: 'close', key: 'Escape', description: 'Close editor / Clear search' },
+  { id: 'nav-up', key: 'ArrowUp', description: 'Navigate to previous task' },
+  { id: 'nav-down', key: 'ArrowDown', description: 'Navigate to next task' },
 ];
 
 export const TASK_LIST_INDENT_SHIFT_SIZE = 28;

@@ -11,6 +11,7 @@ import Link from 'lucide-react/icons/link';
 import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { useEffect, useRef, useState } from 'react';
+import { useSettingsStore } from '@/context/settingsContext';
 import {
   useAccounts,
   useSetActiveAccount,
@@ -24,7 +25,6 @@ import {
 import { useConfirmTaskDelete } from '@/hooks/useConfirmTaskDelete';
 import { useContextMenu } from '@/hooks/useContextMenu';
 import * as taskData from '@/lib/taskData';
-import { useSettingsStore } from '@/store/settingsStore';
 import type { Task } from '@/types';
 
 import { FALLBACK_ITEM_COLOR } from '@/utils/constants';

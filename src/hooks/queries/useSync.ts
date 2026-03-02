@@ -6,12 +6,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { emit } from '@tauri-apps/api/event';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { settingsStore, useSettingsStore } from '@/context/settingsContext';
 import { toastManager } from '@/hooks/useToast.tsx';
 import { caldavService } from '@/lib/caldav';
 import { createLogger } from '@/lib/logger';
 import { queryKeys } from '@/lib/queryClient';
 import * as taskData from '@/lib/taskData';
-import { useSettingsStore } from '@/store/settingsStore';
 import type { Calendar, Task } from '@/types';
 import { generateTagColor } from '@/utils/color';
 import { MENU_EVENTS } from '@/utils/menu';
@@ -21,7 +21,7 @@ const log = createLogger('Sync', '#06b6d4');
 
 export function useSyncQuery() {
   const queryClient = useQueryClient();
-  const { autoSync, syncInterval, syncOnStartup } = useSettingsStore();
+  const { autoSync, syncInterval } = useSettingsStore();
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncError, setLastSyncError] = useState<string | null>(null);
@@ -50,7 +50,7 @@ export function useSyncQuery() {
    * Reconnect all accounts on app startup
    */
   const reconnectAccounts = useCallback(async () => {
-    const accounts = getAccounts();
+    const accounts = taskData.getAllAccounts();
     for (const account of accounts) {
       if (!caldavService.isConnected(account.id)) {
         try {
@@ -80,7 +80,7 @@ export function useSyncQuery() {
    */
   const syncCalendarsForAccount = useCallback(
     async (accountId: string) => {
-      const accounts = getAccounts();
+      const accounts = taskData.getAllAccounts();
       const account = accounts.find((a) => a.id === accountId);
       if (!account) return;
 
@@ -94,11 +94,13 @@ export function useSyncQuery() {
         remoteCalendars = await caldavService.fetchCalendars(accountId);
       } catch (error) {
         log.error(`Failed to fetch calendars for ${account.name}:`, error);
+        log.debug('About to show calendar sync error toast...');
         toastManager.error(
           'Calendar Sync Error',
           `Could not fetch calendars from "${account.name}". Server returned ${error instanceof Error ? error.message : 'an error'}.`,
           'calendar-fetch-error',
         );
+        log.debug('Calendar sync error toast call completed');
         return; // skip calendar sync to avoid deleting calendars based on failed fetch
       }
 
@@ -205,7 +207,7 @@ export function useSyncQuery() {
    */
   const syncCalendar = useCallback(
     async (calendarId: string) => {
-      const accounts = getAccounts();
+      const accounts = taskData.getAllAccounts();
       const account = accounts.find((a) => a.calendars.some((c) => c.id === calendarId));
 
       if (!account) {
@@ -419,7 +421,7 @@ export function useSyncQuery() {
       await reconnectAccounts();
 
       // get fresh accounts from data layer
-      let freshAccounts = getAccounts();
+      let freshAccounts = taskData.getAllAccounts();
 
       // sync calendars for each account (add/remove/update calendars)
       for (const account of freshAccounts) {
@@ -443,7 +445,7 @@ export function useSyncQuery() {
       }
 
       // re-fetch accounts after calendar sync (calendars may have been added/removed)
-      freshAccounts = getAccounts();
+      freshAccounts = taskData.getAllAccounts();
 
       // sync tasks for each calendar
       for (const account of freshAccounts) {
@@ -489,7 +491,7 @@ export function useSyncQuery() {
    */
   const pushTask = useCallback(
     async (task: Task) => {
-      const accounts = getAccounts();
+      const accounts = taskData.getAllAccounts();
       const account = accounts.find((a) => a.id === task.accountId);
       if (!account) return;
 
@@ -525,7 +527,7 @@ export function useSyncQuery() {
   const removeTaskFromServer = useCallback(async (task: Task) => {
     if (!task.href) return true; // Not on server yet
 
-    const accounts = getAccounts();
+    const accounts = taskData.getAllAccounts();
     const account = accounts.find((a) => a.id === task.accountId);
     if (!account) return false;
 
@@ -544,7 +546,8 @@ export function useSyncQuery() {
       return;
     }
 
-    const accounts = getAccounts();
+    const accounts = taskData.getAllAccounts();
+    const syncOnStartup = settingsStore.getState().syncOnStartup;
 
     if (accounts.length > 0 && syncOnStartup) {
       initialSyncScheduledRef.current = true;
@@ -588,7 +591,7 @@ export function useSyncQuery() {
       autoSyncIntervalRef.current = null;
     }
 
-    const accounts = getAccounts();
+    const accounts = taskData.getAllAccounts();
     // Set up new interval if autosync is enabled
     if (autoSync && syncInterval > 0 && accounts.length > 0) {
       autoSyncIntervalRef.current = setInterval(

@@ -2,9 +2,9 @@ import ArrowLeft from 'lucide-react/icons/arrow-left';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import User from 'lucide-react/icons/user';
 import { useEffect, useState } from 'react';
+import { useSettingsStore } from '@/context/settingsContext';
 import { ONBOARDING_STEPS } from '@/data/onboarding';
 import { useAccounts } from '@/hooks/queries';
-import { useSettingsStore } from '@/store/settingsStore';
 import { ModalWrapper } from '../ModalWrapper';
 
 interface OnboardingModalProps {

@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/index.css';
+import { SettingsProvider } from '@/context/settingsContext';
 import { forceShowWindow, initializeApp, showBootstrapError, showWindow } from '@/lib/bootstrap';
 import { createLogger } from '@/lib/logger';
 import { queryClient } from '@/lib/queryClient';
@@ -15,11 +16,13 @@ function renderApp() {
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
-        <ModalStateProvider>
-          <ConfirmDialogProvider>
-            <App />
-          </ConfirmDialogProvider>
-        </ModalStateProvider>
+        <SettingsProvider>
+          <ModalStateProvider>
+            <ConfirmDialogProvider>
+              <App />
+            </ConfirmDialogProvider>
+          </ModalStateProvider>
+        </SettingsProvider>
       </QueryClientProvider>
     </React.StrictMode>,
   );

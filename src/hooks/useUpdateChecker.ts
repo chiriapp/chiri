@@ -1,6 +1,7 @@
 import { isTauri } from '@tauri-apps/api/core';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { useCallback, useEffect, useState } from 'react';
+import { settingsStore } from '@/context/settingsContext';
 import { createLogger } from '@/lib/logger';
 
 const log = createLogger('Updater', '#10b981');

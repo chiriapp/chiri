@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useEffect } from 'react';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSettingsStore } from '@/context/settingsContext';
 import { useAccounts } from './queries';
 
 interface UseTrayOptions {
@@ -12,7 +12,7 @@ interface UseTrayOptions {
 
 export function useTray({ isSyncing, lastSyncTime, onSyncRequest }: UseTrayOptions) {
   const { data: accounts = [] } = useAccounts();
-  const enableSystemTray = useSettingsStore((state) => state.enableSystemTray);
+  const { enableSystemTray } = useSettingsStore();
 
   useEffect(() => {
     invoke('set_tray_visible', { visible: enableSystemTray }).catch((err) => {

@@ -4,7 +4,7 @@
  * Uses SQLite via Tauri SQL plugin with in-memory cache for synchronous access
  */
 
-import { useSettingsStore } from '@/store/settingsStore';
+import { settingsStore } from '@/context/settingsContext';
 import type {
   Account,
   Calendar,
@@ -191,7 +191,7 @@ export function createTask(taskData: Partial<Task>): Task {
   const now = new Date();
 
   // Get default calendar and task defaults from settings
-  const { defaultCalendarId, defaultPriority, defaultTags } = useSettingsStore.getState();
+  const { defaultCalendarId, defaultPriority, defaultTags } = settingsStore.getState();
 
   // Determine calendar and account to use
   let calendarId = taskData.calendarId || data.ui.activeCalendarId;

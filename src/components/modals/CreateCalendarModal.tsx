@@ -2,10 +2,10 @@ import Loader2 from 'lucide-react/icons/loader-2';
 import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '@/components/ComposedInput';
+import { useSettingsStore } from '@/context/settingsContext';
 import { useAddCalendar } from '@/hooks/queries';
 import { useModalEscapeKey } from '@/hooks/useModalEscapeKey';
 import { caldavService } from '@/lib/caldav';
-import { useSettingsStore } from '@/store/settingsStore';
 import { COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '@/utils/constants';
 import { IconEmojiPicker } from '../IconEmojiPicker';
 

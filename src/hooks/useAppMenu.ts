@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import { useSettingsStore } from '@/context/settingsContext';
 import { useAccounts, useTasks, useUIState } from '@/hooks/queries';
 import { loggers } from '@/lib/logger';
-import { useSettingsStore } from '@/store/settingsStore';
 import { rebuildAppMenu, updateMenuState } from '@/utils/menu';
 import { isCEF } from '@/utils/platform';
 

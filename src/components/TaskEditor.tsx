@@ -15,6 +15,7 @@ import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '@/components/ComposedInput';
 import { ComposedTextarea } from '@/components/ComposedTextarea';
+import { useSettingsStore } from '@/context/settingsContext';
 import {
   useAccounts,
   useAddReminder,
@@ -34,7 +35,6 @@ import { useConfirmTaskDelete } from '@/hooks/useConfirmTaskDelete';
 import { useDebouncedTaskUpdate } from '@/hooks/useDebouncedTaskUpdate';
 import { useModalEscapeKey } from '@/hooks/useModalEscapeKey';
 import * as taskData from '@/lib/taskData';
-import { useSettingsStore } from '@/store/settingsStore';
 import type { Priority, Task } from '@/types';
 import { filterCalDavDescription } from '@/utils/ical';
 import { hasOpenModalElements } from '@/utils/misc';

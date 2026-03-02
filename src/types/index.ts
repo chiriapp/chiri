@@ -222,6 +222,11 @@ export interface ReminderRow {
   [key: string]: unknown;
 }
 
+export type SubtaskDeletionBehavior = 'delete' | 'keep';
+export type Theme = 'light' | 'dark' | 'system';
+export type AccentColor = string;
+export type StartOfWeek = 'sunday' | 'monday';
+
 export interface KeyboardShortcut {
   id: string;
   key: string;

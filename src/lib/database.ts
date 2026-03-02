@@ -4,7 +4,7 @@
  */
 
 import Database from '@tauri-apps/plugin-sql';
-import { useSettingsStore } from '@/store/settingsStore';
+import { settingsStore } from '@/context/settingsContext';
 
 import type {
   Account,

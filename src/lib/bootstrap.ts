@@ -2,10 +2,10 @@ import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { arch, exeExtension, locale, platform, version } from '@tauri-apps/plugin-os';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { settingsStore } from '@/context/settingsContext';
 import { getUIState } from '@/lib/database';
 import { createLogger, initLogger } from '@/lib/logger';
 import { initializeDataStore } from '@/lib/taskData';
-import { useSettingsStore } from '@/store/settingsStore';
 import { initAppMenu } from '@/utils/menu';
 import { isCEF } from '@/utils/platform';
 import { version as AppVersion } from '../../package.json';
@@ -32,13 +32,13 @@ export async function initializeApp(): Promise<void> {
   // initialize system tray based on settings
   log.debug('Initializing system tray...');
   const { invoke } = await import('@tauri-apps/api/core');
-  const enableSystemTray = useSettingsStore.getState().enableSystemTray;
+  const enableSystemTray = settingsStore.getState().enableSystemTray;
 
   try {
     await invoke('initialize_tray', { enabled: enableSystemTray });
     log.debug(`System tray initialized (enabled: ${enableSystemTray})`);
     // Sync the applied value with the current setting on app start
-    useSettingsStore.setSystemTrayAppliedValue(enableSystemTray);
+    settingsStore.setSystemTrayAppliedValue(enableSystemTray);
   } catch (error) {
     log.error('Failed to initialize system tray:', error);
   }
@@ -47,7 +47,7 @@ export async function initializeApp(): Promise<void> {
   const uiState = await getUIState();
   const sortMode = uiState.sortConfig?.mode ?? 'manual';
 
-  const shortcuts = useSettingsStore.getState().keyboardShortcuts;
+  const shortcuts = settingsStore.getState().keyboardShortcuts;
   log.debug('Loaded keyboard shortcuts');
 
   // initialize macOS application menu with current state and user shortcuts

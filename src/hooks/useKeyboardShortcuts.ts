@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useModalState } from '@/context/modalStateContext';
+import { useSettingsStore } from '@/context/settingsContext';
 import {
   useCreateTask,
   useFilteredTasks,
@@ -13,7 +14,6 @@ import {
 import { useConfirmDialog } from '@/hooks/useConfirmDialog';
 import { useConfirmTaskDelete } from '@/hooks/useConfirmTaskDelete';
 import * as taskData from '@/lib/taskData';
-import { useSettingsStore } from '@/store/settingsStore';
 import type { KeyboardShortcut } from '@/types';
 import { DEFAULT_SORT_CONFIG } from '@/utils/constants';
 import { flattenTasks } from '@/utils/tree';

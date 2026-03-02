@@ -1,11 +1,8 @@
 import { relaunch } from '@tauri-apps/plugin-process';
+import { useSettingsStore } from '@/context/settingsContext';
 import { WEEK_START_OPTIONS } from '@/data/settings';
 import { useAccounts } from '@/hooks/queries';
-import {
-  type StartOfWeek,
-  type SubtaskDeletionBehavior,
-  useSettingsStore,
-} from '@/store/settingsStore';
+import type { StartOfWeek, SubtaskDeletionBehavior } from '@/types';
 
 export function BehaviorSettings() {
   const {
