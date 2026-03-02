@@ -25,7 +25,7 @@ import { useConfirmTaskDelete } from '@/hooks/useConfirmTaskDelete';
 import { useContextMenu } from '@/hooks/useContextMenu';
 import * as taskData from '@/lib/taskData';
 import { useSettingsStore } from '@/store/settingsStore';
-import type { Priority, Task } from '@/types';
+import type { Task } from '@/types';
 
 import { FALLBACK_ITEM_COLOR } from '@/utils/constants';
 import { formatDueDate } from '@/utils/date';
