@@ -11,6 +11,8 @@ use tauri::{Manager, RunEvent, WindowEvent};
 use tauri_plugin_log::{Target, TargetKind};
 use tauri_plugin_sql::Builder;
 
+const LOGGING_TARGET_IGNORE_LIST: [&str; 6] = ["tauri", "sqlx", "hyper", "h2", "tower", "reqwest"];
+
 #[cfg_attr(feature = "cef", tauri::cef_entry_point)]
 fn main() {
     // Initialize default crypto provider for rustls (required for reqwest in CEF)
@@ -37,7 +39,16 @@ fn main() {
                     }),
                     Target::new(TargetKind::Webview),
                 ])
-                .level(log::LevelFilter::Debug)
+                .filter(|metadata| {
+                    !LOGGING_TARGET_IGNORE_LIST
+                        .iter()
+                        .any(|ignored| metadata.target().starts_with(ignored))
+                })
+                .level(if cfg!(debug_assertions) {
+                    log::LevelFilter::Debug
+                } else {
+                    log::LevelFilter::Info
+                })
                 .max_file_size(50_000)
                 .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
                 .build(),
