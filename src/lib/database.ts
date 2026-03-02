@@ -703,6 +703,52 @@ export async function addCalendar(
   notifyListeners();
 }
 
+export async function updateCalendar(
+  calendarId: string,
+  updates: Partial<Calendar>,
+): Promise<void> {
+  const database = await getDb();
+
+  const rows = await database.select<CalendarRow[]>(
+    'SELECT * FROM calendars WHERE id = $1',
+    [calendarId],
+  );
+
+  if (rows.length === 0) {
+    log.warn(`Calendar ${calendarId} not found for update`);
+    return;
+  }
+
+  const existing = rowToCalendar(rows[0]);
+  const updated = { ...existing, ...updates };
+
+  await database.execute(
+    `UPDATE calendars SET
+      display_name = $1,
+      url = $2,
+      ctag = $3,
+      sync_token = $4,
+      color = $5,
+      icon = $6,
+      emoji = $7,
+      supported_components = $8
+    WHERE id = $9`,
+    [
+      updated.displayName,
+      updated.url,
+      updated.ctag || null,
+      updated.syncToken || null,
+      updated.color || null,
+      updated.icon || null,
+      updated.emoji || null,
+      updated.supportedComponents ? JSON.stringify(updated.supportedComponents) : null,
+      calendarId,
+    ],
+  );
+
+  notifyListeners();
+}
+
 export async function deleteCalendar(_accountId: string, calendarId: string): Promise<void> {
   const database = await getDb();
 

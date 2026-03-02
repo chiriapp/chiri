@@ -1063,6 +1063,34 @@ export function addCalendar(accountId: string, calendarData: Partial<Calendar>):
   });
 }
 
+export function updateCalendar(
+  accountId: string,
+  calendarId: string,
+  updates: Partial<Calendar>,
+): void {
+  const data = loadDataStore();
+
+  // Persist to SQLite
+  db.updateCalendar(calendarId, updates).catch((e) =>
+    log.error('Failed to persist calendar update:', e),
+  );
+
+  // Update in-memory store
+  saveDataStore({
+    ...data,
+    accounts: data.accounts.map((acc) =>
+      acc.id === accountId
+        ? {
+            ...acc,
+            calendars: acc.calendars.map((cal) =>
+              cal.id === calendarId ? { ...cal, ...updates } : cal,
+            ),
+          }
+        : acc,
+    ),
+  });
+}
+
 export function deleteCalendar(accountId: string, calendarId: string): void {
   const data = loadDataStore();
 

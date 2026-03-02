@@ -115,6 +115,8 @@ export function useSyncQuery() {
 
       // Build updated calendar list
       const updatedCalendars: Calendar[] = [];
+      const calendarUpdates: Map<string, Partial<Calendar>> = new Map();
+      const newCalendars: Calendar[] = [];
 
       // Add/update calendars from server
       for (const remoteCalendar of remoteCalendars) {
@@ -122,18 +124,27 @@ export function useSyncQuery() {
 
         if (localCalendar) {
           // Calendar exists - check if properties changed
-          if (
-            localCalendar.displayName !== remoteCalendar.displayName ||
-            localCalendar.color !== remoteCalendar.color ||
-            localCalendar.ctag !== remoteCalendar.ctag ||
-            localCalendar.syncToken !== remoteCalendar.syncToken
-          ) {
-            updatedCalendars.push({
-              ...localCalendar,
+          const displayNameChanged = localCalendar.displayName !== remoteCalendar.displayName;
+          const colorChanged = localCalendar.color !== remoteCalendar.color;
+          const ctagChanged = localCalendar.ctag !== remoteCalendar.ctag;
+          const syncTokenChanged = localCalendar.syncToken !== remoteCalendar.syncToken;
+
+          // if ctag/syncToken changed, calendar properties were modified on server
+          const serverPropertiesChanged = ctagChanged || syncTokenChanged;
+
+          if (displayNameChanged || colorChanged || ctagChanged || syncTokenChanged) {
+            const updates: Partial<Calendar> = {
               displayName: remoteCalendar.displayName,
-              color: remoteCalendar.color,
+              color: serverPropertiesChanged ? remoteCalendar.color : localCalendar.color,
               ctag: remoteCalendar.ctag,
               syncToken: remoteCalendar.syncToken,
+            };
+
+            calendarUpdates.set(localCalendar.id, updates);
+
+            updatedCalendars.push({
+              ...localCalendar,
+              ...updates,
             });
           } else {
             updatedCalendars.push(localCalendar);
@@ -141,6 +152,7 @@ export function useSyncQuery() {
         } else {
           // New calendar from server
           updatedCalendars.push(remoteCalendar);
+          newCalendars.push(remoteCalendar);
         }
       }
 
@@ -170,9 +182,14 @@ export function useSyncQuery() {
         }
       }
 
-      // Update account with new calendar list
-      if (JSON.stringify(updatedCalendars) !== JSON.stringify(localCalendars)) {
-        taskData.updateAccount(accountId, { calendars: updatedCalendars });
+      // persist new calendars to database
+      for (const calendar of newCalendars) {
+        taskData.addCalendar(accountId, calendar);
+      }
+
+      // persist calendar property updates to database
+      for (const [calendarId, updates] of calendarUpdates) {
+        taskData.updateCalendar(accountId, calendarId, updates);
       }
 
       // if active calendar was deleted, redirect to All Tasks
