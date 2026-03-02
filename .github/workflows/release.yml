@@ -192,7 +192,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: release
+          ref: master
 
       - name: Update README version links
         run: |
