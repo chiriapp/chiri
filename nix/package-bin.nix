@@ -27,19 +27,19 @@ let
   platformInfo = {
     "x86_64-linux" = {
       asset = "caldav-tasks_${version}_amd64.deb";
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      hash = "sha256-HJz3Y/4w6iKNJi4BNTG6Gvsnjl3GyPIYGhsmBVZ/i+w=";
     };
     "aarch64-linux" = {
       asset = "caldav-tasks_${version}_arm64.deb";
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      hash = "sha256-zUM+MFVJyyGEXVtaaHXsJh1eLGGa8QC7/QlY2cx84GE=";
     };
     "x86_64-darwin" = {
       asset = "caldav-tasks_${version}_x64.dmg";
-      hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+      hash = "sha256-xR981f9D2p/LQD513tO22M7V0u3FYrAkUivpCEby3u0=";
     };
     "aarch64-darwin" = {
       asset = "caldav-tasks_${version}_aarch64.dmg";
-      hash = "sha256-dFLrZVhmD993bB8piyUpnjqIU2Tndi8tKa+96qySX2s=";
+      hash = "sha256-hzSzEcgG23VR5Rl+amwUQgVLFQ9UF4vlTKqqJY0p89I=";
     };
   };
 
