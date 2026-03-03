@@ -187,14 +187,14 @@ caldav-tasks is licensed under the [<span aria-hidden="true">&nearr;</span> zlib
 [header-repo-issues-link]: https://github.com/SapphoSys/caldav-tasks/issues
 [header-screenshot]: ./.github/assets/screenshot.png
 
-[release-windows-msi-x64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.3/caldav-tasks_0.6.3_x64_en-US.msi
-[release-windows-exe-x64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.3/caldav-tasks_0.6.3_x64-setup.exe
-[release-macos-dmg-applesilicon]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.3/caldav-tasks_0.6.3_aarch64.dmg
-[release-macos-dmg-intel]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.3/caldav-tasks_0.6.3_x64.dmg
-[release-linux-deb-x86_64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.3/caldav-tasks_0.6.3_amd64.deb
-[release-linux-deb-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.3/caldav-tasks_0.6.3_arm64.deb
-[release-linux-rpm-x86_64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.3/caldav-tasks-0.6.3-1.x86_64.rpm
-[release-linux-rpm-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.3/caldav-tasks-0.6.3-1.aarch64.rpm
+[release-windows-msi-x64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.4/caldav-tasks_0.6.4_x64_en-US.msi
+[release-windows-exe-x64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.4/caldav-tasks_0.6.4_x64-setup.exe
+[release-macos-dmg-applesilicon]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.4/caldav-tasks_0.6.4_aarch64.dmg
+[release-macos-dmg-intel]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.4/caldav-tasks_0.6.4_x64.dmg
+[release-linux-deb-x86_64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.4/caldav-tasks_0.6.4_amd64.deb
+[release-linux-deb-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.4/caldav-tasks_0.6.4_arm64.deb
+[release-linux-rpm-x86_64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.4/caldav-tasks-0.6.4-1.x86_64.rpm
+[release-linux-rpm-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.6.4/caldav-tasks-0.6.4-1.aarch64.rpm
 
 [repo-license]: https://github.com/SapphoSys/caldav-tasks/blob/master/LICENSE
 [repo-releases]: https://github.com/SapphoSys/caldav-tasks/releases
