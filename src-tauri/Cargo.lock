@@ -575,7 +575,7 @@ dependencies = [
 
 [[package]]
 name = "caldav-tasks"
-version = "0.6.3"
+version = "0.6.3-test"
 dependencies = [
  "gtk",
  "lazy_static",
