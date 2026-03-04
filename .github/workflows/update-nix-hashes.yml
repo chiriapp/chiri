@@ -151,11 +151,11 @@ jobs:
           echo "--- Updating dependency hashes ---"
           echo "Running update-hashes.sh to update cargo and pnpm hashes..."
           echo ""
-          
+
           # Run the hash update script to update cargo and pnpm dependencies
           chmod +x ./nix/update-hashes.sh
           ./nix/update-hashes.sh
-          
+
           echo ""
           echo "==> All package files updated!"
 
