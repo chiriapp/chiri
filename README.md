@@ -16,7 +16,7 @@
 
 ## Disclaimer
 > [!IMPORTANT]  
-> The app is currently in alpha so you might encounter bugs here and there.  
+> Though the app is functional, it is currently in alpha so you might encounter bugs here and there.  
 If you do, [file a bug report][header-repo-issues-link] and let me know.
 
 # Download
@@ -33,22 +33,11 @@ You can download pre-built binaries of the application for each platform by clic
 [<img src="./.github/assets/download/linux_rpm_arm.png" width="200">][release-linux-rpm-arm]
 <!-- download badges end -->
 
-## Nix
-To quickly try out the app, you can use the following command:
-```
-nix run github:SapphoSys/caldav-tasks
-```
+> [!NOTE]  
+> Flatpak, AppImage and AUR (Arch Linux) support is planned in a future release.
 
-### Precompiled Binary
-If you prefer to use the precompiled binary instead of building from source, you can use:
-```
-nix run github:SapphoSys/caldav-tasks#bin
-```
-
-Or install it in your configuration:
-```nix
-inputs.caldav-tasks.packages.${pkgs.system}.bin
-```
+<details>
+<summary>Instructions for Nix / NixOS</summary>
 
 ### Flakes
 > [!IMPORTANT]  
@@ -144,6 +133,7 @@ Add `caldav-tasks` as an input to your `flake.nix` file.
   }
   ```
 </details>
+</details>
 
 # Support
 If you found caldav-tasks useful, please consider donating! 
@@ -156,6 +146,8 @@ I work on caldav-tasks during my free time as a student, so every amount, howeve
 <!-- donation badges end -->
 
 # Compatibility
+Does the app work on other CalDAV servers or CalDAV-compatible clients that are not listed here? [Please let me know by filing an issue](https://github.com/SapphoSys/caldav-tasks/issues/new)!
+
 ## Servers
 | Server              | Support |
 | ------------------- | ------- |
@@ -164,6 +156,7 @@ I work on caldav-tasks during my free time as a student, so every amount, howeve
 | Radicale            | ✅      |
 | RustiCal            | ✅      |
 | Fastmail            | ✅      |
+
 ## Clients
 | Client              | Support |
 | ------------------- | ------- |
@@ -178,11 +171,11 @@ caldav-tasks is licensed under the [<span aria-hidden="true">&nearr;</span> zlib
 [donate-kofi]: https://ko-fi.com/solelychloe
 [donate-liberapay]: https://liberapay.com/chloe
 
-[header-donate-kofi-badge]: https://img.shields.io/badge/donate-kofi-f5c2e7?style=plastic&logo=kofi&logoColor=f5c2e7&labelColor=18181b
-[header-donate-liberapay-badge]: https://img.shields.io/badge/donate-liberapay-f5c2e7?style=plastic&logo=liberapay&logoColor=f5c2e7&labelColor=18181b
-[header-repo-license-badge]: https://img.shields.io/github/license/SapphoSys/caldav-tasks?style=plastic&labelColor=18181b&color=f5c2e7
-[header-repo-stars-badge]: https://img.shields.io/github/stars/SapphoSys/caldav-tasks?style=plastic&logo=github&logoColor=f5c2e7&labelColor=18181b&color=f5c2e7&cacheSeconds=600
-[header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/SapphoSys/caldav-tasks/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=600
+[header-donate-kofi-badge]: https://img.shields.io/badge/donate-kofi-f5c2e7?style=plastic&logo=kofi&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
+[header-donate-liberapay-badge]: https://img.shields.io/badge/donate-liberapay-f5c2e7?style=plastic&logo=liberapay&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
+[header-repo-license-badge]: https://img.shields.io/github/license/SapphoSys/caldav-tasks?style=plastic&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-stars-badge]: https://img.shields.io/github/stars/SapphoSys/caldav-tasks?style=plastic&logo=github&logoColor=f5c2e7&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/SapphoSys/caldav-tasks/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
 
 [header-repo-issues-link]: https://github.com/SapphoSys/caldav-tasks/issues
 [header-screenshot]: ./.github/assets/screenshot.png
