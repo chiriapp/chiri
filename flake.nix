@@ -1,5 +1,5 @@
 {
-  description = "caldav-tasks - Cross-platform CalDAV task management app";
+  description = "A cross-platform CalDAV task management app. Currently in very early alpha!";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
