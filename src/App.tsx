@@ -1,4 +1,3 @@
-import { WifiOff } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { DragOverlay } from '$components/DragOverlay';
 import { Header } from '$components/Header';
@@ -9,6 +8,7 @@ import { ImportModal } from '$components/modals/ImportModal';
 import { OnboardingModal } from '$components/modals/OnboardingModal';
 import { SettingsModal } from '$components/modals/SettingsModal';
 import { UpdateModal } from '$components/modals/UpdateModal';
+import { OfflineBanner } from '$components/OfflineBanner';
 import { Sidebar } from '$components/Sidebar';
 import { TaskEditor } from '$components/TaskEditor';
 import { TaskList } from '$components/TaskList';
@@ -163,17 +163,7 @@ const App = () => {
           lastSyncTime={lastSyncTime}
         />
 
-        {isOffline && (
-          <div className="flex flex-row items-center text-center justify-center gap-2 p-1.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300">
-            <WifiOff className="w-5 h-5" />
-            <p>
-              You're offline.
-              {syncOnReconnect
-                ? ' Changes will sync when you reconnect.'
-                : ' Use the sync button to sync when you reconnect.'}
-            </p>
-          </div>
-        )}
+        <OfflineBanner isOffline={isOffline} syncOnReconnect={syncOnReconnect} />
 
         <div className="flex-1 flex min-h-0 overflow-hidden">
           <div
