@@ -1,5 +1,6 @@
 import X from 'lucide-react/icons/x';
 import type { ReactNode } from 'react';
+import { useFocusTrap } from '$hooks/useFocusTrap';
 import { MODAL_SIZE_CLASSES } from '$utils/constants';
 
 interface ModalWrapperProps {
@@ -23,6 +24,8 @@ export const ModalWrapper = ({
   size = 'md',
   preventClose = false,
 }: ModalWrapperProps) => {
+  const focusTrapRef = useFocusTrap(isOpen);
+
   if (!isOpen) return null;
 
   const handleBackdropClick = () => {
@@ -42,6 +45,7 @@ export const ModalWrapper = ({
       }}
     >
       <div
+        ref={focusTrapRef}
         role="document"
         className={`bg-white dark:bg-surface-800 rounded-xl shadow-xl ${MODAL_SIZE_CLASSES[size]} w-full max-h-[90vh] flex flex-col animate-scale-in`}
         onClick={(e) => e.stopPropagation()}

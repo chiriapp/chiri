@@ -19,6 +19,7 @@ import { ShortcutsSettings } from '$components/modals/settings/ShortcutsSettings
 import { SyncSettings } from '$components/modals/settings/SyncSettings';
 import { TaskDefaultsSettings } from '$components/modals/settings/TaskDefaultsSettings';
 import { useAccounts } from '$hooks/queries/useAccounts';
+import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import type { SettingsCategory, SettingsSubtab } from '$types/index';
 
@@ -41,6 +42,7 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
   });
   const [isChildModalOpen, setIsChildModalOpen] = useState(false);
   const { data: accounts = [] } = useAccounts();
+  const focusTrapRef = useFocusTrap();
 
   // handle ESC key to close modal - but not if a child modal is open
   useModalEscapeKey(() => {
@@ -98,7 +100,10 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-3xl h-[80vh] flex flex-col animate-scale-in">
+      <div
+        ref={focusTrapRef}
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-3xl h-[80vh] flex flex-col animate-scale-in"
+      >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Settings</h2>
           <button

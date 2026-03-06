@@ -8,6 +8,7 @@ import Download from 'lucide-react/icons/download';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { EXPORT_FORMATS } from '$data/export';
+import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import { loggers } from '$lib/logger';
 import type { Calendar, ExportFormat, ExportType, Task } from '$types/index';
@@ -38,6 +39,7 @@ export const ExportModal = ({
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const focusTrapRef = useFocusTrap();
 
   useModalEscapeKey(onClose);
 
@@ -102,7 +104,10 @@ export const ExportModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 animate-fade-in">
-      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col animate-scale-in">
+      <div
+        ref={focusTrapRef}
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col animate-scale-in"
+      >
         <div className="bg-white dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700 p-6 flex-shrink-0 flex items-start justify-between rounded-t-xl">
           <div>
             <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">

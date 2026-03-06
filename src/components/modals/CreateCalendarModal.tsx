@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { useAddCalendar } from '$hooks/queries/useAccounts';
+import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import { useSettingsStore } from '$hooks/useSettingsStore';
 import { caldavService } from '$lib/caldav';
@@ -25,6 +26,7 @@ export const CreateCalendarModal = ({ accountId, onClose }: CreateCalendarModalP
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const focusTrapRef = useFocusTrap();
 
   // handle ESC key to close modal
   useModalEscapeKey(onClose);
@@ -65,7 +67,10 @@ export const CreateCalendarModal = ({ accountId, onClose }: CreateCalendarModalP
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-fade-in"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in">
+      <div
+        ref={focusTrapRef}
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in"
+      >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
             New Calendar

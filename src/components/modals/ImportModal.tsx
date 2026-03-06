@@ -8,6 +8,7 @@ import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useCreateTask } from '$hooks/queries/useTasks';
+import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import { loggers } from '$lib/logger';
 import type { Calendar, Task } from '$types/index';
@@ -36,6 +37,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   const [importSuccess, setImportSuccess] = useState(false);
   const [showTaskList, setShowTaskList] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const focusTrapRef = useFocusTrap(isOpen);
 
   // get all calendars from accounts
   const allCalendars: Calendar[] = accounts.flatMap((account) => account.calendars);
@@ -238,7 +240,10 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] animate-fade-in">
-      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in">
+      <div
+        ref={focusTrapRef}
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in"
+      >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
             Import Tasks

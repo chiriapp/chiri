@@ -2,6 +2,7 @@ import Search from 'lucide-react/icons/search';
 import X from 'lucide-react/icons/x';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getIconByName } from '$data/icons';
+import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import type { Tag } from '$types/index';
 
@@ -24,6 +25,7 @@ export const TagPickerModal = ({
 }: TagPickerModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const focusTrapRef = useFocusTrap(isOpen);
 
   // Handle ESC key to close modal
   useModalEscapeKey(onClose);
@@ -59,7 +61,10 @@ export const TagPickerModal = ({
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-fade-in"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-xs animate-scale-in">
+      <div
+        ref={focusTrapRef}
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-xs animate-scale-in"
+      >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Add Tag</h2>
           <button
@@ -81,7 +86,7 @@ export const TagPickerModal = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search tags..."
-                className="w-full pl-9 pr-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
+                className="w-full pl-9 pr-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
               />
             </div>
           </div>

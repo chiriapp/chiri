@@ -17,6 +17,7 @@ import Trash2 from 'lucide-react/icons/trash-2';
 import X from 'lucide-react/icons/x';
 import { useEffect, useState } from 'react';
 import { settingsStore } from '$context/settingsContext';
+import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import {
   createPaddedDaysArray,
@@ -56,6 +57,7 @@ export const ReminderPickerModal = ({
     }
     return { hours: 9, minutes: 0 };
   });
+  const focusTrapRef = useFocusTrap();
 
   // Handle ESC key to close modal
   useModalEscapeKey(onClose);
@@ -132,7 +134,10 @@ export const ReminderPickerModal = ({
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 animate-fade-in">
-      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-xs animate-scale-in">
+      <div
+        ref={focusTrapRef}
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-xs animate-scale-in"
+      >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">{title}</h2>
           <div className="flex items-center gap-1">

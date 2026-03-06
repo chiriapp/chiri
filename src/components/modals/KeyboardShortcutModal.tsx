@@ -1,6 +1,7 @@
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
+import { useFocusTrap } from '$hooks/useFocusTrap';
 import type { KeyboardShortcut } from '$types/index';
 import { formatShortcut } from '$utils/keyboard';
 
@@ -19,6 +20,7 @@ export const KeyboardShortcutModal = ({
 }: KeyboardShortcutModalProps) => {
   const [pendingShortcut, setPendingShortcut] = useState<Partial<KeyboardShortcut> | null>(null);
   const inputRef = useRef<HTMLDivElement>(null);
+  const focusTrapRef = useFocusTrap(isOpen);
 
   // Reset pending shortcut when modal opens with new shortcut
   useEffect(() => {
@@ -113,7 +115,10 @@ export const KeyboardShortcutModal = ({
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 animate-fade-in"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in">
+      <div
+        ref={focusTrapRef}
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
+      >
         <div className="flex items-start justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <div>
             <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
