@@ -13,6 +13,7 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState<ConfirmOptions>(defaultConfirmOptions);
+  const [dialogKey, setDialogKey] = useState(0);
 
   const close = useCallback(() => {
     setIsOpen(false);
@@ -26,6 +27,7 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
       resolverRef.current = resolve;
       alternateResolverRef.current = null;
       setOptions({ ...defaultConfirmOptions, ...opts });
+      setDialogKey((k) => k + 1); // Force remount to reset state
       setIsOpen(true);
     });
   }, []);
@@ -35,6 +37,7 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
       alternateResolverRef.current = resolve;
       resolverRef.current = null;
       setOptions({ ...defaultConfirmOptions, ...opts });
+      setDialogKey((k) => k + 1); // Force remount to reset state
       setIsOpen(true);
     });
   }, []);
@@ -67,6 +70,7 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
     >
       {children}
       <ConfirmDialog
+        key={dialogKey}
         isOpen={isOpen}
         title={options.title ?? defaultConfirmOptions.title}
         subtitle={options.subtitle}

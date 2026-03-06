@@ -39,17 +39,6 @@ export const ConfirmDialog = ({
   const [remainingSeconds, setRemainingSeconds] = useState(delayConfirmSeconds || 0);
   const isConfirmDisabled = remainingSeconds > 0;
 
-  // Reset countdown when dialog opens or closes
-  useEffect(() => {
-    if (isOpen) {
-      // Reset to the delay value if provided, otherwise reset to 0
-      setRemainingSeconds(delayConfirmSeconds || 0);
-    } else {
-      // Reset to 0 when dialog closes to prevent carryover
-      setRemainingSeconds(0);
-    }
-  }, [isOpen, delayConfirmSeconds]);
-
   // Countdown timer
   useEffect(() => {
     if (!isOpen || remainingSeconds <= 0) return;
