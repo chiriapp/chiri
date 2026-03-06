@@ -1,4 +1,3 @@
-import { isTauri } from '@tauri-apps/api/core';
 import { differenceInSeconds, isPast } from 'date-fns';
 import { useEffect, useRef } from 'react';
 import { useTasks } from '$hooks/queries/useTasks';
@@ -10,50 +9,29 @@ const log = loggers.notifications;
 interface NotificationOptions {
   title: string;
   body: string;
-  icon?: string;
 }
 
 const showNotification = async (options: NotificationOptions): Promise<void> => {
-  if (isTauri()) {
-    try {
-      // dynamic import for Tauri notification plugin
-      const notification = await import('@tauri-apps/plugin-notification');
-      const { isPermissionGranted, requestPermission, sendNotification } = notification;
+  try {
+    // dynamic import for Tauri notification plugin
+    const notification = await import('@tauri-apps/plugin-notification');
+    const { isPermissionGranted, requestPermission, sendNotification } = notification;
 
-      let permissionGranted = await isPermissionGranted();
+    let permissionGranted = await isPermissionGranted();
 
-      if (!permissionGranted) {
-        const permission = await requestPermission();
-        permissionGranted = permission === 'granted';
-      }
-
-      if (permissionGranted) {
-        sendNotification({
-          title: options.title,
-          body: options.body,
-        });
-      }
-    } catch (error) {
-      log.error('Failed to show notification:', error);
+    if (!permissionGranted) {
+      const permission = await requestPermission();
+      permissionGranted = permission === 'granted';
     }
-  } else {
-    // browser fallback using Web Notifications API
-    if ('Notification' in window) {
-      if (Notification.permission === 'granted') {
-        new Notification(options.title, {
-          body: options.body,
-          icon: options.icon,
-        });
-      } else if (Notification.permission !== 'denied') {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-          new Notification(options.title, {
-            body: options.body,
-            icon: options.icon,
-          });
-        }
-      }
+
+    if (permissionGranted) {
+      sendNotification({
+        title: options.title,
+        body: options.body,
+      });
     }
+  } catch (error) {
+    log.error('Failed to show notification:', error);
   }
 };
 
