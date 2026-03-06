@@ -7,10 +7,9 @@ export const generateUUID = () => {
  */
 export const hasOpenModalElements = () => {
   const fixedInsetElements = document.querySelectorAll('.fixed.inset-0');
+
   return Array.from(fixedInsetElements).some((el) => {
     const classList = el.classList;
-    return (
-      classList.contains('z-50') || classList.contains('z-[60]') || classList.contains('z-[70]')
-    );
+    return ['z-50', 'z-[60]', 'z-[70]'].some((zClass) => classList.contains(zClass));
   });
 };
