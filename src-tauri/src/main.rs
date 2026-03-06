@@ -4,16 +4,15 @@
 )]
 
 mod app_nap;
-mod desktop_env;
+mod logging;
 mod migrations;
 mod plist_utils;
 mod tray;
+mod window_decorations;
+mod window_events;
 
-use tauri::{Manager, RunEvent, WindowEvent};
-use tauri_plugin_log::{Target, TargetKind};
+use tauri::{Manager, RunEvent};
 use tauri_plugin_sql::Builder;
-
-const LOGGING_TARGET_IGNORE_LIST: [&str; 6] = ["tauri", "sqlx", "hyper", "h2", "tower", "reqwest"];
 
 #[cfg_attr(feature = "cef", tauri::cef_entry_point)]
 fn main() {
@@ -46,29 +45,7 @@ fn main() {
         }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
-        .plugin(
-            tauri_plugin_log::Builder::new()
-                .targets([
-                    Target::new(TargetKind::Stdout),
-                    Target::new(TargetKind::LogDir {
-                        file_name: Some("caldav-tasks".to_string()),
-                    }),
-                    Target::new(TargetKind::Webview),
-                ])
-                .filter(|metadata| {
-                    !LOGGING_TARGET_IGNORE_LIST
-                        .iter()
-                        .any(|ignored| metadata.target().starts_with(ignored))
-                })
-                .level(if cfg!(debug_assertions) {
-                    log::LevelFilter::Debug
-                } else {
-                    log::LevelFilter::Info
-                })
-                .max_file_size(50_000)
-                .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepAll)
-                .build(),
-        )
+        .plugin(logging::build_logging_plugin().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_shell::init())
@@ -93,65 +70,14 @@ fn main() {
             // Configure titlebar BEFORE window is shown (must happen before realization)
             #[cfg(target_os = "linux")]
             if let Some(window) = _app.get_webview_window("main") {
-                desktop_env::configure_titlebar_for_de(&window);
+                window_decorations::configure_titlebar_for_de(&window);
             }
 
             // tray will be initialized from frontend after reading settings
             Ok(())
         })
         .on_window_event(|window, event| {
-            // hide window instead of closing when X is clicked, but only if tray is enabled
-            if let WindowEvent::CloseRequested { api, .. } = event {
-                // check if tray is enabled
-                if tray::is_tray_enabled() {
-                    api.prevent_close();
-
-                    // CEF: spawn hide operation asynchronously to avoid blocking the message loop
-                    #[cfg(feature = "cef")]
-                    {
-                        let window = window.clone();
-                        std::thread::spawn(move || {
-                            let _ = window.hide();
-
-                            // on macOS, hide the dock icon when the window is hidden
-                            #[cfg(target_os = "macos")]
-                            {
-                                let _ = window
-                                    .app_handle()
-                                    .set_activation_policy(tauri::ActivationPolicy::Accessory);
-                            }
-                        });
-                    }
-
-                    // Wry: can do synchronously
-                    #[cfg(not(feature = "cef"))]
-                    {
-                        let _ = window.hide();
-
-                        // on macOS, hide the dock icon when the window is hidden
-                        #[cfg(target_os = "macos")]
-                        {
-                            let _ = window
-                                .app_handle()
-                                .set_activation_policy(tauri::ActivationPolicy::Accessory);
-                        }
-                    }
-                }
-                // if tray is disabled, let the window close normally
-            }
-
-            // workaround for KDE/Wayland environments on Linux:
-            // on KDE with Wayland, after hiding and showing the window,
-            // the title-bar buttons (close, minimize, maximize) may stop working
-            // toggling the resizable property appears to resolve this issue
-            // see: https://github.com/tauri-apps/tao/issues/1046
-            //      https://github.com/safing/portmaster/issues/1909
-            //      https://github.com/nymtech/nym-vpn-client/issues/2768
-            #[cfg(target_os = "linux")]
-            if let WindowEvent::Focused(true) = event {
-                let _ = window.set_resizable(false);
-                let _ = window.set_resizable(true);
-            }
+            window_events::handle_window_event(window, event);
         })
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

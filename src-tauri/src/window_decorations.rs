@@ -33,12 +33,6 @@ pub fn needs_gtk_decorations() -> bool {
     false
 }
 
-/// Detects if the current desktop environment is GNOME (for backward compatibility)
-#[deprecated(note = "Use needs_gtk_decorations() instead")]
-pub fn is_gnome() -> bool {
-    needs_gtk_decorations()
-}
-
 /// Configures the titlebar based on the desktop environment
 /// This must be called BEFORE the window is shown/realized
 ///
@@ -71,12 +65,6 @@ pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
 
 #[cfg(not(target_os = "linux"))]
 pub fn needs_gtk_decorations() -> bool {
-    false
-}
-
-#[cfg(not(target_os = "linux"))]
-#[deprecated(note = "Use needs_gtk_decorations() instead")]
-pub fn is_gnome() -> bool {
     false
 }
 
