@@ -48,7 +48,8 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
     } else {
       resolverRef.current?.(true);
     }
-  }, []);
+    close();
+  }, [close]);
 
   const handleAlternate = useCallback(() => {
     alternateResolverRef.current?.('alternate');
