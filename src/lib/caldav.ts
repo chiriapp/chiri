@@ -148,6 +148,8 @@ class CalDAVService {
           : principalUrl;
         break;
       }
+      case 'fastmail':
+      case 'mailbox':
       case 'generic': {
         // for generic servers, perform proper CalDAV discovery per RFC 4791
 

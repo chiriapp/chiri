@@ -92,7 +92,14 @@ export interface Calendar {
   supportedComponents?: string[]; // e.g., ['VTODO', 'VEVENT']
 }
 
-export type ServerType = 'rustical' | 'radicale' | 'baikal' | 'nextcloud' | 'generic';
+export type ServerType =
+  | 'rustical'
+  | 'radicale'
+  | 'baikal'
+  | 'nextcloud'
+  | 'mailbox'
+  | 'fastmail'
+  | 'generic';
 
 export interface Account {
   id: string;
@@ -130,7 +137,8 @@ export type SettingsSubtab =
   | 'connections'
   | 'sync'
   | 'data'
-  | 'version';
+  | 'version'
+  | 'updates';
 
 export type ExportFormat = 'ics' | 'json' | 'markdown' | 'csv';
 export type ExportType = 'tasks' | 'all-calendars' | 'single-calendar';

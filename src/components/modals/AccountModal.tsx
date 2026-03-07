@@ -4,7 +4,11 @@ import Loader2 from 'lucide-react/icons/loader-2';
 import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
-import { getServerTypeDescription, SERVER_TYPE_OPTIONS } from '$data/settings';
+import {
+  getPredefinedServerUrl,
+  getServerTypeDescription,
+  SERVER_TYPE_GROUPS,
+} from '$data/settings';
 import { useAddCalendar, useCreateAccount, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useConfirmDialog } from '$hooks/useConfirmDialog';
 import { useFocusTrap } from '$hooks/useFocusTrap';
@@ -33,13 +37,17 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const updateAccountMutation = useUpdateAccount();
   const addCalendarMutation = useAddCalendar();
 
-  const [name, setName] = useState(account?.name || preloadedConfig?.accountName || '');
+  const [name, setName] = useState(() => preloadedConfig?.accountName || account?.name || '');
   const [serverUrl, setServerUrl] = useState(
-    account?.serverUrl || preloadedConfig?.serverUrl || '',
+    () => preloadedConfig?.serverUrl || account?.serverUrl || '',
   );
-  const [username, setUsername] = useState(account?.username || preloadedConfig?.username || '');
-  const [password, setPassword] = useState(preloadedConfig?.password || '');
-  const [serverType, setServerType] = useState<ServerType>(account?.serverType ?? 'generic');
+  const [username, setUsername] = useState(
+    () => preloadedConfig?.username || account?.username || '',
+  );
+  const [password, setPassword] = useState(() => preloadedConfig?.password || '');
+  const [serverType, setServerType] = useState<ServerType>(
+    () => preloadedConfig?.serverType || account?.serverType || 'generic',
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +64,15 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }, 200);
     return () => clearTimeout(timer);
   }, []);
+
+  // prefill server URL when server type changes to one with a predefined URL
+  useEffect(() => {
+    if (!account && !preloadedConfig) {
+      // only for new accounts without preloaded config: set predefined URL or clear if none exists
+      const predefinedUrl = getPredefinedServerUrl(serverType);
+      setServerUrl(predefinedUrl || '');
+    }
+  }, [serverType, account, preloadedConfig]);
 
   /**
    * ensure a tag exists by name, returns the tag ID
@@ -301,12 +318,16 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               id="server-type"
               value={serverType}
               onChange={(e) => setServerType(e.target.value as ServerType)}
-              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
+              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             >
-              {SERVER_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
+              {SERVER_TYPE_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             <p className="mt-1 text-xs text-surface-500 dark:text-surface-400">
@@ -328,6 +349,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               onChange={setServerUrl}
               placeholder="https://caldav.example.com"
               required
+              disabled={!!getPredefinedServerUrl(serverType)}
               className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
             />
             {serverType === 'generic' && (
