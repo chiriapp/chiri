@@ -33,6 +33,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
       hasAccounts: accounts.length > 0,
       hasTasks: tasks.length > 0,
       showCompleted: uiState?.showCompletedTasks ?? true,
+      showUnstarted: uiState?.showUnstartedTasks ?? true,
       sortMode,
       isSyncing: isSyncing ?? false,
     });
@@ -40,6 +41,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
     accounts.length,
     tasks.length,
     uiState?.showCompletedTasks,
+    uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
     isSyncing,
     skipMenu,
@@ -52,6 +54,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
 
     rebuildAppMenu({
       showCompleted: uiState?.showCompletedTasks ?? true,
+      showUnstarted: uiState?.showUnstartedTasks ?? true,
       sortMode,
       shortcuts: keyboardShortcuts,
       hasAccounts: accounts.length > 0,
@@ -61,6 +64,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
   }, [
     keyboardShortcuts,
     uiState?.showCompletedTasks,
+    uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
     accounts.length,
     tasks.length,

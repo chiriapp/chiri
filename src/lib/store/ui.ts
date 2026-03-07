@@ -147,3 +147,15 @@ export const setShowCompletedTasks = (show: boolean) => {
     ui: { ...data.ui, showCompletedTasks: show },
   });
 };
+
+export const setShowUnstartedTasks = (show: boolean) => {
+  const data = loadDataStore();
+
+  // Persist to SQLite
+  db.setShowUnstartedTasks(show).catch((e) => log.error('Failed to persist show unstarted:', e));
+
+  saveDataStore({
+    ...data,
+    ui: { ...data.ui, showUnstartedTasks: show },
+  });
+};

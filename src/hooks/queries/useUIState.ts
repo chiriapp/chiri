@@ -15,6 +15,7 @@ import {
   setSearchQuery,
   setSelectedTask,
   setShowCompletedTasks,
+  setShowUnstartedTasks,
   setSortConfig,
 } from '$lib/store/ui';
 import type { SortConfig } from '$types/index';
@@ -252,6 +253,24 @@ export const useSetShowCompletedTasks = () => {
   return useMutation({
     mutationFn: (show: boolean) => {
       setShowCompletedTasks(show);
+      return Promise.resolve();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['uiState'] });
+      queryClient.invalidateQueries({ queryKey: ['filteredTasks'] });
+    },
+  });
+};
+
+/**
+ * Hook to set show unstarted tasks
+ */
+export const useSetShowUnstartedTasks = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (show: boolean) => {
+      setShowUnstartedTasks(show);
       return Promise.resolve();
     },
     onSuccess: () => {

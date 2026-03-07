@@ -26,6 +26,7 @@ export const useMenuEvents = (callbacks: {
   onOpenAbout?: React.RefObject<(() => void) | null>;
   onOpenKeyboardShortcuts?: React.RefObject<(() => void) | null>;
   onToggleCompleted?: React.RefObject<((currentValue: boolean) => void) | null>;
+  onToggleUnstarted?: React.RefObject<((currentValue: boolean) => void) | null>;
   onSetSortMode?: React.RefObject<
     ((mode: SortMode, currentMode: SortMode, currentDirection: SortDirection) => void) | null
   >;
@@ -180,6 +181,18 @@ export const useMenuEvents = (callbacks: {
         return;
       }
       unlistenCallbacks.push(unlistenToggleCompleted);
+
+      // Toggle Unstarted Tasks
+      const unlistenToggleUnstarted = await listen(MENU_EVENTS.TOGGLE_UNSTARTED, () => {
+        log.debug('Toggle Unstarted triggered');
+        const showUnstarted = uiState?.showUnstartedTasks ?? true;
+        callbacks.onToggleUnstarted?.current?.(showUnstarted);
+      });
+      if (!isActive) {
+        unlistenToggleUnstarted();
+        return;
+      }
+      unlistenCallbacks.push(unlistenToggleUnstarted);
 
       // Sort Mode handlers
       const sortModeMap: Record<string, SortMode> = {

@@ -18,6 +18,7 @@ export const defaultUIState: UIState = {
   searchQuery: '',
   sortConfig: DEFAULT_SORT_CONFIG,
   showCompletedTasks: true,
+  showUnstartedTasks: true,
   isEditorOpen: false,
 };
 

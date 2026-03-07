@@ -14,7 +14,8 @@ const priorityOrder: Record<Priority, number> = {
 
 export const getFilteredTasks = () => {
   const data = loadDataStore();
-  const { searchQuery, showCompletedTasks, activeCalendarId, activeTagId } = data.ui;
+  const { searchQuery, showCompletedTasks, showUnstartedTasks, activeCalendarId, activeTagId } =
+    data.ui;
 
   return data.tasks.filter((task) => {
     // Filter by tag
@@ -32,6 +33,13 @@ export const getFilteredTasks = () => {
     // Filter by completion status
     if (!showCompletedTasks && task.completed) {
       return false;
+    }
+
+    // Filter by start date (hide unstarted tasks with future start dates)
+    if (!showUnstartedTasks && task.startDate) {
+      if (new Date(task.startDate) > new Date()) {
+        return false;
+      }
     }
 
     // Filter by search query

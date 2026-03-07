@@ -116,6 +116,7 @@ export interface AppSettings {
   defaultSortMode: SortMode;
   defaultSortDirection: SortDirection;
   showCompletedTasks: boolean;
+  showUnstartedTasks: boolean;
   confirmBeforeDelete: boolean;
 }
 
@@ -214,6 +215,7 @@ export interface UIStateRow {
   sort_mode: string;
   sort_direction: string;
   show_completed_tasks: number;
+  show_unstarted_tasks: number;
   is_editor_open: number;
 }
 

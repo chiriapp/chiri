@@ -1,11 +1,11 @@
 import { formatDistanceToNow } from 'date-fns';
 import SortDesc from 'lucide-react/icons/arrow-down-wide-narrow';
 import SortAsc from 'lucide-react/icons/arrow-up-narrow-wide';
-import Eye from 'lucide-react/icons/eye';
-import EyeOff from 'lucide-react/icons/eye-off';
+import Check from 'lucide-react/icons/check';
 import Plus from 'lucide-react/icons/plus';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Search from 'lucide-react/icons/search';
+import SlidersHorizontal from 'lucide-react/icons/sliders-horizontal';
 import { useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { Tooltip } from '$components/Tooltip';
@@ -15,6 +15,7 @@ import {
   useSetSearchQuery,
   useSetSelectedTask,
   useSetShowCompletedTasks,
+  useSetShowUnstartedTasks,
   useSetSortConfig,
   useUIState,
 } from '$hooks/queries/useUIState';
@@ -45,15 +46,17 @@ export const Header = ({
   const setSearchQueryMutation = useSetSearchQuery();
   const setSortConfigMutation = useSetSortConfig();
   const setShowCompletedTasksMutation = useSetShowCompletedTasks();
+  const setShowUnstartedTasksMutation = useSetShowUnstartedTasks();
   const createTaskMutation = useCreateTask();
   const setSelectedTaskMutation = useSetSelectedTask();
 
   const searchQuery = uiState?.searchQuery ?? '';
   const sortConfig = uiState?.sortConfig ?? DEFAULT_SORT_CONFIG;
   const showCompletedTasks = uiState?.showCompletedTasks ?? true;
+  const showUnstartedTasks = uiState?.showUnstartedTasks ?? true;
 
   const { isAnyModalOpen } = useModalState();
-  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showViewMenu, setShowViewMenu] = useState(false);
   const [showJustNow, setShowJustNow] = useState(false);
   const justSyncedRef = useRef(false);
   const lastNonManualDirectionRef = useRef<SortDirection>(sortConfig.direction);
@@ -78,16 +81,16 @@ export const Header = ({
     }
   }, [isSyncing]);
 
-  // handle ESC key to close sort dropdown
+  // handle ESC key to close view menu
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showSortMenu) {
-        setShowSortMenu(false);
+      if (e.key === 'Escape' && showViewMenu) {
+        setShowViewMenu(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSortMenu]);
+  }, [showViewMenu]);
 
   const handleNewTask = () => {
     createTaskMutation.mutate(
@@ -135,7 +138,6 @@ export const Header = ({
       mode,
       direction,
     });
-    setShowSortMenu(false);
   };
 
   return (
@@ -188,95 +190,123 @@ export const Header = ({
             </Tooltip>
           )}
 
-          <Tooltip
-            content={showCompletedTasks ? 'Hide completed tasks' : 'Show completed tasks'}
-            position="bottom"
-          >
-            <button
-              type="button"
-              onClick={() => setShowCompletedTasksMutation.mutate(!showCompletedTasks)}
-              className={`p-2 rounded-lg border text-sm transition-colors ${
-                showCompletedTasks
-                  ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 border-primary-400'
-                  : `text-surface-500 dark:text-surface-400 border-transparent ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
-              }`}
-            >
-              {showCompletedTasks ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-            </button>
-          </Tooltip>
-
           <div className="relative">
-            <Tooltip content="Change sort order" position="bottom">
+            <Tooltip content="View options" position="bottom">
               <button
                 type="button"
-                onClick={() => setShowSortMenu(!showSortMenu)}
+                onClick={() => setShowViewMenu(!showViewMenu)}
                 className={`flex items-center border border-transparent gap-1 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  showSortMenu
+                  showViewMenu
                     ? 'bg-surface-200 dark:bg-surface-600 text-surface-700 dark:text-surface-200'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
                 }`}
               >
-                {sortConfig.direction === 'asc' ? (
-                  <SortAsc className="w-4 h-4" />
-                ) : (
-                  <SortDesc className="w-4 h-4" />
-                )}
-                <span>{SORT_OPTIONS.find((o) => o.value === sortConfig.mode)?.label}</span>
+                <SlidersHorizontal className="w-4 h-4" />
+                <span>View</span>
               </button>
             </Tooltip>
 
-            {showSortMenu && (
+            {showViewMenu && (
               <>
-                {/* biome-ignore lint/a11y/noStaticElementInteractions: Sort menu backdrop for closing on outside click */}
-                {/* biome-ignore lint/a11y/useKeyWithClickEvents: Sort menu backdrop for closing on outside click */}
-                <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
+                {/* biome-ignore lint/a11y/noStaticElementInteractions: View menu backdrop for closing on outside click */}
+                {/* biome-ignore lint/a11y/useKeyWithClickEvents: View menu backdrop for closing on outside click */}
+                <div className="fixed inset-0 z-40" onClick={() => setShowViewMenu(false)} />
                 <div
                   data-context-menu-content
-                  className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-[180px] animate-scale-in"
+                  className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-[240px] animate-scale-in"
                 >
-                  {SORT_OPTIONS.map((option) => (
+                  {/* Filter Options */}
+                  <div className="px-3 py-2 border-b border-surface-200 dark:border-surface-700">
                     <button
                       type="button"
-                      key={option.value}
-                      onClick={() => handleSortChange(option.value)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-700 first:rounded-t-md ${
-                        sortConfig.mode === option.value
-                          ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-200'
-                          : 'text-surface-700 dark:text-surface-300'
-                      }`}
+                      onClick={() => setShowCompletedTasksMutation.mutate(!showCompletedTasks)}
+                      className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 rounded"
                     >
-                      {option.label}
-                    </button>
-                  ))}
-                  <div className="border-t border-surface-200 dark:border-surface-700" />
-                  <div className="relative group">
-                    <button
-                      type="button"
-                      onClick={sortConfig.mode === 'manual' ? () => {} : toggleSortDirection}
-                      disabled={sortConfig.mode === 'manual'}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-b-md ${
-                        sortConfig.mode === 'manual'
-                          ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
-                          : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
-                      }`}
-                    >
-                      {sortConfig.direction === 'asc' ? (
-                        <>
-                          <SortAsc className="w-4 h-4" />
-                          Ascending
-                        </>
-                      ) : (
-                        <>
-                          <SortDesc className="w-4 h-4" />
-                          Descending
-                        </>
-                      )}
-                    </button>
-                    {sortConfig.mode === 'manual' && (
-                      <div className="invisible group-hover:visible absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-white bg-surface-900 dark:bg-surface-700 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
-                        Sort direction is not available for manual sorting
+                      <span>Show completed</span>
+                      <div
+                        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                          showCompletedTasks
+                            ? 'bg-primary-500 border-primary-500'
+                            : 'border-surface-300 dark:border-surface-600'
+                        }`}
+                      >
+                        {showCompletedTasks && (
+                          <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                        )}
                       </div>
-                    )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowUnstartedTasksMutation.mutate(!showUnstartedTasks)}
+                      className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 rounded"
+                    >
+                      <span>Show unstarted</span>
+                      <div
+                        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+                          showUnstartedTasks
+                            ? 'bg-primary-500 border-primary-500'
+                            : 'border-surface-300 dark:border-surface-600'
+                        }`}
+                      >
+                        {showUnstartedTasks && (
+                          <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                        )}
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Sort By */}
+                  <div className="py-2">
+                    <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                      Sort By
+                    </div>
+                    {SORT_OPTIONS.map((option) => (
+                      <button
+                        type="button"
+                        key={option.value}
+                        onClick={() => handleSortChange(option.value)}
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors ${
+                          sortConfig.mode === option.value
+                            ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
+                            : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
+                        }`}
+                      >
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Sort Direction */}
+                  <div className="pt-2 border-t border-surface-200 dark:border-surface-700">
+                    <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                      Sort Direction
+                    </div>
+                    <div className="relative group">
+                      <button
+                        type="button"
+                        onClick={sortConfig.mode === 'manual' ? () => {} : toggleSortDirection}
+                        disabled={sortConfig.mode === 'manual'}
+                        className={`w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm ${
+                          sortConfig.mode === 'manual'
+                            ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
+                            : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {sortConfig.direction === 'asc' ? (
+                            <SortAsc className="w-4 h-4" />
+                          ) : (
+                            <SortDesc className="w-4 h-4" />
+                          )}
+                          <span>{sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}</span>
+                        </div>
+                      </button>
+                      {sortConfig.mode === 'manual' && (
+                        <div className="invisible group-hover:visible absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-white bg-surface-900 dark:bg-surface-700 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
+                          Not available for manual sorting
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </>

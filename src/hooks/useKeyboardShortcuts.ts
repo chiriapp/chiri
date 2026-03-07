@@ -6,6 +6,7 @@ import {
   useSetSearchQuery,
   useSetSelectedTask,
   useSetShowCompletedTasks,
+  useSetShowUnstartedTasks,
   useUIState,
 } from '$hooks/queries/useUIState';
 import { useConfirmDialog } from '$hooks/useConfirmDialog';
@@ -38,9 +39,11 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   const setSelectedTaskMutation = useSetSelectedTask();
   const setEditorOpenMutation = useSetEditorOpen();
   const setShowCompletedMutation = useSetShowCompletedTasks();
+  const setShowUnstartedMutation = useSetShowUnstartedTasks();
 
   const selectedTaskId = uiState?.selectedTaskId ?? null;
   const showCompletedTasks = uiState?.showCompletedTasks ?? true;
+  const showUnstartedTasks = uiState?.showUnstartedTasks ?? true;
   const sortConfig = uiState?.sortConfig ?? DEFAULT_SORT_CONFIG;
 
   const { keyboardShortcuts } = useSettingsStore();
@@ -149,6 +152,10 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
     setShowCompletedMutation.mutate(!showCompletedTasks);
   }, [setShowCompletedMutation, showCompletedTasks]);
 
+  const handleToggleShowUnstarted = useCallback(() => {
+    setShowUnstartedMutation.mutate(!showUnstartedTasks);
+  }, [setShowUnstartedMutation, showUnstartedTasks]);
+
   // Map shortcut IDs to their handler functions
   const actionHandlers: Record<string, () => void> = useMemo(
     () => ({
@@ -159,6 +166,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       delete: handleDelete,
       'toggle-complete': handleToggleComplete,
       'toggle-show-completed': handleToggleShowCompleted,
+      'toggle-show-unstarted': handleToggleShowUnstarted,
       close: handleEscape,
       'nav-up': handleNavigateUp,
       'nav-down': handleNavigateDown,
@@ -171,6 +179,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       handleDelete,
       handleToggleComplete,
       handleToggleShowCompleted,
+      handleToggleShowUnstarted,
       handleEscape,
       handleNavigateUp,
       handleNavigateDown,
@@ -209,6 +218,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
         'delete',
         'toggle-complete',
         'toggle-show-completed',
+        'toggle-show-unstarted',
         'nav-up',
         'nav-down',
         'close', // Let modals handle Escape themselves

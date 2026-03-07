@@ -53,6 +53,7 @@ export interface UIState {
   searchQuery: string;
   sortConfig: SortConfig;
   showCompletedTasks: boolean;
+  showUnstartedTasks: boolean;
   isEditorOpen: boolean;
 }
 
@@ -74,6 +75,7 @@ const defaultUIState: UIState = {
   searchQuery: '',
   sortConfig: DEFAULT_SORT_CONFIG,
   showCompletedTasks: true,
+  showUnstartedTasks: true,
   isEditorOpen: false,
 };
 
@@ -813,6 +815,7 @@ export const getUIState = async (): Promise<UIState> => {
       direction: row.sort_direction as SortDirection,
     },
     showCompletedTasks: row.show_completed_tasks === 1,
+    showUnstartedTasks: row.show_unstarted_tasks === 1,
     isEditorOpen: row.is_editor_open === 1,
   };
 };
@@ -890,6 +893,14 @@ export const setSortConfig = async (config: SortConfig) => {
 export const setShowCompletedTasks = async (show: boolean) => {
   const database = await getDb();
   await database.execute(`UPDATE ui_state SET show_completed_tasks = $1 WHERE id = 1`, [
+    show ? 1 : 0,
+  ]);
+  notifyListeners();
+};
+
+export const setShowUnstartedTasks = async (show: boolean) => {
+  const database = await getDb();
+  await database.execute(`UPDATE ui_state SET show_unstarted_tasks = $1 WHERE id = 1`, [
     show ? 1 : 0,
   ]);
   notifyListeners();

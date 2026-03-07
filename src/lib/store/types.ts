@@ -17,6 +17,7 @@ export interface UIState {
   searchQuery: string;
   sortConfig: SortConfig;
   showCompletedTasks: boolean;
+  showUnstartedTasks: boolean;
   isEditorOpen: boolean;
 }
 

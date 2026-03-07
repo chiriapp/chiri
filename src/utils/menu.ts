@@ -26,6 +26,7 @@ export const MENU_EVENTS = {
   SEARCH: 'menu:search',
   SHOW_KEYBOARD_SHORTCUTS: 'menu:show-keyboard-shortcuts',
   TOGGLE_COMPLETED: 'menu:toggle-completed',
+  TOGGLE_UNSTARTED: 'menu:toggle-unstarted',
   SORT_MANUAL: 'menu:sort-manual',
   SORT_SMART: 'menu:sort-smart',
   SORT_START_DATE: 'menu:sort-start-date',
@@ -42,6 +43,7 @@ const menuItemRefs: {
   export?: IconMenuItem;
   addCalendar?: MenuItem;
   toggleCompleted?: CheckMenuItem;
+  toggleUnstarted?: CheckMenuItem;
   sortManual?: MenuItem;
   sortSmart?: MenuItem;
   sortStartDate?: MenuItem;
@@ -96,6 +98,7 @@ const getAcceleratorById = (shortcuts: KeyboardShortcut[] | undefined, id: strin
  */
 export const createMacMenu = async (options?: {
   showCompleted?: boolean;
+  showUnstarted?: boolean;
   sortMode?: SortMode;
   shortcuts?: KeyboardShortcut[];
   hasAccounts?: boolean;
@@ -103,6 +106,7 @@ export const createMacMenu = async (options?: {
   isSyncing?: boolean;
 }): Promise<Menu> => {
   const showCompleted = options?.showCompleted ?? true;
+  const showUnstarted = options?.showUnstarted ?? true;
   const sortMode = options?.sortMode ?? 'manual';
   const shortcuts = options?.shortcuts;
   const hasAccounts = options?.hasAccounts ?? false;
@@ -263,6 +267,17 @@ export const createMacMenu = async (options?: {
   });
   menuItemRefs.toggleCompleted = toggleCompletedItem;
 
+  const toggleUnstartedItem = await CheckMenuItem.new({
+    id: 'toggle-unstarted',
+    text: 'Show Unstarted Tasks',
+    accelerator: getAcceleratorById(shortcuts, 'toggle-show-unstarted') ?? 'CmdOrCtrl+Shift+U',
+    checked: showUnstarted,
+    action: () => {
+      emit(MENU_EVENTS.TOGGLE_UNSTARTED);
+    },
+  });
+  menuItemRefs.toggleUnstarted = toggleUnstartedItem;
+
   const sortManualItem = await MenuItem.new({
     id: 'sort-manual',
     text: sortMode === 'manual' ? '✓ Manual' : 'Manual',
@@ -339,6 +354,7 @@ export const createMacMenu = async (options?: {
     text: 'View',
     items: [
       toggleCompletedItem,
+      toggleUnstartedItem,
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await Submenu.new({
         icon: 'ListView',
@@ -468,6 +484,7 @@ export const initAppMenu = async (options?: {
  */
 export const rebuildAppMenu = async (options?: {
   showCompleted?: boolean;
+  showUnstarted?: boolean;
   sortMode?: SortMode;
   shortcuts?: KeyboardShortcut[];
   hasAccounts?: boolean;
@@ -559,6 +576,7 @@ export const updateMenuState = async (options: {
   hasAccounts?: boolean;
   hasTasks?: boolean;
   showCompleted?: boolean;
+  showUnstarted?: boolean;
   sortMode?: SortMode;
   isSyncing?: boolean;
 }): Promise<void> => {
@@ -573,6 +591,9 @@ export const updateMenuState = async (options: {
   }
   if (options.showCompleted !== undefined) {
     await updateMenuItem('toggle-completed', { checked: options.showCompleted });
+  }
+  if (options.showUnstarted !== undefined) {
+    await updateMenuItem('toggle-unstarted', { checked: options.showUnstarted });
   }
   if (options.sortMode !== undefined) {
     // update sort menu items with checkmarks in text (radio button behavior)

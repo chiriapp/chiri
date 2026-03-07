@@ -4,6 +4,7 @@ import { useCreateTask } from '$hooks/queries/useTasks';
 import {
   useSetSelectedTask,
   useSetShowCompletedTasks,
+  useSetShowUnstartedTasks,
   useSetSortConfig,
 } from '$hooks/queries/useUIState';
 import { useMenuEvents } from '$hooks/useMenuEvents';
@@ -25,6 +26,7 @@ export const useMenuHandlers = () => {
   const setSelectedTaskMutation = useSetSelectedTask();
   const { data: accounts = [] } = useAccounts();
   const setShowCompletedMutation = useSetShowCompletedTasks();
+  const setShowUnstartedMutation = useSetShowUnstartedTasks();
   const setSortConfigMutation = useSetSortConfig();
 
   // Separate refs for each callback to avoid object reference changes
@@ -39,6 +41,7 @@ export const useMenuHandlers = () => {
   const onOpenAboutRef = useRef<(() => void) | null>(null);
   const onOpenKeyboardShortcutsRef = useRef<(() => void) | null>(null);
   const onToggleCompletedRef = useRef<((currentValue: boolean) => void) | null>(null);
+  const onToggleUnstartedRef = useRef<((currentValue: boolean) => void) | null>(null);
   const onSetSortModeRef = useRef<
     ((mode: SortMode, currentMode: SortMode, currentDirection: SortDirection) => void) | null
   >(null);
@@ -113,6 +116,13 @@ export const useMenuHandlers = () => {
     [setShowCompletedMutation],
   );
 
+  const handleToggleUnstarted = useCallback(
+    (currentValue: boolean) => {
+      setShowUnstartedMutation.mutate(!currentValue);
+    },
+    [setShowUnstartedMutation],
+  );
+
   const handleSetSortMode = useCallback(
     (mode: SortMode, _currentMode: SortMode, currentDirection: SortDirection) => {
       setSortConfigMutation.mutate({ mode, direction: currentDirection });
@@ -132,6 +142,7 @@ export const useMenuHandlers = () => {
   onOpenAboutRef.current = handleOpenAbout;
   onOpenKeyboardShortcutsRef.current = handleOpenKeyboardShortcuts;
   onToggleCompletedRef.current = handleToggleCompleted;
+  onToggleUnstartedRef.current = handleToggleUnstarted;
   onSetSortModeRef.current = handleSetSortMode;
 
   // Wire up menu events using refs
@@ -147,6 +158,7 @@ export const useMenuHandlers = () => {
     onOpenAbout: onOpenAboutRef,
     onOpenKeyboardShortcuts: onOpenKeyboardShortcutsRef,
     onToggleCompleted: onToggleCompletedRef,
+    onToggleUnstarted: onToggleUnstartedRef,
     onSetSortMode: onSetSortModeRef,
   });
 
