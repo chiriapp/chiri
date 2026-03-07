@@ -5,7 +5,7 @@
 
 import { useQueryClient } from '@tanstack/react-query';
 import { emit } from '@tauri-apps/api/event';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { settingsStore } from '$context/settingsContext';
 import { useOffline } from '$hooks/useOffline';
 import { useSettingsStore } from '$hooks/useSettingsStore';
@@ -29,14 +29,20 @@ const log = loggers.sync;
 export const useSyncQuery = () => {
   const queryClient = useQueryClient();
   const { autoSync, syncInterval } = useSettingsStore();
-  const { syncingCalendarId, setSyncingCalendarId } = useSyncStore();
+  const {
+    syncingCalendarId,
+    setSyncingCalendarId,
+    isSyncing,
+    setIsSyncing,
+    lastSyncTime,
+    setLastSyncTime,
+    lastSyncError,
+    setLastSyncError,
+    registerInitialSyncCallback,
+  } = useSyncStore();
 
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncError, setLastSyncError] = useState<string | null>(null);
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const pendingSyncRef = useRef(false);
   const autoSyncIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const initialSyncScheduledRef = useRef(false);
   const syncInProgressRef = useRef(false);
   const syncAllRef = useRef<(() => Promise<void>) | null>(null);
 
@@ -514,12 +520,15 @@ export const useSyncQuery = () => {
       setIsSyncing(false);
       setLastSyncTime(new Date());
     }
-  }, [reconnectAccounts, syncCalendar, syncCalendarsForAccount, isOfflineRef]);
-
-  // Update ref when syncAll changes
-  useEffect(() => {
-    syncAllRef.current = syncAll;
-  }, [syncAll]);
+  }, [
+    reconnectAccounts,
+    syncCalendar,
+    syncCalendarsForAccount,
+    isOfflineRef,
+    setIsSyncing,
+    setLastSyncError,
+    setLastSyncTime,
+  ]);
 
   /**
    * Push a task to the server
@@ -573,50 +582,15 @@ export const useSyncQuery = () => {
     return caldavService.deleteTask(account.id, task);
   }, []);
 
-  // Initial sync on mount
-  // biome-ignore lint/correctness/useExhaustiveDependencies: This effect should only run once on mount to trigger initial sync. syncAll is intentionally excluded to prevent running on every syncAll recreation.
+  // Register syncAll for initial sync trigger
   useEffect(() => {
-    if (initialSyncScheduledRef.current) {
-      log.debug('Initial sync already scheduled, skipping duplicate');
-      return;
-    }
+    registerInitialSyncCallback(syncAll);
+  }, [registerInitialSyncCallback, syncAll]);
 
-    const accounts = getAllAccounts();
-    const syncOnStartup = settingsStore.getState().syncOnStartup;
-
-    if (accounts.length > 0 && syncOnStartup) {
-      initialSyncScheduledRef.current = true;
-
-      let rafId: number;
-      let timeoutId: NodeJS.Timeout;
-
-      // wait for React to finish its render cycle and the browser to paint
-      rafId = requestAnimationFrame(() => {
-        // requestAnimationFrame runs before paint so wait one more tick after paint
-        timeoutId = setTimeout(() => {
-          log.debug('Initial sync starting after render cycle complete...');
-          syncAll();
-        }, 0);
-      });
-
-      // cleanup: cancel pending callbacks if component unmounts (React Strict Mode)
-      return () => {
-        if (rafId !== undefined) {
-          cancelAnimationFrame(rafId);
-        }
-        if (timeoutId !== undefined) {
-          clearTimeout(timeoutId);
-        }
-        // Reset the flag so the next mount can schedule sync
-        initialSyncScheduledRef.current = false;
-        log.debug('Initial sync effect cleanup: cancelled pending callbacks and reset flag');
-      };
-    } else if (accounts.length === 0) {
-      log.debug('Initial sync skipped - no accounts configured');
-    } else {
-      log.debug('Initial sync skipped - sync on startup disabled in settings');
-    }
-  }, []); // Only run once on mount
+  // Update ref when syncAll changes
+  useEffect(() => {
+    syncAllRef.current = syncAll;
+  }, [syncAll]);
 
   // Auto-sync interval
   useEffect(() => {
