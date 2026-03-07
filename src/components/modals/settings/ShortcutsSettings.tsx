@@ -1,6 +1,6 @@
 import Pencil from 'lucide-react/icons/pencil';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardShortcutModal } from '$components/modals/KeyboardShortcutModal';
 import { useSettingsStore } from '$hooks/useSettingsStore';
 import type { KeyboardShortcut } from '$types/index';
@@ -11,8 +11,14 @@ export const ShortcutsSettings = ({
 }: {
   onEditingShortcutChange?: (editing: boolean) => void;
 }) => {
-  const { keyboardShortcuts, updateShortcut, resetShortcuts } = useSettingsStore();
+  const { keyboardShortcuts, updateShortcut, resetShortcuts, ensureLatestShortcuts } =
+    useSettingsStore();
   const [editingShortcut, setEditingShortcut] = useState<KeyboardShortcut | null>(null);
+
+  // Ensure shortcuts are up-to-date with defaults when component mounts
+  useEffect(() => {
+    ensureLatestShortcuts();
+  }, [ensureLatestShortcuts]);
 
   const handleSave = (id: string, updates: Partial<KeyboardShortcut>) => {
     updateShortcut(id, updates);

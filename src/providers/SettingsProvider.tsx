@@ -82,6 +82,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
   const resetShortcuts = useCallback(() => settingsStore.resetShortcuts(), []);
+  const ensureLatestShortcuts = useCallback(() => settingsStore.ensureLatestShortcuts(), []);
   const setDefaultPriority = useCallback(
     (priority: Priority) => settingsStore.setDefaultPriority(priority),
     [],
@@ -156,6 +157,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setKeyboardShortcuts,
     updateShortcut,
     resetShortcuts,
+    ensureLatestShortcuts,
     setDefaultPriority,
     setDefaultTags,
     setOnboardingCompleted,

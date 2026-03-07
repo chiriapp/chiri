@@ -66,6 +66,7 @@ interface SettingsActions {
   setKeyboardShortcuts: (shortcuts: KeyboardShortcut[]) => void;
   updateShortcut: (id: string, updates: Partial<KeyboardShortcut>) => void;
   resetShortcuts: () => void;
+  ensureLatestShortcuts: () => void;
   setDefaultPriority: (priority: Priority) => void;
   setDefaultTags: (tagIds: string[]) => void;
   toggleSidebarCollapsed: () => void;
@@ -119,19 +120,60 @@ const defaultState: SettingsState = {
   checkForUpdatesAutomatically: true,
 };
 
-const loadFromStorage = (): SettingsState => {
+/**
+ * Merges new shortcuts from defaults into existing user shortcuts
+ */
+const mergeShortcuts = (
+  existingShortcuts: KeyboardShortcut[],
+  defaultShortcuts: KeyboardShortcut[],
+): KeyboardShortcut[] => {
+  const existingMap = new Map(existingShortcuts.map((s) => [s.id, s]));
+
+  return defaultShortcuts.map((defaultShortcut) => {
+    const existing = existingMap.get(defaultShortcut.id);
+    return existing || defaultShortcut;
+  });
+};
+
+const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      // Merge with defaults to handle new settings
-      return { ...defaultState, ...parsed.state };
+      const loadedState = { ...defaultState, ...parsed.state };
+
+      // Merge keyboard shortcuts to include any new defaults
+      let migrated = false;
+      if (parsed.state?.keyboardShortcuts) {
+        const originalLength = parsed.state.keyboardShortcuts.length;
+        const originalIds = parsed.state.keyboardShortcuts.map((s: KeyboardShortcut) => s.id);
+
+        loadedState.keyboardShortcuts = mergeShortcuts(
+          parsed.state.keyboardShortcuts,
+          DEFAULT_SHORTCUTS,
+        );
+
+        const newLength = loadedState.keyboardShortcuts.length;
+        const newIds = loadedState.keyboardShortcuts
+          .filter((s: KeyboardShortcut) => !originalIds.includes(s.id))
+          .map((s: KeyboardShortcut) => s.id);
+
+        // Mark if shortcuts were added during merge
+        if (newLength > originalLength) {
+          migrated = true;
+          log.info(
+            `Migrated keyboard shortcuts: ${originalLength} → ${newLength} (added: ${newIds.join(', ')})`,
+          );
+        }
+      }
+
+      return { state: loadedState, migrated };
     }
   } catch (e) {
     log.error('Failed to load settings from storage:', e);
   }
 
-  return defaultState;
+  return { state: defaultState, migrated: false };
 };
 
 const saveToStorage = (state: SettingsState) => {
@@ -143,7 +185,9 @@ const saveToStorage = (state: SettingsState) => {
 };
 
 // Singleton store for accessing state outside React
-let state: SettingsState = loadFromStorage();
+const loadResult = loadFromStorage();
+let state: SettingsState = loadResult.state;
+let pendingMigrationSave = loadResult.migrated;
 
 // Apply theme and accent color immediately on module load
 applyTheme(state.theme);
@@ -158,7 +202,18 @@ const emitChange = () => {
 };
 
 const subscribe = (listener: () => void) => {
+  const isFirstSubscriber = listeners.size === 0;
   listeners.add(listener);
+
+  // If migration happened during load and hasn't been saved yet,
+  // save and notify all subscribers (including the new one)
+  if (pendingMigrationSave && isFirstSubscriber) {
+    saveToStorage(state);
+    pendingMigrationSave = false; // Clear flag so we don't save again
+    // Notify all subscribers about the migrated state
+    emitChange();
+  }
+
   return () => listeners.delete(listener);
 };
 
@@ -207,7 +262,27 @@ export const settingsStore = {
     const shortcuts = state.keyboardShortcuts.map((s) => (s.id === id ? { ...s, ...updates } : s));
     setState({ keyboardShortcuts: shortcuts });
   },
-  resetShortcuts: () => setState({ keyboardShortcuts: DEFAULT_SHORTCUTS }),
+  resetShortcuts: () => {
+    // Use current DEFAULT_SHORTCUTS to ensure latest defaults are applied
+    setState({ keyboardShortcuts: DEFAULT_SHORTCUTS });
+  },
+  ensureLatestShortcuts: () => {
+    // Force a check and merge of shortcuts with current defaults
+    const merged = mergeShortcuts(state.keyboardShortcuts, DEFAULT_SHORTCUTS);
+    const hasNewShortcuts = merged.some((m) => !state.keyboardShortcuts.find((s) => s.id === m.id));
+
+    if (hasNewShortcuts) {
+      const newCount = merged.length - state.keyboardShortcuts.length;
+      log.info(`Updating shortcuts: adding ${newCount} new shortcut(s) (${merged.length} total)`);
+      setState({ keyboardShortcuts: merged });
+      return true;
+    }
+
+    log.debug(
+      `No new shortcuts to add (current: ${state.keyboardShortcuts.length}, defaults: ${DEFAULT_SHORTCUTS.length})`,
+    );
+    return false;
+  },
   setDefaultPriority: (defaultPriority: Priority) => setState({ defaultPriority }),
   setDefaultTags: (defaultTags: string[]) => setState({ defaultTags }),
   setOnboardingCompleted: (onboardingCompleted: boolean) => setState({ onboardingCompleted }),
@@ -267,7 +342,9 @@ export const settingsStore = {
         startOfWeek: data.startOfWeek ?? defaultState.startOfWeek,
         notifications: data.notifications ?? defaultState.notifications,
         defaultCalendarId: data.defaultCalendarId ?? defaultState.defaultCalendarId,
-        keyboardShortcuts: data.keyboardShortcuts ?? defaultState.keyboardShortcuts,
+        keyboardShortcuts: data.keyboardShortcuts
+          ? mergeShortcuts(data.keyboardShortcuts, DEFAULT_SHORTCUTS)
+          : defaultState.keyboardShortcuts,
         defaultPriority: data.defaultPriority ?? defaultState.defaultPriority,
         defaultTags: data.defaultTags ?? defaultState.defaultTags,
         sidebarCollapsed: data.sidebarCollapsed ?? defaultState.sidebarCollapsed,
