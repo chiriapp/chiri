@@ -13,11 +13,11 @@ import {
 export const getExportTitle = (type: ExportType) => {
   switch (type) {
     case 'all-calendars':
-      return 'Export All Calendars';
+      return 'Export all calendars';
     case 'single-calendar':
-      return 'Export Calendars';
+      return 'Export calendar';
     case 'tasks':
-      return 'Export Tasks';
+      return 'Export tasks';
   }
 };
 
