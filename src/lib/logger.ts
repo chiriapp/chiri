@@ -256,30 +256,3 @@ export const loggers = {
   ui: createLogger('UI', '#14b8a6'),
   updater: createLogger('Updater', '#10b981'),
 } as const;
-
-// Enable debug mode helper
-export const enableDebugMode = () => {
-  localStorage.setItem('caldav-tasks-debug', 'true');
-  console.log(
-    '%c[Logger] Debug mode enabled. Reload to see all debug logs.',
-    'color: #10b981; font-weight: bold;',
-  );
-};
-
-export const disableDebugMode = () => {
-  localStorage.removeItem('caldav-tasks-debug');
-  console.log(
-    '%c[Logger] Debug mode disabled. Reload to hide debug logs.',
-    'color: #f59e0b; font-weight: bold;',
-  );
-};
-
-// Expose to window for debugging
-if (typeof window !== 'undefined') {
-  (
-    window as Window & { __enableDebugLogs?: () => void; __disableDebugLogs?: () => void }
-  ).__enableDebugLogs = enableDebugMode;
-  (
-    window as Window & { __enableDebugLogs?: () => void; __disableDebugLogs?: () => void }
-  ).__disableDebugLogs = disableDebugMode;
-}
