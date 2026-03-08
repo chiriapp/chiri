@@ -46,7 +46,7 @@ export const ShortcutsSettings = ({
           <button
             type="button"
             onClick={resetShortcuts}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             title="Reset to defaults"
           >
             <RotateCcw className="w-3 h-3" />
@@ -82,7 +82,7 @@ export const ShortcutsSettings = ({
                 <button
                   type="button"
                   onClick={() => handleOpenEdit(shortcut)}
-                  className="p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
+                  className="p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   title="Edit shortcut"
                 >
                   <Pencil className="w-3.5 h-3.5" />

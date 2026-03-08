@@ -177,7 +177,7 @@ export const Header = ({
                 type="button"
                 onClick={onSync}
                 disabled={isSyncing || isOffline || disableSync}
-                className={`p-2 rounded-lg border text-sm transition-colors ${
+                className={`p-2 rounded-lg border text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset flex items-center justify-center ${
                   isSyncing
                     ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-400 cursor-not-allowed'
                     : isOffline || disableSync
@@ -195,7 +195,7 @@ export const Header = ({
               <button
                 type="button"
                 onClick={() => setShowViewMenu(!showViewMenu)}
-                className={`flex items-center border border-transparent gap-1 px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex items-center border border-transparent gap-1 px-3 py-2 rounded-lg text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   showViewMenu
                     ? 'bg-surface-200 dark:bg-surface-600 text-surface-700 dark:text-surface-200'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
@@ -220,7 +220,7 @@ export const Header = ({
                     <button
                       type="button"
                       onClick={() => setShowCompletedTasksMutation.mutate(!showCompletedTasks)}
-                      className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 rounded"
+                      className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset rounded"
                     >
                       <span>Show completed</span>
                       <div
@@ -238,7 +238,7 @@ export const Header = ({
                     <button
                       type="button"
                       onClick={() => setShowUnstartedTasksMutation.mutate(!showUnstartedTasks)}
-                      className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 rounded"
+                      className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset rounded"
                     >
                       <span>Show unstarted</span>
                       <div
@@ -265,7 +265,7 @@ export const Header = ({
                         type="button"
                         key={option.value}
                         onClick={() => handleSortChange(option.value)}
-                        className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors ${
+                        className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                           sortConfig.mode === option.value
                             ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
                             : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
@@ -286,7 +286,7 @@ export const Header = ({
                         type="button"
                         onClick={sortConfig.mode === 'manual' ? () => {} : toggleSortDirection}
                         disabled={sortConfig.mode === 'manual'}
-                        className={`w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm ${
+                        className={`w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                           sortConfig.mode === 'manual'
                             ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
                             : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
@@ -316,7 +316,7 @@ export const Header = ({
           <button
             type="button"
             onClick={handleNewTask}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border text-sm transition-colors border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ${!isAnyModalOpen ? 'hover:bg-primary-100 dark:hover:bg-primary-800' : ''} shadow-sm`}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border text-sm transition-colors border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ${!isAnyModalOpen ? 'hover:bg-primary-100 dark:hover:bg-primary-800' : ''} shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
           >
             <Plus className="w-4 h-4" />
             New Task

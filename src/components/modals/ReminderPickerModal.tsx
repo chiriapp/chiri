@@ -145,7 +145,7 @@ export const ReminderPickerModal = ({
               <button
                 type="button"
                 onClick={handleClear}
-                className="p-2 text-surface-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                className="p-2 text-surface-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 title="Clear date"
               >
                 <Trash2 className="w-4 h-4" />
@@ -154,7 +154,7 @@ export const ReminderPickerModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+              className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <X className="w-5 h-5" />
             </button>
@@ -167,21 +167,21 @@ export const ReminderPickerModal = ({
             <button
               type="button"
               onClick={() => handleQuickSelect(new Date())}
-              className="flex-1 px-3 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 rounded-lg transition-colors"
+              className="flex-1 px-3 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               Today
             </button>
             <button
               type="button"
               onClick={() => handleQuickSelect(addDays(new Date(), 1))}
-              className="flex-1 px-3 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 rounded-lg transition-colors"
+              className="flex-1 px-3 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               Tomorrow
             </button>
             <button
               type="button"
               onClick={() => handleQuickSelect(addDays(new Date(), 7))}
-              className="flex-1 px-3 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 rounded-lg transition-colors"
+              className="flex-1 px-3 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               Next week
             </button>
@@ -192,7 +192,7 @@ export const ReminderPickerModal = ({
             <button
               type="button"
               onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 transition-colors"
+              className="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -202,7 +202,7 @@ export const ReminderPickerModal = ({
             <button
               type="button"
               onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 transition-colors"
+              className="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -237,7 +237,7 @@ export const ReminderPickerModal = ({
                   type="button"
                   onClick={() => handleDayClick(day)}
                   className={`
-                    w-8 h-8 rounded-full text-sm flex items-center justify-center transition-colors
+                    w-8 h-8 rounded-full text-sm flex items-center justify-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
                     ${
                       isSelected
                         ? 'bg-primary-600 text-primary-contrast'
@@ -263,7 +263,7 @@ export const ReminderPickerModal = ({
               <select
                 value={selectedTime.hours}
                 onChange={(e) => handleTimeChange('hours', parseInt(e.target.value, 10))}
-                className="px-2 py-1 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-surface-700 dark:text-surface-300 focus:outline-none focus:border-primary-300"
+                className="px-2 py-1 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-surface-700 dark:text-surface-300 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
               >
                 {Array.from({ length: 24 }, (_, i) => (
                   <option key={`hour-${selectedTime.hours}-${i}`} value={i}>
@@ -275,7 +275,7 @@ export const ReminderPickerModal = ({
               <select
                 value={selectedTime.minutes}
                 onChange={(e) => handleTimeChange('minutes', parseInt(e.target.value, 10))}
-                className="px-2 py-1 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-surface-700 dark:text-surface-300 focus:outline-none focus:border-primary-300"
+                className="px-2 py-1 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-surface-700 dark:text-surface-300 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
               >
                 {Array.from({ length: 60 }, (_, i) => (
                   <option key={`minute-${selectedTime.minutes}-${i}`} value={i}>
@@ -292,7 +292,7 @@ export const ReminderPickerModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             Cancel
           </button>
@@ -300,7 +300,7 @@ export const ReminderPickerModal = ({
             type="button"
             onClick={handleSave}
             disabled={!localValue && !initialValue}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset ${
               localValue || initialValue
                 ? 'text-primary-contrast bg-primary-600 hover:bg-primary-700'
                 : 'text-surface-400 dark:text-surface-600 bg-surface-200 dark:bg-surface-700 cursor-not-allowed'

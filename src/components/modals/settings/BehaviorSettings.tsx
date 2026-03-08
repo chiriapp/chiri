@@ -65,7 +65,7 @@ export const BehaviorSettings = () => {
             type="checkbox"
             checked={confirmBeforeDelete}
             onChange={(e) => setConfirmBeforeDelete(e.target.checked)}
-            className="rounded border-surface-300"
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
 
@@ -77,7 +77,7 @@ export const BehaviorSettings = () => {
             type="checkbox"
             checked={confirmBeforeDeleteCalendar}
             onChange={(e) => setConfirmBeforeDeleteCalendar(e.target.checked)}
-            className="rounded border-surface-300"
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
 
@@ -89,7 +89,7 @@ export const BehaviorSettings = () => {
             type="checkbox"
             checked={confirmBeforeDeleteAccount}
             onChange={(e) => setConfirmBeforeDeleteAccount(e.target.checked)}
-            className="rounded border-surface-300"
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
 
@@ -101,7 +101,7 @@ export const BehaviorSettings = () => {
             type="checkbox"
             checked={confirmBeforeDeleteTag}
             onChange={(e) => setConfirmBeforeDeleteTag(e.target.checked)}
-            className="rounded border-surface-300"
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
 
@@ -117,7 +117,7 @@ export const BehaviorSettings = () => {
           <select
             value={deleteSubtasksWithParent}
             onChange={(e) => setDeleteSubtasksWithParent(e.target.value as SubtaskDeletionBehavior)}
-            className="w-full px-3 py-1.5 text-sm border border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300"
+            className="w-full px-3 py-1.5 text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
           >
             <option value="delete">Delete all subtasks</option>
             <option value="keep">Keep subtasks</option>
@@ -134,7 +134,7 @@ export const BehaviorSettings = () => {
           <select
             value={startOfWeek}
             onChange={(e) => setStartOfWeek(e.target.value as StartOfWeek)}
-            className="px-3 py-1.5 text-sm border border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300"
+            className="px-3 py-1.5 text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
           >
             {WEEK_START_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -157,7 +157,7 @@ export const BehaviorSettings = () => {
             type="checkbox"
             checked={defaultAccountsExpanded}
             onChange={(e) => setDefaultAccountsExpanded(e.target.checked)}
-            className="rounded border-surface-300"
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
 
@@ -201,7 +201,7 @@ export const BehaviorSettings = () => {
             type="checkbox"
             checked={enableSystemTray}
             onChange={(e) => handleSystemTrayChange(e.target.checked)}
-            className="rounded border-surface-300"
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
 
@@ -218,7 +218,7 @@ export const BehaviorSettings = () => {
             type="checkbox"
             checked={checkForUpdatesAutomatically}
             onChange={(e) => setCheckForUpdatesAutomatically(e.target.checked)}
-            className="rounded border-surface-300"
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
 
@@ -230,7 +230,7 @@ export const BehaviorSettings = () => {
             <button
               type="button"
               onClick={handleRestart}
-              className="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors"
+              className="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
             >
               Restart Now
             </button>

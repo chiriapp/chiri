@@ -281,7 +281,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             <button
               type="button"
               onClick={handleDelete}
-              className="p-2 text-surface-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+              className="p-2 text-surface-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               aria-label="Delete task"
             >
               <Trash2 className="w-5 h-5" />
@@ -291,7 +291,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
           <button
             type="button"
             onClick={() => setEditorOpenMutation.mutate(false)}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             aria-label="Close editor"
           >
             <X className="w-5 h-5" />
@@ -331,7 +331,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
               }
             }}
             placeholder="Task title..."
-            className={`w-full text-xl font-semibold text-surface-800 dark:text-surface-200 placeholder:text-surface-400 border-0 focus:outline-none focus:ring-0 bg-transparent ${isScrolling ? 'caret-transparent' : ''}`}
+            className={`w-full text-xl font-semibold text-surface-800 dark:text-surface-200 placeholder:text-surface-400 border-0 focus:outline-none focus:ring-0 bg-transparent ${isScrolling ? 'caret-transparent' : ''} focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors`}
           />
         </div>
 
@@ -349,7 +349,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             onChange={handleDescriptionChange}
             placeholder="Add a description..."
             rows={4}
-            className="w-full px-3 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50 resize-none"
+            className="w-full px-3 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors resize-none"
           />
         </div>
 
@@ -369,13 +369,13 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
               value={pendingUrl}
               onChange={handleUrlChange}
               placeholder="https://example.com"
-              className="flex-1 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
+              className="flex-1 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             />
             {pendingUrl && (
               <button
                 type="button"
                 onClick={() => openUrl(pendingUrl)}
-                className="p-2 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors"
+                className="p-2 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 title="Open URL"
               >
                 <Link className="w-4 h-4" />
@@ -397,7 +397,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
               type="button"
               onClick={() => setShowStartDatePicker(true)}
               aria-labelledby="start-date-label"
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-50 dark:bg-surface-700 border-surface-200 dark:border-surface-600 rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             >
               <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
               <span
@@ -425,7 +425,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
               type="button"
               onClick={() => setShowDueDatePicker(true)}
               aria-labelledby="due-date-label"
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             >
               <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
               <span
@@ -459,11 +459,11 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                 key={p.value}
                 onClick={() => handlePriorityChange(p.value)}
                 className={`
-                  flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors
+                  flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500
                   ${
                     task.priority === p.value
                       ? `${p.borderColor} ${p.bgColor}`
-                      : 'border-surface-200 dark:border-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400'
+                      : 'border-surface-200 dark:border-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 text-surface-600 dark:text-surface-400'
                   }
                 `}
               >
@@ -487,7 +487,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                 id="task-calendar"
                 value={task.calendarId}
                 onChange={(e) => handleCalendarChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-100 dark:focus:ring-primary-900/50"
+                className="w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-600 bg-white text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
               >
                 {accounts.map((account) => (
                   <optgroup key={account.id} label={account.name}>
@@ -554,7 +554,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                     onClick={() =>
                       removeTagFromTaskMutation.mutate({ taskId: task.id, tagId: tag.id })
                     }
-                    className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                    className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -565,7 +565,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             <button
               type="button"
               onClick={() => setShowTagPicker(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-300 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-300 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Plus className="w-3 h-3" />
               Add tag
@@ -589,7 +589,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                 key={reminder.id}
                 role="button"
                 tabIndex={0}
-                className="flex items-center gap-2 px-3 py-2 bg-surface-50 dark:bg-surface-700 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors cursor-pointer group"
+                className="flex items-center gap-2 px-3 py-2 bg-surface-50 dark:bg-surface-700 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 onClick={() => handleStartEditReminder(reminder)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -608,7 +608,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                     e.stopPropagation();
                     handleRemoveReminder(reminder.id);
                   }}
-                  className="p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-full invisible group-hover:visible"
+                  className="p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-full invisible group-hover:visible focus-visible:visible outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   title="Remove reminder"
                 >
                   <X className="w-4 h-4" />
@@ -619,7 +619,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             <button
               type="button"
               onClick={() => setShowReminderPicker(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-300 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-200 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Plus className="w-3 h-3" />
               Add reminder
@@ -673,11 +673,11 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                           })
                         }
                         className={`
-                          w-5 h-5 rounded border-2 flex items-center justify-center transition-all flex-shrink-0
+                          w-5 h-5 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
                           ${
                             subtask.completed
                               ? 'bg-primary-500 border-primary-500'
-                              : 'border-surface-300 dark:border-surface-600 hover:border-primary-400'
+                              : 'border-surface-300 dark:border-surface-700 hover:border-primary-400'
                           }
                         `}
                       >
@@ -709,7 +709,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                         onClick={() =>
                           deleteSubtaskMutation.mutate({ taskId: task.id, subtaskId: subtask.id })
                         }
-                        className="opacity-0 group-hover:opacity-100 p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 transition-all"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -722,7 +722,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             <button
               type="button"
               onClick={() => setShowSubtaskModal(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-300 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Plus className="w-3 h-3" />
               Add a subtask

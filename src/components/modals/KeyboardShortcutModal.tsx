@@ -184,7 +184,7 @@ export const KeyboardShortcutModal = ({
               <button
                 type="button"
                 onClick={handleReset}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <RotateCcw className="w-3 h-3" />
                 Reset to original
@@ -214,7 +214,7 @@ export const KeyboardShortcutModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             Cancel
           </button>
@@ -222,7 +222,7 @@ export const KeyboardShortcutModal = ({
             type="button"
             onClick={handleSave}
             disabled={!pendingShortcut}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset ${
               pendingShortcut
                 ? 'bg-primary-600 hover:bg-primary-700 text-primary-contrast'
                 : 'bg-surface-300 dark:bg-surface-600 text-white cursor-not-allowed'

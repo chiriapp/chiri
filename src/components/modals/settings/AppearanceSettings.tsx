@@ -17,7 +17,7 @@ export const AppearanceSettings = () => {
                 type="button"
                 key={option.value}
                 onClick={() => setTheme(option.value)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   theme === option.value
                     ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                     : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400'
@@ -41,7 +41,7 @@ export const AppearanceSettings = () => {
                 key={color.value}
                 onClick={() => setAccentColor(color.value)}
                 title={color.name}
-                className={`w-8 h-8 rounded-full border-2 transition-all ${
+                className={`w-8 h-8 rounded-full border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
                   accentColor === color.value
                     ? 'border-surface-800 dark:border-white scale-110'
                     : 'border-transparent hover:scale-105'

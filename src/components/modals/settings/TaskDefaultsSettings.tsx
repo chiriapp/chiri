@@ -42,7 +42,7 @@ export const TaskDefaultsSettings = () => {
               key={p.value}
               onClick={() => setDefaultPriority(p.value)}
               className={`
-                flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors
+                flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500
                 ${
                   defaultPriority === p.value
                     ? `${p.borderColor} ${p.bgColor}`
@@ -83,7 +83,7 @@ export const TaskDefaultsSettings = () => {
                 <button
                   type="button"
                   onClick={() => handleRemoveTag(tag.id)}
-                  className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors"
+                  className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -94,7 +94,7 @@ export const TaskDefaultsSettings = () => {
           <button
             type="button"
             onClick={() => setShowTagPicker(true)}
-            className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-300 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-300 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Plus className="w-3 h-3" />
             Add tag

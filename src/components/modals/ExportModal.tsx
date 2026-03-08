@@ -178,7 +178,7 @@ export const ExportModal = ({
           <button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors text-left"
+            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <span className="text-sm font-medium text-surface-700 dark:text-surface-300">
               Preview
@@ -202,7 +202,7 @@ export const ExportModal = ({
           <button
             type="button"
             onClick={handleCopyToClipboard}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-300 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors font-medium"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-300 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Copy className="w-4 h-4" />
             {copied ? 'Copied!' : 'Copy'}
@@ -211,7 +211,7 @@ export const ExportModal = ({
             type="button"
             onClick={handleExportToFile}
             disabled={exporting}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors font-medium"
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
           >
             <Download className="w-4 h-4" />
             {exporting ? 'Exporting...' : 'Download'}

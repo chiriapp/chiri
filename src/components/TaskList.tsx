@@ -386,7 +386,7 @@ export const TaskList = () => {
       <button
         type="button"
         onClick={handleQuickAdd}
-        className="mt-4 w-full flex items-center gap-3 p-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors border border-surface-200 dark:border-surface-600 hover:border-surface-300 dark:hover:border-surface-500"
+        className="mt-4 w-full flex items-center gap-3 p-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors border border-surface-200 dark:border-surface-600 hover:border-surface-300 dark:hover:border-surface-500 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
       >
         <Plus className="w-5 h-5" />
         <span>Add a task...</span>

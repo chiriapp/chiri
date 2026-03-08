@@ -28,7 +28,7 @@ export const SyncSettings = () => {
             type="checkbox"
             checked={autoSync}
             onChange={(e) => setAutoSync(e.target.checked)}
-            className="rounded border-surface-300 dark:border-surface-600"
+            className="rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
         {autoSync && (
@@ -43,7 +43,7 @@ export const SyncSettings = () => {
               id="sync-interval"
               value={syncInterval.toString()}
               onChange={(e) => setSyncInterval(Number(e.target.value))}
-              className="w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300"
+              className="w-full px-3 py-2 text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             >
               {SYNC_INTERVAL_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -64,7 +64,7 @@ export const SyncSettings = () => {
             type="checkbox"
             checked={syncOnStartup}
             onChange={(e) => setSyncOnStartup(e.target.checked)}
-            className="rounded border-surface-300 dark:border-surface-600"
+            className="rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
 
@@ -81,7 +81,7 @@ export const SyncSettings = () => {
             type="checkbox"
             checked={syncOnReconnect}
             onChange={(e) => setSyncOnReconnect(e.target.checked)}
-            className="rounded border-surface-300 dark:border-surface-600"
+            className="rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
       </div>

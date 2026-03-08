@@ -302,7 +302,7 @@ export const Sidebar = ({
               <button
                 type="button"
                 onClick={onToggleCollapse}
-                className="p-2 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors"
+                className="p-2 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 aria-label="Expand sidebar"
               >
                 <PanelLeftOpen className="w-5 h-5" />
@@ -320,7 +320,7 @@ export const Sidebar = ({
                 <button
                   type="button"
                   onClick={onToggleCollapse}
-                  className="p-1.5 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors shrink-0"
+                  className="p-1.5 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   aria-label="Collapse sidebar"
                 >
                   <PanelLeftClose className="w-5 h-5" />
@@ -341,7 +341,7 @@ export const Sidebar = ({
                   setAllTasksViewMutation.mutate();
                   setActiveAccountMutation.mutate(null);
                 }}
-                className={`w-full flex items-center gap-2 px-4 py-2 mb-2 text-sm transition-colors ${
+                className={`w-full flex items-center gap-2 px-4 py-2 mb-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   activeCalendarId === null && activeTagId === null
                     ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
@@ -360,7 +360,7 @@ export const Sidebar = ({
                   onContextMenu={(e) => handleContextMenu(e, 'accounts-section', 'accounts')}
                   role="button"
                   tabIndex={0}
-                  className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+                  className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 >
                   <div className="flex items-center gap-1.5">
                     {accountsSectionCollapsed ? (
@@ -380,7 +380,7 @@ export const Sidebar = ({
                           e.stopPropagation();
                           onOpenImport?.();
                         }}
-                        className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors`}
+                        className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
                       >
                         <Import className="w-4 h-4" />
                       </button>
@@ -393,7 +393,7 @@ export const Sidebar = ({
                           setEditingAccount(null);
                           setShowAccountModal(true);
                         }}
-                        className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors`}
+                        className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -416,7 +416,7 @@ export const Sidebar = ({
                           onContextMenu={(e) => handleContextMenu(e, 'account', account.id)}
                           role="button"
                           tabIndex={0}
-                          className={`relative w-full flex items-center gap-2 px-4 py-1.5 text-sm ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''} transition-colors group cursor-pointer`}
+                          className={`relative w-full flex items-center gap-2 px-4 py-1.5 text-sm ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''} transition-colors group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
                         >
                           {expandedAccounts.has(account.id) ? (
                             <ChevronDown className="w-4 h-4 text-surface-400 flex-shrink-0" />
@@ -427,7 +427,7 @@ export const Sidebar = ({
                           <span className="flex-1 text-left truncate min-w-0 text-surface-600 dark:text-surface-400 group-hover:pr-2">
                             {account.name}
                           </span>
-                          <div className="flex items-center gap-1 w-0 overflow-hidden group-hover:w-auto transition-all">
+                          <div className="flex items-center gap-1 w-0 overflow-hidden group-hover:w-auto focus-within:w-auto transition-all">
                             <Tooltip content="Add a new calendar" position="top">
                               <button
                                 type="button"
@@ -439,7 +439,7 @@ export const Sidebar = ({
                                   e.stopPropagation();
                                   handleContextMenu(e, 'account', account.id);
                                 }}
-                                className={`p-1.5 rounded bg-transparent ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-600 dark:hover:text-surface-300' : ''} text-surface-400 transition-colors flex-shrink-0`}
+                                className={`p-1.5 rounded bg-transparent ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-600 dark:hover:text-surface-300' : ''} text-surface-400 transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
                               >
                                 <Plus className="w-4 h-4" />
                               </button>
@@ -459,7 +459,7 @@ export const Sidebar = ({
                                   e.stopPropagation();
                                   handleContextMenu(e, 'account', account.id);
                                 }}
-                                className="p-1.5 rounded bg-transparent hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors flex-shrink-0"
+                                className="p-1.5 rounded bg-transparent hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                               >
                                 <MoreVertical className="w-4 h-4" />
                               </button>
@@ -493,7 +493,7 @@ export const Sidebar = ({
                                     onContextMenu={(e) =>
                                       handleContextMenu(e, 'calendar', calendar.id, account.id)
                                     }
-                                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                                    className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                                       isActive
                                         ? ''
                                         : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
@@ -539,7 +539,7 @@ export const Sidebar = ({
                   onKeyDown={(e) => e.key === 'Enter' && toggleTagsSectionCollapsed()}
                   role="button"
                   tabIndex={0}
-                  className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
+                  className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 >
                   <div className="flex items-center gap-1.5">
                     {tagsSectionCollapsed ? (
@@ -559,7 +559,7 @@ export const Sidebar = ({
                         setEditingTagId(null);
                         setShowTagModal(true);
                       }}
-                      className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors`}
+                      className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -582,7 +582,7 @@ export const Sidebar = ({
                           data-context-menu
                           onClick={() => setActiveTagMutation.mutate(tag.id)}
                           onContextMenu={(e) => handleContextMenu(e, 'tag', tag.id)}
-                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors ${
+                          className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                             isActive
                               ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                               : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
@@ -627,7 +627,7 @@ export const Sidebar = ({
                 <button
                   type="button"
                   onClick={() => onUpdateClick?.()}
-                  className="w-full flex items-center gap-2 px-3 py-2 mb-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-md transition-colors font-medium"
+                  className="w-full flex items-center gap-2 px-3 py-2 mb-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 >
                   <Download className="w-4 h-4" />
                   Update available!
@@ -636,7 +636,7 @@ export const Sidebar = ({
               <button
                 type="button"
                 onClick={() => onOpenSettings?.()}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''} rounded-md transition-colors`}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''} transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
               >
                 <Settings className="w-4 h-4" />
                 Settings
@@ -659,7 +659,7 @@ export const Sidebar = ({
                   setAllTasksViewMutation.mutate();
                   setActiveAccountMutation.mutate(null);
                 }}
-                className={`p-2 rounded-lg transition-colors ${
+                className={`p-2 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   activeCalendarId === null && activeTagId === null
                     ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
                     : 'text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
@@ -690,7 +690,7 @@ export const Sidebar = ({
                       onContextMenu={(e) =>
                         handleContextMenu(e, 'calendar', calendar.id, account.id)
                       }
-                      className={`p-2 rounded-lg transition-colors ${
+                      className={`p-2 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                         isActive
                           ? 'bg-primary-50 dark:bg-primary-900/30'
                           : 'hover:bg-surface-200 dark:hover:bg-surface-700'
@@ -735,7 +735,7 @@ export const Sidebar = ({
             {/* Tags */}
             {tags.map((tag) => {
               const isActive = activeTagId === tag.id;
-              const TagIcon = getIconByName(tag.icon || 'tag');
+              const TagIcon = getIconByName(tag.icon ?? 'tag');
               return (
                 <Tooltip key={tag.id} content={tag.name} position="right">
                   <button
@@ -745,7 +745,7 @@ export const Sidebar = ({
                       setActiveTagMutation.mutate(tag.id);
                     }}
                     onContextMenu={(e) => handleContextMenu(e, 'tag', tag.id)}
-                    className={`p-2 rounded-lg transition-colors ${
+                    className={`p-2 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                       isActive
                         ? 'bg-primary-50 dark:bg-primary-900/30'
                         : 'hover:bg-surface-200 dark:hover:bg-surface-700'
@@ -783,7 +783,7 @@ export const Sidebar = ({
                   <button
                     type="button"
                     onClick={() => onUpdateClick?.()}
-                    className="p-2 mb-1 rounded-lg text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors"
+                    className="p-2 mb-1 rounded-lg text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   >
                     <Download className="w-5 h-5" />
                   </button>
@@ -793,7 +793,7 @@ export const Sidebar = ({
                 <button
                   type="button"
                   onClick={() => onOpenSettings?.()}
-                  className="p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors"
+                  className="p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 >
                   <Settings className="w-5 h-5" />
                 </button>
