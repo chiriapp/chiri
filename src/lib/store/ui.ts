@@ -17,6 +17,15 @@ export const getUIState = (): UIState => {
 export const setActiveAccount = (id: string | null) => {
   const data = loadDataStore();
 
+  // Validate that the account exists before setting it
+  if (id !== null) {
+    const accountExists = data.accounts.some((account) => account.id === id);
+    if (!accountExists) {
+      log.warn('Attempted to set non-existent account as active, ignoring', { accountId: id });
+      return;
+    }
+  }
+
   // Persist to SQLite
   db.setActiveAccount(id).catch((e) => log.error('Failed to persist active account:', e));
 
@@ -28,6 +37,17 @@ export const setActiveAccount = (id: string | null) => {
 
 export const setActiveCalendar = (id: string | null) => {
   const data = loadDataStore();
+
+  // Validate that the calendar exists before setting it
+  if (id !== null) {
+    const calendarExists = data.accounts.some((account) =>
+      account.calendars.some((calendar) => calendar.id === id),
+    );
+    if (!calendarExists) {
+      log.warn('Attempted to set non-existent calendar as active, ignoring', { calendarId: id });
+      return;
+    }
+  }
 
   // Persist to SQLite
   db.setActiveCalendar(id).catch((e) => log.error('Failed to persist active calendar:', e));
@@ -46,6 +66,15 @@ export const setActiveCalendar = (id: string | null) => {
 
 export const setActiveTag = (id: string | null) => {
   const data = loadDataStore();
+
+  // Validate that the tag exists before setting it
+  if (id !== null) {
+    const tagExists = data.tags.some((tag) => tag.id === id);
+    if (!tagExists) {
+      log.warn('Attempted to set non-existent tag as active, ignoring', { tagId: id });
+      return;
+    }
+  }
 
   // Persist to SQLite
   db.setActiveTag(id).catch((e) => log.error('Failed to persist active tag:', e));
@@ -82,6 +111,15 @@ export const setAllTasksView = () => {
 
 export const setSelectedTask = (id: string | null) => {
   const data = loadDataStore();
+
+  // Validate that the task exists before setting it
+  if (id !== null) {
+    const taskExists = data.tasks.some((task) => task.id === id);
+    if (!taskExists) {
+      log.warn('Attempted to set non-existent task as selected, ignoring', { taskId: id });
+      return;
+    }
+  }
 
   // Persist to SQLite
   db.setSelectedTask(id).catch((e) => log.error('Failed to persist selected task:', e));
