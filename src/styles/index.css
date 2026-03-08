@@ -9,6 +9,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: #d4d4d8 transparent;
 }
 
 body {
@@ -30,12 +36,21 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
+  transition: background 0.15s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.35);
 }
 
 /* Drag and drop styling */
