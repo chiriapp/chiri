@@ -112,3 +112,66 @@ export const formatDueDate = (
     ...colors,
   };
 };
+
+/**
+ * Format start date for unstarted tasks
+ */
+export const formatStartDate = (
+  date: Date,
+): {
+  text: string;
+  className: string;
+  borderColor: string;
+  bgColor: string;
+  textColor: string;
+} => {
+  const d = new Date(date);
+  const now = new Date();
+  const colors = {
+    borderColor: '#10b981',
+    bgColor: '#10b98115',
+    textColor: '#10b981',
+  };
+
+  // Check if date has a meaningful time component (not midnight)
+  const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0 || d.getSeconds() !== 0;
+  const timeStr = hasTime ? ` ${format(d, 'h:mm a')}` : '';
+
+  if (isToday(d)) {
+    return {
+      text: `Today${timeStr}`,
+      className: 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
+      ...colors,
+    };
+  }
+
+  if (isTomorrow(d)) {
+    return {
+      text: `Tomorrow${timeStr}`,
+      className: 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
+      ...colors,
+    };
+  }
+
+  if (isThisWeek(d)) {
+    return {
+      text: `${format(d, 'EEEE')}${timeStr}`, // Full day name
+      className: 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
+      ...colors,
+    };
+  }
+
+  if (isSameYear(d, now)) {
+    return {
+      text: `${format(d, 'MMM d')}${timeStr}`,
+      className: 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
+      ...colors,
+    };
+  }
+
+  return {
+    text: `${format(d, 'MMM d, yyyy')}${timeStr}`,
+    className: 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
+    ...colors,
+  };
+};

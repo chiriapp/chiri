@@ -1,6 +1,7 @@
 import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import CalendarClock from 'lucide-react/icons/calendar-clock';
 import Check from 'lucide-react/icons/check';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import ChevronDown from 'lucide-react/icons/chevron-down';
@@ -36,7 +37,7 @@ import {
 import type { Task } from '$types/index';
 import { getContrastTextColor } from '$utils/color';
 import { FALLBACK_ITEM_COLOR } from '$utils/constants';
-import { formatDueDate } from '$utils/date';
+import { formatDueDate, formatStartDate } from '$utils/date';
 import { pluralize } from '$utils/format';
 import { filterCalDavDescription } from '$utils/ical';
 import { getPriorityColor, getPriorityRingColor } from '$utils/priority';
@@ -141,6 +142,10 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
   const calendarColor = calendar?.color ?? FALLBACK_ITEM_COLOR;
   const dueDateDisplay = task.dueDate ? formatDueDate(task.dueDate) : null;
 
+  // Check if task is unstarted (has future start date)
+  const isUnstarted = task.startDate && new Date(task.startDate) > new Date();
+  const startDateDisplay = isUnstarted && task.startDate ? formatStartDate(task.startDate) : null;
+
   const handleClick = (e: React.MouseEvent) => {
     // don't select if clicking the checkbox or collapse button
     if (
@@ -210,7 +215,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
           group relative flex items-start gap-3 pr-3 py-3 bg-white dark:bg-surface-800 rounded-lg border transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900
           ${isOverlay ? 'shadow-xl' : 'shadow-sm hover:shadow-md'}
           ${isSelected ? '' : task.priority === 'none' ? 'border-surface-200 dark:border-surface-700' : ''}
-          ${task.completed ? 'opacity-60' : ''}
+          ${task.completed ? 'opacity-60' : isUnstarted ? 'opacity-70' : ''}
           ${isDragEnabled ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}
           ${!isOverlay ? 'hover:bg-surface-50 dark:hover:bg-surface-800/70' : ''}
           ${isSelected && `border-transparent ${getPriorityRingColor(task.priority)}`}
@@ -239,23 +244,31 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div
-              className={`text-sm font-medium leading-5 truncate flex-1 min-w-0 ${task.completed ? 'line-through text-surface-400' : 'text-surface-800 dark:text-surface-200'}`}
+              className={`text-sm font-medium leading-5 truncate flex-1 min-w-0 ${
+                task.completed
+                  ? 'line-through text-surface-400'
+                  : isUnstarted
+                    ? 'text-surface-500 dark:text-surface-400'
+                    : 'text-surface-800 dark:text-surface-200'
+              }`}
             >
               {task.title || <span className="text-surface-400 italic">Untitled task</span>}
             </div>
 
-            {dueDateDisplay && (
-              <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium flex-shrink-0"
-                style={{
-                  backgroundColor: dueDateDisplay.bgColor,
-                  color: dueDateDisplay.textColor,
-                }}
-              >
-                <Clock className="w-3 h-3" />
-                {dueDateDisplay.text}
-              </span>
-            )}
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {dueDateDisplay && (
+                <span
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+                  style={{
+                    backgroundColor: dueDateDisplay.bgColor,
+                    color: dueDateDisplay.textColor,
+                  }}
+                >
+                  <Clock className="w-3 h-3" />
+                  {dueDateDisplay.text}
+                </span>
+              )}
+            </div>
           </div>
 
           {filterCalDavDescription(task.description) && (
@@ -266,25 +279,18 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
             </div>
           )}
 
-          {(taskTags.length > 0 ||
+          {(startDateDisplay ||
+            taskTags.length > 0 ||
             showCalendar ||
             totalSubtasks > 0 ||
             childCount > 0 ||
             task.url) && (
             <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {task.url && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openUrl(task.url!);
-                  }}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 hover:opacity-80 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-                  title={task.url}
-                >
-                  <Link className="w-3 h-3" />
-                  URL
-                </button>
+              {startDateDisplay && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 text-surface-600 dark:text-surface-400">
+                  <CalendarClock className="w-3 h-3" />
+                  {startDateDisplay.text}
+                </span>
               )}
 
               {taskTags.map((tag) => {
@@ -345,6 +351,21 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                     </button>
                   );
                 })()}
+
+              {task.url && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openUrl(task.url!);
+                  }}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-primary-300 dark:border-primary-700 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 hover:opacity-80 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  title={task.url}
+                >
+                  <Link className="w-3 h-3" />
+                  URL
+                </button>
+              )}
 
               {totalSubtasks > 0 && (
                 <span className="inline-flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400">
