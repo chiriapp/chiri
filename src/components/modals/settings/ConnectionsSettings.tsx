@@ -47,7 +47,9 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-surface-800 dark:text-surface-200">Connections</h3>
+      <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
+        Connections
+      </h3>
       <div className="space-y-3 rounded-lg border border-surface-200 dark:border-surface-700 p-4 bg-white dark:bg-surface-800">
         {accounts.length === 0 ? (
           <div className="text-center">

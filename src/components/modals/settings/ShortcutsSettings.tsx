@@ -40,7 +40,7 @@ export const ShortcutsSettings = ({
     <>
       <div className="space-y-4">
         <div className="flex flex-row justify-between">
-          <h3 className="text-sm font-semibold text-surface-800 dark:text-surface-200">
+          <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
             Keyboard Shortcuts
           </h3>
           <button

@@ -15,7 +15,7 @@ export const SyncSettings = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-surface-800 dark:text-surface-200">Sync</h3>
+      <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">Sync</h3>
       <div className="space-y-4 rounded-lg border border-surface-200 dark:border-surface-700 p-4 bg-white dark:bg-surface-800">
         <label className="flex items-center justify-between">
           <div>
