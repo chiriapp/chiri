@@ -1,14 +1,15 @@
+import { invoke } from '@tauri-apps/api/core';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
 import { platform } from '@tauri-apps/plugin-os';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { settingsStore } from '$context/settingsContext';
 import { getUIState } from '$lib/database';
+import { createBootstrapErrorUI } from '$lib/errorUI';
 import { initLogger, loggers } from '$lib/logger';
 import { initializeDataStore } from '$lib/store';
 import { initAppMenu } from '$utils/menu';
 import { isCEF } from '$utils/platform';
-
-const currentPlatform = platform();
 
 const log = loggers.bootstrap;
 
@@ -28,7 +29,6 @@ export const initializeApp = async () => {
 
   // initialize system tray based on settings
   log.debug('Initializing system tray...');
-  const { invoke } = await import('@tauri-apps/api/core');
   const enableSystemTray = settingsStore.getState().enableSystemTray;
 
   try {
@@ -74,7 +74,6 @@ export const initializeApp = async () => {
 export const showWindow = async (delay: number = 200): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(async () => {
-      const { getCurrentWindow } = await import('@tauri-apps/api/window');
       const window = getCurrentWindow();
       await window.show();
       await window.setFocus();
@@ -90,8 +89,8 @@ export const showWindow = async (delay: number = 200): Promise<void> => {
 export const deleteDatabase = async () => {
   try {
     log.warn('Deleting database file...');
-    const baseDir =
-      currentPlatform === 'macos' ? BaseDirectory.AppLocalData : BaseDirectory.AppConfig;
+
+    const baseDir = platform() === 'macos' ? BaseDirectory.AppLocalData : BaseDirectory.AppConfig;
     await remove('caldav-tasks.db', { baseDir });
     log.info('Database file deleted successfully');
 
@@ -110,11 +109,9 @@ export const deleteDatabase = async () => {
  * @param error - the error that occurred during initialization
  */
 export const showBootstrapError = async (error: unknown): Promise<void> => {
-  const { createBootstrapErrorUI } = await import('$lib/errorUI');
   await createBootstrapErrorUI(error);
 };
 
 export const forceShowWindow = async () => {
-  const { getCurrentWindow } = await import('@tauri-apps/api/window');
   await getCurrentWindow().show();
 };
