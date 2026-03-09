@@ -49,7 +49,7 @@ export const createBootstrapErrorUI = async (error: unknown): Promise<void> => {
     'max-h-48 overflow-auto rounded-md bg-muted/80 p-4 font-mono text-sm border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900';
 
   const errorText = document.createElement('p');
-  errorText.className = 'text-red-600 dark:text-red-400 whitespace-pre-line';
+  errorText.className = 'text-red-600 dark:text-red-400 whitespace-pre-line selectable';
   errorText.textContent = `${String(error)}`;
 
   errorBox.appendChild(errorText);
@@ -64,7 +64,7 @@ export const createBootstrapErrorUI = async (error: unknown): Promise<void> => {
     'Help us fix this issue by submitting a bug report on GitHub.',
     'File issue on GitHub',
     'border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/30',
-    'bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500',
+    'bg-primary-500 text-primary-contrast hover:bg-primary-600 focus:ring-primary-500',
     async () => {
       const errorTitle = `Critical startup error on ${currentPlatform} ${currentVersion}`;
       const errorBody = `**System Information:**
@@ -98,14 +98,14 @@ ${error instanceof Error && error.stack ? error.stack : 'No stack trace availabl
 
   const resetCardDescription = `As a last resort, you can try resetting the local database. This will attempt to clear any corrupted data that might be causing the issue.
 
-This won't delete any data on your CalDAV server, however local data will be lost and accounts will need to be set up again.`;
+This won't delete any data on your CalDAV servers, however local data will be lost and accounts will need to be set up again.`;
 
   const resetCard = createActionCard(
     'Reset Database',
     resetCardDescription,
     'Reset Database and Reload',
     'border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/30',
-    'bg-red-600 dark:bg-red-500 text-white hover:bg-red-700 dark:hover:bg-red-600 focus:ring-red-500',
+    'bg-red-600 dark:bg-red-500 text-primary-contrast hover:bg-red-700 dark:hover:bg-red-600 focus:ring-red-500',
     () => {},
   );
 
@@ -132,7 +132,7 @@ This won't delete any data on your CalDAV server, however local data will be los
   const confirmBtn = document.createElement('button');
   confirmBtn.id = 'resetConfirmBtn';
   confirmBtn.className =
-    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
+    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-primary-contrast hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
   confirmBtn.textContent = 'Yes, Reset Database';
 
   const cancelBtn = document.createElement('button');
