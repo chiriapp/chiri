@@ -1,3 +1,8 @@
+import {
+  isPermissionGranted,
+  requestPermission,
+  sendNotification,
+} from '@tauri-apps/plugin-notification';
 import { differenceInSeconds, isPast } from 'date-fns';
 import { useEffect, useRef } from 'react';
 import { useTasks } from '$hooks/queries/useTasks';
@@ -13,10 +18,6 @@ interface NotificationOptions {
 
 const showNotification = async (options: NotificationOptions): Promise<void> => {
   try {
-    // dynamic import for Tauri notification plugin
-    const notification = await import('@tauri-apps/plugin-notification');
-    const { isPermissionGranted, requestPermission, sendNotification } = notification;
-
     let permissionGranted = await isPermissionGranted();
 
     if (!permissionGranted) {
