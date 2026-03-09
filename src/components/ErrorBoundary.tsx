@@ -2,7 +2,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { arch, exeExtension, locale, platform, version } from '@tauri-apps/plugin-os';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { loggers } from '$lib/logger';
-import { version as AppVersion } from '../../package.json';
+import { getAppInfo } from '$utils/version';
 
 const log = loggers.errorBoundary;
 
@@ -70,7 +70,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       const errorTitle = `Runtime error on ${currentPlatform} ${currentVersion}`;
       const errorBody = `**System Information:**
 \`\`\`
-App Version: ${AppVersion}
+App Version: ${getAppInfo().version}
 OS: ${currentPlatform}
 Version: ${currentVersion}
 Architecture: ${currentArch}
