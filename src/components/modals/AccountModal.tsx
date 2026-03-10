@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import CheckCircle from 'lucide-react/icons/check-circle';
 import Info from 'lucide-react/icons/info';
 import Loader2 from 'lucide-react/icons/loader-2';
 import X from 'lucide-react/icons/x';
@@ -19,6 +20,7 @@ import { createTag, getAllTags } from '$lib/store/tags';
 import { createTask } from '$lib/store/tasks';
 import type { Account, Calendar, ServerType } from '$types/index';
 import { generateTagColor } from '$utils/color';
+import { pluralize } from '$utils/format';
 import { generateUUID } from '$utils/misc';
 import type { CalDAVConfig } from '$utils/mobileconfig';
 
@@ -49,6 +51,10 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     () => preloadedConfig?.serverType || account?.serverType || 'generic',
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testSuccess, setTestSuccess] = useState(false);
+  const [testedConnectionId, setTestedConnectionId] = useState<string | null>(null);
+  const [testedCalendars, setTestedCalendars] = useState<Calendar[]>([]);
   const [error, setError] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
   const focusTrapRef = useFocusTrap();
@@ -65,14 +71,24 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     return () => clearTimeout(timer);
   }, []);
 
-  // prefill server URL when server type changes to one with a predefined URL
+  // Prefill server URL when server type changes to one with a predefined URL
   useEffect(() => {
     if (!account && !preloadedConfig) {
-      // only for new accounts without preloaded config: set predefined URL or clear if none exists
+      // Only for new accounts without preloaded config: set predefined URL or clear if none exists
       const predefinedUrl = getPredefinedServerUrl(serverType);
       setServerUrl(predefinedUrl || '');
     }
+    // Reset test success when server type changes
+    setTestSuccess(false);
   }, [serverType, account, preloadedConfig]);
+
+  // Reset test success when form fields change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally reset test success when credentials change
+  useEffect(() => {
+    setTestSuccess(false);
+    setTestedConnectionId(null);
+    setTestedCalendars([]);
+  }, [serverUrl, username, password]);
 
   /**
    * ensure a tag exists by name, returns the tag ID
@@ -91,6 +107,39 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     });
 
     return newTag.id;
+  };
+
+  /**
+   * show warning dialog for Vikunja servers
+   */
+  const showVikunjaWarning = async (): Promise<boolean> => {
+    return await confirm({
+      title: 'Vikunja server detected',
+      message: (
+        <div className="space-y-3">
+          <p>
+            This appears to be a{' '}
+            <strong className="font-semibold text-surface-800 dark:text-surface-200">
+              Vikunja server
+            </strong>
+            .
+          </p>
+          <p>Vikunja has several CalDAV bugs that cause unpredictable behavior.</p>
+          <p className="font-extrabold text-base text-surface-700 dark:text-surface-300">
+            ⚠️ This app may not work reliably with Vikunja and you may even encounter data loss. ⚠️
+          </p>
+          <p className="font-bold text-surface-800 dark:text-surface-200">
+            It's recommend you try other CalDAV servers (like RustiCal, Fastmail, Baikal, Radicale,
+            etc.) instead.
+          </p>
+          <p>Do you want to continue anyway?</p>
+        </div>
+      ),
+      confirmLabel: 'Continue (dangerous)',
+      cancelLabel: 'Cancel',
+      destructive: true,
+      delayConfirmSeconds: 20,
+    });
   };
 
   /**
@@ -126,6 +175,67 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       }
     } catch (error) {
       log.error(`Failed to fetch tasks for calendar ${calendar.displayName}:`, error);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setError('');
+    setTestSuccess(false);
+    setTestedConnectionId(null);
+    setTestedCalendars([]);
+    setIsTesting(true);
+
+    try {
+      const effectivePassword = password || account?.password;
+
+      if (!effectivePassword) {
+        throw new Error('Password is required to test connection');
+      }
+
+      if (!serverUrl.trim() || !username.trim()) {
+        throw new Error('Server URL and username are required');
+      }
+
+      const tempId = generateUUID();
+      log.debug(`Testing connection to ${serverUrl}...`);
+
+      const connectionInfo = await caldavService.connect(
+        tempId,
+        serverUrl,
+        username,
+        effectivePassword,
+        serverType,
+      );
+
+      const isVikunja = connectionInfo.calendarHome.includes('/dav/projects');
+      if (isVikunja) {
+        const proceed = await showVikunjaWarning();
+
+        if (!proceed) {
+          // User cancelled, disconnect and return
+          caldavService.disconnect(tempId);
+          setIsTesting(false);
+          return;
+        }
+      }
+
+      // Fetch calendars to verify full connection
+      log.debug(`Fetching calendars...`);
+      const calendars = await caldavService.fetchCalendars(tempId);
+      log.info(`Connection test successful - found ${calendars.length} calendars`);
+
+      // Store the connection info for reuse
+      setTestedConnectionId(tempId);
+      setTestedCalendars(calendars);
+      setTestSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to connect to CalDAV server');
+      log.error('Connection test failed:', err);
+      // Clean up failed connection
+      setTestedConnectionId(null);
+      setTestedCalendars([]);
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -167,61 +277,44 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
           throw new Error('Password is required');
         }
 
-        // create a temporary ID to test the connection
-        const tempId = generateUUID();
+        let tempId: string;
+        let calendars: Calendar[];
 
-        log.debug(`Connecting to ${serverUrl}...`);
-        const connectionInfo = await caldavService.connect(
-          tempId,
-          serverUrl,
-          username,
-          effectivePassword,
-          serverType,
-        );
+        // If we already tested the connection successfully, reuse it
+        if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
+          log.debug('Reusing tested connection...');
+          tempId = testedConnectionId;
+          calendars = testedCalendars;
+        } else {
+          // create a temporary ID to test the connection
+          tempId = generateUUID();
 
-        // Check if this is a Vikunja server and warn the user
-        const isVikunja = connectionInfo.calendarHome.includes('/dav/projects');
-        if (isVikunja) {
-          const proceed = await confirm({
-            title: 'Vikunja server detected',
-            message: (
-              <div className="space-y-3">
-                <p>
-                  This appears to be a{' '}
-                  <strong className="font-semibold text-surface-800 dark:text-surface-200">
-                    Vikunja server
-                  </strong>
-                  .
-                </p>
-                <p>Vikunja has several CalDAV bugs that cause unpredictable behavior.</p>
-                <p className="font-extrabold text-base text-surface-700 dark:text-surface-300">
-                  ⚠️ This app may not work reliably with Vikunja and you may even encounter data
-                  loss. ⚠️
-                </p>
-                <p className="font-bold text-surface-800 dark:text-surface-200">
-                  It's recommend you try other CalDAV servers (like RustiCal, Fastmail, Baikal,
-                  Radicale, etc.) instead.
-                </p>
-                <p>Do you want to continue anyway?</p>
-              </div>
-            ),
-            confirmLabel: 'Continue (dangerous)',
-            cancelLabel: 'Cancel',
-            destructive: true,
-            delayConfirmSeconds: 20,
-          });
+          log.debug(`Connecting to ${serverUrl}...`);
+          const connectionInfo = await caldavService.connect(
+            tempId,
+            serverUrl,
+            username,
+            effectivePassword,
+            serverType,
+          );
 
-          if (!proceed) {
-            // User cancelled, disconnect and return
-            caldavService.disconnect(tempId);
-            setIsLoading(false);
-            return;
+          // Check if this is a Vikunja server and warn the user
+          const isVikunja = connectionInfo.calendarHome.includes('/dav/projects');
+          if (isVikunja) {
+            const proceed = await showVikunjaWarning();
+
+            if (!proceed) {
+              // User cancelled, disconnect and return
+              caldavService.disconnect(tempId);
+              setIsLoading(false);
+              return;
+            }
           }
-        }
 
-        log.debug(`Fetching calendars...`);
-        const calendars = await caldavService.fetchCalendars(tempId);
-        log.info(`Found ${calendars.length} calendars:`, calendars);
+          log.debug(`Fetching calendars...`);
+          calendars = await caldavService.fetchCalendars(tempId);
+          log.info(`Found ${calendars.length} calendars:`, calendars);
+        }
 
         // connection successful - now add the account with the same ID we used for connection
         createAccountMutation.mutate(
@@ -235,30 +328,50 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
           },
           {
             onSuccess: async (newAccount) => {
-              // add the fetched calendars
-              for (const calendar of calendars) {
-                addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
-              }
+              try {
+                // add the fetched calendars
+                for (const calendar of calendars) {
+                  addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
+                }
 
-              // fetch tasks for each calendar
-              log.debug('Fetching tasks for all calendars...');
-              for (const calendar of calendars) {
-                await fetchTasksForCalendar(newAccount.id, calendar);
-              }
+                // fetch tasks for each calendar
+                log.debug('Fetching tasks for all calendars...');
+                for (const calendar of calendars) {
+                  await fetchTasksForCalendar(newAccount.id, calendar);
+                }
 
-              // Invalidate task queries to refresh the UI
-              queryClient.invalidateQueries({ queryKey: ['tasks'] });
-              queryClient.invalidateQueries({ queryKey: ['tags'] });
+                // Invalidate task queries to refresh the UI
+                queryClient.invalidateQueries({ queryKey: ['tasks'] });
+                queryClient.invalidateQueries({ queryKey: ['tags'] });
+
+                // Close modal after everything is complete
+                onClose();
+              } catch (error) {
+                log.error('Error setting up account:', error);
+                // Still close the modal, account was created successfully
+                onClose();
+              } finally {
+                setIsLoading(false);
+              }
+            },
+            onError: (error) => {
+              log.error('Error creating account:', error);
+              setError(error instanceof Error ? error.message : 'Failed to create account');
+              setIsLoading(false);
             },
           },
         );
+
+        // Exit early to avoid the onClose() and finally block
+        return;
       }
 
+      // For account updates, close immediately
       onClose();
+      setIsLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to CalDAV server');
       log.error('Failed to connect:', err);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -350,7 +463,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               placeholder="https://caldav.example.com"
               required
               disabled={!!getPredefinedServerUrl(serverType)}
-              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-white dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             />
             {serverType === 'generic' && (
               <p className="mt-2 text-xs flex flex-row text-surface-500 dark:text-surface-400">
@@ -402,28 +515,62 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-2">
+          {testSuccess && (
+            <div className="p-3 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
+              <div>
+                <div className="font-medium">Connection verified!</div>
+                {testedCalendars.length > 0 && (
+                  <div className="text-xs mt-0.5">
+                    Found {testedCalendars.length} {pluralize(testedCalendars.length, 'calendar')}.
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-between gap-3 pt-2">
             <button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
+              onClick={handleTestConnection}
               disabled={
+                isTesting ||
                 isLoading ||
-                !name.trim() ||
+                testSuccess ||
                 !serverUrl.trim() ||
                 !username.trim() ||
-                (!account && !password.trim())
+                (!password.trim() && !account?.password)
               }
-              className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+              className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 border border-surface-300 dark:border-surface-600 hover:bg-surface-50 dark:hover:bg-surface-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
-              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {account ? 'Save' : 'Add Account'}
+              {isTesting && <Loader2 className="w-4 h-4 animate-spin" />}
+              {testSuccess && (
+                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+              )}
+              {testSuccess ? 'Success' : isTesting ? 'Testing...' : 'Test connection'}
             </button>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={
+                  isLoading ||
+                  !name.trim() ||
+                  !serverUrl.trim() ||
+                  !username.trim() ||
+                  (!account && !password.trim())
+                }
+                className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+              >
+                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {account ? 'Save' : testSuccess ? 'Add Account' : 'Add Account'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
