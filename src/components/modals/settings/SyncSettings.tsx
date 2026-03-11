@@ -19,7 +19,7 @@ export const SyncSettings = () => {
       <div className="space-y-4 rounded-lg border border-surface-200 dark:border-surface-700 p-4 bg-white dark:bg-surface-800">
         <label className="flex items-center justify-between">
           <div>
-            <span className="text-sm text-surface-700 dark:text-surface-300">Auto-sync</span>
+            <h4 className="text-sm text-surface-700 dark:text-surface-300">Auto-sync</h4>
             <p className="text-xs text-surface-500 dark:text-surface-400">
               Automatically sync with CalDAV servers
             </p>
@@ -32,18 +32,16 @@ export const SyncSettings = () => {
           />
         </label>
         {autoSync && (
-          <div>
-            <label
-              htmlFor="sync-interval"
-              className="block text-sm text-surface-600 dark:text-surface-400 mb-2"
-            >
-              Sync interval
-            </label>
+          <label
+            htmlFor="sync-interval"
+            className="flex items-center justify-between text-sm text-surface-700 dark:text-surface-300 mb-2"
+          >
+            Sync interval
             <select
               id="sync-interval"
               value={syncInterval.toString()}
               onChange={(e) => setSyncInterval(Number(e.target.value))}
-              className="w-full px-3 py-2 text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+              className="px-3 py-2 text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             >
               {SYNC_INTERVAL_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -51,7 +49,7 @@ export const SyncSettings = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </label>
         )}
         <label className="flex items-center justify-between">
           <div>
