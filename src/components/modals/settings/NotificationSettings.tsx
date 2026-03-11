@@ -13,9 +13,9 @@ export const NotificationSettings = () => {
         <div className="space-y-4">
           <label className="flex items-center justify-between">
             <div>
-              <span className="text-sm text-surface-700 dark:text-surface-300">
+              <h4 className="text-sm text-surface-700 dark:text-surface-300">
                 Enable notifications
-              </span>
+              </h4>
               <p className="text-xs text-surface-500 dark:text-surface-400">
                 Get notified for task reminders and due dates
               </p>
