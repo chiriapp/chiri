@@ -337,14 +337,14 @@ export const Sidebar = ({
           <div
             className={`flex-1 flex flex-col min-h-0 transition-opacity duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           >
-            <div className="flex-1 overflow-y-auto overscroll-contain">
+            <div className="flex-1 flex flex-col gap-2.5 overflow-y-auto overscroll-contain">
               <button
                 type="button"
                 onClick={() => {
                   setAllTasksViewMutation.mutate();
                   setActiveAccountMutation.mutate(null);
                 }}
-                className={`w-full flex items-center gap-2 px-4 py-2 mb-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   activeCalendarId === null && activeTagId === null
                     ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
@@ -355,7 +355,7 @@ export const Sidebar = ({
                 <span className="text-xs">{getTotalActiveTaskCount()}</span>
               </button>
 
-              <div className="mb-4">
+              <div>
                 {/* biome-ignore lint/a11y/useSemanticElements: Section header toggle div contains icon+text layout that button element can't replicate */}
                 <div
                   onClick={toggleAccountsSectionCollapsed}
@@ -535,7 +535,7 @@ export const Sidebar = ({
                   ))}
               </div>
 
-              <div className="mb-4">
+              <div>
                 {/* biome-ignore lint/a11y/useSemanticElements: Section header toggle div contains icon+text layout that button element can't replicate */}
                 <div
                   onClick={toggleTagsSectionCollapsed}
@@ -625,14 +625,14 @@ export const Sidebar = ({
               </div>
             </div>
 
-            <div className="border-t border-surface-200 dark:border-surface-700 p-2 shrink-0">
+            <div className="border-t border-surface-200 dark:border-surface-700 flex flex-col justify-between py-2">
               {updateAvailable && (
                 <button
                   type="button"
                   onClick={() => onUpdateClick?.()}
-                  className="w-full flex items-center gap-2 px-3 py-2 mb-2 text-sm text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  className="w-full flex items-center gap-2 px-4 py-2 text-sm text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-4 h-4 text-primary-600 dark:text-primary-400" />
                   Update available!
                 </button>
               )}
@@ -780,15 +780,15 @@ export const Sidebar = ({
             })}
 
             {/* Settings at bottom */}
-            <div className="mt-auto pt-2 border-t border-surface-200 dark:border-surface-700">
+            <div className="mt-auto flex flex-col pt-2 border-t border-surface-200 dark:border-surface-700">
               {updateAvailable && (
                 <Tooltip content="Update available!" position="right">
                   <button
                     type="button"
                     onClick={() => onUpdateClick?.()}
-                    className="p-2 mb-1 rounded-lg text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                    className="p-2 mb-1 rounded-lg text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   >
-                    <Download className="w-5 h-5" />
+                    <Download className="w-5 h-5 text-primary-600 dark:text-primary-400" />
                   </button>
                 </Tooltip>
               )}
