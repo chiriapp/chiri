@@ -13,3 +13,10 @@ export const hasOpenModalElements = () => {
     return ['z-50', 'z-[60]', 'z-[70]'].some((zClass) => classList.contains(zClass));
   });
 };
+
+/**
+ * Check if a CalDAV server is a Vikunja server
+ */
+export const isVikunjaServer = (calendarHome: string): boolean => {
+  return calendarHome.includes('/dav/projects');
+};

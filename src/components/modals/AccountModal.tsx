@@ -21,7 +21,7 @@ import { createTask } from '$lib/store/tasks';
 import type { Account, Calendar, ServerType } from '$types/index';
 import { generateTagColor } from '$utils/color';
 import { pluralize } from '$utils/format';
-import { generateUUID } from '$utils/misc';
+import { generateUUID, isVikunjaServer } from '$utils/misc';
 import type { CalDAVConfig } from '$utils/mobileconfig';
 
 const log = loggers.account;
@@ -207,8 +207,8 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
         serverType,
       );
 
-      const isVikunja = connectionInfo.calendarHome.includes('/dav/projects');
-      if (isVikunja) {
+      // Check if this is a Vikunja server and warn the user
+      if (isVikunjaServer(connectionInfo.calendarHome)) {
         const proceed = await showVikunjaWarning();
 
         if (!proceed) {
@@ -299,8 +299,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
           );
 
           // Check if this is a Vikunja server and warn the user
-          const isVikunja = connectionInfo.calendarHome.includes('/dav/projects');
-          if (isVikunja) {
+          if (isVikunjaServer(connectionInfo.calendarHome)) {
             const proceed = await showVikunjaWarning();
 
             if (!proceed) {
