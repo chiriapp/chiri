@@ -3,6 +3,18 @@ import { fileURLToPath } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
+const namedChunks = {
+  'date-fns': ['date-fns'],
+  'dnd-kit': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+  frimousse: ['frimousse'],
+  lucide: ['lucide-react'],
+  markdown: ['marked'],
+  react: ['react', 'react-dom'],
+  sonner: ['sonner'],
+  'tanstack-query': ['@tanstack/react-query'],
+  'tauri-core': ['@tauri-apps/cli', '@tauri-apps/api'],
+};
+
 export default defineConfig({
   plugins: [react()],
   resolve: {
@@ -35,40 +47,21 @@ export default defineConfig({
     sourcemap: !!process.env.TAURI_DEBUG,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // date utilities
-          'date-fns': ['date-fns'],
+        chunkFileNames: (chunk) =>
+          [...Object.keys(namedChunks), 'tauri-plugins'].includes(chunk.name)
+            ? 'assets/[name].js'
+            : 'assets/[name]-[hash].js',
 
-          // dnd for sorting, drag'n'drop and ordering
-          'dnd-kit': ['@dnd-kit/core', '@dnd-kit/sortable'],
+        manualChunks: (id) => {
+          for (const [chunkName, modules] of Object.entries(namedChunks)) {
+            if (id.includes('node_modules/@tauri-apps/plugin-')) {
+              return 'tauri-plugins';
+            }
 
-          // emoji picker
-          frimousse: ['frimousse'],
-
-          // icons
-          lucide: ['lucide-react'],
-
-          // toast notifications
-          sonner: ['sonner'],
-
-          // react-query for server state
-          state: ['@tanstack/react-query'],
-
-          // tauri plugins chunk
-          tauri: [
-            '@tauri-apps/api',
-            '@tauri-apps/plugin-dialog',
-            '@tauri-apps/plugin-fs',
-            '@tauri-apps/plugin-http',
-            '@tauri-apps/plugin-log',
-            '@tauri-apps/plugin-notification',
-            '@tauri-apps/plugin-opener',
-            '@tauri-apps/plugin-os',
-            '@tauri-apps/plugin-process',
-            '@tauri-apps/plugin-shell',
-            '@tauri-apps/plugin-sql',
-            '@tauri-apps/plugin-updater',
-          ],
+            if (modules.some((mod) => id.includes(`node_modules/${mod}/`))) {
+              return chunkName;
+            }
+          }
         },
       },
     },
