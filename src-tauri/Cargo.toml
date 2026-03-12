@@ -1,6 +1,6 @@
 [package]
 name = "caldav-tasks"
-version = "0.7.0"
+version = "0.7.1"
 description = "A cross-platform CalDAV task management app. Currently in very early alpha!"
 authors = ["Sapphic Angels"]
 license = "zlib"
@@ -44,6 +44,7 @@ cef = ["tauri/cef", "dep:rustls"]
 
 [dependencies.rustls]
 version = "0.23"
+default-features = false
 features = ["aws_lc_rs"]
 optional = true
 
