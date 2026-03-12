@@ -1,16 +1,22 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { format } from 'date-fns';
+import { CalendarPlus } from 'lucide-react';
+import AlignLeft from 'lucide-react/icons/align-left';
 import Bell from 'lucide-react/icons/bell';
+import BellRing from 'lucide-react/icons/bell-ring';
 import Calendar from 'lucide-react/icons/calendar';
+import CalendarClock from 'lucide-react/icons/calendar-clock';
+import CalendarFold from 'lucide-react/icons/calendar-fold';
 import Check from 'lucide-react/icons/check';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
-import Clock from 'lucide-react/icons/clock';
+import ExternalLink from 'lucide-react/icons/external-link';
 import Flag from 'lucide-react/icons/flag';
 import FolderSync from 'lucide-react/icons/folder-sync';
 import Link from 'lucide-react/icons/link';
 import Plus from 'lucide-react/icons/plus';
 import Tag from 'lucide-react/icons/tag';
 import Trash2 from 'lucide-react/icons/trash-2';
+import Type from 'lucide-react/icons/type';
 import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
@@ -28,12 +34,10 @@ import {
   useAddReminder,
   useAddTagToTask,
   useCreateTask,
-  useDeleteSubtask,
   useRemoveReminder,
   useRemoveTagFromTask,
-  useToggleSubtaskComplete,
+  useToggleTaskComplete,
   useUpdateReminder,
-  useUpdateSubtask,
   useUpdateTask,
 } from '$hooks/queries/useTasks';
 import { useSetEditorOpen } from '$hooks/queries/useUIState';
@@ -62,9 +66,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
   const addReminderMutation = useAddReminder();
   const removeReminderMutation = useRemoveReminder();
   const updateReminderMutation = useUpdateReminder();
-  const updateSubtaskMutation = useUpdateSubtask();
-  const deleteSubtaskMutation = useDeleteSubtask();
-  const toggleSubtaskCompleteMutation = useToggleSubtaskComplete();
+  const toggleTaskCompleteMutation = useToggleTaskComplete();
   const { data: tags = [] } = useTags();
   const { data: accounts = [] } = useAccounts();
   const { accentColor } = useSettingsStore();
@@ -91,12 +93,10 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
   );
   const [pendingUrl, updatePendingUrl] = useDebouncedTaskUpdate(task.id, 'url', task.url ?? '');
 
-  const titleRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLTextAreaElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const urlRef = useRef<HTMLInputElement>(null);
   const editorContainerRef = useRef<HTMLDivElement>(null);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const childTasks = getChildTasks(task.uid);
   const childCount = countChildren(task.uid);
   const taskTags = (task.tags || [])
@@ -123,6 +123,18 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
       titleRef.current.focus();
     }
   }, [task.title]);
+
+  // Auto-resize title textarea based on content
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Need to trigger on pendingTitle changes
+  useEffect(() => {
+    const textarea = titleRef.current;
+    if (textarea) {
+      // Reset height to auto to get the correct scrollHeight
+      textarea.style.height = 'auto';
+      // Set height to scrollHeight to fit content
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [pendingTitle]);
 
   // Handle escape key to blur focused inputs
   useEffect(() => {
@@ -153,10 +165,6 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
     window.addEventListener('keydown', handleEsc, { capture: true });
     return () => {
       window.removeEventListener('keydown', handleEsc, { capture: true });
-      // Clean up scroll timeout
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
-      }
     };
   }, []);
 
@@ -272,10 +280,15 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
     }
   };
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleTaskCompleteMutation.mutate(task.id);
+  };
+
   return (
-    <div className={`flex flex-col h-full`} ref={editorContainerRef}>
+    <div className={`flex flex-col h-full bg-white dark:bg-surface-900`} ref={editorContainerRef}>
       <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-        <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Edit Task</h2>
+        <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Edit task</h2>
         <div className="flex items-center gap-2">
           <Tooltip content="Delete" position="bottom">
             <button
@@ -303,43 +316,60 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
         <div>
           <label
             htmlFor="task-title"
-            className="block text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
           >
+            <Type className="w-4 h-4" />
             Title
           </label>
-          <ComposedInput
-            ref={titleRef}
-            id="task-title"
-            type="text"
-            value={pendingTitle}
-            onChange={handleTitleChange}
-            onWheel={(e) => {
-              // handle horizontal scrolling with trackpad for input field
-              if (Math.abs(e.deltaX) > 0) {
-                e.stopPropagation();
-                e.preventDefault();
-                e.currentTarget.scrollLeft += e.deltaX;
-
-                // hide cursor during scroll to prevent visual glitch
-                setIsScrolling(true);
-                if (scrollTimeoutRef.current) {
-                  clearTimeout(scrollTimeoutRef.current);
-                }
-                scrollTimeoutRef.current = setTimeout(() => {
-                  setIsScrolling(false);
-                }, 150);
+          {/* biome-ignore lint/a11y/noStaticElementInteractions: Wrapper div focuses child textarea for better UX */}
+          {/* biome-ignore lint/a11y/useKeyWithClickEvents: Click focuses child textarea which is already keyboard accessible */}
+          <div
+            onClick={(e) => {
+              // Focus the textarea when clicking on the wrapper (but not when clicking buttons)
+              if (
+                titleRef.current &&
+                e.target !== titleRef.current &&
+                !(e.target as HTMLElement).closest('button')
+              ) {
+                titleRef.current.focus();
               }
             }}
-            placeholder="Task title..."
-            className={`w-full text-xl font-semibold text-surface-800 dark:text-surface-200 placeholder:text-surface-400 border-0 focus:outline-none focus:ring-0 bg-transparent ${isScrolling ? 'caret-transparent' : ''} focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors`}
-          />
+            className="flex items-start gap-3 px-3 py-3 bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg has-[:focus]:border-primary-300 dark:has-[:focus]:border-primary-400 has-[textarea:focus]:bg-white dark:has-[textarea:focus]:bg-primary-900/30 transition-colors cursor-text"
+          >
+            <button
+              type="button"
+              onClick={handleCheckboxClick}
+              className={`
+                flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
+                ${
+                  task.completed
+                    ? 'bg-primary-500 border-primary-500'
+                    : 'border-surface-300 dark:border-surface-600 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30'
+                }
+              `}
+            >
+              {task.completed && (
+                <Check className="w-4 h-4" style={{ color: checkmarkColor }} strokeWidth={3} />
+              )}
+            </button>
+            <ComposedTextarea
+              ref={titleRef}
+              id="task-title"
+              value={pendingTitle}
+              onChange={handleTitleChange}
+              placeholder="Task title..."
+              rows={1}
+              className="flex-1 text-sm font-medium text-surface-700 dark:text-surface-300 bg-transparent border-0 focus:outline-none focus:ring-0 p-0 overflow-hidden resize-none w-full"
+            />
+          </div>
         </div>
 
         <div>
           <label
             htmlFor="task-description"
-            className="block text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
           >
+            <AlignLeft className="w-4 h-4" />
             Description
           </label>
           <ComposedTextarea
@@ -349,7 +379,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             onChange={handleDescriptionChange}
             placeholder="Add a description..."
             rows={4}
-            className="w-full px-3 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors resize-none"
+            className="w-full px-3 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors resize-none"
           />
         </div>
 
@@ -361,7 +391,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             <Link className="w-4 h-4" />
             URL
           </label>
-          <div className="flex items-center gap-2">
+          <div className="relative group">
             <ComposedInput
               ref={urlRef}
               id="task-url"
@@ -369,16 +399,16 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
               value={pendingUrl}
               onChange={handleUrlChange}
               placeholder="https://example.com"
-              className="flex-1 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+              className="w-full px-3 py-2 pr-10 text-sm text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             />
             {pendingUrl && (
               <button
                 type="button"
                 onClick={() => openUrl(pendingUrl)}
-                className="p-2 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-                title="Open URL"
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-surface-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                aria-label="Open URL in browser"
               >
-                <Link className="w-4 h-4" />
+                <ExternalLink className="w-4 h-4" />
               </button>
             )}
           </div>
@@ -390,16 +420,20 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
               id="start-date-label"
               className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
             >
-              <Clock className="w-4 h-4" />
+              <CalendarClock className="w-4 h-4" />
               Start Date
             </div>
             <button
               type="button"
               onClick={() => setShowStartDatePicker(true)}
               aria-labelledby="start-date-label"
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-50 dark:bg-surface-700 border-surface-200 dark:border-surface-600 rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             >
-              <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
+              {task.startDate ? (
+                <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
+              ) : (
+                <CalendarPlus className="w-4 h-4 text-surface-400 flex-shrink-0" />
+              )}
               <span
                 className={
                   task.startDate ? 'text-surface-700 dark:text-surface-300' : 'text-surface-400'
@@ -418,16 +452,20 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
               id="due-date-label"
               className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
             >
-              <Calendar className="w-4 h-4" />
+              <CalendarFold className="w-4 h-4" />
               Due Date
             </div>
             <button
               type="button"
               onClick={() => setShowDueDatePicker(true)}
               aria-labelledby="due-date-label"
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             >
-              <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
+              {task.dueDate ? (
+                <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
+              ) : (
+                <CalendarPlus className="w-4 h-4 text-surface-400 flex-shrink-0" />
+              )}
               <span
                 className={
                   task.dueDate ? 'text-surface-700 dark:text-surface-300' : 'text-surface-400'
@@ -463,7 +501,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                   ${
                     task.priority === p.value
                       ? `${p.borderColor} ${p.bgColor}`
-                      : 'border-surface-200 dark:border-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 text-surface-600 dark:text-surface-400'
+                      : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 text-surface-600 dark:text-surface-400'
                   }
                 `}
               >
@@ -487,7 +525,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                 id="task-calendar"
                 value={task.calendarId}
                 onChange={(e) => handleCalendarChange(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-600 bg-white text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                className="w-full px-3 py-2 text-sm border border-transparent bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
               >
                 {accounts.map((account) => (
                   <optgroup key={account.id} label={account.name}>
@@ -512,7 +550,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             </>
           ) : (
             <div
-              className="w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-600 bg-surface-100 dark:bg-surface-800 text-surface-400 dark:text-surface-500 rounded-lg cursor-not-allowed"
+              className="w-full px-3 py-2 text-sm border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-900 text-surface-400 dark:text-surface-500 rounded-lg cursor-not-allowed"
               title="Add a CalDAV account to assign tasks to calendars"
             >
               No calendars available
@@ -554,7 +592,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                     onClick={() =>
                       removeTagFromTaskMutation.mutate({ taskId: task.id, tagId: tag.id })
                     }
-                    className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                    className="p-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -565,7 +603,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             <button
               type="button"
               onClick={() => setShowTagPicker(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-300 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Plus className="w-3 h-3" />
               Add tag
@@ -589,7 +627,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                 key={reminder.id}
                 role="button"
                 tabIndex={0}
-                className="flex items-center gap-2 px-3 py-2 bg-surface-50 dark:bg-surface-700 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="flex items-center gap-2 px-3 py-2 bg-surface-50 dark:bg-surface-800 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 onClick={() => handleStartEditReminder(reminder)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
@@ -598,7 +636,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                   }
                 }}
               >
-                <Bell className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                <BellRing className="w-4 h-4 text-surface-400 flex-shrink-0" />
                 <span className="flex-1 text-sm text-surface-700 dark:text-surface-300">
                   {format(new Date(reminder.trigger), 'MMM d, yyyy h:mm a')}
                 </span>
@@ -608,7 +646,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                     e.stopPropagation();
                     handleRemoveReminder(reminder.id);
                   }}
-                  className="p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-full invisible group-hover:visible focus-visible:visible outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  className="p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-full invisible group-hover:visible focus-visible:visible outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   title="Remove reminder"
                 >
                   <X className="w-4 h-4" />
@@ -619,7 +657,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             <button
               type="button"
               onClick={() => setShowReminderPicker(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-dashed border-surface-200 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Plus className="w-3 h-3" />
               Add reminder
@@ -658,7 +696,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
             <button
               type="button"
               onClick={() => setShowSubtaskModal(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded-full hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Plus className="w-3 h-3" />
               Add a subtask
