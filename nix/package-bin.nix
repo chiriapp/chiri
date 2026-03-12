@@ -17,7 +17,7 @@
   libsoup_3,
 
   # Optional: override version
-  version ? "0.6.4",
+  version ? "0.7.0",
 }:
 
 let
@@ -27,19 +27,19 @@ let
   platformInfo = {
     "x86_64-linux" = {
       asset = "caldav-tasks_${version}_amd64.deb";
-      hash = "sha256-OX9PFLw84tBJOkmC5LHRG4Ove34e5x7LgbuslGlhKrg=";
+      hash = "sha256-kaagMzER0VCX7eOxQglfth1/66w4UYPw71vNLDLy3Qg=";
     };
     "aarch64-linux" = {
       asset = "caldav-tasks_${version}_arm64.deb";
-      hash = "sha256-WYct9qUBmYecF1dEl5nGCtmK9IigN8WnR43bhpbqGx0=";
+      hash = "sha256-izIeOShd6/fT6A+DAfM0TE9ko2eG+Q5kZ+xlRVHBoXA=";
     };
     "x86_64-darwin" = {
       asset = "caldav-tasks_${version}_x64.dmg";
-      hash = "sha256-/g50EzdVWveS0K6jvvHC23at7l5uTQLXU1bR3rpCHHs=";
+      hash = "sha256-o2w5gs6NR6jgTN5+2iOYjTNumVdEo6zugvpHrBMjFx4=";
     };
     "aarch64-darwin" = {
       asset = "caldav-tasks_${version}_aarch64.dmg";
-      hash = "sha256-1Uzv3Lp9+R4iyezr5UaVzX/Xir49ji+4fVN+LNUeUTY=";
+      hash = "sha256-3OPV9GFJN8fmDT6Pa/LekUxyw5Mjgl51ALNpbvnR0HU=";
     };
   };
 
