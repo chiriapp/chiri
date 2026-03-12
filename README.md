@@ -11,7 +11,7 @@
   &nbsp;[![GitHub License][header-repo-license-badge]][repo-license]
   <!-- header badges end -->
 
-  ![A screenshot of a CalDAV desktop task management. The sidebar shows accounts for "Lily (fastmail)" and "Chloe (rustical)," with a roadmap folder selected containing 10 tasks. The main window lists several development tasks, including "Clean up Rust backend," "Set up linters, formatters" (with subtasks like "Set up oxlint"), and "Migrate to TailwindCSS v4."][header-screenshot]
+  ![A screenshot of caldav-tasks, a cross-platform CalDAV compatible task management app. The sidebar shows the "RustiCal (chloe)" account with the "Albums to listen to" calendar selected. The tasks are music albums that I plan on listening to, ranging from "Revengeseekerz by Jane Remover" and "Hearth Room by Frost Children" to "girl EDM by Ninajirachi" and "10,000 gecs by 100 gecs".][header-screenshot]
 </div>
 
 ## Disclaimer
@@ -40,7 +40,6 @@ You can download pre-built binaries of the application for each platform by clic
 <summary>Instructions for Nix / NixOS</summary>
 
 ### Flakes
-> [!IMPORTANT]  
 > Until the app is officially published to `nixpkgs`, you'll have to use a flake input for the time being.
 
 Add `caldav-tasks` as an input to your `flake.nix` file.
