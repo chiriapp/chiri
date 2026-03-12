@@ -24,7 +24,7 @@ You can download pre-built binaries of the application for each platform by clic
 
 <!-- download badges start -->
 [<img src="./.github/assets/download/windows_msi_x64.png" width="200">][release-windows-msi-x64]
-[<img src="./.github/assets/download/windows_exe_x64.png" width="200">][release-windows-exe-x64]
+[<img src="./.github/assets/download/windows_msi_arm.png" width="200">][release-windows-msi-arm]
 [<img src="./.github/assets/download/macos_dmg_applesilicon.png" width="200">][release-macos-dmg-applesilicon]
 [<img src="./.github/assets/download/macos_dmg_intel.png" width="200">][release-macos-dmg-intel]
 [<img src="./.github/assets/download/linux_deb_x86_64.png" width="200">][release-linux-deb-x86_64]
@@ -181,7 +181,7 @@ caldav-tasks is licensed under the [<span aria-hidden="true">&nearr;</span> zlib
 [header-screenshot]: ./.github/assets/screenshot.png
 
 [release-windows-msi-x64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.0/caldav-tasks_0.7.0_x64_en-US.msi
-[release-windows-exe-x64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.0/caldav-tasks_0.7.0_x64-setup.exe
+[release-windows-msi-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.0/caldav-tasks_0.7.0_arm64-en_US.msi
 [release-macos-dmg-applesilicon]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.0/caldav-tasks_0.7.0_aarch64.dmg
 [release-macos-dmg-intel]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.0/caldav-tasks_0.7.0_x64.dmg
 [release-linux-deb-x86_64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.0/caldav-tasks_0.7.0_amd64.deb
