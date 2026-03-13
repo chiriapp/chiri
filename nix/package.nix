@@ -30,7 +30,7 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "caldav-tasks";
-  version = "0.7.0";
+  version = "0.7.1";
 
   # Currently unused now that we have package-bin.nix. Keeping it here anyway
   src =
@@ -47,14 +47,14 @@ rustPlatform.buildRustPackage (finalAttrs: {
       };
 
   # cargo dependencies hash - update when Cargo.lock changes
-  cargoHash = "sha256-OyJu7NAa64/UAsQ7qjksdqDz9jYpZTNXV09bdJDY3WQ=";
+  cargoHash = "sha256-tpCDVIhGNSs3ePzjvl25ojzRmCAmKKX7QvD+qzhsTdc=";
 
   # pnpm dependencies for the frontend
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_9;
     fetcherVersion = 3;
-    hash = "sha256-seJbcAueCAkfoJ8PZOWjuHal7d5jhTbHFe8jGZZvfLo="; # pnpmDeps
+    hash = "sha256-9gqU0KfD3kmFCcGwDxO5PSjhGZ9DYw5n2NQluAcdj3o="; # pnpmDeps
   };
 
   nativeBuildInputs = [
