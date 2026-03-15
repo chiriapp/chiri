@@ -2,10 +2,10 @@ import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Calendar from 'lucide-react/icons/calendar';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
-import FolderKanban from 'lucide-react/icons/folder-kanban';
 import Settings from 'lucide-react/icons/settings';
 import Sparkles from 'lucide-react/icons/sparkles';
 import User from 'lucide-react/icons/user';
+import AppIcon from '$components/Icon';
 
 export interface OnboardingStep {
   title: string;
@@ -19,11 +19,11 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     title: 'Welcome to Chiri',
     description:
       'A lightweight app that syncs with your CalDAV server. Keep your tasks organized across all your devices.',
-    icon: <FolderKanban className="w-12 h-12 text-primary-500" />,
+    icon: <AppIcon className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center gap-4 py-6">
         <div className="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-          <FolderKanban className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+          <AppIcon className="w-8 h-8 text-primary-600 dark:text-primary-400 shrink-0" />
         </div>
       </div>
     ),

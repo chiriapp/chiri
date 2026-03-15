@@ -5,7 +5,6 @@ import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Download from 'lucide-react/icons/download';
 import Edit2 from 'lucide-react/icons/edit-2';
-import FolderKanban from 'lucide-react/icons/folder-kanban';
 import Import from 'lucide-react/icons/import';
 import Inbox from 'lucide-react/icons/inbox';
 import MoreVertical from 'lucide-react/icons/more-vertical';
@@ -18,6 +17,7 @@ import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import User from 'lucide-react/icons/user';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import AppIcon from '$components/Icon';
 import { AccountModal } from '$components/modals/AccountModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
 import { CreateCalendarModal } from '$components/modals/CreateCalendarModal';
@@ -320,7 +320,7 @@ export const Sidebar = ({
               className={`flex items-center flex-1 px-2 transition-opacity duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0'}`}
             >
               <h1 className="text-lg font-semibold text-surface-900 dark:text-surface-100 flex items-center gap-2 flex-1 min-w-0">
-                <FolderKanban className="w-5 h-5 text-primary-600 dark:text-primary-400 shrink-0" />
+                <AppIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 shrink-0" />
                 <span className="truncate">Chiri</span>
               </h1>
               <Tooltip content="Collapse sidebar" position="bottom">
