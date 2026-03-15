@@ -213,7 +213,7 @@ caldav-tasks is licensed under the [<span aria-hidden="true">&nearr;</span> zlib
 [header-screenshot]: ./.github/assets/screenshot.png
 
 [release-windows-msi-x64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_x64_en-US.msi
-[release-windows-msi-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_arm64-en_US.msi
+[release-windows-msi-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_arm64_en_US.msi
 [release-macos-dmg-applesilicon]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_aarch64.dmg
 [release-macos-dmg-intel]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_x64.dmg
 [release-linux-deb-x86_64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_amd64.deb
