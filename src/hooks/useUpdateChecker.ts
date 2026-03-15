@@ -76,7 +76,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
           try {
             log.info('Fetching release notes from GitHub API...');
             const response = await fetch(
-              `https://api.github.com/repos/SapphoSys/caldav-tasks/releases/tags/app-v${update.version}`,
+              `https://api.github.com/repos/SapphoSys/chiri/releases/tags/app-v${update.version}`,
               { headers: { Accept: 'application/vnd.github.v3+json' } },
             );
             if (response.ok) {

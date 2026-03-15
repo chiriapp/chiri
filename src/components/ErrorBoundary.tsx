@@ -97,7 +97,7 @@ ${errorInfo?.componentStack || 'No component stack available'}
 **Additional context:**
 <!-- Any other relevant information -->`;
 
-      const issueUrl = `https://github.com/SapphoSys/caldav-tasks/issues/new?title=${encodeURIComponent(errorTitle)}&body=${encodeURIComponent(errorBody)}`;
+      const issueUrl = `https://github.com/SapphoSys/chiri/issues/new?title=${encodeURIComponent(errorTitle)}&body=${encodeURIComponent(errorBody)}`;
       await openUrl(issueUrl);
     } catch (err) {
       log.error('Failed to open issue report:', err);

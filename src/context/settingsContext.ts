@@ -86,7 +86,7 @@ interface SettingsActions {
 
 export type SettingsStore = SettingsState & SettingsActions;
 
-const STORAGE_KEY = 'caldav-tasks-settings';
+const STORAGE_KEY = 'chiri-settings';
 
 const defaultState: SettingsState = {
   theme: 'system',

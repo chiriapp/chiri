@@ -26,19 +26,19 @@ let
   # Map Nix system to release asset info
   platformInfo = {
     "x86_64-linux" = {
-      asset = "caldav-tasks_${version}_amd64.deb";
+      asset = "chiri_${version}_amd64.deb";
       hash = "sha256-qz3VVDYdKjpNervbpskhRlfH/jmJDh2YtrnhiIIvqto=";
     };
     "aarch64-linux" = {
-      asset = "caldav-tasks_${version}_arm64.deb";
+      asset = "chiri_${version}_arm64.deb";
       hash = "sha256-hUVIqLc4Ffxlr83Bak4V0LW1k2J8CyT7dt13vW7QOWI=";
     };
     "x86_64-darwin" = {
-      asset = "caldav-tasks_${version}_x64.dmg";
+      asset = "chiri_${version}_x64.dmg";
       hash = "sha256-Lfec/madBDbZwqme/awCggjcS7Q0zOQjgZezpN6et90=";
     };
     "aarch64-darwin" = {
-      asset = "caldav-tasks_${version}_aarch64.dmg";
+      asset = "chiri_${version}_aarch64.dmg";
       hash = "sha256-cBZ1MXW6QO3vncujmLbA63pGGYR4oI6DpshV76nKTNA=";
     };
   };
@@ -46,14 +46,14 @@ let
   info = platformInfo.${system} or (throw "Unsupported platform: ${system}");
 
   src = fetchurl {
-    url = "https://github.com/SapphoSys/caldav-tasks/releases/download/app-v${version}/${info.asset}";
+    url = "https://github.com/SapphoSys/chiri/releases/download/app-v${version}/${info.asset}";
     hash = info.hash;
   };
 in
 if stdenvNoCC.isDarwin then
   # macOS: extract from DMG
   stdenvNoCC.mkDerivation {
-    pname = "caldav-tasks-bin";
+    pname = "chiri-bin";
     inherit version src;
 
     nativeBuildInputs = [
@@ -67,21 +67,21 @@ if stdenvNoCC.isDarwin then
       runHook preInstall
 
       mkdir -p $out/Applications
-      cp -r "caldav-tasks.app" $out/Applications/
+      cp -r "Chiri.app" $out/Applications/
 
       # Create wrapper script in bin
       mkdir -p $out/bin
-      makeWrapper "$out/Applications/caldav-tasks.app/Contents/MacOS/caldav-tasks" "$out/bin/caldav-tasks"
+      makeWrapper "$out/Applications/Chiri.app/Contents/MacOS/chiri" "$out/bin/chiri"
 
       runHook postInstall
     '';
 
     meta = {
       description = "A cross-platform CalDAV task management app (pre-built binary)";
-      homepage = "https://github.com/SapphoSys/caldav-tasks";
+      homepage = "https://github.com/SapphoSys/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
-      mainProgram = "caldav-tasks";
+      mainProgram = "chiri";
       platforms = [
         "x86_64-darwin"
         "aarch64-darwin"
@@ -92,7 +92,7 @@ if stdenvNoCC.isDarwin then
 else
   # Linux: extract from .deb
   stdenvNoCC.mkDerivation {
-    pname = "caldav-tasks-bin";
+    pname = "chiri-bin";
     inherit version src;
 
     nativeBuildInputs = [
@@ -124,8 +124,8 @@ else
       cp -r usr/* $out/
 
       # Ensure the binary is in bin/
-      if [ -f "$out/bin/caldav-tasks" ]; then
-        chmod +x $out/bin/caldav-tasks
+      if [ -f "$out/bin/chiri" ]; then
+        chmod +x $out/bin/chiri
       fi
 
       # Copy desktop file and icons if present
@@ -138,17 +138,17 @@ else
 
     # Wrap to set required environment variables
     postFixup = ''
-      wrapProgram $out/bin/caldav-tasks \
+      wrapProgram $out/bin/chiri \
         --set GIO_EXTRA_MODULES "${glib-networking}/lib/gio/modules" \
         --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ libayatana-appindicator ]}"
     '';
 
     meta = {
       description = "A cross-platform CalDAV task management app (pre-built binary)";
-      homepage = "https://github.com/SapphoSys/caldav-tasks";
+      homepage = "https://github.com/SapphoSys/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
-      mainProgram = "caldav-tasks";
+      mainProgram = "chiri";
       platforms = [
         "x86_64-linux"
         "aarch64-linux"

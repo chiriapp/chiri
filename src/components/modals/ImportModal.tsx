@@ -144,7 +144,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
       const uidMap = new Map<string, string>();
       for (const task of parsedTasks) {
         if (task.uid) {
-          const newUid = `${generateUUID()}@caldav-tasks`;
+          const newUid = `${generateUUID()}@chiri`;
           uidMap.set(task.uid, newUid);
         }
       }
@@ -153,12 +153,12 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
       for (const partialTask of parsedTasks) {
         const newUid = partialTask.uid
           ? uidMap.get(partialTask.uid)
-          : `${generateUUID()}@caldav-tasks`;
+          : `${generateUUID()}@chiri`;
         const newParentUid = partialTask.parentUid ? uidMap.get(partialTask.parentUid) : undefined;
 
         const task: Task = {
           id: generateUUID(),
-          uid: newUid || `${generateUUID()}@caldav-tasks`,
+          uid: newUid || `${generateUUID()}@chiri`,
           title: partialTask.title || 'Untitled Task',
           description: partialTask.description || '',
           completed: partialTask.completed || false,

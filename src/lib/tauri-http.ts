@@ -33,7 +33,7 @@ export const tauriRequest = async (
 
   const requestHeaders: Record<string, string> = {
     Authorization: authHeader,
-    'User-Agent': 'caldav-tasks',
+    'User-Agent': 'Chiri',
     'Content-Type': 'application/xml; charset=utf-8',
     ...headers,
   };

@@ -1,10 +1,10 @@
 [package]
-name = "caldav-tasks"
+name = "chiri"
 version = "0.7.1"
 description = "A cross-platform CalDAV task management app. Currently in very early alpha!"
 authors = ["Sapphic Angels"]
 license = "zlib"
-repository = "https://github.com/SapphoSys/caldav-tasks.git"
+repository = "https://github.com/SapphoSys/chiri.git"
 edition = "2021"
 
 [build-dependencies]

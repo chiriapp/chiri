@@ -321,7 +321,7 @@ export const Sidebar = ({
             >
               <h1 className="text-lg font-semibold text-surface-900 dark:text-surface-100 flex items-center gap-2 flex-1 min-w-0">
                 <FolderKanban className="w-5 h-5 text-primary-600 dark:text-primary-400 shrink-0" />
-                <span className="truncate">caldav-tasks</span>
+                <span className="truncate">Chiri</span>
               </h1>
               <Tooltip content="Collapse sidebar" position="bottom">
                 <button
@@ -654,7 +654,7 @@ export const Sidebar = ({
                 <button
                   type="button"
                   onClick={() => {
-                    openUrl('https://github.com/SapphoSys/caldav-tasks/issues/new');
+                    openUrl('https://github.com/SapphoSys/chiri/issues/new');
                   }}
                   className="flex items-center gap-1 text-surface-500 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset rounded"
                 >

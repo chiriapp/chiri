@@ -12,7 +12,7 @@ const LOGGING_TARGET_IGNORE_LIST: [&str; 6] = ["tauri", "sqlx", "hyper", "h2", "
 ///
 /// Logging targets:
 /// - Stdout: Console output for development
-/// - LogDir: Persistent log files (caldav-tasks.log)
+/// - LogDir: Persistent log files (chiri.log)
 /// - Webview: Browser console for frontend debugging
 ///
 /// Log levels:
@@ -23,7 +23,7 @@ pub fn build_logging_plugin() -> tauri_plugin_log::Builder {
         .targets([
             Target::new(TargetKind::Stdout),
             Target::new(TargetKind::LogDir {
-                file_name: Some("caldav-tasks".to_string()),
+                file_name: Some("chiri".to_string()),
             }),
             Target::new(TargetKind::Webview),
         ])

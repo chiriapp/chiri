@@ -1,7 +1,7 @@
 // prevent flash of light mode - runs before page render
 (() => {
   try {
-    const stored = localStorage.getItem('caldav-tasks-settings');
+    const stored = localStorage.getItem('chiri-settings');
     let effectiveTheme = 'system';
 
     if (stored) {

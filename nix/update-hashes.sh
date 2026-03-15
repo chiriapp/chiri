@@ -4,7 +4,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-echo "==> Updating Nix hashes for caldav-tasks"
+echo "==> Updating Nix hashes for Chiri"
 echo ""
 
 PACKAGE_FILE="nix/package.nix"

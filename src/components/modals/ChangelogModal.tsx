@@ -88,7 +88,7 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
           <button
             type="button"
             onClick={() => {
-              openUrl(`https://github.com/SapphoSys/caldav-tasks/releases/tag/app-v${version}`);
+              openUrl(`https://github.com/SapphoSys/chiri/releases/tag/app-v${version}`);
             }}
             className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >

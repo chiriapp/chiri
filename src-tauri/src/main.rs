@@ -54,7 +54,7 @@ fn main() {
         .plugin(tauri_plugin_notification::init())
         .plugin(
             Builder::default()
-                .add_migrations("sqlite:caldav-tasks.db", db_migrations)
+                .add_migrations("sqlite:chiri.db", db_migrations)
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![

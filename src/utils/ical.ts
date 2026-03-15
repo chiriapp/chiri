@@ -564,7 +564,7 @@ const generateVCalendar = (vtodos: string[]): string => {
   const lines: string[] = [];
   lines.push('BEGIN:VCALENDAR');
   lines.push('VERSION:2.0');
-  lines.push('PRODID:-//caldav-tasks//EN');
+  lines.push('PRODID:-//Chiri//EN');
 
   for (const vtodo of vtodos) {
     lines.push(vtodo);
@@ -657,7 +657,7 @@ export const vtodoToTask = (
  * Generate a unique iCalendar UID
  */
 export const generateICalUid = () => {
-  return `${generateUUID()}@caldav-tasks`;
+  return `${generateUUID()}@chiri`;
 };
 
 /**

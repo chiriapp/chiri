@@ -34,7 +34,7 @@ const log = loggers.database;
 let db: Database | null = null;
 
 // Database name
-const DB_NAME = 'sqlite:caldav-tasks.db';
+const DB_NAME = 'sqlite:chiri.db';
 
 // Pending deletion interface
 export interface PendingDeletion {

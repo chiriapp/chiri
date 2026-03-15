@@ -77,16 +77,16 @@ jobs:
           echo "Fetching hashes for pre-built release assets..."
           echo ""
 
-          X64_LINUX_HASH=$(get_hash "${BASE_URL}/caldav-tasks_${VERSION}_amd64.deb")
+          X64_LINUX_HASH=$(get_hash "${BASE_URL}/chiri_${VERSION}_amd64.deb")
           echo "  x86_64-linux: $X64_LINUX_HASH"
 
-          ARM64_LINUX_HASH=$(get_hash "${BASE_URL}/caldav-tasks_${VERSION}_arm64.deb")
+          ARM64_LINUX_HASH=$(get_hash "${BASE_URL}/chiri_${VERSION}_arm64.deb")
           echo "  aarch64-linux: $ARM64_LINUX_HASH"
 
-          X64_DARWIN_HASH=$(get_hash "${BASE_URL}/caldav-tasks_${VERSION}_x64.dmg")
+          X64_DARWIN_HASH=$(get_hash "${BASE_URL}/chiri_${VERSION}_x64.dmg")
           echo "  x86_64-darwin: $X64_DARWIN_HASH"
 
-          ARM64_DARWIN_HASH=$(get_hash "${BASE_URL}/caldav-tasks_${VERSION}_aarch64.dmg")
+          ARM64_DARWIN_HASH=$(get_hash "${BASE_URL}/chiri_${VERSION}_aarch64.dmg")
           echo "  aarch64-darwin: $ARM64_DARWIN_HASH"
 
           echo ""

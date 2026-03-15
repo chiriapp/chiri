@@ -62,7 +62,7 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
       method: 'POST',
       headers: {
         'OCS-APIRequest': 'true',
-        'User-Agent': 'caldav-tasks',
+        'User-Agent': 'Chiri',
       },
     });
 
@@ -146,7 +146,7 @@ const pollForCredentials = async (
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'caldav-tasks',
+          'User-Agent': 'Chiri',
         },
         body: `token=${encodeURIComponent(poll.token)}`,
       });
@@ -263,7 +263,7 @@ export const deleteAppPassword = async (
       method: 'DELETE',
       headers: {
         'OCS-APIRequest': 'true',
-        'User-Agent': 'caldav-tasks',
+        'User-Agent': 'Chiri',
         Authorization: `Basic ${btoa(`${username}:${appPassword}`)}`,
       },
     });

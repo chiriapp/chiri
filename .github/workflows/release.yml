@@ -105,7 +105,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: app-v${{ steps.get_version.outputs.version }}
-          release_name: caldav-tasks v${{ steps.get_version.outputs.version }}
+          release_name: Chiri v${{ steps.get_version.outputs.version }}
           body: ${{ steps.changelog.outputs.changelog }}
           draft: true
           prerelease: false
@@ -200,8 +200,8 @@ jobs:
 
           # Update all download links in README.md
           sed -i "s|app-v[0-9]*\.[0-9]*\.[0-9]*|app-v${VERSION}|g" README.md
-          sed -i "s|caldav-tasks_[0-9]*\.[0-9]*\.[0-9]*|caldav-tasks_${VERSION}|g" README.md
-          sed -i "s|caldav-tasks-[0-9]*\.[0-9]*\.[0-9]*|caldav-tasks-${VERSION}|g" README.md
+          sed -i "s|chiri_[0-9]*\.[0-9]*\.[0-9]*|chiri_${VERSION}|g" README.md
+          sed -i "s|chiri-[0-9]*\.[0-9]*\.[0-9]*|chiri-${VERSION}|g" README.md
 
       - name: Commit and push README changes
         run: |

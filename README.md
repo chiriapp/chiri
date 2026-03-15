@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>caldav-tasks</h1>
+  <h1>Chiri</h1>
 
   <p>🗄️ A (work in progress) cross-platform CalDAV compatible task management app.</p>
 
@@ -11,7 +11,7 @@
   &nbsp;[![GitHub License][header-repo-license-badge]][repo-license]
   <!-- header badges end -->
 
-  ![A screenshot of caldav-tasks, a cross-platform CalDAV compatible task management app. The sidebar shows the "RustiCal (chloe)" account with the "Albums to listen to" calendar selected. The tasks are music albums that I plan on listening to, ranging from "Revengeseekerz by Jane Remover" and "Hearth Room by Frost Children" to "girl EDM by Ninajirachi" and "10,000 gecs by 100 gecs".][header-screenshot]
+  ![A screenshot of Chiri, a cross-platform CalDAV compatible task management app. The sidebar shows the "RustiCal (chloe)" account with the "Albums to listen to" calendar selected. The tasks are music albums that I plan on listening to, ranging from "Revengeseekerz by Jane Remover" and "Hearth Room by Frost Children" to "girl EDM by Ninajirachi" and "10,000 gecs by 100 gecs".][header-screenshot]
 </div>
 
 ## Disclaimer
@@ -40,25 +40,25 @@ You can download pre-built binaries of the application for each platform by clic
 <summary>Instructions for Arch Linux</summary>
 
 ## Arch Linux
-caldav-tasks is available on the AUR (Arch User Repository) in two variants:
+Chiri is available on the AUR (Arch User Repository) in two variants:
 
 ### Building from source
 ```bash
-yay -S caldav-tasks # or `paru -S caldav-tasks`
+yay -S chiri # or `paru -S chiri`
 
 # Or manually
-git clone https://aur.archlinux.org/caldav-tasks.git
-cd caldav-tasks
+git clone https://aur.archlinux.org/chiri.git
+cd chiri
 makepkg -si
 ```
 
 ### Pre-built binary (faster installation)
 ```bash
-yay -S caldav-tasks-bin # or `paru -S caldav-tasks-bin`
+yay -S chiri-bin # or `paru -S chiri-bin`
 
 # Or manually
-git clone https://aur.archlinux.org/caldav-tasks-bin.git
-cd caldav-tasks-bin
+git clone https://aur.archlinux.org/chiri-bin.git
+cd chiri-bin
 makepkg -si
 ```
 </details>
@@ -67,18 +67,18 @@ makepkg -si
 <summary>Instructions for Nix / NixOS</summary>
 
 ## Nix / NixOS
-caldav-tasks is available for Nix, NixOS, and nix-darwin as a flake. A pre-built binary is also available.
+Chiri is available for Nix, NixOS, and nix-darwin as a flake. A pre-built binary is also available.
 
 ### Flake
 > Until the app is officially published to `nixpkgs`, you'll have to use a flake input for the time being.
 
-Add `caldav-tasks` as an input to your `flake.nix` file.
+Add `chiri` as an input to your `flake.nix` file.
 ```nix
 {
   inputs = {
     # ... other inputs ...
-    caldav-tasks = {
-      url = "github:SapphoSys/caldav-tasks";
+    chiri = {
+      url = "github:SapphoSys/chiri";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # ... other inputs ...
@@ -95,19 +95,19 @@ Add `caldav-tasks` as an input to your `flake.nix` file.
   {
     inputs = {
       nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-      caldav-tasks = {
-        url = "github:SapphoSys/caldav-tasks";
+      chiri = {
+        url = "github:SapphoSys/chiri";
         inputs.nixpkgs.follows = "nixpkgs";
       };
     };
-    outputs = { nixpkgs, caldav-tasks, ... }: {
+    outputs = { nixpkgs, chiri, ... }: {
       nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux"; # Or "aarch64-linux"
         modules = [
           {
             environment.systemPackages = [
-              caldav-tasks.packages.x86_64-linux.default
-              # Or "caldav-tasks.packages.x86_64-linux.bin" for a pre-built binary
+              chiri.packages.x86_64-linux.default
+              # Or "chiri.packages.x86_64-linux.bin" for a pre-built binary
             ];
           }
           # ... etc
@@ -125,8 +125,8 @@ Add `caldav-tasks` as an input to your `flake.nix` file.
   { pkgs, inputs, ... }:
   {
     home.packages = [
-      inputs.caldav-tasks.packages.${pkgs.system}.default
-      # Or "inputs.caldav-tasks.packages.${pkgs.system}.bin" for a pre-built binary
+      inputs.chiri.packages.${pkgs.system}.default
+      # Or "inputs.chiri.packages.${pkgs.system}.bin" for a pre-built binary
     ];
   }
   ```
@@ -144,19 +144,19 @@ Add `caldav-tasks` as an input to your `flake.nix` file.
         url = "github:LnL7/nix-darwin";
         inputs.nixpkgs.follows = "nixpkgs";
       };
-      caldav-tasks = {
-        url = "github:SapphoSys/caldav-tasks";
+      chiri = {
+        url = "github:SapphoSys/chiri";
         inputs.nixpkgs.follows = "nixpkgs";
       };
     };
-    outputs = { nixpkgs, darwin, caldav-tasks, ... }: {
+    outputs = { nixpkgs, darwin, chiri, ... }: {
       darwinConfigurations.your-macbook = darwin.lib.darwinSystem {
         system = "aarch64-darwin"; # Or "x86_64-darwin"
         modules = [
           {
             environment.systemPackages = [
-              caldav-tasks.packages.aarch64-darwin.default
-              # Or "caldav-tasks.packages.aarch64-darwin.bin" for a pre-built binary
+              chiri.packages.aarch64-darwin.default
+              # Or "chiri.packages.aarch64-darwin.bin" for a pre-built binary
             ];
           }
         ];
@@ -168,9 +168,9 @@ Add `caldav-tasks` as an input to your `flake.nix` file.
 </details>
 
 # Support
-If you found caldav-tasks useful, please consider donating! 
+If you found Chiri useful, please consider donating! 
 
-I work on caldav-tasks during my free time as a student, so every amount, however small, helps with rent and food costs. Thank you :)
+I work on Chiri during my free time as a student, so every amount, however small, helps with rent and food costs. Thank you :)
 
 <!-- donation badges start -->
 [<img src="./.github/assets/donate/ko-fi.png" width="264">][donate-kofi]
@@ -178,7 +178,7 @@ I work on caldav-tasks during my free time as a student, so every amount, howeve
 <!-- donation badges end -->
 
 # Compatibility
-Does the app work on other CalDAV servers or CalDAV-compatible clients that are not listed here? [Please let me know by filing an issue](https://github.com/SapphoSys/caldav-tasks/issues/new)!
+Does the app work on other CalDAV servers or CalDAV-compatible clients that are not listed here? [Please let me know by filing an issue](https://github.com/SapphoSys/chiri/issues/new)!
 
 ## Servers
 | Server              | Support |
@@ -198,29 +198,29 @@ Does the app work on other CalDAV servers or CalDAV-compatible clients that are 
 | jtx Board           | ✅      |
 
 # License
-caldav-tasks is licensed under the [<span aria-hidden="true">&nearr;</span> zlib/libpng][repo-license] license.
+Chiri is licensed under the [<span aria-hidden="true">&nearr;</span> zlib/libpng][repo-license] license.
 
 [donate-kofi]: https://ko-fi.com/solelychloe
 [donate-liberapay]: https://liberapay.com/chloe
 
 [header-donate-kofi-badge]: https://img.shields.io/badge/donate-kofi-f5c2e7?style=plastic&logo=kofi&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
 [header-donate-liberapay-badge]: https://img.shields.io/badge/donate-liberapay-f5c2e7?style=plastic&logo=liberapay&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
-[header-repo-license-badge]: https://img.shields.io/github/license/SapphoSys/caldav-tasks?style=plastic&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
-[header-repo-stars-badge]: https://img.shields.io/github/stars/SapphoSys/caldav-tasks?style=plastic&logo=github&logoColor=f5c2e7&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
-[header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/SapphoSys/caldav-tasks/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-license-badge]: https://img.shields.io/github/license/SapphoSys/chiri?style=plastic&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-stars-badge]: https://img.shields.io/github/stars/SapphoSys/chiri?style=plastic&logo=github&logoColor=f5c2e7&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/SapphoSys/chiri/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
 
-[header-repo-issues-link]: https://github.com/SapphoSys/caldav-tasks/issues
+[header-repo-issues-link]: https://github.com/SapphoSys/chiri/issues
 [header-screenshot]: ./.github/assets/screenshot.png
 
-[release-windows-msi-x64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_x64_en-US.msi
-[release-windows-msi-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_arm64-en_US.msi
-[release-macos-dmg-applesilicon]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_aarch64.dmg
-[release-macos-dmg-intel]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_x64.dmg
-[release-linux-deb-x86_64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_amd64.deb
-[release-linux-deb-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks_0.7.1_arm64.deb
-[release-linux-rpm-x86_64]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks-0.7.1-1.x86_64.rpm
-[release-linux-rpm-arm]: https://github.com/SapphoSys/caldav-tasks/releases/download/app-v0.7.1/caldav-tasks-0.7.1-1.aarch64.rpm
+[release-windows-msi-x64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri_0.7.1_x64_en-US.msi
+[release-windows-msi-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri_0.7.1_arm64-en_US.msi
+[release-macos-dmg-applesilicon]: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri_0.7.1_aarch64.dmg
+[release-macos-dmg-intel]: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri_0.7.1_x64.dmg
+[release-linux-deb-x86_64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri_0.7.1_amd64.deb
+[release-linux-deb-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri_0.7.1_arm64.deb
+[release-linux-rpm-x86_64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri-0.7.1-1.x86_64.rpm
+[release-linux-rpm-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri-0.7.1-1.aarch64.rpm
 
-[repo-license]: https://github.com/SapphoSys/caldav-tasks/blob/master/LICENSE
-[repo-releases]: https://github.com/SapphoSys/caldav-tasks/releases
-[repo-stars]: https://github.com/SapphoSys/caldav-tasks/stargazers
+[repo-license]: https://github.com/SapphoSys/chiri/blob/master/LICENSE
+[repo-releases]: https://github.com/SapphoSys/chiri/releases
+[repo-stars]: https://github.com/SapphoSys/chiri/stargazers

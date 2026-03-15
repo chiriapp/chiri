@@ -114,11 +114,11 @@ export const createMacMenu = async (options?: {
   const isSyncing = options?.isSyncing ?? false;
 
   const appSubmenu = await Submenu.new({
-    text: 'caldav-tasks',
+    text: 'Chiri',
     items: [
       await MenuItem.new({
         id: 'about',
-        text: 'About CalDAV Tasks',
+        text: 'About Chiri',
         action: () => {
           emit(MENU_EVENTS.ABOUT);
         },
@@ -139,7 +139,7 @@ export const createMacMenu = async (options?: {
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await PredefinedMenuItem.new({
-        text: 'Hide CalDAV Tasks',
+        text: 'Hide Chiri',
         item: 'Hide',
       }),
       await PredefinedMenuItem.new({
@@ -152,7 +152,7 @@ export const createMacMenu = async (options?: {
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await PredefinedMenuItem.new({
-        text: 'Quit CalDAV Tasks',
+        text: 'Quit Chiri',
         item: 'Quit',
       }),
     ],

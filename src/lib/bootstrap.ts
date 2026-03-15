@@ -91,7 +91,7 @@ export const deleteDatabase = async () => {
     log.warn('Deleting database file...');
 
     const baseDir = platform() === 'macos' ? BaseDirectory.AppLocalData : BaseDirectory.AppConfig;
-    await remove('caldav-tasks.db', { baseDir });
+    await remove('chiri.db', { baseDir });
     log.info('Database file deleted successfully');
 
     // Relaunch the app so migrations run on the fresh database

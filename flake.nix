@@ -1,5 +1,5 @@
 {
-  description = "A cross-platform CalDAV task management app. Currently in very early alpha!";
+  description = "Chiri - a cross-platform CalDAV task management app. Currently in very early alpha!";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -96,7 +96,7 @@
             ++ linuxDevDeps;
 
           shellHook = ''
-            echo "caldav-tasks dev environment"
+            echo "Chiri dev environment"
             echo ""
             echo "commands:"
             echo "  just install    - install dependencies"

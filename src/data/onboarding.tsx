@@ -16,7 +16,7 @@ export interface OnboardingStep {
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
-    title: 'Welcome to caldav-tasks',
+    title: 'Welcome to Chiri',
     description:
       'A lightweight app that syncs with your CalDAV server. Keep your tasks organized across all your devices.',
     icon: <FolderKanban className="w-12 h-12 text-primary-500" />,

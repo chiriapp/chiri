@@ -8,7 +8,7 @@ export const NotificationSettings = () => {
   const handleOpenSystemSettings = async () => {
     try {
       await openUrl(
-        'x-apple.systempreferences:com.apple.preference.notifications?id=moe.sapphic.caldav-tasks',
+        'x-apple.systempreferences:com.apple.preference.notifications?id=moe.sapphic.chiri',
       );
     } catch (error) {
       console.error('Failed to open system settings:', error);

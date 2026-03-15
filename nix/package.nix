@@ -29,7 +29,7 @@
 }:
 
 rustPlatform.buildRustPackage (finalAttrs: {
-  pname = "caldav-tasks";
+  pname = "chiri";
   version = "0.7.1";
 
   # Currently unused now that we have package-bin.nix. Keeping it here anyway
@@ -39,7 +39,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     else
       fetchFromGitHub {
         owner = "SapphoSys";
-        repo = "caldav-tasks";
+        repo = "chiri";
         tag = "app-v${finalAttrs.version}";
         # Update this hash when releasing a new version
         # This is automatically updated by GitHub Actions when a release is published
@@ -120,7 +120,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   # on macOS, create a wrapper script in $out/bin
   postInstall = lib.optionalString stdenv.hostPlatform.isDarwin ''
     mkdir -p $out/bin
-    makeWrapper "$out/Applications/caldav-tasks.app/Contents/MacOS/caldav-tasks" "$out/bin/caldav-tasks"
+    makeWrapper "$out/Applications/Chiri.app/Contents/MacOS/chiri" "$out/bin/chiri"
   '';
 
   # tauri apps typically don't have cargo tests
@@ -128,11 +128,11 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   meta = {
     description = "A cross-platform CalDAV task management app";
-    homepage = "https://github.com/SapphoSys/caldav-tasks";
-    changelog = "https://github.com/SapphoSys/caldav-tasks/releases/tag/v${finalAttrs.version}";
+    homepage = "https://github.com/SapphoSys/chiri";
+    changelog = "https://github.com/SapphoSys/chiri/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.zlib;
     maintainers = with lib.maintainers; [ SapphoSys ];
-    mainProgram = "caldav-tasks";
+    mainProgram = "chiri";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 })
