@@ -1,5 +1,5 @@
 [package]
-name = "chiri"
+name = "Chiri"
 version = "0.7.1"
 description = "A cross-platform CalDAV task management app. Currently in very early alpha!"
 authors = ["Sapphic Angels"]
