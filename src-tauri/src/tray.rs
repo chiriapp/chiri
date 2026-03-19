@@ -6,6 +6,8 @@ use tauri::{
     Emitter, Manager, Theme,
 };
 
+use log::{debug, error};
+
 // Runtime type alias - switches between Wry and Cef based on feature flag
 #[cfg(not(feature = "cef"))]
 type AppRuntime = tauri::Wry;
@@ -21,12 +23,90 @@ static SYNC_ITEM: LazyLock<Mutex<Option<MenuItem<AppRuntime>>>> =
 static TRAY_VISIBLE: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(true));
 static TRAY_ENABLED: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(true));
 
+/// Check if we're running on GNOME
+#[cfg(target_os = "linux")]
+pub fn is_gnome() -> bool {
+    // Check XDG_CURRENT_DESKTOP first, then XDG_SESSION_DESKTOP
+    std::env::var("XDG_CURRENT_DESKTOP")
+        .or_else(|_| std::env::var("XDG_SESSION_DESKTOP"))
+        .map(|desktop| desktop.to_lowercase().contains("gnome"))
+        .unwrap_or(false)
+}
+
+/// Check if we're running on Linux/GNOME for frontend
+#[tauri::command]
+pub async fn is_gnome_desktop() -> Result<bool, String> {
+    #[cfg(target_os = "linux")]
+    {
+        Ok(is_gnome())
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        Ok(false)
+    }
+}
+
 /// Get the current system theme
 fn get_current_theme(app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
-    if let Some(main_window) = app_handle.get_webview_window("main") {
-        main_window.theme().unwrap_or(Theme::Dark)
-    } else {
-        Theme::Dark
+    // On Linux, use gsettings to detect theme (more reliable than Tauri's window.theme())
+    #[cfg(target_os = "linux")]
+    {
+        // GNOME's top bar is ALWAYS dark, even in light theme
+        // So always return Dark theme to load the light icon
+        if is_gnome() {
+            debug!("[Tray] GNOME detected - top bar is always dark, using light icon");
+            return Theme::Dark;
+        }
+
+        debug!("[Tray] Linux detected - using gsettings for theme detection");
+
+        match std::process::Command::new("gsettings")
+            .args(["get", "org.gnome.desktop.interface", "color-scheme"])
+            .output()
+        {
+            Ok(output) => {
+                let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                debug!("[Tray] gsettings color-scheme result: {:?}", result);
+
+                // Returns: 'prefer-dark', 'prefer-light', or 'default'
+                // 'prefer-dark' = Dark theme (use light icon)
+                // 'prefer-light' or 'default' = Light theme (use dark icon)
+                if result.contains("prefer-dark") {
+                    debug!("[Tray] Detected dark theme via gsettings");
+                    return Theme::Dark;
+                } else if result.contains("prefer-light") || result.contains("default") {
+                    debug!("[Tray] Detected light theme via gsettings");
+                    return Theme::Light;
+                } else {
+                    debug!("[Tray] Unknown gsettings result, defaulting to Dark theme");
+                    return Theme::Dark;
+                }
+            }
+            Err(e) => {
+                debug!(
+                    "[Tray] Failed to run gsettings command: {}, defaulting to Dark theme",
+                    e
+                );
+                return Theme::Dark;
+            }
+        }
+    }
+
+    // On other platforms, use Tauri's theme detection
+    #[cfg(not(target_os = "linux"))]
+    {
+        if let Some(main_window) = app_handle.get_webview_window("main") {
+            let theme = main_window.theme().unwrap_or(Theme::Dark);
+            debug!(
+                "[Tray] Detected system theme via window.theme(): {:?}",
+                theme
+            );
+            theme
+        } else {
+            debug!("[Tray] No main window found, defaulting to Dark theme");
+            Theme::Dark
+        }
     }
 }
 
@@ -37,18 +117,30 @@ fn load_tray_icon(app_handle: &tauri::AppHandle<AppRuntime>) -> Result<Image<'st
     match theme {
         Theme::Light => {
             // Light menu bar needs dark icon to be visible
+            debug!("[Tray] Loading dark icon for light theme");
             let icon_bytes = include_bytes!("../icons/monochrome_dark.png");
-            Image::from_bytes(icon_bytes).map_err(|e| format!("Failed to load tray icon: {}", e))
+            Image::from_bytes(icon_bytes).map_err(|e| {
+                error!("[Tray] Failed to load dark icon: {}", e);
+                format!("Failed to load tray icon: {}", e)
+            })
         }
         Theme::Dark => {
             // Dark menu bar needs light icon to be visible
+            debug!("[Tray] Loading light icon for dark theme");
             let icon_bytes = include_bytes!("../icons/monochrome_light.png");
-            Image::from_bytes(icon_bytes).map_err(|e| format!("Failed to load tray icon: {}", e))
+            Image::from_bytes(icon_bytes).map_err(|e| {
+                error!("[Tray] Failed to load light icon: {}", e);
+                format!("Failed to load tray icon: {}", e)
+            })
         }
         _ => {
             // Default to light icon for dark theme
+            debug!("[Tray] Unknown theme, loading light icon as default");
             let icon_bytes = include_bytes!("../icons/monochrome_light.png");
-            Image::from_bytes(icon_bytes).map_err(|e| format!("Failed to load tray icon: {}", e))
+            Image::from_bytes(icon_bytes).map_err(|e| {
+                error!("[Tray] Failed to load default icon: {}", e);
+                format!("Failed to load tray icon: {}", e)
+            })
         }
     }
 }
@@ -64,12 +156,15 @@ pub async fn initialize_tray(
     app_handle: tauri::AppHandle<AppRuntime>,
     enabled: bool,
 ) -> Result<(), String> {
+    debug!("[Tray] initialize_tray called with enabled={}", enabled);
+
     // update the global state
     *TRAY_VISIBLE.lock().expect("Failed to lock TRAY_VISIBLE") = enabled;
     *TRAY_ENABLED.lock().expect("Failed to lock TRAY_ENABLED") = enabled;
 
     // if tray is disabled, don't create it at all
     if !enabled {
+        debug!("[Tray] Tray disabled, skipping initialization");
         return Ok(());
     }
 
@@ -117,7 +212,9 @@ pub async fn initialize_tray(
     .map_err(|e| e.to_string())?;
 
     // Load tray icon
+    debug!("[Tray] Loading tray icon based on system theme");
     let tray_icon = load_tray_icon(&app_handle)?;
+    debug!("[Tray] Tray icon loaded successfully");
 
     let mut tray_builder = TrayIconBuilder::with_id("main")
         .icon(tray_icon)
@@ -163,8 +260,10 @@ pub async fn initialize_tray(
             }
         })
         .build(&app_handle)
-        .map_err(|e| e.to_string())?;
-
+        .map_err(|e| {
+            error!("[Tray] Failed to build tray: {}", e);
+            e.to_string()
+        })?;
     Ok(())
 }
 
@@ -209,7 +308,10 @@ pub async fn set_tray_visible(
 ) -> Result<(), String> {
     let tray_id = TrayIconId::new("main");
     if let Some(tray) = app_handle.tray_by_id(&tray_id) {
-        tray.set_visible(visible).map_err(|e| e.to_string())?;
+        tray.set_visible(visible).map_err(|e| {
+            error!("[Tray] Failed to set visibility: {}", e);
+            e.to_string()
+        })?;
         *TRAY_VISIBLE.lock().expect("Failed to lock TRAY_VISIBLE") = visible;
         *TRAY_ENABLED.lock().expect("Failed to lock TRAY_ENABLED") = visible;
     }

@@ -4,8 +4,11 @@
 )]
 
 mod app_nap;
+mod data_migration;
 mod logging;
 mod migrations;
+mod notification_manager;
+mod notifications;
 mod plist_utils;
 mod tray;
 mod window_decorations;
@@ -24,7 +27,10 @@ fn main() {
 
     // Disable App Nap on macOS to ensure periodic sync and notifications work
     // when the window is hidden in tray mode
-    app_nap::disable_app_nap();
+    #[cfg(target_os = "macos")]
+    {
+        app_nap::disable_app_nap();
+    }
 
     let db_migrations = migrations::get_migrations();
 
@@ -63,13 +69,29 @@ fn main() {
             tray::set_tray_visible,
             tray::get_tray_enabled,
             tray::initialize_tray,
-            plist_utils::convert_plist_to_xml
+            tray::is_gnome_desktop,
+            plist_utils::convert_plist_to_xml,
+            notifications::check_notification_permission,
+            notifications::request_notification_permission,
+            notification_manager::send_notification_with_actions
         ])
         .setup(|_app| {
+            // Migrate data from old caldav-tasks app
+            data_migration::migrate_from_caldav_tasks(_app);
+
             // Configure titlebar BEFORE window is shown (must happen before realization)
             #[cfg(target_os = "linux")]
             if let Some(window) = _app.get_webview_window("main") {
                 window_decorations::configure_titlebar_for_de(&window);
+            }
+
+            // Initialize notification manager with actions
+            #[cfg(target_os = "macos")]
+            {
+                let bundle_id = _app.config().identifier.clone();
+                let notification_manager = notification_manager::NotificationManagerState::new(bundle_id);
+                notification_manager.register_categories_and_handler(_app.handle().clone());
+                _app.manage(notification_manager);
             }
 
             // tray will be initialized from frontend after reading settings

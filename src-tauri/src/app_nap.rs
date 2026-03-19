@@ -34,8 +34,3 @@ pub fn disable_app_nap() {
     println!("[AppNap] Activity assertion started (NSActivityUserInitiated)");
     println!("[AppNap] Periodic sync and notifications will continue when window is hidden");
 }
-
-#[cfg(not(target_os = "macos"))]
-pub fn disable_app_nap() {
-    // No-op on non-macOS platforms
-}

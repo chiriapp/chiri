@@ -1,3 +1,4 @@
+import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import ArrowLeft from 'lucide-react/icons/arrow-left';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import User from 'lucide-react/icons/user';
@@ -7,6 +8,7 @@ import { ONBOARDING_STEPS } from '$data/onboarding';
 import { SYNC_INTERVAL_OPTIONS } from '$data/settings';
 import { THEME_OPTIONS } from '$data/theme';
 import { useAccounts } from '$hooks/queries/useAccounts';
+import { usePlatform } from '$hooks/usePlatform';
 import { useSettingsStore } from '$hooks/useSettingsStore';
 import { ACCENT_COLORS } from '$utils/constants';
 
@@ -32,8 +34,18 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
     setAccentColor,
     theme,
     setTheme,
+    enableSystemTray,
+    setEnableSystemTray,
   } = useSettingsStore();
   const { data: accounts = [] } = useAccounts();
+  const { isGNOME } = usePlatform();
+
+  // Default tray to false on GNOME
+  useEffect(() => {
+    if (isGNOME && currentStep === 3) {
+      setEnableSystemTray(false);
+    }
+  }, [isGNOME, currentStep, setEnableSystemTray]);
 
   // Track initial account count and advance step when an account is added
   useEffect(() => {
@@ -200,6 +212,40 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                   className="w-5 h-5 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
                 />
               </label>
+
+              <div>
+                <label className="flex items-center justify-between rounded-lg bg-surface-50 dark:bg-surface-800 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-750 transition-colors">
+                  <span className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                    Enable system tray icon
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={enableSystemTray}
+                    onChange={(e) => setEnableSystemTray(e.target.checked)}
+                    className="w-5 h-5 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                  />
+                </label>
+
+                {isGNOME && (
+                  <div className="mt-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                    <div className="flex gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                      <div className="text-xs text-amber-800 dark:text-amber-200">
+                        <strong>GNOME Desktop Detected:</strong> System tray support requires the{' '}
+                        <a
+                          href="https://extensions.gnome.org/extension/615/appindicator-support/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-amber-900 dark:hover:text-amber-100"
+                        >
+                          AppIndicator and KStatusNotifierItem Support
+                        </a>{' '}
+                        extension. Without it, the tray icon will not appear.
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="rounded-lg bg-surface-50 dark:bg-surface-800">
                 <div className="block text-sm font-medium text-surface-900 dark:text-surface-100 mb-3">
