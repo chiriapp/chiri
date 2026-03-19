@@ -68,7 +68,7 @@ export const initializeApp = async () => {
     log.debug('Skipping app menu initialization (CEF runtime)');
   }
 
-  log.info('Application initialization complete');
+  log.info('Application initialization finished');
 };
 
 export const showWindow = async (delay: number = 200): Promise<void> => {
