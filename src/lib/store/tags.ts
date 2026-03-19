@@ -9,7 +9,7 @@ import type { Tag } from '$types/index';
 import { FALLBACK_ITEM_COLOR } from '$utils/constants';
 import { generateUUID } from '$utils/misc';
 
-const log = loggers.taskData;
+const log = loggers.dataStore;
 
 export const getAllTags = () => {
   return loadDataStore().tags;

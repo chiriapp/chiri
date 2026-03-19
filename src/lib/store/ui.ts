@@ -8,7 +8,7 @@ import { loadDataStore, saveDataStore } from '$lib/store';
 import type { UIState } from '$lib/store/types';
 import type { SortConfig } from '$types/index';
 
-const log = loggers.taskData;
+const log = loggers.dataStore;
 
 export const getUIState = (): UIState => {
   return loadDataStore().ui;

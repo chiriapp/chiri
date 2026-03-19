@@ -7,7 +7,7 @@ import { loggers } from '$lib/logger';
 import type { DataChangeListener, DataStore, UIState } from '$lib/store/types';
 import { DEFAULT_SORT_CONFIG } from '$utils/constants';
 
-const log = loggers.taskData;
+const log = loggers.dataStore;
 
 // Default UI state
 export const defaultUIState: UIState = {

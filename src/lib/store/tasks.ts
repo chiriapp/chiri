@@ -10,7 +10,7 @@ import type { Task } from '$types/index';
 import { toAppleEpoch } from '$utils/ical';
 import { generateUUID } from '$utils/misc';
 
-const log = loggers.taskData;
+const log = loggers.dataStore;
 
 // Task getters
 export const getAllTasks = () => {

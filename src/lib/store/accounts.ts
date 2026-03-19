@@ -9,7 +9,7 @@ import { loadDataStore, saveDataStore } from '$lib/store';
 import type { Account } from '$types/index';
 import { generateUUID } from '$utils/misc';
 
-const log = loggers.taskData;
+const log = loggers.dataStore;
 
 // Account operations
 export const getAllAccounts = () => {

@@ -8,7 +8,7 @@ import { loadDataStore, saveDataStore } from '$lib/store';
 import type { Calendar, Task } from '$types/index';
 import { generateUUID } from '$utils/misc';
 
-const log = loggers.taskData;
+const log = loggers.dataStore;
 
 export const addCalendar = (accountId: string, calendarData: Partial<Calendar>) => {
   const data = loadDataStore();

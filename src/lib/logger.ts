@@ -222,7 +222,7 @@ class Logger {
  * Create a logger for a specific category
  *
  * @example
- * const log = createLogger('TaskData', '#10b981');
+ * const log = createLogger('DataStore', '#10b981');
  * log.info('Task created:', task.id);
  * log.error('Failed to save task:', error);
  */
@@ -237,6 +237,7 @@ export const loggers = {
   bootstrap: createLogger('Bootstrap', '#a855f7'),
   caldav: createLogger('CalDAV', '#f59e0b'),
   database: createLogger('Database', '#8b5cf6'),
+  dataStore: createLogger('DataStore', '#10b981'),
   deleteHandlers: createLogger('DeleteHandlers', '#ef4444'),
   errorBoundary: createLogger('ErrorBoundary', '#dc2626'),
   export: createLogger('Export', '#f59e0b'),
@@ -250,7 +251,6 @@ export const loggers = {
   platform: createLogger('Platform', '#f97316'),
   settings: createLogger('Settings', '#d946ef'),
   sync: createLogger('Sync', '#3b82f6'),
-  taskData: createLogger('TaskData', '#10b981'),
   taskList: createLogger('TaskList', '#14b8a6'),
   toastManager: createLogger('ToastManager', '#ef4444'),
   ui: createLogger('UI', '#14b8a6'),

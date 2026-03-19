@@ -7,7 +7,7 @@ import * as db from '$lib/database';
 import { loggers } from '$lib/logger';
 import { loadDataStore, saveDataStore } from '$lib/store';
 
-const log = loggers.taskData;
+const log = loggers.dataStore;
 
 export const getPendingDeletions = () => {
   return loadDataStore().pendingDeletions;
