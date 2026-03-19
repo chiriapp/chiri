@@ -49,6 +49,7 @@ import { getTags } from '$lib/store/tags';
 import { countChildren, getChildTasks } from '$lib/store/tasks';
 import type { Priority, Task } from '$types/index';
 import { getContrastTextColor } from '$utils/color';
+import { formatTime } from '$utils/date';
 import { filterCalDavDescription } from '$utils/ical';
 import { hasOpenModalElements } from '$utils/misc';
 import { PRIORITIES } from '$utils/priority';
@@ -83,6 +84,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
   const [editReminderDate, setEditReminderDate] = useState<Date | undefined>(undefined);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showDueDatePicker, setShowDueDatePicker] = useState(false);
+  const { timeFormat } = useSettingsStore();
 
   // Debounced field updates
   const [pendingTitle, updatePendingTitle] = useDebouncedTaskUpdate(task.id, 'title', task.title);
@@ -169,7 +171,9 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
   }, []);
 
   // mark as panel so it yields to modal dialogs (closes on ESC when no input is focused)
-  useModalEscapeKey(() => setEditorOpenMutation.mutate(false), { isPanel: true });
+  useModalEscapeKey(() => setEditorOpenMutation.mutate(false), {
+    isPanel: true,
+  });
 
   const handleTitleChange = (value: string, cursorPos?: number | null) => {
     updatePendingTitle(value);
@@ -227,15 +231,24 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
   };
 
   const handleDueDateChange = (date: Date | undefined, allDay?: boolean) => {
-    updateTaskMutation.mutate({ id: task.id, updates: { dueDate: date, dueDateAllDay: allDay } });
+    updateTaskMutation.mutate({
+      id: task.id,
+      updates: { dueDate: date, dueDateAllDay: allDay },
+    });
   };
 
   const handleStartDateAllDayChange = (allDay: boolean) => {
-    updateTaskMutation.mutate({ id: task.id, updates: { startDateAllDay: allDay } });
+    updateTaskMutation.mutate({
+      id: task.id,
+      updates: { startDateAllDay: allDay },
+    });
   };
 
   const handleDueDateAllDayChange = (allDay: boolean) => {
-    updateTaskMutation.mutate({ id: task.id, updates: { dueDateAllDay: allDay } });
+    updateTaskMutation.mutate({
+      id: task.id,
+      updates: { dueDateAllDay: allDay },
+    });
   };
 
   const handleAddReminder = (date: Date) => {
@@ -442,7 +455,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                 {task.startDate
                   ? task.startDateAllDay
                     ? `${format(new Date(task.startDate), 'MMM d, yyyy')} (All day)`
-                    : format(new Date(task.startDate), 'MMM d, yyyy h:mm a')
+                    : `${format(new Date(task.startDate), 'MMM d, yyyy')} ${formatTime(new Date(task.startDate), timeFormat)}`
                   : 'Set start date...'}
               </span>
             </button>
@@ -474,7 +487,7 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                 {task.dueDate
                   ? task.dueDateAllDay
                     ? `${format(new Date(task.dueDate), 'MMM d, yyyy')} (All day)`
-                    : format(new Date(task.dueDate), 'MMM d, yyyy h:mm a')
+                    : `${format(new Date(task.dueDate), 'MMM d, yyyy')} ${formatTime(new Date(task.dueDate), timeFormat)}`
                   : 'Set due date...'}
               </span>
             </button>
@@ -590,7 +603,10 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
                   <button
                     type="button"
                     onClick={() =>
-                      removeTagFromTaskMutation.mutate({ taskId: task.id, tagId: tag.id })
+                      removeTagFromTaskMutation.mutate({
+                        taskId: task.id,
+                        tagId: tag.id,
+                      })
                     }
                     className="p-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   >
@@ -638,7 +654,8 @@ export const TaskEditor = ({ task }: TaskEditorProps) => {
               >
                 <BellRing className="w-4 h-4 text-surface-400 flex-shrink-0" />
                 <span className="flex-1 text-sm text-surface-700 dark:text-surface-300">
-                  {format(new Date(reminder.trigger), 'MMM d, yyyy h:mm a')}
+                  {format(new Date(reminder.trigger), 'MMM d, yyyy')}{' '}
+                  {formatTime(new Date(reminder.trigger), timeFormat)}
                 </span>
                 <button
                   type="button"

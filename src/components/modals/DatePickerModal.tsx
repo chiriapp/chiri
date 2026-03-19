@@ -29,6 +29,7 @@ import {
   setDateTime,
   updateTimeComponent,
 } from '$utils/calendar';
+import { DEFAULT_TIME } from '$utils/constants';
 
 interface DatePickerModalProps {
   isOpen: boolean;
@@ -59,7 +60,7 @@ export const DatePickerModal = ({
         minutes: value.getMinutes(),
       };
     }
-    return { hours: 12, minutes: 0 };
+    return DEFAULT_TIME;
   });
   const [localAllDay, setLocalAllDay] = useState(allDay);
 
