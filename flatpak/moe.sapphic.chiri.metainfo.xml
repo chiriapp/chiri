@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>moe.sapphic.Chiri</id>
+
+  <name>Chiri</name>
+  <summary>A cross-platform CalDAV task management app</summary>
+
+  <developer id="moe.sapphic">
+    <name>Sapphic Angels</name>
+  </developer>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Zlib</project_license>
+
+  <url type="homepage">https://github.com/SapphoSys/chiri</url>
+  <url type="bugtracker">https://github.com/SapphoSys/chiri/issues</url>
+  <url type="vcs-browser">https://github.com/SapphoSys/chiri</url>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+
+  <requires>
+    <internet>always</internet>
+  </requires>
+
+  <categories>
+    <category>Office</category>
+    <category>Calendar</category>
+    <category>ProjectManagement</category>
+  </categories>
+
+  <keywords>
+    <keyword>caldav</keyword>
+    <keyword>tasks</keyword>
+    <keyword>todo</keyword>
+    <keyword>calendar</keyword>
+    <keyword>productivity</keyword>
+    <keyword>chiri</keyword>
+  </keywords>
+
+  <description>
+    <p>
+      Chiri is a modern, cross-platform task management application with CalDAV synchronization support.
+      Organize your tasks, sync them with your favorite CalDAV servers, and stay productive across all your devices.
+    </p>
+    <p>
+      Features include task creation and management, CalDAV server synchronization, multiple calendar support,
+      drag-and-drop task organization, and a clean, intuitive interface.
+    </p>
+    <p>
+      Note: This application is currently in alpha. While functional, you may encounter bugs.
+      Please report any issues on the project's GitHub page.
+    </p>
+  </description>
+
+  <launchable type="desktop-id">moe.sapphic.Chiri.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main task management interface</caption>
+      <image>https://github.com/SapphoSys/chiri/raw/master/.github/assets/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="0.7.1" date="2025-03-13">
+      <description>
+        <p>Current alpha release with CalDAV sync support and task management features.</p>
+      </description>
+    </release>
+  </releases>
+
+  <branding>
+    <color type="primary" scheme_preference="light">#F5C2E7</color>
+    <color type="primary" scheme_preference="dark">#CBA6F7A</color>
+    <color type="primary" scheme_preference="dark">#3B82F6</color>
+  </branding>
+</component>

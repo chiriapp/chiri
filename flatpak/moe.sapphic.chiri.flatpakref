@@ -1,0 +1,14 @@
+[Flatpak Ref]
+Name=moe.sapphic.Chiri
+Branch=stable
+Title=Chiri
+Comment=A cross-platform CalDAV task management app
+# Update this URL once you have a repository hosted
+# Url=https://YOUR_REPO_URL/repo/
+Homepage=https://github.com/SapphoSys/chiri
+Icon=https://raw.githubusercontent.com/SapphoSys/chiri/main/src-tauri/icons/128x128.png
+RuntimeRepo=https://flathub.org/repo/flathub.flatpakrepo
+IsRuntime=false
+# To get the GPGKey, first create a GPG key, then:
+# base64 --wrap=0 < your-key.gpg
+# GPGKey=BASE64_ENCODED_GPG_KEY_HERE

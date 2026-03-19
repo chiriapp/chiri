@@ -1,0 +1,97 @@
+id: moe.sapphic.Chiri
+runtime: org.gnome.Platform
+runtime-version: '48'
+sdk: org.gnome.Sdk
+command: chiri
+
+finish-args:
+  # Display
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=ipc
+  - --device=dri
+
+  # Network (CalDAV sync)
+  - --share=network
+
+  # Notifications
+  - --talk-name=org.freedesktop.Notifications
+
+  # System tray icon
+  - --talk-name=org.kde.StatusNotifierWatcher
+
+modules:
+  # Tray icon support (includes libdbusmenu, libindicator, libappindicator)
+  - shared-modules/libappindicator/libappindicator-gtk3-12.10.json
+
+  - name: chiri
+    buildsystem: simple
+
+    sources:
+      # Metainfo file
+      - type: file
+        path: moe.sapphic.Chiri.metainfo.xml
+
+      # Desktop file
+      - type: file
+        path: moe.sapphic.Chiri.desktop
+
+      # x86_64 .deb package
+      - type: file
+        url: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri_0.7.1_amd64.deb
+        sha256: ab3dd554361d2a3a4d7abbdba6c9214657c7fe39890e1d98b6b9e188822faada
+        only-arches: [x86_64]
+        x-checker-data:
+          type: json
+          url: https://api.github.com/repos/SapphoSys/chiri/releases/latest
+          version-query: .tag_name | sub("^v"; "")
+          url-query: '"https://github.com/SapphoSys/chiri/releases/download/v" + $version + "/chiri_" + $version + "_amd64.deb"'
+
+      # ARM64 .deb package - LOCAL BUILD FOR TESTING
+      - type: file
+        path: chiri_0.7.1_arm64.deb
+        only-arches: [aarch64]
+
+      # Uncomment for production builds from GitHub:
+      # - type: file
+      #   url: https://github.com/SapphoSys/chiri/releases/download/app-v0.7.1/chiri_0.7.1_arm64.deb
+      #   sha256: 854548a8b73815fc65afcdc16a4e15d0b5b593627c0b24fb76dd77bd6ed03962
+      #   only-arches: [aarch64]
+      #   x-checker-data:
+      #     type: json
+      #     url: https://api.github.com/repos/SapphoSys/chiri/releases/latest
+      #     version-query: .tag_name | sub("^v"; "")
+      #     url-query: '"https://github.com/SapphoSys/chiri/releases/download/v" + $version + "/chiri_" + $version + "_arm64.deb"'
+
+    build-commands:
+      # Safety: exit on any error
+      - set -e
+
+      # Extract the .deb package
+      - mkdir deb-extract
+      - ar -x *.deb --output deb-extract
+      - tar -C deb-extract -xf deb-extract/data.tar.gz
+
+      # Install the binary
+      - install -Dm755 deb-extract/usr/bin/chiri /app/bin/chiri
+
+      # If there are bundled resources (uncomment if needed)
+      # - mkdir -p /app/lib/chiri
+      # - cp -r deb-extract/usr/lib/chiri/. /app/lib/chiri
+      # - find /app/lib/chiri -type f -exec chmod 644 {} \;
+
+      # Install icons with Flatpak naming (app-id based)
+      - install -Dm644 deb-extract/usr/share/icons/hicolor/32x32/apps/chiri.png
+        /app/share/icons/hicolor/32x32/apps/moe.sapphic.Chiri.png
+      - install -Dm644 deb-extract/usr/share/icons/hicolor/128x128/apps/chiri.png
+        /app/share/icons/hicolor/128x128/apps/moe.sapphic.Chiri.png
+      - install -Dm644 deb-extract/usr/share/icons/hicolor/256x256@2/apps/chiri.png
+        /app/share/icons/hicolor/256x256@2/apps/moe.sapphic.Chiri.png
+
+      # Install desktop file with icon reference updated
+      - install -Dm644 moe.sapphic.Chiri.desktop
+        /app/share/applications/moe.sapphic.Chiri.desktop
+
+      # Install metainfo for app stores
+      - install -Dm644 moe.sapphic.Chiri.metainfo.xml
+        /app/share/metainfo/moe.sapphic.Chiri.metainfo.xml
