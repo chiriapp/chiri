@@ -41,8 +41,9 @@ pub fn needs_gtk_decorations() -> bool {
 pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
     use gtk::prelude::GtkWindowExt;
 
+    let desktop = env::var("XDG_CURRENT_DESKTOP").unwrap_or_else(|_| "Unknown".to_string());
+
     if needs_gtk_decorations() {
-        let desktop = env::var("XDG_CURRENT_DESKTOP").unwrap_or_else(|_| "Unknown".to_string());
         log::info!(
             "Desktop '{}' detected - keeping GTK client-side decorations",
             desktop
@@ -51,7 +52,6 @@ pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
         return;
     }
 
-    let desktop = env::var("XDG_CURRENT_DESKTOP").unwrap_or_else(|_| "Unknown".to_string());
     log::info!(
         "Desktop '{}' detected - using native window decorations",
         desktop

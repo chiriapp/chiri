@@ -16,7 +16,8 @@
       "!src-tauri/target",
       "!src-tauri/gen",
       "!*.min.js",
-      "!pnpm-lock.yaml"
+      "!pnpm-lock.yaml",
+      "!flatpak"
     ]
   },
   "formatter": {
