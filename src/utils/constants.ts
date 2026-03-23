@@ -97,5 +97,10 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
 
 export const TASK_LIST_INDENT_SHIFT_SIZE = 28;
 
-export const MIN_SIDEBAR_WIDTH = 200;
-export const MAX_SIDEBAR_WIDTH = 400;
+export const MIN_SIDEBAR_WIDTH = 256;
+export const MAX_SIDEBAR_WIDTH = 600;
+export const DEFAULT_SIDEBAR_WIDTH = 300;
+
+export const MIN_EDITOR_WIDTH = 350;
+export const MAX_EDITOR_WIDTH = 600;
+export const DEFAULT_EDITOR_WIDTH = 400;

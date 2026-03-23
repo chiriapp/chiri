@@ -7,7 +7,7 @@ import {
   isTomorrow,
 } from 'date-fns';
 import { settingsStore } from '$context/settingsContext';
-import type { TimeFormat } from '$types/index';
+import type { DateFormat, TimeFormat } from '$types/index';
 
 /**
  * Standard date format strings for consistent formatting across the app
@@ -22,6 +22,50 @@ export const DATE_FORMATS = {
   time12: 'h:mm a',
   time24: 'HH:mm',
 } as const;
+
+/**
+ * Mapping from full date format to its month/year header equivalent
+ * (used in calendar picker navigation)
+ */
+const DATE_FORMAT_MONTH_YEAR: Record<DateFormat, string> = {
+  'MMM d, yyyy': 'MMMM yyyy',
+  'd MMM yyyy': 'MMMM yyyy',
+  'MM/dd/yyyy': 'MM/yyyy',
+  'dd/MM/yyyy': 'MM/yyyy',
+  'yyyy-MM-dd': 'yyyy-MM',
+};
+
+/**
+ * Mapping from full date format to its short (no-year) equivalent
+ */
+const DATE_FORMAT_SHORT: Record<DateFormat, string> = {
+  'MMM d, yyyy': 'MMM d',
+  'd MMM yyyy': 'd MMM',
+  'MM/dd/yyyy': 'MM/dd',
+  'dd/MM/yyyy': 'dd/MM',
+  'yyyy-MM-dd': 'MM-dd',
+};
+
+/**
+ * Format a date according to the user's date format preference.
+ * @param date - The date to format
+ * @param withYear - Whether to include the year in the output
+ * @param dateFormat - Override; defaults to the setting from the store
+ */
+export const formatDate = (date: Date, withYear: boolean, dateFormat?: DateFormat): string => {
+  const fmt = dateFormat ?? settingsStore.getState().dateFormat;
+  const pattern = withYear ? fmt : DATE_FORMAT_SHORT[fmt];
+  return format(date, pattern);
+};
+
+/**
+ * Format a month/year header for calendar pickers, respecting the user's date format preference.
+ * e.g. "March 2026" for MMM-style formats, "03/2026" for numeric, "2026-03" for ISO.
+ */
+export const formatMonthYear = (date: Date, dateFormat?: DateFormat): string => {
+  const fmt = dateFormat ?? settingsStore.getState().dateFormat;
+  return format(date, DATE_FORMAT_MONTH_YEAR[fmt]);
+};
 
 /**
  * Format time according to user's time format preference
@@ -106,7 +150,7 @@ export const formatDueDate = (
       : getColors('#64748b'); // slate for future
 
     return {
-      text: `${format(d, DATE_FORMATS.shortDate)}, ${time}`,
+      text: `${formatDate(d, false)}, ${time}`,
       className: isOverdue
         ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30'
         : 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
@@ -119,7 +163,7 @@ export const formatDueDate = (
     : getColors('#64748b'); // slate for future
 
   return {
-    text: `${format(d, DATE_FORMATS.fullDate)} ${time}`,
+    text: `${formatDate(d, true)} ${time}`,
     className: isOverdue
       ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30'
       : 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
@@ -178,14 +222,14 @@ export const formatStartDate = (
 
   if (isSameYear(d, now)) {
     return {
-      text: `${format(d, DATE_FORMATS.shortDate)}${timeStr}`,
+      text: `${formatDate(d, false)}${timeStr}`,
       className: 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
       ...colors,
     };
   }
 
   return {
-    text: `${format(d, DATE_FORMATS.fullDate)}${timeStr}`,
+    text: `${formatDate(d, true)}${timeStr}`,
     className: 'text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700',
     ...colors,
   };

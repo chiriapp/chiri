@@ -2,7 +2,18 @@
  * Settings data and configuration options
  */
 
-import type { ServerType, StartOfWeek } from '$types/index';
+import type { DateFormat, ServerType, StartOfWeek } from '$types/index';
+
+/**
+ * Date format options
+ */
+export const DATE_FORMAT_OPTIONS: Array<{ value: DateFormat; label: string; example: string }> = [
+  { value: 'MMM d, yyyy', label: 'Jan 15, 2025', example: 'Jan 15, 2025' },
+  { value: 'd MMM yyyy', label: '15 Jan 2025', example: '15 Jan 2025' },
+  { value: 'MM/dd/yyyy', label: '01/15/2025', example: '01/15/2025' },
+  { value: 'dd/MM/yyyy', label: '15/01/2025', example: '15/01/2025' },
+  { value: 'yyyy-MM-dd', label: '2025-01-15', example: '2025-01-15' },
+];
 
 /**
  * Days of week options for calendar start day

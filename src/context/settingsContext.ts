@@ -2,15 +2,25 @@ import { createContext } from 'react';
 import { loggers } from '$lib/logger';
 import type {
   AccentColor,
+  DateFormat,
+  DefaultDateOffset,
+  DefaultReminderOffset,
   KeyboardShortcut,
   Priority,
   StartOfWeek,
   SubtaskDeletionBehavior,
+  TaskStatus,
   Theme,
   TimeFormat,
 } from '$types/index';
 import { applyAccentColor, applyTheme } from '$utils/color';
-import { DEFAULT_COLOR, DEFAULT_DAY_OF_WEEK, DEFAULT_SHORTCUTS } from '$utils/constants';
+import {
+  DEFAULT_COLOR,
+  DEFAULT_DAY_OF_WEEK,
+  DEFAULT_EDITOR_WIDTH,
+  DEFAULT_SHORTCUTS,
+  DEFAULT_SIDEBAR_WIDTH,
+} from '$utils/constants';
 
 const log = loggers.settings;
 
@@ -22,6 +32,7 @@ interface SettingsState {
   syncOnStartup: boolean;
   syncOnReconnect: boolean;
   showCompletedByDefault: boolean;
+  confirmBeforeDeletion: boolean;
   confirmBeforeDelete: boolean;
   confirmBeforeDeleteCalendar: boolean;
   confirmBeforeDeleteAccount: boolean;
@@ -29,15 +40,25 @@ interface SettingsState {
   deleteSubtasksWithParent: SubtaskDeletionBehavior;
   startOfWeek: StartOfWeek;
   timeFormat: TimeFormat;
+  dateFormat: DateFormat;
   notifications: boolean;
+  notifyReminders: boolean;
+  notifyOverdue: boolean;
+  enableToasts: boolean;
   defaultCalendarId: string | null;
   keyboardShortcuts: KeyboardShortcut[];
   enableSystemTray: boolean;
   checkForUpdatesAutomatically: boolean;
   defaultPriority: Priority;
+  defaultStatus: TaskStatus;
+  defaultPercentComplete: number;
   defaultTags: string[];
+  defaultStartDate: DefaultDateOffset;
+  defaultDueDate: DefaultDateOffset;
+  defaultReminders: DefaultReminderOffset[];
   sidebarCollapsed: boolean;
   sidebarWidth: number;
+  taskEditorWidth: number;
   onboardingCompleted: boolean;
   expandedAccountIds: string[];
   defaultAccountsExpanded: boolean;
@@ -51,12 +72,14 @@ interface SettingsActions {
   setTheme: (theme: Theme) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   setSidebarWidth: (width: number) => void;
+  setTaskEditorWidth: (width: number) => void;
   setAccentColor: (color: AccentColor) => void;
   setAutoSync: (enabled: boolean) => void;
   setSyncInterval: (interval: number) => void;
   setSyncOnStartup: (enabled: boolean) => void;
   setSyncOnReconnect: (enabled: boolean) => void;
   setShowCompletedByDefault: (show: boolean) => void;
+  setConfirmBeforeDeletion: (confirm: boolean) => void;
   setConfirmBeforeDelete: (confirm: boolean) => void;
   setConfirmBeforeDeleteCalendar: (confirm: boolean) => void;
   setConfirmBeforeDeleteAccount: (confirm: boolean) => void;
@@ -64,14 +87,23 @@ interface SettingsActions {
   setDeleteSubtasksWithParent: (behavior: SubtaskDeletionBehavior) => void;
   setStartOfWeek: (day: StartOfWeek) => void;
   setTimeFormat: (format: TimeFormat) => void;
+  setDateFormat: (format: DateFormat) => void;
   setNotifications: (enabled: boolean) => void;
+  setNotifyReminders: (enabled: boolean) => void;
+  setNotifyOverdue: (enabled: boolean) => void;
+  setEnableToasts: (enabled: boolean) => void;
   setDefaultCalendarId: (calendarId: string | null) => void;
   setKeyboardShortcuts: (shortcuts: KeyboardShortcut[]) => void;
   updateShortcut: (id: string, updates: Partial<KeyboardShortcut>) => void;
   resetShortcuts: () => void;
   ensureLatestShortcuts: () => void;
   setDefaultPriority: (priority: Priority) => void;
+  setDefaultStatus: (status: TaskStatus) => void;
+  setDefaultPercentComplete: (pct: number) => void;
   setDefaultTags: (tagIds: string[]) => void;
+  setDefaultStartDate: (offset: DefaultDateOffset) => void;
+  setDefaultDueDate: (offset: DefaultDateOffset) => void;
+  setDefaultReminders: (reminders: DefaultReminderOffset[]) => void;
   toggleSidebarCollapsed: () => void;
   setOnboardingCompleted: (completed: boolean) => void;
   setExpandedAccountIds: (accountIds: string[]) => void;
@@ -85,6 +117,7 @@ interface SettingsActions {
   setCheckForUpdatesAutomatically: (enabled: boolean) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;
+  resetSettings: () => void;
 }
 
 export type SettingsStore = SettingsState & SettingsActions;
@@ -100,6 +133,7 @@ const defaultState: SettingsState = {
   syncOnStartup: true,
   syncOnReconnect: true,
   showCompletedByDefault: true,
+  confirmBeforeDeletion: true,
   confirmBeforeDelete: true,
   confirmBeforeDeleteCalendar: true,
   confirmBeforeDeleteAccount: true,
@@ -107,13 +141,23 @@ const defaultState: SettingsState = {
   deleteSubtasksWithParent: 'delete',
   startOfWeek: DEFAULT_DAY_OF_WEEK,
   timeFormat: '12',
+  dateFormat: 'MMM d, yyyy',
   notifications: true,
+  notifyReminders: true,
+  notifyOverdue: true,
+  enableToasts: true,
   defaultCalendarId: null,
   keyboardShortcuts: DEFAULT_SHORTCUTS,
   defaultPriority: 'none',
+  defaultStatus: 'needs-action',
+  defaultPercentComplete: 0,
   defaultTags: [],
+  defaultStartDate: 'none',
+  defaultDueDate: 'none',
+  defaultReminders: [],
   sidebarCollapsed: false,
-  sidebarWidth: 256,
+  sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
+  taskEditorWidth: DEFAULT_EDITOR_WIDTH,
   onboardingCompleted: false,
   expandedAccountIds: [],
   defaultAccountsExpanded: true,
@@ -242,6 +286,7 @@ export const settingsStore = {
   setTheme: (theme: Theme) => setState({ theme }),
   setSidebarCollapsed: (sidebarCollapsed: boolean) => setState({ sidebarCollapsed }),
   setSidebarWidth: (sidebarWidth: number) => setState({ sidebarWidth }),
+  setTaskEditorWidth: (taskEditorWidth: number) => setState({ taskEditorWidth }),
   toggleSidebarCollapsed: () => setState({ sidebarCollapsed: !state.sidebarCollapsed }),
   setAccentColor: (accentColor: AccentColor) => setState({ accentColor }),
   setAutoSync: (autoSync: boolean) => setState({ autoSync }),
@@ -250,6 +295,7 @@ export const settingsStore = {
   setSyncOnReconnect: (syncOnReconnect: boolean) => setState({ syncOnReconnect }),
   setShowCompletedByDefault: (showCompletedByDefault: boolean) =>
     setState({ showCompletedByDefault }),
+  setConfirmBeforeDeletion: (confirmBeforeDeletion: boolean) => setState({ confirmBeforeDeletion }),
   setConfirmBeforeDelete: (confirmBeforeDelete: boolean) => setState({ confirmBeforeDelete }),
   setConfirmBeforeDeleteCalendar: (confirmBeforeDeleteCalendar: boolean) =>
     setState({ confirmBeforeDeleteCalendar }),
@@ -261,7 +307,11 @@ export const settingsStore = {
     setState({ deleteSubtasksWithParent }),
   setStartOfWeek: (startOfWeek: StartOfWeek) => setState({ startOfWeek }),
   setTimeFormat: (timeFormat: TimeFormat) => setState({ timeFormat }),
+  setDateFormat: (dateFormat: DateFormat) => setState({ dateFormat }),
   setNotifications: (notifications: boolean) => setState({ notifications }),
+  setNotifyReminders: (notifyReminders: boolean) => setState({ notifyReminders }),
+  setNotifyOverdue: (notifyOverdue: boolean) => setState({ notifyOverdue }),
+  setEnableToasts: (enableToasts: boolean) => setState({ enableToasts }),
   setDefaultCalendarId: (defaultCalendarId: string | null) => setState({ defaultCalendarId }),
   setKeyboardShortcuts: (keyboardShortcuts: KeyboardShortcut[]) => setState({ keyboardShortcuts }),
   updateShortcut: (id: string, updates: Partial<KeyboardShortcut>) => {
@@ -290,7 +340,12 @@ export const settingsStore = {
     return false;
   },
   setDefaultPriority: (defaultPriority: Priority) => setState({ defaultPriority }),
+  setDefaultStatus: (defaultStatus: TaskStatus) => setState({ defaultStatus }),
+  setDefaultPercentComplete: (defaultPercentComplete: number) => setState({ defaultPercentComplete }),
   setDefaultTags: (defaultTags: string[]) => setState({ defaultTags }),
+  setDefaultStartDate: (defaultStartDate: DefaultDateOffset) => setState({ defaultStartDate }),
+  setDefaultDueDate: (defaultDueDate: DefaultDateOffset) => setState({ defaultDueDate }),
+  setDefaultReminders: (defaultReminders: DefaultReminderOffset[]) => setState({ defaultReminders }),
   setOnboardingCompleted: (onboardingCompleted: boolean) => setState({ onboardingCompleted }),
   setExpandedAccountIds: (expandedAccountIds: string[]) => setState({ expandedAccountIds }),
   toggleAccountExpanded: (accountId: string) => {
@@ -339,6 +394,7 @@ export const settingsStore = {
         syncOnStartup: data.syncOnStartup ?? defaultState.syncOnStartup,
         syncOnReconnect: data.syncOnReconnect ?? defaultState.syncOnReconnect,
         showCompletedByDefault: data.showCompletedByDefault ?? defaultState.showCompletedByDefault,
+        confirmBeforeDeletion: data.confirmBeforeDeletion ?? defaultState.confirmBeforeDeletion,
         confirmBeforeDelete: data.confirmBeforeDelete ?? defaultState.confirmBeforeDelete,
         confirmBeforeDeleteCalendar:
           data.confirmBeforeDeleteCalendar ?? defaultState.confirmBeforeDeleteCalendar,
@@ -349,15 +405,25 @@ export const settingsStore = {
           data.deleteSubtasksWithParent ?? defaultState.deleteSubtasksWithParent,
         startOfWeek: data.startOfWeek ?? defaultState.startOfWeek,
         timeFormat: data.timeFormat ?? defaultState.timeFormat,
+        dateFormat: data.dateFormat ?? defaultState.dateFormat,
         notifications: data.notifications ?? defaultState.notifications,
+        notifyReminders: data.notifyReminders ?? defaultState.notifyReminders,
+        notifyOverdue: data.notifyOverdue ?? defaultState.notifyOverdue,
+        enableToasts: data.enableToasts ?? defaultState.enableToasts,
         defaultCalendarId: data.defaultCalendarId ?? defaultState.defaultCalendarId,
         keyboardShortcuts: data.keyboardShortcuts
           ? mergeShortcuts(data.keyboardShortcuts, DEFAULT_SHORTCUTS)
           : defaultState.keyboardShortcuts,
         defaultPriority: data.defaultPriority ?? defaultState.defaultPriority,
+        defaultStatus: data.defaultStatus ?? defaultState.defaultStatus,
+        defaultPercentComplete: data.defaultPercentComplete ?? defaultState.defaultPercentComplete,
         defaultTags: data.defaultTags ?? defaultState.defaultTags,
+        defaultStartDate: data.defaultStartDate ?? defaultState.defaultStartDate,
+        defaultDueDate: data.defaultDueDate ?? defaultState.defaultDueDate,
+        defaultReminders: data.defaultReminders ?? defaultState.defaultReminders,
         sidebarCollapsed: data.sidebarCollapsed ?? defaultState.sidebarCollapsed,
         sidebarWidth: data.sidebarWidth ?? defaultState.sidebarWidth,
+        taskEditorWidth: data.taskEditorWidth ?? defaultState.taskEditorWidth,
         onboardingCompleted: data.onboardingCompleted ?? defaultState.onboardingCompleted,
         expandedAccountIds: data.expandedAccountIds ?? defaultState.expandedAccountIds,
         defaultAccountsExpanded:
@@ -377,6 +443,10 @@ export const settingsStore = {
       log.error('Failed to import settings:', e);
       return false;
     }
+  },
+
+  resetSettings: () => {
+    setState(defaultState);
   },
 };
 

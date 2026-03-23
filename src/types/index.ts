@@ -1,5 +1,29 @@
 export type Priority = 'high' | 'medium' | 'low' | 'none';
 
+export type TaskStatus = 'needs-action' | 'in-process' | 'completed' | 'cancelled';
+
+export type DefaultReminderOffset =
+  | 'at-due'
+  | '5min-before-due'
+  | '15min-before-due'
+  | '30min-before-due'
+  | '1hr-before-due'
+  | '2hr-before-due'
+  | '1day-before-due'
+  | '2days-before-due'
+  | '1week-before-due';
+
+export type DefaultDateOffset =
+  | 'none'
+  | 'today'
+  | 'tomorrow'
+  | '1week'
+  | '2weeks'
+  | 'due-date'
+  | 'due-time'
+  | '1day-before-due'
+  | '1week-before-due';
+
 export type SortMode =
   | 'manual' // uses x-apple-sort-order
   | 'due-date'
@@ -26,8 +50,10 @@ export interface Task {
   // core fields
   title: string;
   description: string;
-  completed: boolean;
+  status: TaskStatus;
+  completed: boolean; // derived: status === 'completed'
   completedAt?: Date;
+  percentComplete?: number; // 0-100, RFC 5545 PERCENT-COMPLETE
 
   // categorization
   tags?: string[]; // Array of tag IDs (maps to iCal CATEGORIES)
@@ -146,6 +172,8 @@ export interface TaskRow {
   description: string;
   completed: number;
   completed_at: string | null;
+  status: string | null;
+  percent_complete: number | null;
   tags: string | null;
   category_id: string | null;
   priority: string;
@@ -224,11 +252,30 @@ export interface ReminderRow {
   [key: string]: unknown;
 }
 
+export interface TaskHistoryEntry {
+  id: string;
+  taskUid: string;
+  changedAt: Date;
+  field: string;
+  oldValue: string | null;
+  newValue: string | null;
+}
+
+export interface TaskHistoryRow {
+  id: string;
+  task_uid: string;
+  changed_at: string;
+  field: string;
+  old_value: string | null;
+  new_value: string | null;
+}
+
 export type SubtaskDeletionBehavior = 'delete' | 'keep';
 export type Theme = 'light' | 'dark' | 'system';
 export type AccentColor = string;
 export type StartOfWeek = 'sunday' | 'monday';
 export type TimeFormat = '12' | '24';
+export type DateFormat = 'MMM d, yyyy' | 'd MMM yyyy' | 'MM/dd/yyyy' | 'dd/MM/yyyy' | 'yyyy-MM-dd';
 
 export interface KeyboardShortcut {
   id: string;

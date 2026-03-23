@@ -2,7 +2,6 @@ import packageJson from '../../package.json';
 
 export interface AppInfo {
   version: string;
-  name: string;
   description: string;
   author: string;
 }
@@ -15,7 +14,7 @@ export const getAppInfo = () => {
 
   return {
     version: pkg.version,
-    name: pkg.name,
+    name: 'Chiri',
     description: pkg.description,
     author: pkg.author,
   } as const;

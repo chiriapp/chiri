@@ -2,10 +2,14 @@ import { type ReactNode, useCallback, useSyncExternalStore } from 'react';
 import { SettingsContext, type SettingsStore, settingsStore } from '$context/settingsContext';
 import type {
   AccentColor,
+  DateFormat,
+  DefaultDateOffset,
+  DefaultReminderOffset,
   KeyboardShortcut,
   Priority,
   StartOfWeek,
   SubtaskDeletionBehavior,
+  TaskStatus,
   Theme,
   TimeFormat,
 } from '$types/index';
@@ -23,6 +27,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
   const setSidebarWidth = useCallback((width: number) => settingsStore.setSidebarWidth(width), []);
+  const setTaskEditorWidth = useCallback(
+    (width: number) => settingsStore.setTaskEditorWidth(width),
+    [],
+  );
   const toggleSidebarCollapsed = useCallback(() => settingsStore.toggleSidebarCollapsed(), []);
   const setAccentColor = useCallback(
     (color: AccentColor) => settingsStore.setAccentColor(color),
@@ -43,6 +51,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   );
   const setShowCompletedByDefault = useCallback(
     (show: boolean) => settingsStore.setShowCompletedByDefault(show),
+    [],
+  );
+  const setConfirmBeforeDeletion = useCallback(
+    (confirm: boolean) => settingsStore.setConfirmBeforeDeletion(confirm),
     [],
   );
   const setConfirmBeforeDelete = useCallback(
@@ -70,8 +82,20 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (format: TimeFormat) => settingsStore.setTimeFormat(format),
     [],
   );
+  const setDateFormat = useCallback(
+    (format: DateFormat) => settingsStore.setDateFormat(format),
+    [],
+  );
   const setNotifications = useCallback(
     (enabled: boolean) => settingsStore.setNotifications(enabled),
+    [],
+  );
+  const setNotifyReminders = useCallback(
+    (enabled: boolean) => settingsStore.setNotifyReminders(enabled),
+    [],
+  );
+  const setNotifyOverdue = useCallback(
+    (enabled: boolean) => settingsStore.setNotifyOverdue(enabled),
     [],
   );
   const setDefaultCalendarId = useCallback(
@@ -92,8 +116,28 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (priority: Priority) => settingsStore.setDefaultPriority(priority),
     [],
   );
+  const setDefaultStatus = useCallback(
+    (status: TaskStatus) => settingsStore.setDefaultStatus(status),
+    [],
+  );
+  const setDefaultPercentComplete = useCallback(
+    (pct: number) => settingsStore.setDefaultPercentComplete(pct),
+    [],
+  );
   const setDefaultTags = useCallback(
     (tagIds: string[]) => settingsStore.setDefaultTags(tagIds),
+    [],
+  );
+  const setDefaultStartDate = useCallback(
+    (offset: DefaultDateOffset) => settingsStore.setDefaultStartDate(offset),
+    [],
+  );
+  const setDefaultDueDate = useCallback(
+    (offset: DefaultDateOffset) => settingsStore.setDefaultDueDate(offset),
+    [],
+  );
+  const setDefaultReminders = useCallback(
+    (reminders: DefaultReminderOffset[]) => settingsStore.setDefaultReminders(reminders),
     [],
   );
   const setOnboardingCompleted = useCallback(
@@ -136,14 +180,20 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (enabled: boolean) => settingsStore.setCheckForUpdatesAutomatically(enabled),
     [],
   );
+  const setEnableToasts = useCallback(
+    (enabled: boolean) => settingsStore.setEnableToasts(enabled),
+    [],
+  );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
+  const resetSettings = useCallback(() => settingsStore.resetSettings(), []);
 
   const value: SettingsStore = {
     ...currentState,
     setTheme,
     setSidebarCollapsed,
     setSidebarWidth,
+    setTaskEditorWidth,
     toggleSidebarCollapsed,
     setAccentColor,
     setAutoSync,
@@ -151,6 +201,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSyncOnStartup,
     setSyncOnReconnect,
     setShowCompletedByDefault,
+    setConfirmBeforeDeletion,
     setConfirmBeforeDelete,
     setConfirmBeforeDeleteCalendar,
     setConfirmBeforeDeleteAccount,
@@ -158,14 +209,22 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setDeleteSubtasksWithParent,
     setStartOfWeek,
     setTimeFormat,
+    setDateFormat,
     setNotifications,
+    setNotifyReminders,
+    setNotifyOverdue,
     setDefaultCalendarId,
     setKeyboardShortcuts,
     updateShortcut,
     resetShortcuts,
     ensureLatestShortcuts,
     setDefaultPriority,
+    setDefaultStatus,
+    setDefaultPercentComplete,
     setDefaultTags,
+    setDefaultStartDate,
+    setDefaultDueDate,
+    setDefaultReminders,
     setOnboardingCompleted,
     setExpandedAccountIds,
     toggleAccountExpanded,
@@ -176,8 +235,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSystemTrayRestartNeeded,
     setSystemTrayAppliedValue,
     setCheckForUpdatesAutomatically,
+    setEnableToasts,
     exportSettings,
     importSettings,
+    resetSettings,
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
