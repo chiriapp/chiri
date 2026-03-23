@@ -71,6 +71,7 @@ fn main() {
             tray::initialize_tray,
             tray::is_gnome_desktop,
             plist_utils::convert_plist_to_xml,
+            plist_utils::read_file_bytes,
             notifications::check_notification_permission,
             notifications::request_notification_permission,
             notification_manager::send_notification_with_actions

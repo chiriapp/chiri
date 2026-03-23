@@ -2,6 +2,13 @@ use std::io::Cursor;
 use tauri::command;
 use der::{Decode, Encode};
 
+/// Read raw bytes from any file path — used for drag-dropped files on Linux/WebKitGTK
+/// where the frontend fs plugin is sandboxed to app directories only.
+#[command]
+pub fn read_file_bytes(path: String) -> Result<Vec<u8>, String> {
+    std::fs::read(&path).map_err(|e| format!("Failed to read file '{}': {}", path, e))
+}
+
 /// Convert a binary or signed plist to XML format
 /// Takes raw bytes and returns XML string if successful
 #[command]

@@ -1,6 +1,11 @@
 {
   "app": {
-    "enableGTKAppId": true
+    "enableGTKAppId": true,
+    "windows": [
+      {
+        "dragDropEnabled": true
+      }
+    ]
   },
   "bundle": {
     "targets": ["deb", "rpm"],
