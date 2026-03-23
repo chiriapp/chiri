@@ -26,8 +26,7 @@ const resolveReminderOffsets = (
     else if (offset === '1hr-before-due') trigger = subHours(base, 1);
     else if (offset === '2hr-before-due') trigger = subHours(base, 2);
     else if (offset === '1day-before-due') trigger = setHours(subDays(startOfDay(due.date), 1), 9);
-    else if (offset === '2days-before-due')
-      trigger = setHours(subDays(startOfDay(due.date), 2), 9);
+    else if (offset === '2days-before-due') trigger = setHours(subDays(startOfDay(due.date), 2), 9);
     else trigger = setHours(subDays(startOfDay(due.date), 7), 9); // '1week-before-due'
     return { id: generateUUID(), trigger };
   });
@@ -45,7 +44,8 @@ const resolveDateOffset = (
   if (dueDate !== undefined) {
     if (offset === 'due-date') return { date: startOfDay(dueDate), allDay: true };
     if (offset === 'due-time') return { date: dueDate, allDay: false };
-    if (offset === '1day-before-due') return { date: subDays(startOfDay(dueDate), 1), allDay: true };
+    if (offset === '1day-before-due')
+      return { date: subDays(startOfDay(dueDate), 1), allDay: true };
     if (offset === '1week-before-due')
       return { date: subDays(startOfDay(dueDate), 7), allDay: true };
   }
@@ -307,9 +307,12 @@ export const toggleTaskComplete = (id: string) => {
   const task = data.tasks.find((t) => t.id === id);
   if (!task) return;
 
-  const newStatus = task.status === 'completed' ? 'needs-action'
-    : task.status === 'cancelled' || task.status === 'in-process' ? 'needs-action'
-    : 'completed';
+  const newStatus =
+    task.status === 'completed'
+      ? 'needs-action'
+      : task.status === 'cancelled' || task.status === 'in-process'
+        ? 'needs-action'
+        : 'completed';
   const updates = {
     status: newStatus as Task['status'],
     completed: newStatus === 'completed',
@@ -333,8 +336,6 @@ export const toggleTaskCollapsed = (id: string) => {
 
   const updates = {
     isCollapsed: !task.isCollapsed,
-    modifiedAt: new Date(),
-    synced: false,
   };
 
   // Persist to SQLite
