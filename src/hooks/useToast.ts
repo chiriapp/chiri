@@ -1,4 +1,5 @@
 import { toast } from 'sonner';
+import { settingsStore } from '$context/settingsContext';
 import { loggers } from '$lib/logger';
 
 const log = loggers.toastManager;
@@ -30,6 +31,10 @@ class ToastManager {
     log.debug(
       `[${type.toUpperCase()}] Showing toast: "${title}" | "${message}" | groupKey: ${groupKey || 'none'}`,
     );
+
+    if (!settingsStore.getState().enableToasts) {
+      return;
+    }
 
     // If groupKey is provided, check if a toast is already active for this group
     if (groupKey) {

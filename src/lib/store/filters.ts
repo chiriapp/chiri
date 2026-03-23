@@ -30,8 +30,8 @@ export const getFilteredTasks = () => {
       }
     }
 
-    // Filter by completion status
-    if (!showCompletedTasks && task.completed) {
+    // Filter by completion status (completed and cancelled are both "done")
+    if (!showCompletedTasks && (task.status === 'completed' || task.status === 'cancelled')) {
       return false;
     }
 

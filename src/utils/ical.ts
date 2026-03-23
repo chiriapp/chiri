@@ -5,7 +5,8 @@
 
 import { loggers } from '$lib/logger';
 import { getTags } from '$lib/store/tags';
-import type { Priority, Reminder, Task } from '$types/index';
+import type { Priority, Reminder, Task, TaskStatus } from '$types/index';
+import { formatDate } from '$utils/date';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.iCal;
@@ -53,6 +54,25 @@ export const toAppleEpoch = (timestamp: number): number => {
 // Convert Apple epoch (seconds) to Unix timestamp (milliseconds)
 export const fromAppleEpoch = (appleSeconds: number): number => {
   return appleSeconds * 1000 + APPLE_EPOCH;
+};
+
+// Status mapping: iCalendar VTODO STATUS ↔ TaskStatus
+const icalStatusToTaskStatus = (icalStatus: string | undefined): TaskStatus => {
+  switch (icalStatus?.toUpperCase()) {
+    case 'COMPLETED': return 'completed';
+    case 'IN-PROCESS': return 'in-process';
+    case 'CANCELLED': return 'cancelled';
+    default: return 'needs-action';
+  }
+};
+
+const taskStatusToIcal = (status: TaskStatus): string => {
+  switch (status) {
+    case 'completed': return 'COMPLETED';
+    case 'in-process': return 'IN-PROCESS';
+    case 'cancelled': return 'CANCELLED';
+    default: return 'NEEDS-ACTION';
+  }
 };
 
 // Priority mapping: iCalendar uses 1-9 (1 = highest, 9 = lowest)
@@ -258,6 +278,7 @@ interface ParsedVTodo {
   summary?: string;
   description?: string;
   status?: string;
+  percentComplete?: number;
   priority?: number;
   categories?: string[];
   dtstart?: Date;
@@ -379,6 +400,13 @@ const parseVTodo = (vtodoContent: string): ParsedVTodo => {
       case 'STATUS':
         result.status = prop.value.toUpperCase();
         break;
+      case 'PERCENT-COMPLETE': {
+        const pct = parseInt(prop.value, 10);
+        if (!Number.isNaN(pct) && pct >= 0 && pct <= 100) {
+          result.percentComplete = pct;
+        }
+        break;
+      }
       case 'PRIORITY':
         result.priority = parseInt(prop.value, 10) || 0;
         break;
@@ -490,10 +518,14 @@ const generateVTodo = (task: Task): string => {
     lines.push(`DESCRIPTION:${escapeICalText(task.description)}`);
   }
 
-  lines.push(`STATUS:${task.completed ? 'COMPLETED' : 'NEEDS-ACTION'}`);
+  lines.push(`STATUS:${taskStatusToIcal(task.status ?? (task.completed ? 'completed' : 'needs-action'))}`);
 
-  if (task.completed && task.completedAt) {
+  if (task.status === 'completed' && task.completedAt) {
     lines.push(`COMPLETED:${formatICalDate(new Date(task.completedAt))}`);
+  }
+
+  if (task.percentComplete !== undefined && task.percentComplete !== null) {
+    lines.push(`PERCENT-COMPLETE:${task.percentComplete}`);
   }
 
   lines.push(`PRIORITY:${priorityToIcal[task.priority]}`);
@@ -619,6 +651,7 @@ export const vtodoToTask = (
       sortOrder = toAppleEpoch(createdDate.getTime());
     }
 
+    const taskStatus = icalStatusToTaskStatus(parsed.status);
     const task: Task = {
       id: generateUUID(),
       uid: parsed.uid ?? generateUUID(),
@@ -626,8 +659,10 @@ export const vtodoToTask = (
       href,
       title: parsed.summary ?? 'Untitled Task',
       description: filterCalDavDescription(parsed.description),
-      completed: parsed.status === 'COMPLETED',
+      status: taskStatus,
+      completed: taskStatus === 'completed',
       completedAt: parsed.completed,
+      percentComplete: parsed.percentComplete,
       priority: icalToPriority(parsed.priority ?? 0),
       categoryId: parsed.categories?.join(',') ?? undefined,
       startDate: parsed.dtstart,
@@ -697,7 +732,7 @@ export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0): string 
 
   for (const task of tasks) {
     const indent = '  '.repeat(level);
-    const checkbox = task.completed ? '[x]' : '[ ]';
+    const checkbox = task.status === 'completed' ? '[x]' : task.status === 'cancelled' ? '[-]' : '[ ]';
     let line = `${indent}${checkbox} ${task.title}`;
 
     // Add metadata if present
@@ -706,7 +741,7 @@ export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0): string 
       metadata.push(`Priority: ${task.priority}`);
     }
     if (task.dueDate) {
-      metadata.push(`Due: ${new Date(task.dueDate).toLocaleDateString()}`);
+      metadata.push(`Due: ${formatDate(new Date(task.dueDate), true)}`);
     }
     if (task.categoryId) {
       metadata.push(`Category: ${task.categoryId}`);
@@ -744,13 +779,13 @@ export const exportTasksAsCsv = (tasks: Task[]): string => {
   const rows = tasks.map((task) => [
     `"${task.title.replace(/"/g, '""')}"`,
     `"${task.description.replace(/"/g, '""')}"`,
-    task.completed ? 'Completed' : 'Pending',
+    task.status === 'completed' ? 'Completed' : task.status === 'cancelled' ? 'Cancelled' : task.status === 'in-process' ? 'In Process' : 'Needs Action',
     task.priority,
-    task.dueDate ? new Date(task.dueDate).toLocaleDateString() : '',
-    task.startDate ? new Date(task.startDate).toLocaleDateString() : '',
+    task.dueDate ? formatDate(new Date(task.dueDate), true) : '',
+    task.startDate ? formatDate(new Date(task.startDate), true) : '',
     task.categoryId ?? '',
-    new Date(task.createdAt).toLocaleDateString(),
-    new Date(task.modifiedAt).toLocaleDateString(),
+    formatDate(new Date(task.createdAt), true),
+    formatDate(new Date(task.modifiedAt), true),
   ]);
 
   return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
@@ -788,13 +823,16 @@ export const parseIcsFile = (icsContent: string): Partial<Task>[] => {
         sortOrder = toAppleEpoch(createdDate.getTime());
       }
 
+      const importedStatus = icalStatusToTaskStatus(parsed.status);
       tasks.push({
         id: generateUUID(),
         uid: parsed.uid ?? generateUUID(),
         title: parsed.summary ?? 'Untitled Task',
         description: filterCalDavDescription(parsed.description),
-        completed: parsed.status === 'COMPLETED',
+        status: importedStatus,
+        completed: importedStatus === 'completed',
         completedAt: parsed.completed,
+        percentComplete: parsed.percentComplete,
         priority: icalToPriority(parsed.priority ?? 0),
         categoryId: parsed.categories?.join(',') ?? undefined,
         startDate: parsed.dtstart,

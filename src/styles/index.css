@@ -25,6 +25,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Suppress all hover states while a drag is active (webkit doesn't respect overlay pointer-events) */
+html.is-dragging {
+  cursor: grabbing !important;
+}
+
+html.is-dragging * {
+  pointer-events: none !important;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

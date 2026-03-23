@@ -21,7 +21,10 @@ import type {
   Tag,
   TagRow,
   Task,
+  TaskHistoryEntry,
+  TaskHistoryRow,
   TaskRow,
+  TaskStatus,
   UIStateRow,
 } from '$types/index';
 import { DEFAULT_SORT_CONFIG, FALLBACK_ITEM_COLOR } from '$utils/constants';
@@ -119,6 +122,9 @@ const getDb = async (): Promise<Database> => {
 
 // Helper to convert database row to Task
 const rowToTask = (row: TaskRow): Task => {
+  // Derive status: prefer explicit status column, fall back to completed bit for old rows
+  const status =
+    (row.status as TaskStatus | null) ?? (row.completed === 1 ? 'completed' : 'needs-action');
   return {
     id: row.id,
     uid: row.uid,
@@ -126,8 +132,10 @@ const rowToTask = (row: TaskRow): Task => {
     href: row.href || undefined,
     title: row.title,
     description: row.description,
-    completed: row.completed === 1,
+    status,
+    completed: status === 'completed',
     completedAt: row.completed_at ? new Date(row.completed_at) : undefined,
+    percentComplete: row.percent_complete ?? undefined,
     tags: row.tags ? JSON.parse(row.tags) : undefined,
     categoryId: row.category_id || undefined,
     priority: row.priority as Priority,
@@ -310,6 +318,7 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
     uid: generateUUID(),
     title: taskData.title ?? 'New Task',
     description: taskData.description ?? '',
+    status: 'needs-action',
     completed: false,
     priority: taskData.priority ?? defaultPriority,
     sortOrder: maxSortOrder + 1,
@@ -329,8 +338,8 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
       tags, category_id, priority, start_date, start_date_all_day,
       due_date, due_date_all_day, created_at, modified_at, reminders,
       parent_uid, is_collapsed, sort_order, account_id,
-      calendar_id, synced, local_only, url
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)`,
+      calendar_id, synced, local_only, url, status, percent_complete
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
     [
       task.id,
       task.uid,
@@ -358,6 +367,8 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
       task.synced ? 1 : 0,
       task.localOnly ? 1 : 0,
       task.url || null,
+      task.status,
+      task.percentComplete ?? null,
     ],
   );
 
@@ -370,12 +381,19 @@ export const updateTask = async (id: string, updates: Partial<Task>): Promise<Ta
   const existing = await getTaskById(id);
   if (!existing) return undefined;
 
-  const updatedTask: Task = {
+  const merged: Task = {
     ...existing,
     ...updates,
     modifiedAt: updates.modifiedAt !== undefined ? updates.modifiedAt : new Date(),
     synced: updates.synced !== undefined ? updates.synced : false,
   };
+  // Keep status and completed in sync
+  if (updates.status !== undefined && updates.completed === undefined) {
+    merged.completed = updates.status === 'completed';
+  } else if (updates.completed !== undefined && updates.status === undefined) {
+    merged.status = updates.completed ? 'completed' : 'needs-action';
+  }
+  const updatedTask = merged;
 
   await database.execute(
     `UPDATE tasks SET
@@ -385,8 +403,8 @@ export const updateTask = async (id: string, updates: Partial<Task>): Promise<Ta
       due_date = $13, due_date_all_day = $14, modified_at = $15,
       reminders = $16, parent_uid = $17, is_collapsed = $18,
       sort_order = $19, account_id = $20, calendar_id = $21, synced = $22,
-      local_only = $23, url = $24
-     WHERE id = $25`,
+      local_only = $23, url = $24, status = $25, percent_complete = $26
+     WHERE id = $27`,
     [
       updatedTask.uid,
       updatedTask.etag || null,
@@ -414,6 +432,8 @@ export const updateTask = async (id: string, updates: Partial<Task>): Promise<Ta
       updatedTask.synced ? 1 : 0,
       updatedTask.localOnly ? 1 : 0,
       updatedTask.url || null,
+      updatedTask.status,
+      updatedTask.percentComplete ?? null,
       id,
     ],
   );
@@ -476,9 +496,17 @@ export const toggleTaskComplete = async (id: string) => {
   const task = await getTaskById(id);
   if (!task) return;
 
+  const newStatus: TaskStatus =
+    task.status === 'completed'
+      ? 'needs-action'
+      : task.status === 'cancelled' || task.status === 'in-process'
+        ? 'needs-action'
+        : 'completed';
   await updateTask(id, {
-    completed: !task.completed,
-    completedAt: !task.completed ? new Date() : undefined,
+    status: newStatus,
+    completed: newStatus === 'completed',
+    completedAt: newStatus === 'completed' ? new Date() : undefined,
+    percentComplete: newStatus === 'completed' ? 100 : 0,
   });
 };
 
@@ -900,6 +928,77 @@ export const setShowUnstartedTasks = async (show: boolean) => {
     show ? 1 : 0,
   ]);
   notifyListeners();
+};
+
+// task history operations
+
+const HISTORY_FIELDS = [
+  'title',
+  'description',
+  'status',
+  'percentComplete',
+  'priority',
+  'startDate',
+  'dueDate',
+  'tags',
+  'reminders',
+  'parentUid',
+  'url',
+  'calendarId',
+] as const;
+
+const serializeHistoryValue = (value: unknown): string | null => {
+  if (value === undefined || value === null) return null;
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return JSON.stringify(value);
+  return String(value);
+};
+
+export const logHistoryForTaskUpdate = async (
+  taskUid: string,
+  oldTask: Task,
+  updates: Partial<Task>,
+): Promise<void> => {
+  for (const field of HISTORY_FIELDS) {
+    if (!(field in updates)) continue;
+    // Skip percentComplete when status is also changing — status already communicates the intent
+    if (field === 'percentComplete' && 'status' in updates) continue;
+    const oldVal = serializeHistoryValue(oldTask[field]);
+    const newVal = serializeHistoryValue(updates[field]);
+    if (oldVal !== newVal) {
+      await logTaskChange(taskUid, field, oldVal, newVal);
+    }
+  }
+};
+
+export const logTaskChange = async (
+  taskUid: string,
+  field: string,
+  oldValue: string | null,
+  newValue: string | null,
+): Promise<void> => {
+  const database = await getDb();
+  await database.execute(
+    `INSERT INTO task_history (id, task_uid, changed_at, field, old_value, new_value)
+     VALUES ($1, $2, $3, $4, $5, $6)`,
+    [generateUUID(), taskUid, new Date().toISOString(), field, oldValue, newValue],
+  );
+};
+
+export const getTaskHistory = async (taskUid: string): Promise<TaskHistoryEntry[]> => {
+  const database = await getDb();
+  const rows = await database.select<TaskHistoryRow[]>(
+    'SELECT * FROM task_history WHERE task_uid = $1 ORDER BY changed_at DESC',
+    [taskUid],
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    taskUid: row.task_uid,
+    changedAt: new Date(row.changed_at),
+    field: row.field,
+    oldValue: row.old_value,
+    newValue: row.new_value,
+  }));
 };
 
 // snapshot

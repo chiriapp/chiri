@@ -60,7 +60,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
     const getFilteredChildTasks = (parentUid: string) => {
       const children = getChildTasks(parentUid);
       if (!showCompletedTasks) {
-        return children.filter((task) => !task.completed);
+        return children.filter((task) => task.status !== 'completed' && task.status !== 'cancelled');
       }
       return children;
     };

@@ -8,6 +8,7 @@ import { queryClient } from '$lib/queryClient';
 import { ConfirmDialogProvider } from '$providers/ConfirmDialogProvider';
 import { ConnectionProvider } from '$providers/ConnectionProvider';
 import { ModalStateProvider } from '$providers/ModalStateProvider';
+import { NotificationProvider } from '$providers/NotificationProvider';
 import { SettingsProvider } from '$providers/SettingsProvider';
 import { SyncProvider } from '$providers/SyncProvider';
 import { ToastProvider } from '$providers/ToastProvider';
@@ -23,16 +24,18 @@ const renderApp = () => {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <SettingsProvider>
-            <ConnectionProvider>
-              <SyncProvider>
-                <ModalStateProvider>
-                  <ConfirmDialogProvider>
-                    <ToastProvider />
-                    <App />
-                  </ConfirmDialogProvider>
-                </ModalStateProvider>
-              </SyncProvider>
-            </ConnectionProvider>
+            <NotificationProvider>
+              <ConnectionProvider>
+                <SyncProvider>
+                  <ModalStateProvider>
+                    <ConfirmDialogProvider>
+                      <ToastProvider />
+                      <App />
+                    </ConfirmDialogProvider>
+                  </ModalStateProvider>
+                </SyncProvider>
+              </ConnectionProvider>
+            </NotificationProvider>
           </SettingsProvider>
         </QueryClientProvider>
       </ErrorBoundary>

@@ -27,14 +27,9 @@ export const useModalEscapeKey = (
   const enabled = options?.enabled ?? true;
 
   // Keep onClose ref up to date without re-registering the handler
-  useEffect(() => {
-    onCloseRef.current = onClose;
-  }, [onClose]);
-
-  // Keep confirm dialog state ref up to date
-  useEffect(() => {
-    confirmDialogOpenRef.current = confirmDialogContext?.isOpen ?? false;
-  }, [confirmDialogContext?.isOpen]);
+  // Keep refs current without re-registering the listener
+  onCloseRef.current = onClose;
+  confirmDialogOpenRef.current = confirmDialogContext?.isOpen ?? false;
 
   useEffect(() => {
     // Don't register handler if disabled

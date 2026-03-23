@@ -17,17 +17,18 @@ export const useDebouncedTaskUpdate = <T>(
   const pendingValueRef = useRef(pendingValue);
   const initialValueRef = useRef(initialValue);
 
-  // update refs when values change
-  useEffect(() => {
-    pendingValueRef.current = pendingValue;
-    initialValueRef.current = initialValue;
-  }, [pendingValue, initialValue]);
+  // Keep refs current
+  pendingValueRef.current = pendingValue;
+  initialValueRef.current = initialValue;
 
-  // sync pending value when initial value changes (e.g., switching tasks)
-  // biome-ignore lint/correctness/useExhaustiveDependencies: only want to reset on taskId or initialValue change
-  useEffect(() => {
+  // Sync pending value when task or initial value changes (e.g., switching tasks)
+  const [prevTaskId, setPrevTaskId] = useState(taskId);
+  const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
+  if (taskId !== prevTaskId || initialValue !== prevInitialValue) {
+    setPrevTaskId(taskId);
+    setPrevInitialValue(initialValue);
     setPendingValue(initialValue);
-  }, [taskId, initialValue]);
+  }
 
   // update function that debounces the mutation
   const updateValue = (newValue: T) => {

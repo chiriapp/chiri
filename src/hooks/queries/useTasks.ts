@@ -4,6 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { logHistoryForTaskUpdate, logTaskChange } from '$lib/database';
 import { queryKeys } from '$lib/queryClient';
 import { subscribeToDataChanges } from '$lib/store';
 import { getFilteredTasks, getSortedTasks } from '$lib/store/filters';
@@ -34,6 +35,18 @@ import {
 } from '$lib/store/tasks';
 import type { SortConfig, Task } from '$types/index';
 import type { FlattenedTask } from '$utils/tree';
+
+/**
+ * Hook to get sorted children of a task, reactive to any task store changes.
+ * Uses a queryKey under queryKeys.tasks.all so it is invalidated alongside other task queries.
+ */
+export const useChildTasks = (parentUid: string) => {
+  return useQuery({
+    queryKey: [...queryKeys.tasks.all, 'children', parentUid] as const,
+    queryFn: () => getSortedTasks(getChildTasks(parentUid)),
+    staleTime: Infinity,
+  });
+};
 
 /**
  * Hook to get all tasks
@@ -128,27 +141,6 @@ export const useTasksByCalendar = (calendarId: string | null) => {
   });
 };
 
-/**
- * Hook to get child tasks
- */
-export const useChildTasks = (parentUid: string | undefined) => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return subscribeToDataChanges(() => {
-      if (parentUid) {
-        queryClient.invalidateQueries({ queryKey: ['childTasks', parentUid] });
-      }
-    });
-  }, [queryClient, parentUid]);
-
-  return useQuery({
-    queryKey: ['childTasks', parentUid || ''],
-    queryFn: () => (parentUid ? getChildTasks(parentUid) : []),
-    enabled: !!parentUid,
-    staleTime: Infinity,
-  });
-};
 
 /**
  * Hook to create a task
@@ -157,11 +149,16 @@ export const useCreateTask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (taskInput: Partial<Task>) => {
-      return Promise.resolve(createTask(taskInput));
+    mutationFn: async (taskInput: Partial<Task>) => {
+      const task = createTask(taskInput);
+      await logTaskChange(task.uid, 'created', null, task.title);
+      return task;
     },
-    onSuccess: () => {
+    onSuccess: (newTask) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      if (newTask?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', newTask.uid] });
+      }
     },
   });
 };
@@ -173,12 +170,20 @@ export const useUpdateTask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Task> }) => {
-      return Promise.resolve(updateTask(id, updates));
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Task> }) => {
+      const oldTask = getTaskById(id);
+      const result = updateTask(id, updates);
+      if (result && oldTask && updates.synced !== true) {
+        await logHistoryForTaskUpdate(result.uid, oldTask, updates);
+      }
+      return result;
     },
-    onSuccess: (_, { id }) => {
+    onSuccess: (updatedTask, { id }) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byId(id) });
+      if (updatedTask?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', updatedTask.uid] });
+      }
     },
   });
 };
@@ -207,12 +212,25 @@ export const useToggleTaskComplete = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => {
+    mutationFn: async (id: string) => {
+      const task = getTaskById(id);
+      if (!task) return task;
+      const newStatus =
+        task.status === 'completed' || task.status === 'cancelled' || task.status === 'in-process'
+          ? 'needs-action'
+          : 'completed';
       toggleTaskComplete(id);
-      return Promise.resolve();
+      await logHistoryForTaskUpdate(task.uid, task, {
+        status: newStatus,
+        percentComplete: newStatus === 'completed' ? 100 : 0,
+      });
+      return task;
     },
-    onSuccess: () => {
+    onSuccess: (task) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      if (task?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', task.uid] });
+      }
     },
   });
 };
@@ -282,10 +300,7 @@ export const useAddSubtask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ taskId, title }: { taskId: string; title: string }) => {
-      addSubtask(taskId, title);
-      return Promise.resolve();
-    },
+    mutationFn: ({ taskId, title }: { taskId: string; title: string }) => addSubtask(taskId, title),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
     },

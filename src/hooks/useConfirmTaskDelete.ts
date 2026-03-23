@@ -5,7 +5,7 @@ import { useSettingsStore } from '$hooks/useSettingsStore';
 import { pluralize } from '$utils/format';
 
 export const useConfirmTaskDelete = () => {
-  const { confirmBeforeDelete, deleteSubtasksWithParent } = useSettingsStore();
+  const { confirmBeforeDeletion, confirmBeforeDelete, deleteSubtasksWithParent } = useSettingsStore();
   const { data: tasks = [] } = useTasks();
   const deleteTaskMutation = useDeleteTask();
   const { confirm, close } = useConfirmDialog();
@@ -29,7 +29,7 @@ export const useConfirmTaskDelete = () => {
 
       // skip confirmation for untitled (newly created) tasks
       const isUntitledTask = !task.title || task.title.trim() === '';
-      if (isUntitledTask || !confirmBeforeDelete) {
+      if (isUntitledTask || !confirmBeforeDeletion || !confirmBeforeDelete) {
         deleteTaskMutation.mutate({ id: taskId, deleteChildren });
         close();
         return true;
@@ -60,7 +60,7 @@ export const useConfirmTaskDelete = () => {
       close();
       return true;
     },
-    [confirmBeforeDelete, deleteSubtasksWithParent, deleteTaskMutation, confirm, close, tasks],
+    [confirmBeforeDeletion, confirmBeforeDelete, deleteSubtasksWithParent, deleteTaskMutation, confirm, close, tasks],
   );
 
   return { confirmAndDelete };

@@ -2,13 +2,55 @@
  * Task operations - CRUD and manipulation
  */
 
+import { addDays, setHours, startOfDay, subDays, subHours, subMinutes } from 'date-fns';
 import { settingsStore } from '$context/settingsContext';
 import * as db from '$lib/database';
 import { loggers } from '$lib/logger';
 import { getIsInitialized, loadDataStore, saveDataStore } from '$lib/store';
-import type { Task } from '$types/index';
+import type { DefaultDateOffset, DefaultReminderOffset, Reminder, Task } from '$types/index';
 import { toAppleEpoch } from '$utils/ical';
 import { generateUUID } from '$utils/misc';
+
+const resolveReminderOffsets = (
+  offsets: DefaultReminderOffset[],
+  due: { date: Date; allDay: boolean },
+): Reminder[] => {
+  // Base time: 9am on the due date for all-day, or the exact due datetime otherwise
+  const base = due.allDay ? setHours(startOfDay(due.date), 9) : due.date;
+  return offsets.map((offset) => {
+    let trigger: Date;
+    if (offset === 'at-due') trigger = base;
+    else if (offset === '5min-before-due') trigger = subMinutes(base, 5);
+    else if (offset === '15min-before-due') trigger = subMinutes(base, 15);
+    else if (offset === '30min-before-due') trigger = subMinutes(base, 30);
+    else if (offset === '1hr-before-due') trigger = subHours(base, 1);
+    else if (offset === '2hr-before-due') trigger = subHours(base, 2);
+    else if (offset === '1day-before-due') trigger = setHours(subDays(startOfDay(due.date), 1), 9);
+    else if (offset === '2days-before-due')
+      trigger = setHours(subDays(startOfDay(due.date), 2), 9);
+    else trigger = setHours(subDays(startOfDay(due.date), 7), 9); // '1week-before-due'
+    return { id: generateUUID(), trigger };
+  });
+};
+
+const resolveDateOffset = (
+  offset: DefaultDateOffset,
+  dueDate?: Date,
+): { date: Date | undefined; allDay: boolean } => {
+  const today = startOfDay(new Date());
+  if (offset === 'today') return { date: today, allDay: true };
+  if (offset === 'tomorrow') return { date: addDays(today, 1), allDay: true };
+  if (offset === '1week') return { date: addDays(today, 7), allDay: true };
+  if (offset === '2weeks') return { date: addDays(today, 14), allDay: true };
+  if (dueDate !== undefined) {
+    if (offset === 'due-date') return { date: startOfDay(dueDate), allDay: true };
+    if (offset === 'due-time') return { date: dueDate, allDay: false };
+    if (offset === '1day-before-due') return { date: subDays(startOfDay(dueDate), 1), allDay: true };
+    if (offset === '1week-before-due')
+      return { date: subDays(startOfDay(dueDate), 7), allDay: true };
+  }
+  return { date: undefined, allDay: true };
+};
 
 const log = loggers.dataStore;
 
@@ -64,7 +106,16 @@ export const createTask = (taskData: Partial<Task>) => {
   const now = new Date();
 
   // Get default calendar and task defaults from settings
-  const { defaultCalendarId, defaultPriority, defaultTags } = settingsStore.getState();
+  const {
+    defaultCalendarId,
+    defaultPriority,
+    defaultStatus,
+    defaultPercentComplete,
+    defaultTags,
+    defaultStartDate,
+    defaultDueDate,
+    defaultReminders,
+  } = settingsStore.getState();
 
   // Determine calendar and account to use
   let calendarId = taskData.calendarId ?? data.ui.activeCalendarId;
@@ -113,12 +164,23 @@ export const createTask = (taskData: Partial<Task>) => {
       ? Math.max(...data.tasks.map((t) => t.sortOrder))
       : toAppleEpoch(now.getTime()) - 1;
 
+  const due =
+    taskData.dueDate !== undefined
+      ? { date: taskData.dueDate, allDay: taskData.dueDateAllDay ?? true }
+      : resolveDateOffset(defaultDueDate);
+  const start =
+    taskData.startDate !== undefined
+      ? { date: taskData.startDate, allDay: taskData.startDateAllDay ?? true }
+      : resolveDateOffset(defaultStartDate, due.date);
+
   const task: Task = {
     id: generateUUID(),
     uid: generateUUID(),
     title: taskData.title ?? 'New Task',
     description: taskData.description ?? '',
-    completed: false,
+    status: taskData.status ?? defaultStatus,
+    completed: (taskData.status ?? defaultStatus) === 'completed',
+    percentComplete: taskData.percentComplete ?? defaultPercentComplete,
     priority: taskData.priority ?? defaultPriority,
     sortOrder: maxSortOrder + 1,
     accountId: accountId ?? '',
@@ -127,9 +189,18 @@ export const createTask = (taskData: Partial<Task>) => {
     createdAt: now,
     modifiedAt: now,
     localOnly: isLocalOnly,
+    startDate: start.date,
+    startDateAllDay: start.date !== undefined ? start.allDay : undefined,
+    dueDate: due.date,
+    dueDateAllDay: due.date !== undefined ? due.allDay : undefined,
     ...taskData,
-    // Apply tags after spread to ensure activeTagId is included
+    // Apply tags and reminders after spread to ensure defaults are included
     tags,
+    reminders:
+      taskData.reminders ??
+      (due.date !== undefined && defaultReminders.length > 0
+        ? resolveReminderOffsets(defaultReminders, { date: due.date, allDay: due.allDay })
+        : undefined),
   } satisfies Task;
 
   saveDataStore({
@@ -236,9 +307,14 @@ export const toggleTaskComplete = (id: string) => {
   const task = data.tasks.find((t) => t.id === id);
   if (!task) return;
 
+  const newStatus = task.status === 'completed' ? 'needs-action'
+    : task.status === 'cancelled' || task.status === 'in-process' ? 'needs-action'
+    : 'completed';
   const updates = {
-    completed: !task.completed,
-    completedAt: !task.completed ? new Date() : undefined,
+    status: newStatus as Task['status'],
+    completed: newStatus === 'completed',
+    completedAt: newStatus === 'completed' ? new Date() : undefined,
+    percentComplete: newStatus === 'completed' ? 100 : 0,
     modifiedAt: new Date(),
     synced: false,
   };

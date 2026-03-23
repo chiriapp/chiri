@@ -171,7 +171,65 @@ This won't delete any data on your CalDAV servers, however local data will be lo
     }
   });
 
+  const resetPrefsCard = createActionCard(
+    'Reset Preferences',
+    'Reset all preferences to their defaults and reload the app. Your accounts and task data will not be affected.',
+    'Reset Preferences and Reload',
+    'border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/30',
+    'bg-surface-200 dark:bg-surface-700 text-surface-800 dark:text-surface-200 hover:bg-surface-300 dark:hover:bg-surface-600 focus:ring-primary-500',
+    () => {},
+  );
+
+  const resetPrefsBtn = resetPrefsCard.querySelector('button');
+  if (!resetPrefsBtn) throw new Error('Reset preferences button not found');
+  resetPrefsBtn.id = 'resetPrefsBtn';
+
+  const confirmPrefsSection = document.createElement('div');
+  confirmPrefsSection.id = 'resetPrefsConfirmSection';
+  confirmPrefsSection.className = 'hidden space-y-3';
+
+  const confirmPrefsText = document.createElement('p');
+  confirmPrefsText.className = 'text-sm text-red-600 dark:text-red-400 font-semibold';
+  confirmPrefsText.textContent =
+    'Are you sure? All preferences will be reset to defaults and the app will reload.';
+
+  const confirmPrefsButtons = document.createElement('div');
+  confirmPrefsButtons.className = 'flex gap-3';
+
+  const confirmPrefsBtn = document.createElement('button');
+  confirmPrefsBtn.className =
+    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
+  confirmPrefsBtn.textContent = 'Yes, Reset Preferences';
+
+  const cancelPrefsBtn = document.createElement('button');
+  cancelPrefsBtn.className =
+    'flex-1 rounded-md border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2';
+  cancelPrefsBtn.textContent = 'Cancel';
+
+  confirmPrefsButtons.appendChild(confirmPrefsBtn);
+  confirmPrefsButtons.appendChild(cancelPrefsBtn);
+  confirmPrefsSection.appendChild(confirmPrefsText);
+  confirmPrefsSection.appendChild(confirmPrefsButtons);
+
+  resetPrefsBtn.parentElement?.insertBefore(confirmPrefsSection, resetPrefsBtn);
+
+  resetPrefsBtn.addEventListener('click', () => {
+    resetPrefsBtn.classList.add('hidden');
+    confirmPrefsSection.classList.remove('hidden');
+  });
+
+  cancelPrefsBtn.addEventListener('click', () => {
+    confirmPrefsSection.classList.add('hidden');
+    resetPrefsBtn.classList.remove('hidden');
+  });
+
+  confirmPrefsBtn.addEventListener('click', () => {
+    localStorage.removeItem('chiri-settings');
+    window.location.reload();
+  });
+
   actionsContainer.appendChild(reportCard);
+  actionsContainer.appendChild(resetPrefsCard);
   actionsContainer.appendChild(resetCard);
 
   content.appendChild(header);

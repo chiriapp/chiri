@@ -24,33 +24,30 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
   const isOfflineRef = useRef(false); // Synchronous ref for immediate reads
   const checkIntervalRef = useRef<number | null>(null);
   const isCheckingRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const onOnlineRef = useRef(options.onOnline);
   const onOfflineRef = useRef(options.onOffline);
 
-  // Keep refs up to date
-  useEffect(() => {
-    onOnlineRef.current = options.onOnline;
-    onOfflineRef.current = options.onOffline;
-  }, [options.onOnline, options.onOffline]);
+  // Keep refs current without triggering re-renders
+  onOnlineRef.current = options.onOnline;
+  onOfflineRef.current = options.onOffline;
 
   const checkConnectivity = useCallback(async () => {
     // Prevent multiple simultaneous checks
     if (isCheckingRef.current) return;
     isCheckingRef.current = true;
 
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       // Try each endpoint until one succeeds
       for (const endpoint of CONNECTIVITY_ENDPOINTS) {
         try {
-          const response = await Promise.race([
-            tauriFetch(endpoint, {
-              method: 'GET',
-              connectTimeout: REQUEST_TIMEOUT,
-            }),
-            new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('timeout')), REQUEST_TIMEOUT),
-            ),
-          ]);
+          const response = await tauriFetch(endpoint, {
+            method: 'GET',
+            signal: AbortSignal.any([controller.signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),
+          });
 
           // Any successful response means we're online
           if (response && typeof response === 'object' && 'status' in response) {
@@ -68,6 +65,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
             }
           }
         } catch (_) {
+          if (controller.signal.aborted) return;
           // Try next endpoint
         }
       }
@@ -106,6 +104,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
     window.addEventListener('focus', handleFocus);
 
     return () => {
+      abortControllerRef.current?.abort();
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
       }

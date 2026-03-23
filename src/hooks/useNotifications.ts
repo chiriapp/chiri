@@ -64,7 +64,7 @@ interface UseNotificationsOptions {
 export const useNotifications = (options: UseNotificationsOptions = {}) => {
   const { onOpenTaskActions } = options;
   const { data: tasks = [] } = useTasks();
-  const { notifications } = useSettingsStore();
+  const { notifications, notifyReminders, notifyOverdue } = useSettingsStore();
   const updateTaskMutation = useUpdateTask();
   const notifiedTasksRef = useRef<Set<string>>(new Set());
   const notifiedRemindersRef = useRef<Set<string>>(new Set());
@@ -126,7 +126,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         }
 
         // Check reminders (VALARM)
-        if (task.reminders && task.reminders.length > 0) {
+        if (notifyReminders && task.reminders && task.reminders.length > 0) {
           for (const reminder of task.reminders) {
             const reminderKey = `reminder-${task.id}-${reminder.id}`;
 
@@ -152,7 +152,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         }
 
         // check due dates - notify when task becomes overdue
-        if (!task.dueDate) continue;
+        if (!notifyOverdue || !task.dueDate) continue;
 
         const dueDate = new Date(task.dueDate);
         const taskKey = `due-${task.id}-${dueDate.getTime()}`;
@@ -198,7 +198,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         // Complete the task
         updateTaskMutation.mutate({
           id: taskId,
-          updates: { completed: true },
+          updates: { status: 'completed' as const, completed: true, completedAt: new Date() },
         });
         log.info('Completing task:', taskId);
       } else if (action === 'snooze-15min' || action === 'snooze-1hr') {
@@ -219,5 +219,5 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       }
       unlistenPromise.then((unlisten) => unlisten());
     };
-  }, [tasks, notifications, updateTaskMutation, handleSnoozeTask, onOpenTaskActions]);
+  }, [tasks, notifications, notifyReminders, notifyOverdue, updateTaskMutation, handleSnoozeTask, onOpenTaskActions]);
 };

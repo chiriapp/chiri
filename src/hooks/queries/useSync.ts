@@ -322,6 +322,7 @@ export const useSyncQuery = () => {
               href: deletion.href,
               title: '',
               description: '',
+              status: 'needs-action',
               completed: false,
               priority: 'none',
               sortOrder: 0,

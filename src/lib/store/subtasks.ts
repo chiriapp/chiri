@@ -26,6 +26,7 @@ export const addSubtask = async (parentTaskId: string, title: string) => {
     parentUid: parentTask.uid,
     title,
     description: '',
+    status: 'needs-action',
     completed: false,
     priority: 'none',
     sortOrder: 0,
@@ -89,9 +90,18 @@ export const toggleSubtaskComplete = async (taskId: string, subtaskId: string) =
   if (!subtask) return;
 
   const now = new Date();
+
+  const newStatus =
+    subtask.status === 'completed'
+      ? 'needs-action'
+      : subtask.status === 'cancelled' || subtask.status === 'in-process'
+        ? 'needs-action'
+        : 'completed';
+
   await dbUpdateTask(subtaskId, {
-    completed: !subtask.completed,
-    completedAt: !subtask.completed ? now : undefined,
+    status: newStatus,
+    completed: newStatus === 'completed',
+    completedAt: newStatus === 'completed' ? now : undefined,
     modifiedAt: now,
     synced: false,
   });
