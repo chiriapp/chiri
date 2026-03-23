@@ -20,7 +20,6 @@ import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import { caldavService } from '$lib/caldav';
 import { loggers } from '$lib/logger';
-import { getAllAccounts } from '$lib/store/accounts';
 import { createTag, getAllTags } from '$lib/store/tags';
 import { createTask } from '$lib/store/tasks';
 import type { Account, Calendar, ServerType } from '$types/index';
@@ -271,19 +270,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
           throw new Error('Password is required');
         }
 
-        // Check for duplicate accounts (same server URL and username)
-        const existingAccounts = getAllAccounts();
-        const duplicate = existingAccounts.find(
-          (a) =>
-            a.serverUrl.replace(/\/$/, '') === serverUrl.replace(/\/$/, '') &&
-            a.username === username,
-        );
-        if (duplicate) {
-          throw new Error(
-            `An account with the same credentials already exists: ${duplicate.name}.`,
-          );
-        }
-
         let tempId: string;
         let calendars: Calendar[];
 
@@ -458,7 +444,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                       setServerUrl(getPredefinedServerUrl(newType) || '');
                     }
                   }}
-                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                  className="w-full text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
                 >
                   {SERVER_TYPE_GROUPS.map((group) => (
                     <optgroup key={group.label} label={group.label}>

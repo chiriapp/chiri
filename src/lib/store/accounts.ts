@@ -23,6 +23,18 @@ export const getAccountById = (id: string) => {
 export const createAccount = (accountData: Partial<Account>) => {
   const data = loadDataStore();
 
+  // Check for duplicate accounts (same server URL and username)
+  const serverUrl = accountData.serverUrl ?? '';
+  const username = accountData.username ?? '';
+  const duplicate = data.accounts.find(
+    (a) =>
+      a.serverUrl.replace(/\/$/, '') === serverUrl.replace(/\/$/, '') &&
+      a.username === username,
+  );
+  if (duplicate) {
+    throw new Error(`An account with the same credentials already exists: ${duplicate.name}.`);
+  }
+
   const account: Account = {
     id: accountData.id ?? generateUUID(),
     name: accountData.name ?? 'New Account',
