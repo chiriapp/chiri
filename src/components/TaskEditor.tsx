@@ -938,7 +938,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
         <div>
           <div
             id="subtasks-label"
-            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-3"
+            className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
           >
             <CheckCircle2 className="w-4 h-4" />
             Subtasks
@@ -951,11 +951,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
 
           {/* biome-ignore lint/a11y/useSemanticElements: fieldset would change semantic structure; div with role="group" is appropriate here */}
           <div
-            className={`rounded-lg border overflow-hidden ${
-              childTasks.length === 0 && !showAddSubtask
-                ? 'border-dashed border-surface-200 dark:border-surface-700'
-                : 'border-surface-200 dark:border-surface-700'
-            }`}
+            className="rounded-lg border overflow-hidden border-surface-200 dark:border-surface-700"
             role="group"
             aria-labelledby="subtasks-label"
           >
