@@ -8,7 +8,6 @@ import {
 } from '@dnd-kit/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useReorderTasks } from '$hooks/queries/useTasks';
-import { useDragClass } from '$hooks/useDragClass';
 import { TASK_LIST_INDENT_SHIFT_SIZE } from '$utils/constants';
 import type { FlattenedTask } from '$utils/tree';
 
@@ -48,7 +47,14 @@ export const useSortableDrag = ({ flattenedItems, minIndent = 0 }: UseSortableDr
     }
   }, [activeItem, flattenedItems]);
 
-  useDragClass(!!activeItem);
+  // Adds `is-dragging`, which suppresses hover states on all child elements.
+  // TODO: We could optimize this by not relying on useEffect
+  useEffect(() => {
+    if (activeItem) {
+      document.documentElement.classList.add('is-dragging');
+      return () => document.documentElement.classList.remove('is-dragging');
+    }
+  }, [activeItem]);
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
@@ -72,7 +78,11 @@ export const useSortableDrag = ({ flattenedItems, minIndent = 0 }: UseSortableDr
       if (activeIndex === -1 || overIndex === -1) return;
 
       const taskAboveIndex =
-        activeIndex < overIndex ? overIndex : activeIndex > overIndex ? overIndex - 1 : activeIndex - 1;
+        activeIndex < overIndex
+          ? overIndex
+          : activeIndex > overIndex
+            ? overIndex - 1
+            : activeIndex - 1;
 
       let maxIndent = minIndent;
       for (let i = taskAboveIndex; i >= 0; i--) {
@@ -84,7 +94,10 @@ export const useSortableDrag = ({ flattenedItems, minIndent = 0 }: UseSortableDr
       }
 
       const indentDelta = Math.round(event.delta.x / TASK_LIST_INDENT_SHIFT_SIZE);
-      const newIndent = Math.max(minIndent, Math.min(maxIndent, originalIndentRef.current + indentDelta));
+      const newIndent = Math.max(
+        minIndent,
+        Math.min(maxIndent, originalIndentRef.current + indentDelta),
+      );
       setTargetIndent(newIndent);
 
       let parentName: string | null = null;
