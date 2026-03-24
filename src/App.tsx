@@ -10,7 +10,7 @@ import { SettingsModal } from '$components/modals/SettingsModal';
 import { TaskActionsModal } from '$components/modals/TaskActionsModal';
 import { UpdateModal } from '$components/modals/UpdateModal';
 import { OfflineBanner } from '$components/OfflineBanner';
-import { Sidebar } from '$components/Sidebar';
+import { Sidebar } from '$components/sidebar/Sidebar';
 import { TaskEditor } from '$components/TaskEditor';
 import { TaskList } from '$components/TaskList';
 import { useAccounts } from '$hooks/queries/useAccounts';
