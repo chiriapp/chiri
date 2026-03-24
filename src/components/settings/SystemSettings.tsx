@@ -2,6 +2,7 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import { usePlatform } from '$hooks/usePlatform';
 import { useSettingsStore } from '$hooks/useSettingsStore';
+import { isMacPlatform } from '$utils/platform';
 
 export const SystemSettings = () => {
   const { isGNOME } = usePlatform();
@@ -10,7 +11,11 @@ export const SystemSettings = () => {
     setEnableSystemTray,
     systemTrayAppliedValue,
     setSystemTrayAppliedValue,
+    confirmBeforeQuit,
+    setConfirmBeforeQuit,
   } = useSettingsStore();
+
+  const isMac = isMacPlatform();
 
   const systemTrayChanged = enableSystemTray !== systemTrayAppliedValue;
 
@@ -65,6 +70,25 @@ export const SystemSettings = () => {
             </div>
           )}
         </div>
+
+        {isMac && (
+          <label className="flex items-center justify-between">
+            <div className="flex-1 pr-4">
+              <p className="text-sm text-surface-700 dark:text-surface-300">
+                Require double-press to quit
+              </p>
+              <p className="text-xs text-surface-500 dark:text-surface-400">
+                Press ⌘Q twice within 2 seconds to quit.
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={confirmBeforeQuit}
+              onChange={(e) => setConfirmBeforeQuit(e.target.checked)}
+              className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none shrink-0"
+            />
+          </label>
+        )}
 
         {systemTrayChanged && (
           <div className="flex items-center justify-between rounded-lg bg-blue-50 dark:bg-blue-950 p-3 border border-blue-200 dark:border-blue-800">

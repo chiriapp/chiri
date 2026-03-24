@@ -66,6 +66,7 @@ interface SettingsState {
   tagsSectionCollapsed: boolean;
   systemTrayRestartNeeded: boolean;
   systemTrayAppliedValue: boolean;
+  confirmBeforeQuit: boolean;
 }
 
 interface SettingsActions {
@@ -115,6 +116,7 @@ interface SettingsActions {
   setSystemTrayRestartNeeded: (needed: boolean) => void;
   setSystemTrayAppliedValue: (value: boolean) => void;
   setCheckForUpdatesAutomatically: (enabled: boolean) => void;
+  setConfirmBeforeQuit: (confirm: boolean) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;
   resetSettings: () => void;
@@ -167,6 +169,7 @@ const defaultState: SettingsState = {
   systemTrayRestartNeeded: false,
   systemTrayAppliedValue: true,
   checkForUpdatesAutomatically: true,
+  confirmBeforeQuit: false,
 };
 
 /**
@@ -341,11 +344,13 @@ export const settingsStore = {
   },
   setDefaultPriority: (defaultPriority: Priority) => setState({ defaultPriority }),
   setDefaultStatus: (defaultStatus: TaskStatus) => setState({ defaultStatus }),
-  setDefaultPercentComplete: (defaultPercentComplete: number) => setState({ defaultPercentComplete }),
+  setDefaultPercentComplete: (defaultPercentComplete: number) =>
+    setState({ defaultPercentComplete }),
   setDefaultTags: (defaultTags: string[]) => setState({ defaultTags }),
   setDefaultStartDate: (defaultStartDate: DefaultDateOffset) => setState({ defaultStartDate }),
   setDefaultDueDate: (defaultDueDate: DefaultDateOffset) => setState({ defaultDueDate }),
-  setDefaultReminders: (defaultReminders: DefaultReminderOffset[]) => setState({ defaultReminders }),
+  setDefaultReminders: (defaultReminders: DefaultReminderOffset[]) =>
+    setState({ defaultReminders }),
   setOnboardingCompleted: (onboardingCompleted: boolean) => setState({ onboardingCompleted }),
   setExpandedAccountIds: (expandedAccountIds: string[]) => setState({ expandedAccountIds }),
   toggleAccountExpanded: (accountId: string) => {
@@ -370,6 +375,7 @@ export const settingsStore = {
     setState({ systemTrayAppliedValue }),
   setCheckForUpdatesAutomatically: (checkForUpdatesAutomatically: boolean) =>
     setState({ checkForUpdatesAutomatically }),
+  setConfirmBeforeQuit: (confirmBeforeQuit: boolean) => setState({ confirmBeforeQuit }),
 
   exportSettings: () => {
     const exportData = {
@@ -437,6 +443,7 @@ export const settingsStore = {
         systemTrayAppliedValue: data.systemTrayAppliedValue ?? defaultState.systemTrayAppliedValue,
         checkForUpdatesAutomatically:
           data.checkForUpdatesAutomatically ?? defaultState.checkForUpdatesAutomatically,
+        confirmBeforeQuit: data.confirmBeforeQuit ?? defaultState.confirmBeforeQuit,
       });
       return true;
     } catch (e) {

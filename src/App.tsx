@@ -18,6 +18,7 @@ import { useSyncQuery } from '$hooks/queries/useSync';
 import { useTasks } from '$hooks/queries/useTasks';
 import { useUIState } from '$hooks/queries/useUIState';
 import { useAppMenu } from '$hooks/useAppMenu';
+import { useConfirmQuit } from '$hooks/useConfirmQuit';
 import { useFileDrop } from '$hooks/useFileDrop';
 import { useKeyboardShortcuts } from '$hooks/useKeyboardShortcuts';
 import { useMenuHandlers } from '$hooks/useMenuHandlers';
@@ -149,6 +150,7 @@ const App = () => {
   });
 
   useTheme();
+  useConfirmQuit();
   useNotifications({
     onOpenTaskActions: menuHandlers.handleOpenTaskActions,
   });

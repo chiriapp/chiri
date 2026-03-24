@@ -184,6 +184,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (enabled: boolean) => settingsStore.setEnableToasts(enabled),
     [],
   );
+  const setConfirmBeforeQuit = useCallback(
+    (confirm: boolean) => settingsStore.setConfirmBeforeQuit(confirm),
+    [],
+  );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
   const resetSettings = useCallback(() => settingsStore.resetSettings(), []);
@@ -236,6 +240,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSystemTrayAppliedValue,
     setCheckForUpdatesAutomatically,
     setEnableToasts,
+    setConfirmBeforeQuit,
     exportSettings,
     importSettings,
     resetSettings,
