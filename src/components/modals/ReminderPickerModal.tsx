@@ -9,15 +9,14 @@ import {
   startOfMonth,
   subMonths,
 } from 'date-fns';
-import { AppSelect } from '$components/AppSelect';
 import ChevronLeft from 'lucide-react/icons/chevron-left';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Clock from 'lucide-react/icons/clock';
 import Trash2 from 'lucide-react/icons/trash-2';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
+import { AppSelect } from '$components/AppSelect';
 import { settingsStore } from '$context/settingsContext';
-import { formatMonthYear } from '$utils/date';
 import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import {
@@ -28,6 +27,8 @@ import {
   setDateTime,
   updateTimeComponent,
 } from '$utils/calendar';
+import { DEFAULT_TIME } from '$utils/constants';
+import { formatMonthYear } from '$utils/date';
 
 interface ReminderPickerModalProps {
   isOpen: boolean;
@@ -56,7 +57,7 @@ export const ReminderPickerModal = ({
         minutes: value.getMinutes(),
       };
     }
-    return { hours: 9, minutes: 0 };
+    return DEFAULT_TIME;
   });
   const focusTrapRef = useFocusTrap();
 
