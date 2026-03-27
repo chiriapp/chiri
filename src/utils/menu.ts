@@ -1,7 +1,8 @@
+import { invoke } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
 import {
   CheckMenuItem,
-  IconMenuItem,
+  type IconMenuItem,
   Menu,
   MenuItem,
   PredefinedMenuItem,
@@ -15,6 +16,8 @@ const log = loggers.menu;
 
 export const MENU_EVENTS = {
   ABOUT: 'menu:about',
+  QUIT: 'menu:quit',
+  QUIT_MENU: 'menu:quit-menu',
   NEW_TASK: 'menu:new-task',
   SYNC: 'menu:sync',
   PREFERENCES: 'menu:preferences',
@@ -22,7 +25,6 @@ export const MENU_EVENTS = {
   EDIT_ACCOUNT: 'menu:edit-account',
   ADD_CALENDAR: 'menu:add-calendar',
   IMPORT_TASKS: 'menu:import-tasks',
-  EXPORT_TASKS: 'menu:export-tasks',
   SEARCH: 'menu:search',
   SHOW_KEYBOARD_SHORTCUTS: 'menu:show-keyboard-shortcuts',
   TOGGLE_COMPLETED: 'menu:toggle-completed',
@@ -35,13 +37,23 @@ export const MENU_EVENTS = {
   SORT_TITLE: 'menu:sort-title',
   SORT_CREATED: 'menu:sort-created',
   SORT_MODIFIED: 'menu:sort-modified',
+  TOGGLE_SIDEBAR: 'menu:toggle-sidebar',
+  DELETE_TASK: 'menu:delete-task',
+  NAV_PREV_LIST: 'menu:nav-prev-list',
+  NAV_NEXT_LIST: 'menu:nav-next-list',
+  CHECK_FOR_UPDATES: 'menu:check-for-updates',
+  SHOW_CHANGELOG: 'menu:show-changelog',
+  REMOVE_ACCOUNT: 'menu:remove-account',
+  SYNC_CALENDAR: 'menu:sync-calendar',
+  EDIT_CALENDAR: 'menu:edit-calendar',
+  EXPORT_CALENDAR: 'menu:export-calendar',
+  DELETE_CALENDAR: 'menu:delete-calendar',
 } as const;
 
 // store menu item references for updates
 const menuItemRefs: {
-  sync?: IconMenuItem;
-  export?: IconMenuItem;
-  addCalendar?: MenuItem;
+  sync?: MenuItem;
+  deleteTask?: MenuItem;
   toggleCompleted?: CheckMenuItem;
   toggleUnstarted?: CheckMenuItem;
   sortManual?: MenuItem;
@@ -96,23 +108,36 @@ const getAcceleratorById = (shortcuts: KeyboardShortcut[] | undefined, id: strin
  * creates and sets the macOS application menu
  * only called on macOS
  */
+export interface MenuCalendar {
+  id: string;
+  displayName: string;
+}
+
+export interface MenuAccount {
+  id: string;
+  name: string;
+  calendars?: MenuCalendar[];
+}
+
 export const createMacMenu = async (options?: {
   showCompleted?: boolean;
   showUnstarted?: boolean;
   sortMode?: SortMode;
   shortcuts?: KeyboardShortcut[];
-  hasAccounts?: boolean;
-  hasTasks?: boolean;
+  accounts?: MenuAccount[];
   isSyncing?: boolean;
-}): Promise<Menu> => {
+  isEditorOpen?: boolean;
+}) => {
   const showCompleted = options?.showCompleted ?? true;
   const showUnstarted = options?.showUnstarted ?? true;
   const sortMode = options?.sortMode ?? 'manual';
   const shortcuts = options?.shortcuts;
-  const hasAccounts = options?.hasAccounts ?? false;
-  const hasTasks = options?.hasTasks ?? false;
+  const accounts = options?.accounts ?? [];
+  const hasAccounts = accounts.length > 0;
   const isSyncing = options?.isSyncing ?? false;
+  const isEditorOpen = options?.isEditorOpen ?? false;
 
+  // App menu (Chiri)
   const appSubmenu = await Submenu.new({
     text: 'Chiri',
     items: [
@@ -126,7 +151,7 @@ export const createMacMenu = async (options?: {
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await MenuItem.new({
         id: 'preferences',
-        text: 'Preferences...',
+        text: 'Settings...',
         accelerator: getAcceleratorById(shortcuts, 'settings') ?? 'CmdOrCtrl+,',
         action: () => {
           emit(MENU_EVENTS.PREFERENCES);
@@ -151,62 +176,38 @@ export const createMacMenu = async (options?: {
         item: 'ShowAll',
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
-      await PredefinedMenuItem.new({
+      await MenuItem.new({
+        id: 'quit',
         text: 'Quit Chiri',
-        item: 'Quit',
+        accelerator: 'CmdOrCtrl+Q',
+        action: () => {
+          emit(MENU_EVENTS.QUIT_MENU);
+        },
       }),
     ],
   });
 
-  const syncItem = await IconMenuItem.new({
-    id: 'sync',
-    text: 'Sync',
-    icon: 'Refresh',
-    accelerator: getAcceleratorById(shortcuts, 'sync') ?? 'CmdOrCtrl+R',
-    enabled: hasAccounts && !isSyncing,
-    action: () => {
-      emit(MENU_EVENTS.SYNC);
-    },
-  });
-  menuItemRefs.sync = syncItem;
-
-  const exportItem = await IconMenuItem.new({
-    id: 'export',
-    text: 'Export...',
-    icon: 'Share',
-    accelerator: 'CmdOrCtrl+E',
-    enabled: hasTasks,
-    action: () => {
-      emit(MENU_EVENTS.EXPORT_TASKS);
-    },
-  });
-  menuItemRefs.export = exportItem;
-
+  // File menu
   const fileSubmenu = await Submenu.new({
     text: 'File',
     items: [
-      await IconMenuItem.new({
+      await MenuItem.new({
         id: 'new-task',
         text: 'New Task',
-        icon: 'Add',
         accelerator: getAcceleratorById(shortcuts, 'new-task') ?? 'CmdOrCtrl+N',
         action: () => {
           emit(MENU_EVENTS.NEW_TASK);
         },
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
-      syncItem,
-      await PredefinedMenuItem.new({ item: 'Separator' }),
-      await IconMenuItem.new({
+      await MenuItem.new({
         id: 'import',
-        text: 'Import...',
-        icon: 'Bookmarks',
+        text: 'Import Tasks...',
         accelerator: 'CmdOrCtrl+I',
         action: () => {
           emit(MENU_EVENTS.IMPORT_TASKS);
         },
       }),
-      exportItem,
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await PredefinedMenuItem.new({
         text: 'Close Window',
@@ -215,6 +216,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
+  // Edit menu
   const editSubmenu = await Submenu.new({
     text: 'Edit',
     items: [
@@ -252,10 +254,24 @@ export const createMacMenu = async (options?: {
           emit(MENU_EVENTS.SEARCH);
         },
       }),
+      await PredefinedMenuItem.new({ item: 'Separator' }),
+      await (async () => {
+        const item = await MenuItem.new({
+          id: 'delete-task',
+          text: 'Delete Task',
+          accelerator: getAcceleratorById(shortcuts, 'delete') ?? 'CmdOrCtrl+Backspace',
+          enabled: isEditorOpen,
+          action: () => {
+            emit(MENU_EVENTS.DELETE_TASK);
+          },
+        });
+        menuItemRefs.deleteTask = item;
+        return item;
+      })(),
     ],
   });
 
-  // View submenu
+  // View menu
   const toggleCompletedItem = await CheckMenuItem.new({
     id: 'toggle-completed',
     text: 'Show Completed Tasks',
@@ -270,7 +286,7 @@ export const createMacMenu = async (options?: {
   const toggleUnstartedItem = await CheckMenuItem.new({
     id: 'toggle-unstarted',
     text: 'Show Unstarted Tasks',
-    accelerator: getAcceleratorById(shortcuts, 'toggle-show-unstarted') ?? 'CmdOrCtrl+Shift+U',
+    accelerator: getAcceleratorById(shortcuts, 'toggle-show-unstarted') ?? 'CmdOrCtrl+U',
     checked: showUnstarted,
     action: () => {
       emit(MENU_EVENTS.TOGGLE_UNSTARTED);
@@ -296,6 +312,15 @@ export const createMacMenu = async (options?: {
   });
   menuItemRefs.sortSmart = sortSmartItem;
 
+  const sortPriorityItem = await MenuItem.new({
+    id: 'sort-priority',
+    text: sortMode === 'priority' ? '✓ Priority' : 'Priority',
+    action: () => {
+      emit(MENU_EVENTS.SORT_PRIORITY);
+    },
+  });
+  menuItemRefs.sortPriority = sortPriorityItem;
+
   const sortStartDateItem = await MenuItem.new({
     id: 'sort-start-date',
     text: sortMode === 'start-date' ? '✓ Start Date' : 'Start Date',
@@ -313,15 +338,6 @@ export const createMacMenu = async (options?: {
     },
   });
   menuItemRefs.sortDueDate = sortDueDateItem;
-
-  const sortPriorityItem = await MenuItem.new({
-    id: 'sort-priority',
-    text: sortMode === 'priority' ? '✓ Priority' : 'Priority',
-    action: () => {
-      emit(MENU_EVENTS.SORT_PRIORITY);
-    },
-  });
-  menuItemRefs.sortPriority = sortPriorityItem;
 
   const sortTitleItem = await MenuItem.new({
     id: 'sort-title',
@@ -357,18 +373,28 @@ export const createMacMenu = async (options?: {
       toggleUnstartedItem,
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await Submenu.new({
-        icon: 'ListView',
-        text: 'Sort Tasks By',
+        text: 'Sort By',
         items: [
           sortManualItem,
           sortSmartItem,
+          await PredefinedMenuItem.new({ item: 'Separator' }),
+          sortPriorityItem,
           sortStartDateItem,
           sortDueDateItem,
-          sortPriorityItem,
+          await PredefinedMenuItem.new({ item: 'Separator' }),
           sortTitleItem,
           sortCreatedItem,
           sortModifiedItem,
         ],
+      }),
+      await PredefinedMenuItem.new({ item: 'Separator' }),
+      await MenuItem.new({
+        id: 'toggle-sidebar',
+        text: 'Toggle Sidebar',
+        accelerator: getAcceleratorById(shortcuts, 'toggle-sidebar') ?? 'CmdOrCtrl+E',
+        action: () => {
+          emit(MENU_EVENTS.TOGGLE_SIDEBAR);
+        },
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await PredefinedMenuItem.new({
@@ -378,20 +404,112 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // Calendar submenu
-  const addCalendarItem = await MenuItem.new({
-    id: 'add-calendar',
-    text: 'Add Calendar...',
-    enabled: hasAccounts,
+  // Accounts menu (CalDAV accounts and calendars)
+  const syncItem = await MenuItem.new({
+    id: 'sync',
+    text: 'Sync',
+    accelerator: getAcceleratorById(shortcuts, 'sync') ?? 'CmdOrCtrl+R',
+    enabled: hasAccounts && !isSyncing,
     action: () => {
-      emit(MENU_EVENTS.ADD_CALENDAR);
+      emit(MENU_EVENTS.SYNC);
     },
   });
-  menuItemRefs.addCalendar = addCalendarItem;
+  menuItemRefs.sync = syncItem;
 
-  const calendarSubmenu = await Submenu.new({
-    text: 'Calendar',
+  // One submenu per account with account-scoped actions
+  const accountSubmenus = await Promise.all(
+    accounts.map(async (account) => {
+      const calendars = account.calendars ?? [];
+
+      const calendarSubmenus = await Promise.all(
+        calendars.map(async (calendar) =>
+          Submenu.new({
+            text: calendar.displayName,
+            items: [
+              await MenuItem.new({
+                text: 'Sync',
+                action: () => {
+                  emit(MENU_EVENTS.SYNC_CALENDAR, {
+                    calendarId: calendar.id,
+                    accountId: account.id,
+                  });
+                },
+              }),
+              await MenuItem.new({
+                text: 'Edit Calendar',
+                action: () => {
+                  emit(MENU_EVENTS.EDIT_CALENDAR, {
+                    calendarId: calendar.id,
+                    accountId: account.id,
+                  });
+                },
+              }),
+              await MenuItem.new({
+                text: 'Export Tasks',
+                action: () => {
+                  emit(MENU_EVENTS.EXPORT_CALENDAR, {
+                    calendarId: calendar.id,
+                    accountId: account.id,
+                  });
+                },
+              }),
+              await PredefinedMenuItem.new({ item: 'Separator' }),
+              await MenuItem.new({
+                text: 'Delete Calendar',
+                action: () => {
+                  emit(MENU_EVENTS.DELETE_CALENDAR, {
+                    calendarId: calendar.id,
+                    accountId: account.id,
+                  });
+                },
+              }),
+            ],
+          }),
+        ),
+      );
+
+      const calendarItems: (Submenu | MenuItem | PredefinedMenuItem)[] =
+        calendars.length > 0
+          ? [
+              await Submenu.new({ text: 'Calendars', items: calendarSubmenus }),
+              await PredefinedMenuItem.new({ item: 'Separator' }),
+            ]
+          : [];
+
+      return Submenu.new({
+        text: account.name,
+        items: [
+          ...calendarItems,
+          await MenuItem.new({
+            text: 'New Calendar...',
+            action: () => {
+              emit(MENU_EVENTS.ADD_CALENDAR, { accountId: account.id });
+            },
+          }),
+          await MenuItem.new({
+            text: 'Edit Account',
+            action: () => {
+              emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
+            },
+          }),
+          await MenuItem.new({
+            text: 'Remove Account',
+            action: () => {
+              emit(MENU_EVENTS.REMOVE_ACCOUNT, { accountId: account.id });
+            },
+          }),
+        ],
+      });
+    }),
+  );
+
+  const accountsSubmenu = await Submenu.new({
+    text: 'Accounts',
     items: [
+      syncItem,
+      await PredefinedMenuItem.new({ item: 'Separator' }),
+      ...accountSubmenus,
+      ...(hasAccounts ? [await PredefinedMenuItem.new({ item: 'Separator' })] : []),
       await MenuItem.new({
         id: 'add-account',
         text: 'Add Account...',
@@ -399,11 +517,33 @@ export const createMacMenu = async (options?: {
           emit(MENU_EVENTS.ADD_ACCOUNT);
         },
       }),
-      addCalendarItem,
     ],
   });
 
-  // Window submenu
+  // Go menu (list navigation)
+  const goSubmenu = await Submenu.new({
+    text: 'Go',
+    items: [
+      await MenuItem.new({
+        id: 'nav-prev-list',
+        text: 'Previous List',
+        accelerator: getAcceleratorById(shortcuts, 'nav-prev-list') ?? 'CmdOrCtrl+[',
+        action: () => {
+          emit(MENU_EVENTS.NAV_PREV_LIST);
+        },
+      }),
+      await MenuItem.new({
+        id: 'nav-next-list',
+        text: 'Next List',
+        accelerator: getAcceleratorById(shortcuts, 'nav-next-list') ?? 'CmdOrCtrl+]',
+        action: () => {
+          emit(MENU_EVENTS.NAV_NEXT_LIST);
+        },
+      }),
+    ],
+  });
+
+  // Window menu
   const windowSubmenu = await Submenu.new({
     text: 'Window',
     items: [
@@ -415,7 +555,6 @@ export const createMacMenu = async (options?: {
         text: 'Zoom',
         item: 'Maximize',
       }),
-      await PredefinedMenuItem.new({ item: 'Separator' }),
     ],
   });
 
@@ -433,10 +572,23 @@ export const createMacMenu = async (options?: {
           emit(MENU_EVENTS.SHOW_KEYBOARD_SHORTCUTS);
         },
       }),
+      await PredefinedMenuItem.new({ item: 'Separator' }),
+      await MenuItem.new({
+        id: 'whats-new',
+        text: "What's New",
+        action: () => {
+          emit(MENU_EVENTS.SHOW_CHANGELOG);
+        },
+      }),
+      await MenuItem.new({
+        id: 'check-for-updates',
+        text: 'Check for Updates',
+        action: () => {
+          emit(MENU_EVENTS.CHECK_FOR_UPDATES);
+        },
+      }),
     ],
   });
-
-  await helpSubmenu.setAsHelpMenuForNSApp().catch(() => {});
 
   // Create the main menu
   const menu = await Menu.new({
@@ -445,7 +597,8 @@ export const createMacMenu = async (options?: {
       fileSubmenu,
       editSubmenu,
       viewSubmenu,
-      calendarSubmenu,
+      accountsSubmenu,
+      goSubmenu,
       windowSubmenu,
       helpSubmenu,
     ],
@@ -462,16 +615,19 @@ export const initAppMenu = async (options?: {
   showCompleted?: boolean;
   sortMode?: SortMode;
   shortcuts?: KeyboardShortcut[];
-  hasAccounts?: boolean;
-  hasTasks?: boolean;
+  accounts?: MenuAccount[];
   isSyncing?: boolean;
-}): Promise<void> => {
+  isEditorOpen?: boolean;
+}) => {
   // Only create menu on macOS
   if (!isMacPlatform()) return;
 
   try {
     const menu = await createMacMenu(options);
     await menu.setAsAppMenu();
+    // Fix macOS Help menu search bar — muda's setAsHelpMenuForNSApp() is broken,
+    // so we call NSApp.setHelpMenu() directly from Rust after the menu is live.
+    await invoke('apply_macos_menu_fixes').catch(() => {});
   } catch (error) {
     log.error('Failed to initialize menu:', error);
   }
@@ -486,10 +642,10 @@ export const rebuildAppMenu = async (options?: {
   showUnstarted?: boolean;
   sortMode?: SortMode;
   shortcuts?: KeyboardShortcut[];
-  hasAccounts?: boolean;
-  hasTasks?: boolean;
+  accounts?: MenuAccount[];
   isSyncing?: boolean;
-}): Promise<void> => {
+  isEditorOpen?: boolean;
+}) => {
   await initAppMenu(options);
 };
 
@@ -503,7 +659,7 @@ export const updateMenuItem = async (
     enabled?: boolean;
     checked?: boolean;
   },
-): Promise<void> => {
+) => {
   try {
     // Use stored references instead of searching the menu
     let item: MenuItem | IconMenuItem | CheckMenuItem | undefined;
@@ -512,11 +668,8 @@ export const updateMenuItem = async (
       case 'sync':
         item = menuItemRefs.sync;
         break;
-      case 'export':
-        item = menuItemRefs.export;
-        break;
-      case 'add-calendar':
-        item = menuItemRefs.addCalendar;
+      case 'delete-task':
+        item = menuItemRefs.deleteTask;
         break;
       case 'toggle-completed':
         item = menuItemRefs.toggleCompleted;
@@ -569,21 +722,20 @@ export const updateMenuItem = async (
  * updates the menu state based on app state
  */
 export const updateMenuState = async (options: {
-  hasAccounts?: boolean;
-  hasTasks?: boolean;
+  accountCount?: number;
   showCompleted?: boolean;
   showUnstarted?: boolean;
   sortMode?: SortMode;
   isSyncing?: boolean;
-}): Promise<void> => {
-  if (options.hasAccounts !== undefined || options.isSyncing !== undefined) {
-    const hasAccounts = options.hasAccounts ?? true;
+  isEditorOpen?: boolean;
+}) => {
+  if (options.accountCount !== undefined || options.isSyncing !== undefined) {
+    const hasAccounts = (options.accountCount ?? 1) > 0;
     const isSyncing = options.isSyncing ?? false;
-    await updateMenuItem('add-calendar', { enabled: hasAccounts });
     await updateMenuItem('sync', { enabled: hasAccounts && !isSyncing });
   }
-  if (options.hasTasks !== undefined) {
-    await updateMenuItem('export', { enabled: options.hasTasks });
+  if (options.isEditorOpen !== undefined) {
+    await updateMenuItem('delete-task', { enabled: options.isEditorOpen });
   }
   if (options.showCompleted !== undefined) {
     await updateMenuItem('toggle-completed', { checked: options.showCompleted });
@@ -596,9 +748,9 @@ export const updateMenuState = async (options: {
     const sortOptions: Record<string, string> = {
       manual: 'Manual',
       smart: 'Smart Sort',
+      priority: 'Priority',
       'start-date': 'Start Date',
       'due-date': 'Due Date',
-      priority: 'Priority',
       title: 'Title',
       created: 'Date Created',
       modified: 'Date Modified',
