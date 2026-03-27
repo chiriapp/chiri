@@ -26,7 +26,7 @@ const DEFAULT_CALDAV_DESCRIPTIONS = [
  * @param description the description to check
  * @returns true if the description should be filtered out
  */
-export const isDefaultCalDavDescription = (description: string | undefined | null): boolean => {
+export const isDefaultCalDavDescription = (description: string | undefined | null) => {
   if (!description) return false;
   return DEFAULT_CALDAV_DESCRIPTIONS.includes(description.trim());
 };
@@ -36,7 +36,7 @@ export const isDefaultCalDavDescription = (description: string | undefined | nul
  * @param description the description to filter
  * @returns the description if not a default, empty string otherwise
  */
-export const filterCalDavDescription = (description: string | undefined | null): string => {
+export const filterCalDavDescription = (description: string | undefined | null) => {
   if (!description) return '';
   if (isDefaultCalDavDescription(description)) return '';
   return description;
@@ -47,12 +47,12 @@ export const filterCalDavDescription = (description: string | undefined | null):
 export const APPLE_EPOCH = 978307200000;
 
 // Convert Unix timestamp (milliseconds) to Apple epoch (seconds)
-export const toAppleEpoch = (timestamp: number): number => {
+export const toAppleEpoch = (timestamp: number) => {
   return Math.floor((timestamp - APPLE_EPOCH) / 1000);
 };
 
 // Convert Apple epoch (seconds) to Unix timestamp (milliseconds)
-export const fromAppleEpoch = (appleSeconds: number): number => {
+export const fromAppleEpoch = (appleSeconds: number) => {
   return appleSeconds * 1000 + APPLE_EPOCH;
 };
 
@@ -70,7 +70,7 @@ const icalStatusToTaskStatus = (icalStatus: string | undefined): TaskStatus => {
   }
 };
 
-const taskStatusToIcal = (status: TaskStatus): string => {
+const taskStatusToIcal = (status: TaskStatus) => {
   switch (status) {
     case 'completed':
       return 'COMPLETED';
@@ -103,7 +103,7 @@ const icalToPriority = (priority: number): Priority => {
  * Format a Date as iCalendar datetime (UTC)
  * Format: YYYYMMDDTHHMMSSZ
  */
-const formatICalDate = (date: Date): string => {
+const formatICalDate = (date: Date) => {
   const pad = (n: number) => n.toString().padStart(2, '0');
   return (
     date.getUTCFullYear().toString() +
@@ -121,7 +121,7 @@ const formatICalDate = (date: Date): string => {
  * Format a Date as iCalendar date (no time component)
  * Format: YYYYMMDD (VALUE=DATE)
  */
-const formatICalDateOnly = (date: Date): string => {
+const formatICalDateOnly = (date: Date) => {
   const pad = (n: number) => n.toString().padStart(2, '0');
   // Use local date parts for all-day dates
   return date.getFullYear().toString() + pad(date.getMonth() + 1) + pad(date.getDate());
@@ -131,7 +131,7 @@ const formatICalDateOnly = (date: Date): string => {
  * Parse an iCalendar datetime string to Date
  * Supports: YYYYMMDDTHHMMSSZ, YYYYMMDDTHHMMSS, YYYYMMDD
  */
-const parseICalDate = (value: string): Date | undefined => {
+const parseICalDate = (value: string) => {
   if (!value) return undefined;
 
   // Remove any parameters before the value (e.g., TZID=...)
@@ -183,7 +183,7 @@ const parseICalDate = (value: string): Date | undefined => {
  * Escape text for iCalendar format
  * Escapes: backslash, semicolon, comma, newline
  */
-const escapeICalText = (text: string): string => {
+const escapeICalText = (text: string) => {
   return text
     .replace(/\\/g, '\\\\')
     .replace(/;/g, '\\;')
@@ -194,7 +194,7 @@ const escapeICalText = (text: string): string => {
 /**
  * Unescape iCalendar text
  */
-const unescapeICalText = (text: string): string => {
+const unescapeICalText = (text: string) => {
   return text
     .replace(/\\n/g, '\n')
     .replace(/\\,/g, ',')
@@ -202,10 +202,61 @@ const unescapeICalText = (text: string): string => {
     .replace(/\\\\/g, '\\');
 };
 
+const HEX_COLOR_PATTERN = /^[0-9A-F]{6}$/i;
+
+const normalizeTagColor = (value: string) => {
+  const normalized = value.trim().replace(/^#/, '').toUpperCase();
+  if (!HEX_COLOR_PATTERN.test(normalized)) return undefined;
+  return `#${normalized}`;
+};
+
+const toIcalHexColor = (value: string) => {
+  const normalized = normalizeTagColor(value);
+  return normalized ? normalized.slice(1) : undefined;
+};
+
+const splitFirstUnescaped = (value: string, separator: string) => {
+  let escaped = false;
+
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+
+    if (char === separator) {
+      return [value.slice(0, i), value.slice(i + 1)];
+    }
+  }
+
+  return null;
+};
+
+const parseTagColorValue = (value: string) => {
+  const parts = splitFirstUnescaped(value, '|');
+  if (!parts) return null;
+
+  const [rawTagName, rawColor] = parts;
+  const tagName = unescapeICalText(rawTagName.trim());
+  if (!tagName) return null;
+
+  const color = normalizeTagColor(unescapeICalText(rawColor.trim()));
+  if (!color) return null;
+
+  return { tagName, color };
+};
+
 /**
  * Fold long lines according to RFC 5545 (max 75 octets per line)
  */
-const foldLine = (line: string): string => {
+const foldLine = (line: string) => {
   const maxLength = 75;
   if (line.length <= maxLength) return line;
 
@@ -228,7 +279,7 @@ const foldLine = (line: string): string => {
 /**
  * Unfold iCalendar content lines (join lines that start with space/tab)
  */
-const unfoldLines = (content: string): string => {
+const unfoldLines = (content: string) => {
   // Normalize line endings
   return content
     .replace(/\r\n/g, '\n')
@@ -289,6 +340,7 @@ interface ParsedVTodo {
   percentComplete?: number;
   priority?: number;
   categories?: string[];
+  tagColorsByName?: Record<string, string>;
   dtstart?: Date;
   dtstartAllDay?: boolean;
   due?: Date;
@@ -301,6 +353,8 @@ interface ParsedVTodo {
   parentUid?: string;
   alarms?: ParsedVAlarm[];
   url?: string;
+  rrule?: string;
+  recurrenceId?: Date;
 }
 
 /**
@@ -346,7 +400,7 @@ const parseVAlarm = (valarmContent: string): ParsedVAlarm => {
 /**
  * Extract VALARM blocks from VTODO content
  */
-const extractVAlarms = (vtodoContent: string): string[] => {
+const extractVAlarms = (vtodoContent: string) => {
   const alarms: string[] = [];
   const content = unfoldLines(vtodoContent);
   const lines = content.split('\n');
@@ -422,6 +476,16 @@ const parseVTodo = (vtodoContent: string): ParsedVTodo => {
         // Categories can be comma-separated
         result.categories = prop.value.split(',').map((c) => unescapeICalText(c.trim()));
         break;
+      case 'X-TASKS-TAG-COLOR': {
+        const parsedTagColor = parseTagColorValue(prop.value);
+        if (parsedTagColor) {
+          if (!result.tagColorsByName) {
+            result.tagColorsByName = {};
+          }
+          result.tagColorsByName[parsedTagColor.tagName.toLowerCase()] = parsedTagColor.color;
+        }
+        break;
+      }
       case 'DTSTART':
         result.dtstart = parseICalDate(prop.value);
         // Check if it's an all-day date (VALUE=DATE parameter)
@@ -455,6 +519,13 @@ const parseVTodo = (vtodoContent: string): ParsedVTodo => {
       case 'URL':
         result.url = prop.value;
         break;
+      case 'RRULE':
+        // Strip leading "RRULE:" prefix if present (some servers include it in the value)
+        result.rrule = prop.value.replace(/^RRULE:/i, '');
+        break;
+      case 'RECURRENCE-ID':
+        result.recurrenceId = parseICalDate(prop.value);
+        break;
     }
   }
 
@@ -462,10 +533,15 @@ const parseVTodo = (vtodoContent: string): ParsedVTodo => {
 };
 
 /**
- * Extract VTODO blocks from iCalendar content
+ * Extract VTODO blocks from iCalendar content.
+ *
+ * When a VCALENDAR contains multiple VTODOs with the same UID (the two-VTODO
+ * format used for completed recurring instances: master + RECURRENCE-ID override),
+ * we return only the master (the one with RRULE / without RECURRENCE-ID) so the
+ * app always works with the live series, not a completed snapshot.
  */
-const extractVTodos = (icalContent: string): string[] => {
-  const vtodos: string[] = [];
+const extractVTodos = (icalContent: string) => {
+  const all: string[] = [];
   const content = unfoldLines(icalContent);
   const lines = content.split('\n');
 
@@ -480,7 +556,7 @@ const extractVTodos = (icalContent: string): string[] => {
       currentVTodo = [];
     } else if (trimmed === 'END:VTODO') {
       if (inVTodo) {
-        vtodos.push(currentVTodo.join('\n'));
+        all.push(currentVTodo.join('\n'));
         currentVTodo = [];
       }
       inVTodo = false;
@@ -489,13 +565,21 @@ const extractVTodos = (icalContent: string): string[] => {
     }
   }
 
-  return vtodos;
+  if (all.length <= 1) return all;
+
+  // Multiple VTODOs: prefer the master (has RRULE, no RECURRENCE-ID).
+  // If none qualifies fall back to returning all of them.
+  const masters = all.filter((block) => {
+    const upper = block.toUpperCase();
+    return upper.includes('RRULE:') && !upper.includes('RECURRENCE-ID:');
+  });
+  return masters.length > 0 ? masters : all;
 };
 
 /**
  * Generate a VALARM component as string
  */
-const generateVAlarm = (reminder: Reminder): string => {
+const generateVAlarm = (reminder: Reminder) => {
   const lines: string[] = [];
 
   lines.push('BEGIN:VALARM');
@@ -509,7 +593,7 @@ const generateVAlarm = (reminder: Reminder): string => {
 /**
  * Generate a VTODO component as string
  */
-const generateVTodo = (task: Task): string => {
+const generateVTodo = (task: Task) => {
   const lines: string[] = [];
 
   lines.push('BEGIN:VTODO');
@@ -558,13 +642,23 @@ const generateVTodo = (task: Task): string => {
   // Tags as CATEGORIES
   if (task.tags && task.tags.length > 0) {
     const tags = getAllTags();
-    const tagNames = task.tags
+    const taskTags = task.tags
       .map((tagId) => tags.find((t) => t.id === tagId)?.name)
       .filter((name): name is string => Boolean(name));
 
-    if (tagNames.length > 0) {
-      const escaped = tagNames.map((n) => escapeICalText(n));
+    if (taskTags.length > 0) {
+      const escaped = taskTags.map((n) => escapeICalText(n));
       lines.push(`CATEGORIES:${escaped.join(',')}`);
+
+      for (const tagName of taskTags) {
+        const tag = tags.find((t) => t.name === tagName);
+        if (!tag?.color) continue;
+
+        const hexColor = toIcalHexColor(tag.color);
+        if (!hexColor) continue;
+
+        lines.push(`X-TASKS-TAG-COLOR:${escapeICalText(tagName)}|${hexColor}`);
+      }
     }
   }
 
@@ -576,6 +670,11 @@ const generateVTodo = (task: Task): string => {
   // URL (RFC 7986)
   if (task.url) {
     lines.push(`URL:${escapeICalText(task.url)}`);
+  }
+
+  // Recurrence rule (RFC 5545)
+  if (task.rrule) {
+    lines.push(`RRULE:${task.rrule}`);
   }
 
   // Reminders as VALARMs
@@ -594,7 +693,7 @@ const generateVTodo = (task: Task): string => {
 /**
  * Generate a complete VCALENDAR with VTODOs
  */
-const generateVCalendar = (vtodos: string[]): string => {
+const generateVCalendar = (vtodos: string[]) => {
   const lines: string[] = [];
   lines.push('BEGIN:VCALENDAR');
   lines.push('VERSION:2.0');
@@ -612,7 +711,7 @@ const generateVCalendar = (vtodos: string[]): string => {
 /**
  * Convert a Task to iCalendar VTODO format
  */
-export const taskToVTodo = (task: Task): string => {
+export const taskToVTodo = (task: Task) => {
   const vtodo = generateVTodo(task);
   return generateVCalendar([vtodo]);
 };
@@ -626,7 +725,7 @@ export const vtodoToTask = (
   calendarId: string,
   href?: string,
   etag?: string,
-): Task | null => {
+) => {
   try {
     const vtodos = extractVTodos(icalString);
     if (vtodos.length === 0) return null;
@@ -667,6 +766,7 @@ export const vtodoToTask = (
       percentComplete: parsed.percentComplete,
       priority: icalToPriority(parsed.priority ?? 0),
       categoryId: parsed.categories?.join(',') ?? undefined,
+      tagColorsByName: parsed.tagColorsByName,
       startDate: parsed.dtstart,
       startDateAllDay: parsed.dtstartAllDay,
       dueDate: parsed.due,
@@ -677,6 +777,7 @@ export const vtodoToTask = (
       isCollapsed: parsed.isCollapsed ?? false,
       sortOrder,
       url: parsed.url,
+      rrule: parsed.rrule,
       accountId,
       calendarId,
       synced: true,
@@ -700,7 +801,7 @@ export const generateICalUid = () => {
 /**
  * Export a single task as iCalendar format with all its child tasks
  */
-export const exportTaskAsIcs = (task: Task, childTasks: Task[] = []): string => {
+export const exportTaskAsIcs = (task: Task, childTasks: Task[] = []) => {
   const vtodos: string[] = [];
   vtodos.push(generateVTodo(task));
 
@@ -714,7 +815,7 @@ export const exportTaskAsIcs = (task: Task, childTasks: Task[] = []): string => 
 /**
  * Export multiple tasks as iCalendar format
  */
-export const exportTasksAsIcs = (tasks: Task[]): string => {
+export const exportTasksAsIcs = (tasks: Task[]) => {
   const vtodos = tasks.map((task) => generateVTodo(task));
   return generateVCalendar(vtodos);
 };
@@ -722,14 +823,14 @@ export const exportTasksAsIcs = (tasks: Task[]): string => {
 /**
  * Export tasks as JSON for backup/export
  */
-export const exportTasksAsJson = (tasks: Task[]): string => {
+export const exportTasksAsJson = (tasks: Task[]) => {
   return JSON.stringify(tasks, null, 2);
 };
 
 /**
  * Export tasks as Markdown checklist format
  */
-export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0): string => {
+export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0) => {
   let markdown = '';
 
   for (const task of tasks) {
@@ -767,7 +868,7 @@ export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0): string 
 /**
  * Export tasks as CSV format
  */
-export const exportTasksAsCsv = (tasks: Task[]): string => {
+export const exportTasksAsCsv = (tasks: Task[]) => {
   const headers = [
     'Title',
     'Description',
@@ -804,7 +905,7 @@ export const exportTasksAsCsv = (tasks: Task[]): string => {
  * Parse an ICS file and extract all tasks (VTODOs)
  * Returns parsed tasks without accountId/calendarId - caller must assign them
  */
-export const parseIcsFile = (icsContent: string): Partial<Task>[] => {
+export const parseIcsFile = (icsContent: string) => {
   try {
     const vtodos = extractVTodos(icsContent);
     const tasks: Partial<Task>[] = [];
@@ -844,6 +945,7 @@ export const parseIcsFile = (icsContent: string): Partial<Task>[] => {
         percentComplete: parsed.percentComplete,
         priority: icalToPriority(parsed.priority ?? 0),
         categoryId: parsed.categories?.join(',') ?? undefined,
+        tagColorsByName: parsed.tagColorsByName,
         startDate: parsed.dtstart,
         startDateAllDay: parsed.dtstartAllDay,
         dueDate: parsed.due,
@@ -854,6 +956,7 @@ export const parseIcsFile = (icsContent: string): Partial<Task>[] => {
         isCollapsed: parsed.isCollapsed ?? false,
         sortOrder,
         url: parsed.url,
+        rrule: parsed.rrule,
         synced: false,
         reminders,
       });
@@ -867,11 +970,56 @@ export const parseIcsFile = (icsContent: string): Partial<Task>[] => {
 };
 
 /**
- * Parse a JSON file containing tasks (exported from this app)
+ * Detect whether a parsed JSON object is a Tasks.org backup file
+ */
+const isTasksOrgBackup = (data: unknown) => {
+  if (typeof data !== 'object' || data === null) return false;
+  const inner = (data as Record<string, unknown>).data;
+  if (typeof inner !== 'object' || inner === null) return false;
+  const tasks = (inner as Record<string, unknown>).tasks;
+  if (!Array.isArray(tasks)) return false;
+  return typeof (tasks[0] as Record<string, unknown>)?.vtodo === 'string';
+};
+
+/**
+ * Parse a Tasks.org backup JSON file and extract all tasks
+ * Each task entry contains a fully-formed VCALENDAR/VTODO string in the `vtodo` field
+ */
+export const parseTasksOrgBackup = (data: unknown) => {
+  try {
+    const taskEntries = ((data as Record<string, unknown>).data as Record<string, unknown>)
+      .tasks as Record<string, unknown>[];
+
+    const result: Partial<Task>[] = [];
+
+    for (const entry of taskEntries) {
+      const vtodoContent = entry.vtodo as string;
+      if (!vtodoContent) continue;
+
+      const parsed = parseIcsFile(vtodoContent);
+      if (parsed.length > 0) {
+        result.push(parsed[0]);
+      }
+    }
+
+    return result;
+  } catch (error) {
+    log.error('Error parsing Tasks.org backup:', error);
+    return [];
+  }
+};
+
+/**
+ * Parse a JSON file containing tasks (exported from this app or Tasks.org backup)
  */
 export const parseJsonTasksFile = (jsonContent: string): Partial<Task>[] => {
   try {
     const data = JSON.parse(jsonContent);
+
+    // Detect Tasks.org backup format
+    if (isTasksOrgBackup(data)) {
+      return parseTasksOrgBackup(data);
+    }
 
     // Handle array of tasks directly
     if (Array.isArray(data)) {
