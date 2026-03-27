@@ -60,7 +60,7 @@ class CalDAVService {
   /**
    * Helper: handle common HTTP error status codes
    */
-  private handleCommonHttpErrors(response: HttpResponse, context: string = 'CalDAV'): void {
+  private handleCommonHttpErrors(response: HttpResponse, context: string = 'CalDAV') {
     if (response.status === 429) {
       throw new Error('Rate limit exceeded. Try again in a moment.');
     }
@@ -81,21 +81,21 @@ class CalDAVService {
   /**
    * Helper: convert relative URL to absolute URL
    */
-  private makeAbsoluteUrl(href: string, baseUrl: string): string {
+  private makeAbsoluteUrl(href: string, baseUrl: string) {
     return href.startsWith('http') ? href : new URL(href, baseUrl).toString();
   }
 
   /**
    * Helper: clean ETag by removing quotes
    */
-  private cleanEtag(etag: string | null | undefined): string {
+  private cleanEtag(etag: string | null | undefined) {
     return etag?.replace(/"/g, '') ?? '';
   }
 
   /**
    * Helper: normalize URL by removing trailing slash
    */
-  private normalizeUrl(url: string): string {
+  private normalizeUrl(url: string) {
     return url.replace(/\/$/, '');
   }
 
@@ -114,7 +114,7 @@ class CalDAVService {
     username: string,
     password: string,
     serverType: ServerType = 'generic',
-  ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> {
+  ) {
     const credentials: CalDAVCredentials = { username, password };
 
     // normalize server URL - strip trailing slashes and common CalDAV paths
@@ -249,7 +249,7 @@ class CalDAVService {
   /**
    * fetch calendars for an account
    */
-  async fetchCalendars(accountId: string): Promise<Calendar[]> {
+  async fetchCalendars(accountId: string) {
     const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
@@ -263,6 +263,7 @@ class CalDAVService {
     <d:getctag/>
     <d:sync-token/>
     <a:calendar-color/>
+    <a:calendar-order/>
   </d:prop>
 </d:propfind>`;
 
@@ -289,9 +290,9 @@ class CalDAVService {
         continue;
       }
 
-      // check if it's a calendar (must have 'calendar' in resourcetype)
+      // check if it's a live calendar (must have 'calendar' in resourcetype, but not 'deleted-calendar')
       const resourceType = result.props.resourcetype ?? '';
-      if (!resourceType.includes('calendar')) {
+      if (!resourceType.includes('calendar') || resourceType.includes('deleted-calendar')) {
         continue;
       }
 
@@ -313,6 +314,7 @@ class CalDAVService {
       // build absolute URL
       const calendarUrl = this.makeAbsoluteUrl(result.href, conn.serverUrl);
 
+      const serverOrder = result.props['calendar-order'];
       calendars.push({
         id: calendarUrl,
         displayName: result.props.displayname ?? 'Calendar',
@@ -322,6 +324,7 @@ class CalDAVService {
         color: normalizeHexColor(result.props['calendar-color']) ?? undefined,
         accountId,
         supportedComponents: supportedComponents.length > 0 ? supportedComponents : undefined,
+        sortOrder: serverOrder ? parseInt(serverOrder, 10) : 0,
       });
     }
 
@@ -335,7 +338,7 @@ class CalDAVService {
    * 1. calendar-query REPORT to get list of task URLs and ETags
    * 2. calendar-multiget REPORT to fetch actual calendar-data for each tasks.
    */
-  async fetchTasks(accountId: string, calendar: Calendar): Promise<Task[] | null> {
+  async fetchTasks(accountId: string, calendar: Calendar) {
     const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
@@ -466,11 +469,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
     return tasks;
   }
 
-  async createTask(
-    accountId: string,
-    calendar: Calendar,
-    task: Task,
-  ): Promise<{ href: string; etag: string } | null> {
+  async createTask(accountId: string, calendar: Calendar, task: Task) {
     const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
@@ -494,7 +493,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
     }
   }
 
-  async updateTask(accountId: string, task: Task): Promise<{ etag: string } | null> {
+  async updateTask(accountId: string, task: Task) {
     const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
@@ -520,7 +519,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
     }
   }
 
-  async deleteTask(accountId: string, task: Task): Promise<boolean> {
+  async deleteTask(accountId: string, task: Task) {
     const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
@@ -538,15 +537,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
     }
   }
 
-  async syncCalendar(
-    accountId: string,
-    calendar: Calendar,
-    localTasks: Task[],
-  ): Promise<{
-    created: Task[];
-    updated: Task[];
-    deleted: string[];
-  } | null> {
+  async syncCalendar(accountId: string, calendar: Calendar, localTasks: Task[]) {
     const remoteTasks = await this.fetchTasks(accountId, calendar);
 
     // If fetchTasks returns null, it indicates a fetch failure (not empty)
@@ -592,8 +583,8 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
   async updateCalendar(
     accountId: string,
     calendarUrl: string,
-    updates: { displayName?: string; color?: string },
-  ): Promise<{ success: boolean; failedProperties: string[] }> {
+    updates: { displayName?: string; color?: string; order?: number },
+  ) {
     const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
@@ -652,16 +643,38 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
       }
     }
 
+    // update calendar-order in a separate PROPPATCH request
+    if (updates.order !== undefined) {
+      const orderBody = `<?xml version="1.0" encoding="utf-8"?>
+<propertyupdate xmlns="DAV:">
+    <set>
+        <prop>
+            <calendar-order xmlns="http://apple.com/ns/ical/">${updates.order}</calendar-order>
+        </prop>
+    </set>
+</propertyupdate>`;
+
+      const response = await proppatch(calendarUrl, conn.credentials, orderBody);
+
+      if (response.status !== 207 && response.status !== 200) {
+        log.error(`Failed to update calendar-order: HTTP ${response.status}`);
+        failedProperties.push('calendar-order');
+      } else {
+        const orderSucceeded = this.checkPropertySuccess(response.body, 'calendar-order');
+        if (!orderSucceeded) {
+          // Non-fatal: not all servers support calendar-order
+          log.warn('Server does not support calendar-order property');
+        }
+      }
+    }
+
     return { success: failedProperties.length === 0, failedProperties };
   }
 
   /**
    * discover current-user-principal from DAV root
    */
-  private async discoverPrincipal(
-    davRootUrl: string,
-    credentials: CalDAVCredentials,
-  ): Promise<string | null> {
+  private async discoverPrincipal(davRootUrl: string, credentials: CalDAVCredentials) {
     const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
 <d:propfind xmlns:d="DAV:">
   <d:prop>
@@ -696,10 +709,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
   /**
    * discover calendar-home-set from principal URL
    */
-  private async discoverCalendarHome(
-    principalUrl: string,
-    credentials: CalDAVCredentials,
-  ): Promise<string | null> {
+  private async discoverCalendarHome(principalUrl: string, credentials: CalDAVCredentials) {
     const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
 <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
   <d:prop>
@@ -729,7 +739,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
   /**
    * check if a property update succeeded in a PROPPATCH multistatus response
    */
-  private checkPropertySuccess(responseBody: string, propertyName: string): boolean {
+  private checkPropertySuccess(responseBody: string, propertyName: string) {
     // parse the multistatus response to check if the property is in a 200 OK propstat
     const propstatMatches = responseBody.matchAll(/<propstat>([\s\S]*?)<\/propstat>/gi);
 
@@ -751,7 +761,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
   /**
    * delete a calendar from the server
    */
-  async deleteCalendar(accountId: string, calendarUrl: string): Promise<boolean> {
+  async deleteCalendar(accountId: string, calendarUrl: string) {
     const conn = connectionStore.getConnection(accountId);
     if (!conn) throw new Error('Account not connected');
 
@@ -815,7 +825,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
 
     log.info(`Calendar created successfully`);
 
-    // return the new calendar object
+    // return the new calendar object (sortOrder will be assigned by the store on add)
     return {
       id: calendarUrl,
       displayName,
@@ -823,27 +833,28 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
       color,
       accountId,
       supportedComponents: ['VTODO'],
+      sortOrder: 0,
     };
   }
 
   /**
    * disconnect an account
    */
-  disconnect(accountId: string): void {
+  disconnect(accountId: string) {
     connectionStore.deleteConnection(accountId);
   }
 
   /**
    * check if an account is connected
    */
-  isConnected(accountId: string): boolean {
+  isConnected(accountId: string) {
     return connectionStore.hasConnection(accountId);
   }
 
   /**
    * reconnect an account using stored credentials
    */
-  async reconnect(account: Account): Promise<void> {
+  async reconnect(account: Account) {
     if (!account.serverUrl || !account.username || !account.password) {
       throw new Error('Missing account credentials');
     }
