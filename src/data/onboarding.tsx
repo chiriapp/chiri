@@ -1,4 +1,3 @@
-import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Calendar from 'lucide-react/icons/calendar';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
@@ -16,9 +15,17 @@ export interface OnboardingStep {
 
 export const ONBOARDING_STEPS: OnboardingStep[] = [
   {
-    title: 'Welcome to Chiri',
-    description:
-      'A lightweight app that syncs with your CalDAV server. Keep your tasks organized across all your devices.',
+    title: 'Welcome to Chiri!',
+    description: (
+      <div className="space-y-3">
+        <p>A cross-platform CalDAV task management app.</p>
+
+        <p className="text-sm text-surface-500 dark:text-surface-400">
+          Note: This app is in active development and may contain bugs. Please report issues on
+          GitHub.
+        </p>
+      </div>
+    ),
     icon: <AppIcon className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center gap-4 py-6">
@@ -29,30 +36,9 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     ),
   },
   {
-    title: 'Alpha software notice',
-    description: (
-      <div className="space-y-3">
-        <p>
-          This app is in active development. It should be *relatively* stable, but can contain
-          missing features and occasionally you may run into a bug.
-        </p>
-
-        <p>If you encounter any issues, please report them to me on GitHub. I will answer ASAP.</p>
-      </div>
-    ),
-    icon: <AlertTriangle className="w-12 h-12 text-amber-500" />,
-    illustration: (
-      <div className="flex flex-col items-center justify-center gap-6 py-6">
-        <div className="w-16 h-16 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-          <AlertTriangle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
-        </div>
-      </div>
-    ),
-  },
-  {
     title: 'Connect your CalDAV account',
     description:
-      'Add your CalDAV server credentials to sync your tasks. We support Nextcloud, Fastmail, and any standard CalDAV server.',
+      'Add your CalDAV account to manage and sync tasks. Almost every server implementation is supported.',
     icon: <User className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center gap-4 py-6">
@@ -80,13 +66,12 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
   },
   {
     title: "You're All Set!",
-    description:
-      'Start adding tasks and stay productive. Your tasks will sync automatically in the background.',
+    description: 'Start adding tasks and stay productive.',
     icon: <CheckCircle2 className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center py-8">
         <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center animate-pulse">
-          <Sparkles className="w-10 h-10 text-white" />
+          <Sparkles className="w-10 h-10 text-primary-contrast" />
         </div>
       </div>
     ),

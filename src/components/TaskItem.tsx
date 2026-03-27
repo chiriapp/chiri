@@ -9,8 +9,9 @@ import ChevronRight from 'lucide-react/icons/chevron-right';
 import Clock from 'lucide-react/icons/clock';
 import Link from 'lucide-react/icons/link';
 import Loader from 'lucide-react/icons/loader';
+import RefreshCw from 'lucide-react/icons/refresh-cw';
 import X from 'lucide-react/icons/x';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { TaskContextMenu } from '$components/TaskContextMenu';
 import { getIconByName } from '$data/icons';
 import { useAccounts } from '$hooks/queries/useAccounts';
@@ -50,6 +51,15 @@ interface TaskBadgesRowProps {
   onTagClick: (tagId: string) => void;
   onCalendarClick: (calendarId: string) => void;
   onToggleCollapsed: (e: React.MouseEvent) => void;
+  compact: boolean;
+  badgeVisibility: {
+    startDate: boolean;
+    tags: boolean;
+    calendar: boolean;
+    url: boolean;
+    status: boolean;
+    subtasks: boolean;
+  };
 }
 
 const TaskBadgesRow = ({
@@ -60,6 +70,8 @@ const TaskBadgesRow = ({
   onTagClick,
   onCalendarClick,
   onToggleCollapsed,
+  compact,
+  badgeVisibility,
 }: TaskBadgesRowProps) => {
   const allChildTasks = getChildTasks(task.uid);
   const hiddenChildCount = !showCompletedTasks
@@ -80,53 +92,61 @@ const TaskBadgesRow = ({
     .map((tagId) => getAllTags().find((t) => t.id === tagId))
     .filter(Boolean);
 
-  if (
-    !startDateDisplay &&
-    !taskTags.length &&
-    !showCalendar &&
-    !totalSubtasks &&
-    !childCount &&
-    !task.url
-  ) {
+  const hasAnyVisibleBadge =
+    (badgeVisibility.startDate && startDateDisplay) ||
+    (badgeVisibility.tags && taskTags.length > 0) ||
+    (badgeVisibility.calendar && showCalendar) ||
+    (badgeVisibility.url && task.url) ||
+    (badgeVisibility.status && task.status === 'in-process') ||
+    (badgeVisibility.subtasks && (totalSubtasks > 0 || childCount > 0));
+
+  if (!hasAnyVisibleBadge) {
     return null;
   }
 
   const CalendarIcon = calendar ? getIconByName(calendar.icon || 'calendar') : null;
 
   return (
-    <div className="flex items-center gap-2 mt-2 flex-wrap">
-      {startDateDisplay && (
+    <div
+      className={`flex items-center gap-2 ${compact ? 'overflow-hidden flex-shrink-0' : 'mt-2 flex-wrap'}`}
+    >
+      {badgeVisibility.startDate && startDateDisplay && (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 text-surface-600 dark:text-surface-400">
           <CalendarClock className="w-3 h-3" />
           {startDateDisplay.text}
         </span>
       )}
 
-      {taskTags.map((tag) => {
-        if (!tag) return null;
-        const TagIcon = getIconByName(tag.icon || 'tag');
-        return (
-          <button
-            type="button"
-            key={tag.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              onTagClick(tag.id);
-            }}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium hover:opacity-80 transition-opacity border outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
-            style={{ borderColor: tag.color, backgroundColor: `${tag.color}15`, color: tag.color }}
-          >
-            {tag.emoji ? (
-              <span className="text-xs leading-none">{tag.emoji}</span>
-            ) : (
-              <TagIcon className="w-3 h-3" />
-            )}
-            {tag.name}
-          </button>
-        );
-      })}
+      {badgeVisibility.tags &&
+        taskTags.map((tag) => {
+          if (!tag) return null;
+          const TagIcon = getIconByName(tag.icon || 'tag');
+          return (
+            <button
+              type="button"
+              key={tag.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                onTagClick(tag.id);
+              }}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium hover:opacity-80 transition-opacity border outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+              style={{
+                borderColor: tag.color,
+                backgroundColor: `${tag.color}15`,
+                color: tag.color,
+              }}
+            >
+              {tag.emoji ? (
+                <span className="text-xs leading-none">{tag.emoji}</span>
+              ) : (
+                <TagIcon className="w-3 h-3" />
+              )}
+              {tag.name}
+            </button>
+          );
+        })}
 
-      {showCalendar && calendar && CalendarIcon && (
+      {badgeVisibility.calendar && showCalendar && calendar && CalendarIcon && (
         <button
           type="button"
           onClick={(e) => {
@@ -149,7 +169,7 @@ const TaskBadgesRow = ({
         </button>
       )}
 
-      {task.url && (
+      {badgeVisibility.url && task.url && (
         <button
           type="button"
           onClick={(e) => {
@@ -164,27 +184,30 @@ const TaskBadgesRow = ({
         </button>
       )}
 
-      {task.status === 'cancelled' && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
-          Cancelled
-        </span>
-      )}
-
-      {task.status === 'in-process' && (
+      {badgeVisibility.status && task.status === 'in-process' && (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
           <Loader className="w-3 h-3" />
           {task.percentComplete}%
         </span>
       )}
 
-      {totalSubtasks > 0 && (
+      {task.rrule && (
+        <span
+          title="Repeating task"
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 text-surface-600 dark:text-surface-400"
+        >
+          <RefreshCw className="w-3 h-3" />
+        </span>
+      )}
+
+      {badgeVisibility.subtasks && totalSubtasks > 0 && (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 text-surface-600 dark:text-surface-400">
           <CheckCircle2 className="w-3 h-3" />
           {completedSubtasks}/{totalSubtasks}
         </span>
       )}
 
-      {childCount > 0 && (
+      {badgeVisibility.subtasks && childCount > 0 && (
         <button
           type="button"
           onClick={onToggleCollapsed}
@@ -208,7 +231,7 @@ const TaskBadgesRow = ({
         </button>
       )}
 
-      {hiddenChildCount > 0 && (
+      {badgeVisibility.subtasks && hiddenChildCount > 0 && (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400">
           {hiddenChildCount} hidden {pluralize(hiddenChildCount, 'subtask')}
         </span>
@@ -234,7 +257,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
   const setActiveTagMutation = useSetActiveTag();
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveAccountMutation = useSetActiveAccount();
-  const { accentColor } = useSettingsStore();
+  const { accentColor, taskListDensity, taskBadgeVisibility } = useSettingsStore();
   const { contextMenu, handleContextMenu, handleCloseContextMenu, setContextMenu } =
     useContextMenu();
 
@@ -307,10 +330,25 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
     setSelectedTaskMutation.mutate(task.id);
   };
 
+  const [flashComplete, setFlashComplete] = useState(false);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    // For recurring tasks that will advance (not permanently complete), briefly flash
+    // the completed state so the user can tell their click registered.
+    if (task.rrule && task.status !== 'completed') {
+      setFlashComplete(true);
+      flashTimerRef.current = setTimeout(() => setFlashComplete(false), 600);
+    }
     toggleTaskCompleteMutation.mutate(task.id);
   };
+
+  useEffect(() => {
+    return () => {
+      if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
+    };
+  }, []);
 
   const handleToggleCollapsed = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -338,7 +376,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
         tabIndex={0}
         data-context-menu
         className={`
-          group relative flex items-start gap-3 pr-3 py-3 rounded-lg border transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900
+          group relative flex items-start gap-3 pr-3 ${taskListDensity === 'compact' ? 'py-2' : 'py-3'} rounded-lg border transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900
           ${contextMenu && !isOverlay ? 'bg-surface-100 dark:bg-surface-700/60' : 'bg-white dark:bg-surface-800'}
           ${isOverlay ? 'shadow-xl' : 'shadow-sm hover:shadow-md'}
           ${isSelected ? '' : task.priority === 'none' ? 'border-surface-200 dark:border-surface-700' : ''}
@@ -365,7 +403,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
             className={`
               w-5 h-5 rounded border-2 flex items-center justify-center transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
               ${
-                task.status === 'completed'
+                task.status === 'completed' || flashComplete
                   ? 'bg-primary-500 border-primary-500'
                   : task.status === 'cancelled'
                     ? 'bg-rose-400 border-rose-400 dark:bg-rose-500 dark:border-rose-500'
@@ -375,7 +413,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
               }
             `}
           >
-            {task.status === 'completed' && (
+            {(task.status === 'completed' || flashComplete) && (
               <Check className="w-4 h-4" style={{ color: checkmarkColor }} strokeWidth={3} />
             )}
             {task.status === 'cancelled' && (
@@ -388,58 +426,112 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div
-              className={`text-sm font-medium leading-5 truncate flex-1 min-w-0 ${
-                task.status === 'completed'
-                  ? 'line-through text-surface-400'
-                  : task.status === 'cancelled'
-                    ? 'line-through text-surface-400 dark:text-surface-500'
-                    : isUnstarted
-                      ? 'text-surface-500 dark:text-surface-400'
-                      : 'text-surface-800 dark:text-surface-200'
-              }`}
-            >
-              {task.title || <span className="text-surface-400 italic">Untitled task</span>}
-            </div>
-
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {dueDateDisplay && (
-                <span
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
-                  style={{
-                    backgroundColor: dueDateDisplay.bgColor,
-                    color: dueDateDisplay.textColor,
-                  }}
+          {taskListDensity === 'compact' ? (
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+                <div
+                  className={`text-sm font-medium truncate shrink min-w-0 ${
+                    task.status === 'completed'
+                      ? 'line-through text-surface-400'
+                      : task.status === 'cancelled'
+                        ? 'line-through text-surface-400 dark:text-surface-500'
+                        : isUnstarted
+                          ? 'text-surface-500 dark:text-surface-400'
+                          : 'text-surface-800 dark:text-surface-200'
+                  }`}
                 >
-                  <Clock className="w-3 h-3" />
-                  {dueDateDisplay.text}
-                </span>
+                  {task.title || <span className="text-surface-400 italic">Untitled task</span>}
+                </div>
+                <TaskBadgesRow
+                  task={task}
+                  accounts={accounts}
+                  activeCalendarId={activeCalendarId}
+                  showCompletedTasks={showCompletedTasks}
+                  onTagClick={(tagId) => setActiveTagMutation.mutate(tagId)}
+                  onCalendarClick={(calendarId) => {
+                    const account = accounts.find((a) =>
+                      a.calendars.some((c) => c.id === calendarId),
+                    );
+                    if (account) setActiveAccountMutation.mutate(account.id);
+                    setActiveCalendarMutation.mutate(calendarId);
+                  }}
+                  onToggleCollapsed={handleToggleCollapsed}
+                  compact={true}
+                  badgeVisibility={taskBadgeVisibility}
+                />
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                {dueDateDisplay && (
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+                    style={{
+                      backgroundColor: dueDateDisplay.bgColor,
+                      color: dueDateDisplay.textColor,
+                    }}
+                  >
+                    <Clock className="w-3 h-3" />
+                    {dueDateDisplay.text}
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-start justify-between gap-2">
+                <div
+                  className={`text-sm font-medium leading-5 truncate flex-1 min-w-0 ${
+                    task.status === 'completed'
+                      ? 'line-through text-surface-400'
+                      : task.status === 'cancelled'
+                        ? 'line-through text-surface-400 dark:text-surface-500'
+                        : isUnstarted
+                          ? 'text-surface-500 dark:text-surface-400'
+                          : 'text-surface-800 dark:text-surface-200'
+                  }`}
+                >
+                  {task.title || <span className="text-surface-400 italic">Untitled task</span>}
+                </div>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {dueDateDisplay && (
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+                      style={{
+                        backgroundColor: dueDateDisplay.bgColor,
+                        color: dueDateDisplay.textColor,
+                      }}
+                    >
+                      <Clock className="w-3 h-3" />
+                      {dueDateDisplay.text}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {filterCalDavDescription(task.description) && (
+                <div
+                  className={`text-xs mt-1 line-clamp-1 ${task.status === 'completed' || task.status === 'cancelled' ? 'text-surface-400 dark:text-surface-500' : 'text-surface-500 dark:text-surface-400'}`}
+                >
+                  {filterCalDavDescription(task.description)}
+                </div>
               )}
-            </div>
-          </div>
-
-          {filterCalDavDescription(task.description) && (
-            <div
-              className={`text-xs mt-1 line-clamp-1 ${task.status === 'completed' || task.status === 'cancelled' ? 'text-surface-400 dark:text-surface-500' : 'text-surface-500 dark:text-surface-400'}`}
-            >
-              {filterCalDavDescription(task.description)}
-            </div>
+              <TaskBadgesRow
+                task={task}
+                accounts={accounts}
+                activeCalendarId={activeCalendarId}
+                showCompletedTasks={showCompletedTasks}
+                onTagClick={(tagId) => setActiveTagMutation.mutate(tagId)}
+                onCalendarClick={(calendarId) => {
+                  const account = accounts.find((a) =>
+                    a.calendars.some((c) => c.id === calendarId),
+                  );
+                  if (account) setActiveAccountMutation.mutate(account.id);
+                  setActiveCalendarMutation.mutate(calendarId);
+                }}
+                onToggleCollapsed={handleToggleCollapsed}
+                compact={false}
+                badgeVisibility={taskBadgeVisibility}
+              />
+            </>
           )}
-
-          <TaskBadgesRow
-            task={task}
-            accounts={accounts}
-            activeCalendarId={activeCalendarId}
-            showCompletedTasks={showCompletedTasks}
-            onTagClick={(tagId) => setActiveTagMutation.mutate(tagId)}
-            onCalendarClick={(calendarId) => {
-              const account = accounts.find((a) => a.calendars.some((c) => c.id === calendarId));
-              if (account) setActiveAccountMutation.mutate(account.id);
-              setActiveCalendarMutation.mutate(calendarId);
-            }}
-            onToggleCollapsed={handleToggleCollapsed}
-          />
         </div>
 
         <ChevronRight className="w-5 h-5 text-surface-300 dark:text-surface-600 group-hover:text-surface-500 dark:group-hover:text-surface-400 transition-colors flex-shrink-0" />
