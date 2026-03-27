@@ -81,7 +81,6 @@ export const IconEmojiPicker = ({
           data-icon-emoji-picker-dropdown
           className="absolute z-50 mt-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg shadow-lg animate-scale-in w-[352px]"
         >
-          {/* Tabs */}
           <div className="flex border-b border-surface-200 dark:border-surface-700">
             <button
               type="button"
@@ -107,7 +106,6 @@ export const IconEmojiPicker = ({
             </button>
           </div>
 
-          {/* Content */}
           <div>
             {activeTab === 'icon' ? (
               <div className="p-2">
