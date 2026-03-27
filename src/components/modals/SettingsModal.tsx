@@ -1,22 +1,30 @@
+import BadgeCheck from 'lucide-react/icons/badge-check';
 import Bell from 'lucide-react/icons/bell';
+import Cpu from 'lucide-react/icons/cpu';
 import Database from 'lucide-react/icons/database';
 import Download from 'lucide-react/icons/download';
 import Globe from 'lucide-react/icons/globe';
+import HelpCircle from 'lucide-react/icons/help-circle';
 import Info from 'lucide-react/icons/info';
 import Keyboard from 'lucide-react/icons/keyboard';
+import Link2 from 'lucide-react/icons/link-2';
 import ListTodo from 'lucide-react/icons/list-todo';
 import Monitor from 'lucide-react/icons/monitor';
 import Palette from 'lucide-react/icons/palette';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Settings from 'lucide-react/icons/settings';
+import Sliders from 'lucide-react/icons/sliders';
+import SquarePen from 'lucide-react/icons/square-pen';
 import User from 'lucide-react/icons/user';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { AboutSettings } from '$components/settings/AboutSettings';
-import { AppearanceSettings } from '$components/settings/AppearanceSettings';
+import { BadgesSettings } from '$components/settings/BadgesSettings';
 import { BehaviorSettings } from '$components/settings/BehaviorSettings';
 import { ConnectionsSettings } from '$components/settings/ConnectionsSettings';
 import { DataSettings } from '$components/settings/DataSettings';
+import { EditorSettings } from '$components/settings/EditorSettings';
+import { LookAndFeelSettings } from '$components/settings/LookAndFeelSettings';
 import { NotificationSettings } from '$components/settings/NotificationSettings';
 import { RegionSettings } from '$components/settings/RegionSettings';
 import { ShortcutsSettings } from '$components/settings/ShortcutsSettings';
@@ -64,82 +72,51 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
     id: SettingsCategory;
     label: string;
     icon: React.ReactNode;
-    description: string;
     subtabs: SettingsSubtabInfo[];
   }[] = [
     {
       id: 'app',
       label: 'App',
       icon: <Monitor className="w-4 h-4" />,
-      description: 'Behavior, appearance, notifications, region, shortcuts, system',
       subtabs: [
+        { id: 'behavior', label: 'Behavior', icon: <Settings className="w-4 h-4" /> },
+        { id: 'data', label: 'Data', icon: <Database className="w-4 h-4" /> },
         {
-          id: 'behavior',
-          label: 'Behavior',
-          icon: <Settings className="w-4 h-4" />,
-        },
-        {
-          id: 'appearance',
-          label: 'Appearance',
-          icon: <Palette className="w-4 h-4" />,
-        },
-        {
-          id: 'notifications',
-          label: 'Notifications',
-          icon: <Bell className="w-4 h-4" />,
-        },
-        { id: 'region', label: 'Region', icon: <Globe className="w-4 h-4" /> },
-        {
-          id: 'shortcuts',
-          label: 'Shortcuts',
+          id: 'keyboard-shortcuts',
+          label: 'Keyboard shortcuts',
           icon: <Keyboard className="w-4 h-4" />,
         },
-        {
-          id: 'system',
-          label: 'System',
-          icon: <Monitor className="w-4 h-4" />,
-        },
+        { id: 'look-and-feel', label: 'Look & feel', icon: <Palette className="w-4 h-4" /> },
+        { id: 'notifications', label: 'Notifications', icon: <Bell className="w-4 h-4" /> },
+        { id: 'region', label: 'Region', icon: <Globe className="w-4 h-4" /> },
+        { id: 'system', label: 'System', icon: <Cpu className="w-4 h-4" /> },
       ],
     },
     {
       id: 'tasks',
       label: 'Tasks',
       icon: <ListTodo className="w-4 h-4" />,
-      description: 'Defaults',
       subtabs: [
-        {
-          id: 'defaults',
-          label: 'Defaults',
-          icon: <ListTodo className="w-4 h-4" />,
-        },
+        { id: 'badges', label: 'Badges', icon: <BadgeCheck className="w-4 h-4" /> },
+        { id: 'defaults', label: 'Defaults', icon: <Sliders className="w-4 h-4" /> },
+        { id: 'editor', label: 'Editor', icon: <SquarePen className="w-4 h-4" /> },
       ],
     },
     {
       id: 'accounts',
       label: 'Accounts',
       icon: <User className="w-4 h-4" />,
-      description: 'Connections, data, sync',
       subtabs: [
-        {
-          id: 'connections',
-          label: 'Connections',
-          icon: <User className="w-4 h-4" />,
-        },
-        { id: 'data', label: 'Data', icon: <Database className="w-4 h-4" /> },
+        { id: 'connections', label: 'Connections', icon: <Link2 className="w-4 h-4" /> },
         { id: 'sync', label: 'Sync', icon: <RefreshCw className="w-4 h-4" /> },
       ],
     },
     {
       id: 'misc',
-      label: 'Misc',
-      icon: <Info className="w-4 h-4" />,
-      description: 'Updates, about',
+      label: 'Help',
+      icon: <HelpCircle className="w-4 h-4" />,
       subtabs: [
-        {
-          id: 'updates',
-          label: 'Updates',
-          icon: <Download className="w-4 h-4" />,
-        },
+        { id: 'updates', label: 'Updates', icon: <Download className="w-4 h-4" /> },
         { id: 'about', label: 'About', icon: <Info className="w-4 h-4" /> },
       ],
     },
@@ -170,7 +147,7 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
         </div>
 
         <div className="flex flex-1 overflow-hidden min-h-0">
-          <div className="w-56 border-r border-surface-200 dark:border-surface-700 p-3 space-y-4 bg-white dark:bg-surface-800 rounded-l-xl overflow-y-auto overscroll-contain">
+          <div className="w-56 pr-5 border-r border-surface-200 dark:border-surface-700 p-3 space-y-4 bg-white dark:bg-surface-800 rounded-l-xl overflow-y-auto overscroll-contain">
             {categories.map((category) => (
               <div key={category.id} className="space-y-2">
                 <p className="px-2 text-xs font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-400">
@@ -217,38 +194,43 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
           </div>
 
           <div className="flex-1 p-6 overflow-y-auto overscroll-contain">
-            {activeCategory === 'tasks' && (
-              <div className="space-y-6">
-                {currentSubtab === 'defaults' && <TaskDefaultsSettings />}
-              </div>
-            )}
+            {activeCategory === 'tasks' && currentSubtab === 'badges' && <BadgesSettings />}
+            {activeCategory === 'tasks' && currentSubtab === 'defaults' && <TaskDefaultsSettings />}
+            {activeCategory === 'tasks' && currentSubtab === 'editor' && <EditorSettings />}
 
             {activeCategory === 'app' && (
-              <div className="space-y-6">
+              <>
                 {currentSubtab === 'behavior' && <BehaviorSettings />}
-                {currentSubtab === 'appearance' && <AppearanceSettings />}
-                {currentSubtab === 'notifications' && <NotificationSettings />}
-                {currentSubtab === 'region' && <RegionSettings />}
-                {currentSubtab === 'shortcuts' && (
+                {currentSubtab === 'data' && <DataSettings />}
+                {currentSubtab === 'keyboard-shortcuts' && (
                   <ShortcutsSettings onEditingShortcutChange={setIsChildModalOpen} />
                 )}
+                {currentSubtab === 'look-and-feel' && <LookAndFeelSettings />}
+                {currentSubtab === 'notifications' && <NotificationSettings />}
+                {currentSubtab === 'region' && <RegionSettings />}
                 {currentSubtab === 'system' && <SystemSettings />}
-              </div>
+              </>
             )}
 
             {activeCategory === 'accounts' && (
-              <div className="space-y-6">
+              <>
                 {currentSubtab === 'connections' && <ConnectionsSettings accounts={accounts} />}
-                {currentSubtab === 'data' && <DataSettings />}
                 {currentSubtab === 'sync' && <SyncSettings />}
-              </div>
+              </>
             )}
 
             {activeCategory === 'misc' && (
-              <div className="space-y-6">
+              <>
                 {currentSubtab === 'updates' && <UpdateSettings />}
-                {currentSubtab === 'about' && <AboutSettings />}
-              </div>
+                {currentSubtab === 'about' && (
+                  <AboutSettings
+                    onNavigateToUpdates={() => {
+                      setActiveCategory('misc');
+                      setActiveSubtabs((prev) => ({ ...prev, misc: 'updates' }));
+                    }}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>

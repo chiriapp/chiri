@@ -2,7 +2,6 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import { usePlatform } from '$hooks/usePlatform';
 import { useSettingsStore } from '$hooks/useSettingsStore';
-import { isMacPlatform } from '$utils/platform';
 
 export const SystemSettings = () => {
   const { isGNOME } = usePlatform();
@@ -11,11 +10,7 @@ export const SystemSettings = () => {
     setEnableSystemTray,
     systemTrayAppliedValue,
     setSystemTrayAppliedValue,
-    confirmBeforeQuit,
-    setConfirmBeforeQuit,
   } = useSettingsStore();
-
-  const isMac = isMacPlatform();
 
   const systemTrayChanged = enableSystemTray !== systemTrayAppliedValue;
 
@@ -35,24 +30,24 @@ export const SystemSettings = () => {
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">System</h3>
-      <div className="space-y-4 rounded-lg border border-surface-200 dark:border-surface-700 p-4 bg-white dark:bg-surface-800">
-        <div className="space-y-2">
-          <label className="flex items-center justify-between">
-            <div className="flex-1 pr-4">
-              <p className="text-sm text-surface-700 dark:text-surface-300">Enable system tray</p>
-              <p className="text-xs text-surface-500 dark:text-surface-400">
-                Show app in system tray. Requires restart.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={enableSystemTray}
-              onChange={(e) => handleSystemTrayChange(e.target.checked)}
-              className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none shrink-0"
-            />
-          </label>
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
+        <label className="flex items-center justify-between p-4">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">Enable system tray</p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              Show app in system tray. Requires restart.
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={enableSystemTray}
+            onChange={(e) => handleSystemTrayChange(e.target.checked)}
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none shrink-0"
+          />
+        </label>
 
-          {isGNOME && (
+        {isGNOME && (
+          <div className="px-4 pb-4">
             <div className="flex gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 p-3 border border-amber-200 dark:border-amber-800/50">
               <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <p className="text-xs text-amber-700 dark:text-amber-300">
@@ -68,41 +63,25 @@ export const SystemSettings = () => {
                 extension. Without it, the tray icon will not appear.
               </p>
             </div>
-          )}
-        </div>
-
-        {isMac && (
-          <label className="flex items-center justify-between">
-            <div className="flex-1 pr-4">
-              <p className="text-sm text-surface-700 dark:text-surface-300">
-                Require double-press to quit
-              </p>
-              <p className="text-xs text-surface-500 dark:text-surface-400">
-                Press ⌘Q twice within 2 seconds to quit.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={confirmBeforeQuit}
-              onChange={(e) => setConfirmBeforeQuit(e.target.checked)}
-              className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none shrink-0"
-            />
-          </label>
+          </div>
         )}
 
         {systemTrayChanged && (
-          <div className="flex items-center justify-between rounded-lg bg-blue-50 dark:bg-blue-950 p-3 border border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-blue-700 dark:text-blue-300">
-              Restart required to apply changes
-            </p>
-            <button
-              type="button"
-              onClick={handleRestart}
-              className="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset"
-            >
-              Restart Now
-            </button>
-          </div>
+          <>
+            <div className="border-t border-surface-200 dark:border-surface-700" />
+            <div className="flex items-center justify-between gap-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/50">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                Restart required to apply changes
+              </p>
+              <button
+                type="button"
+                onClick={handleRestart}
+                className="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset shrink-0"
+              >
+                Restart now
+              </button>
+            </div>
+          </>
         )}
       </div>
     </div>

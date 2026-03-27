@@ -121,7 +121,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
         </div>
       </div>
 
-      <div className="space-y-4 rounded-lg">
+      <div>
         {accounts.length === 0 ? (
           <div className="rounded-lg border border-surface-200 dark:border-surface-700 p-4">
             <p className="text-sm text-surface-500 dark:text-surface-400">
@@ -209,7 +209,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
 
                   {testResult && (
                     <div
-                      className={`p-2 rounded-md text-xs mt-3 ${
+                      className={`p-2 rounded-lg text-xs mt-3 ${
                         testResult.success
                           ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                           : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'

@@ -29,26 +29,30 @@ export const UpdateSettings = () => {
     await checkForUpdates('settings-manual');
   };
 
+  const showError = !isChecking && error && (hasManuallyChecked || error.kind === 'download');
+  const showUpToDate = hasManuallyChecked && !isChecking && !updateAvailable && !error;
+
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">Updates</h3>
 
-      {/* Current version and check section */}
-      <div className="space-y-4 rounded-lg border border-surface-200 dark:border-surface-700 p-4 bg-white dark:bg-surface-800">
-        {/* Current Version */}
-        <div>
-          <p className="text-sm text-surface-700 dark:text-surface-300 mb-1">Current Version</p>
-          <p className="text-base font-medium text-surface-800 dark:text-surface-200">{version}</p>
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
+        <div className="flex items-center justify-between p-4">
+          <p className="text-sm text-surface-700 dark:text-surface-300">Current version</p>
+          <span className="text-sm font-medium text-surface-800 dark:text-surface-200">
+            {version}
+          </span>
         </div>
 
-        {/* Auto-update setting */}
-        <label className="flex items-center justify-between">
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
+        <label className="flex items-center justify-between p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
               Check for updates automatically
             </p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              Automatically check for updates on startup
+              Check for new releases on startup
             </p>
           </div>
           <input
@@ -59,97 +63,109 @@ export const UpdateSettings = () => {
           />
         </label>
 
-        {/* Manual check button */}
-        <div>
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
+        <div className="flex items-center justify-between gap-4 p-4">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">Check for updates</p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              Look for new releases now
+            </p>
+          </div>
           <button
             type="button"
             onClick={handleManualCheck}
             disabled={isChecking}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:bg-surface-300 dark:disabled:bg-surface-700 disabled:text-surface-600 dark:disabled:text-surface-400 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 disabled:opacity-50 disabled:cursor-not-allowed text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
           >
             {isChecking ? (
               <>
                 <Loader className="w-4 h-4 animate-spin" />
-                Checking for updates...
+                Checking...
               </>
             ) : (
               <>
                 <RefreshCw className="w-4 h-4" />
-                Check for updates now
+                Check now
               </>
             )}
           </button>
         </div>
 
-        {/* Update status */}
-        {!isChecking && error && (hasManuallyChecked || error.kind === 'download') && (
-          <div className="flex items-start gap-2 p-3 bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-300 rounded-lg border border-red-200 dark:border-red-800">
-            <div>
-              <p className="text-sm font-semibold">{error.title}</p>
-              <p className="text-xs mt-1">{error.description}</p>
+        {showError && (
+          <>
+            <div className="border-t border-surface-200 dark:border-surface-700" />
+            <div className="px-4 py-3 bg-red-50 dark:bg-red-950/50">
+              <p className="text-sm font-medium text-red-700 dark:text-red-300">{error.title}</p>
+              <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{error.description}</p>
             </div>
-          </div>
+          </>
         )}
 
-        {hasManuallyChecked && !isChecking && !updateAvailable && !error && (
-          <div className="flex items-start gap-2 p-3 bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-300 rounded-lg border border-green-200 dark:border-green-800">
-            <CheckCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            <p className="text-sm">You're up to date!</p>
-          </div>
+        {showUpToDate && (
+          <>
+            <div className="border-t border-surface-200 dark:border-surface-700" />
+            <div className="flex items-center gap-2 px-4 py-3 bg-green-50 dark:bg-green-950/50">
+              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
+              <p className="text-sm text-green-700 dark:text-green-300">You're up to date!</p>
+            </div>
+          </>
         )}
       </div>
 
-      {/* Update available section - separate */}
       {updateAvailable && (
-        <div className="space-y-3 rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-4">
-          <div className="flex items-start gap-2">
+        <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
+          <div className="flex items-start gap-3 p-4">
             <Download className="w-5 h-5 mt-0.5 shrink-0 text-primary-600 dark:text-primary-400" />
-            <div className="flex-1">
+            <div>
               <p className="text-sm font-semibold text-surface-800 dark:text-surface-200">
-                Update Available: {updateAvailable.version}
+                Update available — {updateAvailable.version}
               </p>
-              <p className="text-xs text-surface-600 dark:text-surface-400 mt-1">
+              <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
                 A new version is ready to download and install.
               </p>
             </div>
           </div>
 
-          {/* Download progress */}
           {isDownloading && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-surface-600 dark:text-surface-400">
-                  Downloading update...
-                </span>
-                <span className="text-sm font-medium text-surface-900 dark:text-surface-100">
-                  {Math.round(downloadProgress)}%
-                </span>
+            <>
+              <div className="border-t border-surface-200 dark:border-surface-700" />
+              <div className="px-4 py-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-surface-600 dark:text-surface-400">
+                    Downloading update...
+                  </span>
+                  <span className="text-xs font-medium text-surface-800 dark:text-surface-200">
+                    {Math.round(downloadProgress)}%
+                  </span>
+                </div>
+                <div className="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    className="bg-primary-600 dark:bg-primary-500 h-full transition-all duration-300"
+                    style={{ width: `${downloadProgress}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-primary-600 dark:bg-primary-500 h-full transition-all duration-300"
-                  style={{ width: `${downloadProgress}%` }}
-                />
-              </div>
-            </div>
+            </>
           )}
 
-          {/* Action buttons */}
-          <div className="flex gap-2">
+          <div className="border-t border-surface-200 dark:border-surface-700" />
+
+          <div className="flex gap-2 px-4 py-3">
             <button
               type="button"
               onClick={() => setShowChangelogModal(true)}
-              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 border border-surface-200 dark:border-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 border border-surface-200 dark:border-surface-600 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <FileText className="w-4 h-4" />
-              View Changelog
+              Changelog
             </button>
 
             <button
               type="button"
               onClick={downloadAndInstall}
               disabled={isDownloading}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:bg-surface-300 dark:disabled:bg-surface-700 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               {isDownloading ? (
                 <>
@@ -159,7 +175,7 @@ export const UpdateSettings = () => {
               ) : (
                 <>
                   <Download className="w-4 h-4" />
-                  Download & Install
+                  Download & install
                 </>
               )}
             </button>
@@ -167,7 +183,6 @@ export const UpdateSettings = () => {
         </div>
       )}
 
-      {/* Changelog Modal */}
       {showChangelogModal && updateAvailable && (
         <ChangelogModal
           version={updateAvailable.version}

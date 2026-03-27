@@ -6,15 +6,20 @@ import Coffee from 'lucide-react/icons/coffee';
 import ExternalLink from 'lucide-react/icons/external-link';
 import Heart from 'lucide-react/icons/heart';
 import Loader2 from 'lucide-react/icons/loader-2';
+import MessageCircle from 'lucide-react/icons/message-circle';
+import RefreshCw from 'lucide-react/icons/refresh-cw';
 import ScrollText from 'lucide-react/icons/scroll-text';
 import Sparkles from 'lucide-react/icons/sparkles';
+import Tag from 'lucide-react/icons/tag';
 import type { ReactNode } from 'react';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import { useChangelog } from '$hooks/useChangelog';
 import { getAppInfo } from '$utils/version';
 
 const GITHUB_URL = 'https://github.com/SapphoSys/chiri';
-const ISSUES_URL = 'https://github.com/SapphoSys/chiri/issues/new';
+const ISSUES_URL = 'https://github.com/SapphoSys/chiri/issues';
+const NEW_ISSUE_URL = 'https://github.com/SapphoSys/chiri/issues/new';
+const CONTACT_URL = 'https://github.com/SapphoSys/chiri/discussions';
 
 const link = (url: string) => () => openUrl(url);
 
@@ -66,7 +71,7 @@ const LinkRow = ({
     ) : variant === 'internal' ? (
       <ChevronRight className="w-5 h-5 text-surface-400 dark:text-surface-500 group-hover:text-surface-600 dark:group-hover:text-surface-300 transition-colors flex-shrink-0" />
     ) : (
-      <ExternalLink className="w-3.5 h-3.5 text-surface-400 dark:text-surface-500 flex-shrink-0" />
+      <ExternalLink className="w-4 h-4 text-surface-400 dark:text-surface-500 flex-shrink-0" />
     )}
   </button>
 );
@@ -87,7 +92,11 @@ const Section = ({ title, children }: SectionProps) => (
   </div>
 );
 
-export const AboutSettings = () => {
+interface AboutSettingsProps {
+  onNavigateToUpdates?: () => void;
+}
+
+export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
   const { version, name, description, author } = getAppInfo();
   const {
     openChangelog,
@@ -126,14 +135,35 @@ export const AboutSettings = () => {
             loading={isFetchingChangelog}
             onClick={() => openChangelog(version)}
           />
+          {onNavigateToUpdates && (
+            <LinkRow
+              icon={<RefreshCw className="w-5 h-5" />}
+              label="Check for updates"
+              description="See if a newer version is available"
+              variant="internal"
+              onClick={onNavigateToUpdates}
+            />
+          )}
         </Section>
 
         <Section title="Support">
           <LinkRow
+            icon={<Tag className="w-5 h-5" />}
+            label="Issue tracker"
+            description="Browse open issues on GitHub"
+            onClick={link(ISSUES_URL)}
+          />
+          <LinkRow
             icon={<Bug className="w-5 h-5" />}
             label="Report a bug"
-            description="Open an issue on GitHub"
-            onClick={link(ISSUES_URL)}
+            description="Open a new issue on GitHub"
+            onClick={link(NEW_ISSUE_URL)}
+          />
+          <LinkRow
+            icon={<MessageCircle className="w-5 h-5" />}
+            label="Contact developer"
+            description="Ask a question or start a discussion"
+            onClick={link(CONTACT_URL)}
           />
         </Section>
 

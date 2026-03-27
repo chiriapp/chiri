@@ -1,6 +1,8 @@
+import { relaunch } from '@tauri-apps/plugin-process';
 import { AppSelect } from '$components/AppSelect';
 import { useSettingsStore } from '$hooks/useSettingsStore';
 import type { SubtaskDeletionBehavior } from '$types/index';
+import { isMacPlatform } from '$utils/platform';
 
 export const BehaviorSettings = () => {
   const {
@@ -18,13 +20,33 @@ export const BehaviorSettings = () => {
     setDeleteSubtasksWithParent,
     defaultAccountsExpanded,
     setDefaultAccountsExpanded,
+    confirmBeforeQuit,
+    setConfirmBeforeQuit,
+    confirmBeforeQuitAppliedValue,
+    setConfirmBeforeQuitAppliedValue,
   } = useSettingsStore();
+
+  const isMac = isMacPlatform();
+  const confirmBeforeQuitChanged = confirmBeforeQuit !== confirmBeforeQuitAppliedValue;
+
+  const handleConfirmBeforeQuitChange = (checked: boolean) => {
+    setConfirmBeforeQuit(checked);
+  };
+
+  const handleRestart = async () => {
+    try {
+      setConfirmBeforeQuitAppliedValue(confirmBeforeQuit);
+      await relaunch();
+    } catch (error) {
+      console.error('Failed to relaunch app:', error);
+    }
+  };
 
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">Behavior</h3>
-      <div className="space-y-4 rounded-lg border border-surface-200 dark:border-surface-700 p-4 bg-white dark:bg-surface-800">
-        <label className="flex items-center justify-between">
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
+        <label className="flex items-center justify-between p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
               Confirm before deleting
@@ -42,70 +64,75 @@ export const BehaviorSettings = () => {
         </label>
 
         {confirmBeforeDeletion && (
-          <div className="space-y-3 pl-4 border-l-2 border-surface-200 dark:border-surface-600">
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-surface-600 dark:text-surface-400">Tasks</span>
-              <input
-                type="checkbox"
-                checked={confirmBeforeDelete}
-                onChange={(e) => setConfirmBeforeDelete(e.target.checked)}
-                className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
-              />
-            </label>
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-surface-600 dark:text-surface-400">Calendars</span>
-              <input
-                type="checkbox"
-                checked={confirmBeforeDeleteCalendar}
-                onChange={(e) => setConfirmBeforeDeleteCalendar(e.target.checked)}
-                className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
-              />
-            </label>
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-surface-600 dark:text-surface-400">Accounts</span>
-              <input
-                type="checkbox"
-                checked={confirmBeforeDeleteAccount}
-                onChange={(e) => setConfirmBeforeDeleteAccount(e.target.checked)}
-                className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
-              />
-            </label>
-            <label className="flex items-center justify-between">
-              <span className="text-sm text-surface-600 dark:text-surface-400">Tags</span>
-              <input
-                type="checkbox"
-                checked={confirmBeforeDeleteTag}
-                onChange={(e) => setConfirmBeforeDeleteTag(e.target.checked)}
-                className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
-              />
-            </label>
+          <div className="px-4 pb-4">
+            <div className="space-y-3 pl-4 border-l-2 border-surface-200 dark:border-surface-600">
+              <label className="flex items-center justify-between">
+                <p className="text-sm text-surface-600 dark:text-surface-400">Accounts</p>
+                <input
+                  type="checkbox"
+                  checked={confirmBeforeDeleteAccount}
+                  onChange={(e) => setConfirmBeforeDeleteAccount(e.target.checked)}
+                  className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+                />
+              </label>
+              <label className="flex items-center justify-between">
+                <p className="text-sm text-surface-600 dark:text-surface-400">Calendars</p>
+                <input
+                  type="checkbox"
+                  checked={confirmBeforeDeleteCalendar}
+                  onChange={(e) => setConfirmBeforeDeleteCalendar(e.target.checked)}
+                  className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+                />
+              </label>
+              <label className="flex items-center justify-between">
+                <p className="text-sm text-surface-600 dark:text-surface-400">Tags</p>
+                <input
+                  type="checkbox"
+                  checked={confirmBeforeDeleteTag}
+                  onChange={(e) => setConfirmBeforeDeleteTag(e.target.checked)}
+                  className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+                />
+              </label>
+              <label className="flex items-center justify-between">
+                <p className="text-sm text-surface-600 dark:text-surface-400">Tasks</p>
+                <input
+                  type="checkbox"
+                  checked={confirmBeforeDelete}
+                  onChange={(e) => setConfirmBeforeDelete(e.target.checked)}
+                  className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+                />
+              </label>
+            </div>
           </div>
         )}
 
-        <div className="flex flex-row items-center justify-between gap-4">
-          <div className="min-w-0">
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
+        <div className="flex items-center justify-between gap-4 p-4">
+          <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
-              When deleting a task with subtasks
+              Deleting a task with subtasks
             </p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              Choose what happens to subtasks
+              What happens to its subtasks
             </p>
           </div>
-
           <AppSelect
             value={deleteSubtasksWithParent}
             onChange={(e) => setDeleteSubtasksWithParent(e.target.value as SubtaskDeletionBehavior)}
-            className="max-w-[200px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+            className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
           >
             <option value="delete">Delete subtasks</option>
             <option value="keep">Keep subtasks</option>
           </AppSelect>
         </div>
 
-        <label className="flex items-center justify-between">
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
+        <label className="flex items-center justify-between p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
-              Expand new accounts in the sidebar by default
+              Expand new accounts in sidebar
             </p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
               Show calendars when adding a new account
@@ -118,6 +145,46 @@ export const BehaviorSettings = () => {
             className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
         </label>
+
+        {isMac && (
+          <>
+            <div className="border-t border-surface-200 dark:border-surface-700" />
+            <label className="flex items-center justify-between p-4">
+              <div>
+                <p className="text-sm text-surface-700 dark:text-surface-300">
+                  Require double-press to quit
+                </p>
+                <p className="text-xs text-surface-500 dark:text-surface-400">
+                  Press ⌘Q twice within 2 seconds to quit. Requires restart.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={confirmBeforeQuit}
+                onChange={(e) => handleConfirmBeforeQuitChange(e.target.checked)}
+                className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none shrink-0"
+              />
+            </label>
+
+            {confirmBeforeQuitChanged && (
+              <>
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <div className="flex items-center justify-between gap-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/50">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    Restart required to apply changes
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleRestart}
+                    className="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset shrink-0"
+                  >
+                    Restart now
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

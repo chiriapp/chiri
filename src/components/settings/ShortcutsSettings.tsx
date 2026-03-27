@@ -7,6 +7,35 @@ import type { KeyboardShortcut } from '$types/index';
 import { formatShortcut } from '$utils/keyboard';
 import { isMacPlatform } from '$utils/platform';
 
+const SHORTCUT_GROUPS: { label: string; ids: string[] }[] = [
+  {
+    label: 'Tasks',
+    ids: [
+      'new-task',
+      'delete',
+      'toggle-complete',
+      'toggle-show-completed',
+      'toggle-show-unstarted',
+    ],
+  },
+  {
+    label: 'Navigation',
+    ids: [
+      'nav-up',
+      'nav-down',
+      'nav-prev-list',
+      'nav-next-list',
+      'toggle-sidebar',
+      'search',
+      'close',
+    ],
+  },
+  {
+    label: 'General',
+    ids: ['sync', 'settings', 'keyboard-shortcuts'],
+  },
+];
+
 export const ShortcutsSettings = ({
   onEditingShortcutChange,
 }: {
@@ -42,7 +71,7 @@ export const ShortcutsSettings = ({
       <div className="space-y-4">
         <div className="flex flex-row items-center justify-between">
           <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
-            Keyboard Shortcuts
+            Keyboard shortcuts
           </h3>
           <button
             type="button"
@@ -51,46 +80,61 @@ export const ShortcutsSettings = ({
             title="Reset to defaults"
           >
             <RotateCcw className="w-3 h-3" />
-            Reset to Defaults
+            Reset to defaults
           </button>
         </div>
 
-        <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden">
-          {keyboardShortcuts.map((shortcut) => (
-            <div
-              key={shortcut.id}
-              className="flex items-center justify-between py-2.5 px-3 bg-white dark:bg-surface-800 border-b border-surface-100 dark:border-surface-700 last:border-0"
-            >
-              <span className="text-sm text-surface-600 dark:text-surface-400">
-                {shortcut.description}
-              </span>
-
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5">
-                  {formatShortcut(shortcut)
-                    .split(' + ')
-                    .map((key, keyIndex, arr) => (
-                      <span key={`${key}-${shortcut.id}`} className="flex items-center">
-                        <kbd className="px-2 py-1 bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-xs font-mono text-surface-700 dark:text-surface-300">
-                          {key}
-                        </kbd>
-                        {keyIndex < arr.length - 1 && !isMacPlatform() && (
-                          <span className="text-surface-400 mx-1.5">+</span>
-                        )}
+        <div className="space-y-6">
+          {SHORTCUT_GROUPS.map((group) => {
+            const shortcuts = group.ids
+              .map((id) => keyboardShortcuts.find((s) => s.id === id))
+              .filter((s): s is KeyboardShortcut => s !== undefined);
+            if (shortcuts.length === 0) return null;
+            return (
+              <div key={group.label}>
+                <p className="text-xs font-medium text-surface-400 dark:text-surface-500 uppercase tracking-wider mb-1.5 px-0.5">
+                  {group.label}
+                </p>
+                <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden">
+                  {shortcuts.map((shortcut) => (
+                    <div
+                      key={shortcut.id}
+                      className="flex items-center justify-between py-2.5 px-3 bg-white dark:bg-surface-800 border-b border-surface-100 dark:border-surface-700 last:border-0"
+                    >
+                      <span className="text-sm text-surface-600 dark:text-surface-400">
+                        {shortcut.description}
                       </span>
-                    ))}
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                          {formatShortcut(shortcut)
+                            .split(' + ')
+                            .map((key, keyIndex, arr) => (
+                              <span key={`${key}-${shortcut.id}`} className="flex items-center">
+                                <kbd className="px-2 py-1 bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-xs font-mono text-surface-700 dark:text-surface-300">
+                                  {key}
+                                </kbd>
+                                {keyIndex < arr.length - 1 && !isMacPlatform() && (
+                                  <span className="text-surface-400 mx-1.5">+</span>
+                                )}
+                              </span>
+                            ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(shortcut)}
+                          className="p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                          title="Edit shortcut"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleOpenEdit(shortcut)}
-                  className="p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-                  title="Edit shortcut"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
