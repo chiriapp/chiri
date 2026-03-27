@@ -2,7 +2,6 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import AlertCircle from 'lucide-react/icons/alert-circle';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
-import ChevronDown from 'lucide-react/icons/chevron-down';
 import Copy from 'lucide-react/icons/copy';
 import Download from 'lucide-react/icons/download';
 import X from 'lucide-react/icons/x';
@@ -38,7 +37,6 @@ export const ExportModal = ({
   const [copied, setCopied] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
   const focusTrapRef = useFocusTrap();
 
   useModalEscapeKey(onClose);
@@ -108,9 +106,9 @@ export const ExportModal = ({
         ref={focusTrapRef}
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col animate-scale-in"
       >
-        <div className="bg-white dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700 p-6 flex-shrink-0 flex items-start justify-between rounded-t-xl">
+        <div className="flex items-start justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <div>
-            <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
+            <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
               {getExportTitle(type)}
             </h2>
             <p className="text-sm text-surface-600 dark:text-surface-400 mt-1">
@@ -120,17 +118,17 @@ export const ExportModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex-shrink-0 p-1.5 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors flex-shrink-0"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-6 space-y-4 overflow-y-auto flex-1">
+        <div className="p-4 space-y-4 overflow-y-auto flex-1">
           <div className="space-y-2">
-            <p className="text-sm font-medium text-surface-700 dark:text-surface-300">
-              Export Format
+            <p className="block text-sm font-medium text-surface-700 dark:text-surface-300">
+              Format
             </p>
             <div className="grid grid-cols-1 gap-2">
               {EXPORT_FORMATS.map((format) => (
@@ -138,7 +136,7 @@ export const ExportModal = ({
                   type="button"
                   key={format.id}
                   onClick={() => setSelectedFormat(format.id)}
-                  className={`flex items-start gap-3 p-3 rounded-lg border-2 transition-colors text-left ${
+                  className={`flex items-start gap-3 p-3 rounded-lg border transition-colors text-left ${
                     selectedFormat === format.id
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                       : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600'
@@ -146,7 +144,7 @@ export const ExportModal = ({
                 >
                   <div className="flex-1">
                     <div
-                      className={`font-medium ${
+                      className={`font-medium text-sm ${
                         selectedFormat === format.id
                           ? 'text-primary-700 dark:text-primary-300'
                           : 'text-surface-700 dark:text-surface-300'
@@ -174,35 +172,13 @@ export const ExportModal = ({
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
-
-          <button
-            type="button"
-            onClick={() => setShowPreview(!showPreview)}
-            className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-surface-50 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
-            <span className="text-sm font-medium text-surface-700 dark:text-surface-300">
-              Preview
-            </span>
-            <ChevronDown
-              className={`w-4 h-4 text-surface-500 dark:text-surface-400 transition-transform ${showPreview ? 'rotate-180' : ''}`}
-            />
-          </button>
-
-          {showPreview && (
-            <div className="bg-surface-50 dark:bg-surface-900 p-3 rounded-lg border border-surface-200 dark:border-surface-700 max-h-24 overflow-y-auto">
-              <pre className="text-xs text-surface-700 dark:text-surface-300 font-mono whitespace-pre-wrap break-words">
-                {getExportContent(selectedFormat, tasks).substring(0, 150)}
-                {getExportContent(selectedFormat, tasks).length > 150 ? '...' : ''}
-              </pre>
-            </div>
-          )}
         </div>
 
-        <div className="border-t border-surface-200 dark:border-surface-700 p-6 flex gap-3 flex-shrink-0 bg-white dark:bg-surface-800 rounded-b-xl">
+        <div className="flex justify-end gap-3 p-4 border-t border-surface-200 dark:border-surface-700">
           <button
             type="button"
             onClick={handleCopyToClipboard}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-surface-100 dark:bg-surface-700 text-surface-700 dark:text-surface-300 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset flex items-center gap-2"
           >
             <Copy className="w-4 h-4" />
             {copied ? 'Copied!' : 'Copy'}
@@ -211,7 +187,7 @@ export const ExportModal = ({
             type="button"
             onClick={handleExportToFile}
             disabled={exporting}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             {exporting ? 'Exporting...' : 'Download'}
