@@ -2,30 +2,41 @@ import type { Theme } from '$types/index';
 import { COLOR_PRESETS } from '$utils/constants';
 
 /**
+ * parse any valid CSS color string to [r, g, b] using a canvas element.
+ * returns null if the color is invalid.
+ */
+const parseCssColor = (color: string): [number, number, number] | null => {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    ctx.fillStyle = '#000000';
+    ctx.fillStyle = color;
+    // if the color was invalid, fillStyle stays as the previous value (#000000)
+    // we detect this by checking if an obviously-different color parses to black
+    const normalized = ctx.fillStyle;
+    if (!normalized.startsWith('#')) return null;
+    const hex = normalized.slice(1);
+    return [
+      parseInt(hex.slice(0, 2), 16),
+      parseInt(hex.slice(2, 4), 16),
+      parseInt(hex.slice(4, 6), 16),
+    ];
+  } catch {
+    return null;
+  }
+};
+
+/**
  * calculate the relative luminance of a color to determine appropriate contrast text color
  * uses the standard relative luminance formula from WCAG guidelines
  */
-export const getContrastTextColor = (hexColor: string): string => {
-  // handle cases where color might be invalid
-  if (!hexColor || !hexColor.startsWith('#')) {
-    return '#ffffff';
-  }
-
-  try {
-    // convert hex to RGB
-    const r = parseInt(hexColor.substring(1, 3), 16);
-    const g = parseInt(hexColor.substring(3, 5), 16);
-    const b = parseInt(hexColor.substring(5, 7), 16);
-
-    // calculate relative luminance using standard formula
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-    // return black text for bright colors, white for dark
-    return luminance > 0.5 ? '#000000' : '#ffffff';
-  } catch {
-    // fallback to white text if parsing fails
-    return '#ffffff';
-  }
+export const getContrastTextColor = (color: string) => {
+  const rgb = parseCssColor(color);
+  if (!rgb) return '#ffffff';
+  const luminance = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+  return luminance > 0.5 ? '#000000' : '#ffffff';
 };
 
 /**
@@ -35,8 +46,12 @@ export const generateTagColor = (name: string) => {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = (hash << 5) - hash + name.charCodeAt(i);
-    hash = hash & hash;
+    hash |= 0;
   }
+  // mix bits so low-bit clustering doesn't cause color collisions on short names
+  hash ^= hash >>> 16;
+  hash = Math.imul(hash, 0x45d9f3b7);
+  hash ^= hash >>> 16;
 
   return COLOR_PRESETS[Math.abs(hash) % COLOR_PRESETS.length];
 };
@@ -60,7 +75,7 @@ export const normalizeHexColor = (color: string | undefined | null): string | un
 /**
  * apply the theme to the document
  */
-export const applyTheme = (theme: Theme): void => {
+export const applyTheme = (theme: Theme) => {
   const root = document.documentElement;
 
   if (theme === 'system') {
@@ -135,31 +150,34 @@ const hslToRgb = (h: number, s: number, l: number): [number, number, number] => 
  * apply accent color as CSS custom properties
  * generates a palette of shades from the base accent color
  */
-export const applyAccentColor = (color: string): void => {
+export const applyAccentColor = (color: string) => {
   const root = document.documentElement;
 
-  // parse hex color to RGB
-  const hex = color.replace('#', '');
-  const r = Number.parseInt(hex.substring(0, 2), 16);
-  const g = Number.parseInt(hex.substring(2, 4), 16);
-  const b = Number.parseInt(hex.substring(4, 6), 16);
+  const rgb = parseCssColor(color);
+  if (!rgb) return;
+  const [r, g, b] = rgb;
 
   // convert to HSL for easier shade generation
-  const [h, s] = rgbToHsl(r, g, b);
+  const [h, s, origL] = rgbToHsl(r, g, b);
 
-  // generate shades (50-950) by varying lightness
+  // shift the lightness range toward the input color's own lightness.
+  // for mid-range colors (L≈50%) this is nearly a no-op; for light pastels or
+  // dark colors it keeps the generated palette perceptually closer to the input.
+  const lShift = (origL - 50) * 0.5;
+  const cl = (l: number) => Math.max(5, Math.min(97, l + lShift));
+
   const shades = [
-    { shade: 50, l: 97 },
-    { shade: 100, l: 94 },
-    { shade: 200, l: 86 },
-    { shade: 300, l: 76 },
-    { shade: 400, l: 64 },
-    { shade: 500, l: 50 },
-    { shade: 600, l: 42 },
-    { shade: 700, l: 35 },
-    { shade: 800, l: 28 },
-    { shade: 900, l: 22 },
-    { shade: 950, l: 14 },
+    { shade: 50, l: cl(97) },
+    { shade: 100, l: cl(94) },
+    { shade: 200, l: cl(86) },
+    { shade: 300, l: cl(76) },
+    { shade: 400, l: cl(64) },
+    { shade: 500, l: cl(50) },
+    { shade: 600, l: cl(42) },
+    { shade: 700, l: cl(35) },
+    { shade: 800, l: cl(28) },
+    { shade: 900, l: cl(22) },
+    { shade: 950, l: cl(14) },
   ];
 
   for (const { shade, l } of shades) {
