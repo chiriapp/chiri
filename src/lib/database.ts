@@ -9,8 +9,12 @@ import { loggers } from '$lib/logger';
 import type {
   Account,
   AccountRow,
+  AccountSortConfig,
+  AccountSortMode,
   Calendar,
   CalendarRow,
+  CalendarSortConfig,
+  CalendarSortMode,
   PendingDeletionRow,
   Priority,
   ReminderRow,
@@ -20,6 +24,8 @@ import type {
   SortMode,
   Tag,
   TagRow,
+  TagSortConfig,
+  TagSortMode,
   Task,
   TaskHistoryEntry,
   TaskHistoryRow,
@@ -27,7 +33,13 @@ import type {
   TaskStatus,
   UIStateRow,
 } from '$types/index';
-import { DEFAULT_SORT_CONFIG, FALLBACK_ITEM_COLOR } from '$utils/constants';
+import {
+  DEFAULT_ACCOUNT_SORT_CONFIG,
+  DEFAULT_CALENDAR_SORT_CONFIG,
+  DEFAULT_SORT_CONFIG,
+  DEFAULT_TAG_SORT_CONFIG,
+  FALLBACK_ITEM_COLOR,
+} from '$utils/constants';
 import { toAppleEpoch } from '$utils/ical';
 import { generateUUID } from '$utils/misc';
 
@@ -55,6 +67,9 @@ export interface UIState {
   selectedTaskId: string | null;
   searchQuery: string;
   sortConfig: SortConfig;
+  accountSortConfig: AccountSortConfig;
+  calendarSortConfig: CalendarSortConfig;
+  tagSortConfig: TagSortConfig;
   showCompletedTasks: boolean;
   showUnstartedTasks: boolean;
   isEditorOpen: boolean;
@@ -77,6 +92,9 @@ const defaultUIState: UIState = {
   selectedTaskId: null,
   searchQuery: '',
   sortConfig: DEFAULT_SORT_CONFIG,
+  accountSortConfig: DEFAULT_ACCOUNT_SORT_CONFIG,
+  calendarSortConfig: DEFAULT_CALENDAR_SORT_CONFIG,
+  tagSortConfig: DEFAULT_TAG_SORT_CONFIG,
   showCompletedTasks: true,
   showUnstartedTasks: true,
   isEditorOpen: false,
@@ -159,6 +177,8 @@ const rowToTask = (row: TaskRow): Task => {
     calendarId: row.calendar_id ?? '',
     synced: row.synced === 1,
     localOnly: row.local_only === null ? undefined : row.local_only === 1,
+    rrule: row.rrule ?? undefined,
+    repeatFrom: row.repeat_from ?? 0,
   };
 };
 
@@ -174,6 +194,7 @@ const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account => {
     calendars: calendars.filter((c) => c.accountId === row.id),
     lastSync: row.last_sync ? new Date(row.last_sync) : undefined,
     isActive: row.is_active === 1,
+    sortOrder: row.sort_order ?? 0,
   };
 };
 
@@ -192,6 +213,7 @@ const rowToCalendar = (row: CalendarRow): Calendar => {
     supportedComponents: row.supported_components
       ? JSON.parse(row.supported_components)
       : undefined,
+    sortOrder: row.sort_order ?? 0,
   };
 };
 
@@ -203,6 +225,7 @@ const rowToTag = (row: TagRow): Tag => {
     color: row.color,
     icon: row.icon || undefined,
     emoji: row.emoji || undefined,
+    sortOrder: row.sort_order ?? 0,
   };
 };
 
@@ -338,8 +361,9 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
       tags, category_id, priority, start_date, start_date_all_day,
       due_date, due_date_all_day, created_at, modified_at, reminders,
       parent_uid, is_collapsed, sort_order, account_id,
-      calendar_id, synced, local_only, url, status, percent_complete
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)`,
+      calendar_id, synced, local_only, url, status, percent_complete,
+      rrule, repeat_from
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)`,
     [
       task.id,
       task.uid,
@@ -369,6 +393,8 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
       task.url || null,
       task.status,
       task.percentComplete ?? null,
+      task.rrule || null,
+      task.repeatFrom ?? 0,
     ],
   );
 
@@ -403,8 +429,9 @@ export const updateTask = async (id: string, updates: Partial<Task>): Promise<Ta
       due_date = $13, due_date_all_day = $14, modified_at = $15,
       reminders = $16, parent_uid = $17, is_collapsed = $18,
       sort_order = $19, account_id = $20, calendar_id = $21, synced = $22,
-      local_only = $23, url = $24, status = $25, percent_complete = $26
-     WHERE id = $27`,
+      local_only = $23, url = $24, status = $25, percent_complete = $26,
+      rrule = $27, repeat_from = $28
+     WHERE id = $29`,
     [
       updatedTask.uid,
       updatedTask.etag || null,
@@ -434,6 +461,8 @@ export const updateTask = async (id: string, updates: Partial<Task>): Promise<Ta
       updatedTask.url || null,
       updatedTask.status,
       updatedTask.percentComplete ?? null,
+      updatedTask.rrule || null,
+      updatedTask.repeatFrom ?? 0,
       id,
     ],
   );
@@ -514,7 +543,7 @@ export const toggleTaskComplete = async (id: string) => {
 
 export const getAllTags = async (): Promise<Tag[]> => {
   const database = await getDb();
-  const rows = await database.select<TagRow[]>('SELECT * FROM tags');
+  const rows = await database.select<TagRow[]>('SELECT * FROM tags ORDER BY sort_order ASC');
   return rows.map(rowToTag);
 };
 
@@ -527,17 +556,23 @@ export const getTagById = async (id: string): Promise<Tag | undefined> => {
 export const createTag = async (tagData: Partial<Tag>): Promise<Tag> => {
   const database = await getDb();
 
+  const maxOrderRow = await database.select<[{ max_order: number | null }]>(
+    'SELECT MAX(sort_order) as max_order FROM tags',
+  );
+  const maxOrder = maxOrderRow[0]?.max_order ?? 0;
+
   const tag: Tag = {
     id: generateUUID(),
     name: tagData.name ?? 'New Tag',
     color: tagData.color ?? FALLBACK_ITEM_COLOR,
     icon: tagData.icon,
     emoji: tagData.emoji,
+    sortOrder: tagData.sortOrder || maxOrder + 100,
   };
 
   await database.execute(
-    `INSERT INTO tags (id, name, color, icon, emoji) VALUES ($1, $2, $3, $4, $5)`,
-    [tag.id, tag.name, tag.color, tag.icon || null, tag.emoji || null],
+    `INSERT INTO tags (id, name, color, icon, emoji, sort_order) VALUES ($1, $2, $3, $4, $5, $6)`,
+    [tag.id, tag.name, tag.color, tag.icon || null, tag.emoji || null, tag.sortOrder],
   );
 
   notifyListeners();
@@ -552,8 +587,15 @@ export const updateTag = async (id: string, updates: Partial<Tag>): Promise<Tag 
   const updatedTag: Tag = { ...existing, ...updates };
 
   await database.execute(
-    `UPDATE tags SET name = $1, color = $2, icon = $3, emoji = $4 WHERE id = $5`,
-    [updatedTag.name, updatedTag.color, updatedTag.icon || null, updatedTag.emoji || null, id],
+    `UPDATE tags SET name = $1, color = $2, icon = $3, emoji = $4, sort_order = $5 WHERE id = $6`,
+    [
+      updatedTag.name,
+      updatedTag.color,
+      updatedTag.icon || null,
+      updatedTag.emoji || null,
+      updatedTag.sortOrder,
+      id,
+    ],
   );
 
   notifyListeners();
@@ -586,8 +628,12 @@ export const deleteTag = async (id: string) => {
 export const getAllAccounts = async (): Promise<Account[]> => {
   const database = await getDb();
 
-  const accountRows = await database.select<AccountRow[]>('SELECT * FROM accounts');
-  const calendarRows = await database.select<CalendarRow[]>('SELECT * FROM calendars');
+  const accountRows = await database.select<AccountRow[]>(
+    'SELECT * FROM accounts ORDER BY sort_order ASC',
+  );
+  const calendarRows = await database.select<CalendarRow[]>(
+    'SELECT * FROM calendars ORDER BY sort_order ASC',
+  );
   const calendars = calendarRows.map(rowToCalendar);
 
   return accountRows.map((row) => rowToAccount(row, calendars));
@@ -601,6 +647,11 @@ export const getAccountById = async (id: string): Promise<Account | undefined> =
 export const createAccount = async (accountData: Partial<Account>): Promise<Account> => {
   const database = await getDb();
 
+  const maxOrderRow = await database.select<[{ max_order: number | null }]>(
+    'SELECT MAX(sort_order) as max_order FROM accounts',
+  );
+  const maxOrder = maxOrderRow[0]?.max_order ?? 0;
+
   const account: Account = {
     id: accountData.id ?? generateUUID(),
     name: accountData.name ?? 'New Account',
@@ -610,11 +661,12 @@ export const createAccount = async (accountData: Partial<Account>): Promise<Acco
     serverType: accountData.serverType,
     calendars: [],
     isActive: true,
+    sortOrder: accountData.sortOrder || maxOrder + 100,
   };
 
   await database.execute(
-    `INSERT INTO accounts (id, name, server_url, username, password, server_type, last_sync, is_active)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+    `INSERT INTO accounts (id, name, server_url, username, password, server_type, last_sync, is_active, sort_order)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
     [
       account.id,
       account.name,
@@ -624,6 +676,7 @@ export const createAccount = async (accountData: Partial<Account>): Promise<Acco
       account.serverType || null,
       account.lastSync ? account.lastSync.toISOString() : null,
       account.isActive ? 1 : 0,
+      account.sortOrder,
     ],
   );
 
@@ -648,8 +701,8 @@ export const updateAccount = async (
   const updatedAccount: Account = { ...existing, ...updates };
 
   await database.execute(
-    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, last_sync = $6, is_active = $7
-     WHERE id = $8`,
+    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, last_sync = $6, is_active = $7, sort_order = $8
+     WHERE id = $9`,
     [
       updatedAccount.name,
       updatedAccount.serverUrl,
@@ -658,6 +711,7 @@ export const updateAccount = async (
       updatedAccount.serverType || null,
       updatedAccount.lastSync ? updatedAccount.lastSync.toISOString() : null,
       updatedAccount.isActive ? 1 : 0,
+      updatedAccount.sortOrder,
       id,
     ],
   );
@@ -687,30 +741,37 @@ export const deleteAccount = async (id: string) => {
 export const addCalendar = async (accountId: string, calendarData: Partial<Calendar>) => {
   const database = await getDb();
 
-  const calendar: Calendar = {
-    ...calendarData,
-    id: calendarData.id ?? generateUUID(),
-    displayName: calendarData.displayName ?? 'Tasks',
-    url: calendarData.url ?? '',
-    accountId,
-  };
+  // Use provided sortOrder, or place at the end of the account's calendars
+  let sortOrder = calendarData.sortOrder ?? 0;
+  if (!sortOrder) {
+    const maxRows = await database.select<Array<{ max_order: number | null }>>(
+      'SELECT MAX(sort_order) as max_order FROM calendars WHERE account_id = $1',
+      [accountId],
+    );
+    sortOrder = (maxRows[0]?.max_order ?? 0) + 100;
+  }
 
-  log.debug(`Adding calendar: ${calendar.displayName} with ID: ${calendar.id}`);
+  const calendarId = calendarData.id ?? generateUUID();
+  const displayName = calendarData.displayName ?? 'Tasks';
+  const url = calendarData.url ?? '';
+
+  log.debug(`Adding calendar: ${displayName} with ID: ${calendarId}`);
 
   await database.execute(
-    `INSERT INTO calendars (id, account_id, display_name, url, ctag, sync_token, color, icon, emoji, supported_components)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    `INSERT INTO calendars (id, account_id, display_name, url, ctag, sync_token, color, icon, emoji, supported_components, sort_order)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
     [
-      calendar.id,
+      calendarId,
       accountId,
-      calendar.displayName,
-      calendar.url,
-      calendar.ctag || null,
-      calendar.syncToken || null,
-      calendar.color || null,
-      calendar.icon || null,
-      calendar.emoji || null,
-      calendar.supportedComponents ? JSON.stringify(calendar.supportedComponents) : null,
+      displayName,
+      url,
+      calendarData.ctag || null,
+      calendarData.syncToken || null,
+      calendarData.color || null,
+      calendarData.icon || null,
+      calendarData.emoji || null,
+      calendarData.supportedComponents ? JSON.stringify(calendarData.supportedComponents) : null,
+      sortOrder,
     ],
   );
 
@@ -718,7 +779,7 @@ export const addCalendar = async (accountId: string, calendarData: Partial<Calen
   const uiState = await getUIState();
   if (!uiState.activeCalendarId) {
     await database.execute(`UPDATE ui_state SET active_calendar_id = $1 WHERE id = 1`, [
-      calendar.id,
+      calendarId,
     ]);
   }
 
@@ -749,8 +810,9 @@ export const updateCalendar = async (calendarId: string, updates: Partial<Calend
       color = $5,
       icon = $6,
       emoji = $7,
-      supported_components = $8
-    WHERE id = $9`,
+      supported_components = $8,
+      sort_order = $9
+    WHERE id = $10`,
     [
       updated.displayName,
       updated.url,
@@ -760,6 +822,7 @@ export const updateCalendar = async (calendarId: string, updates: Partial<Calend
       updated.icon || null,
       updated.emoji || null,
       updated.supportedComponents ? JSON.stringify(updated.supportedComponents) : null,
+      updated.sortOrder ?? 0,
       calendarId,
     ],
   );
@@ -838,6 +901,18 @@ export const getUIState = async (): Promise<UIState> => {
       mode: row.sort_mode as SortMode,
       direction: row.sort_direction as SortDirection,
     },
+    accountSortConfig: {
+      mode: (row.account_sort_mode ?? 'manual') as AccountSortMode,
+      direction: (row.account_sort_direction ?? 'asc') as SortDirection,
+    },
+    calendarSortConfig: {
+      mode: (row.calendar_sort_mode ?? 'manual') as CalendarSortMode,
+      direction: (row.calendar_sort_direction ?? 'asc') as SortDirection,
+    },
+    tagSortConfig: {
+      mode: (row.tag_sort_mode ?? 'manual') as TagSortMode,
+      direction: (row.tag_sort_direction ?? 'asc') as SortDirection,
+    },
     showCompletedTasks: row.show_completed_tasks === 1,
     showUnstartedTasks: row.show_unstarted_tasks === 1,
     isEditorOpen: row.is_editor_open === 1,
@@ -914,6 +989,33 @@ export const setSortConfig = async (config: SortConfig) => {
   notifyListeners();
 };
 
+export const setAccountSortConfig = async (config: AccountSortConfig) => {
+  const database = await getDb();
+  await database.execute(
+    `UPDATE ui_state SET account_sort_mode = $1, account_sort_direction = $2 WHERE id = 1`,
+    [config.mode, config.direction],
+  );
+  notifyListeners();
+};
+
+export const setCalendarSortConfig = async (config: CalendarSortConfig) => {
+  const database = await getDb();
+  await database.execute(
+    `UPDATE ui_state SET calendar_sort_mode = $1, calendar_sort_direction = $2 WHERE id = 1`,
+    [config.mode, config.direction],
+  );
+  notifyListeners();
+};
+
+export const setTagSortConfig = async (config: TagSortConfig) => {
+  const database = await getDb();
+  await database.execute(
+    `UPDATE ui_state SET tag_sort_mode = $1, tag_sort_direction = $2 WHERE id = 1`,
+    [config.mode, config.direction],
+  );
+  notifyListeners();
+};
+
 export const setShowCompletedTasks = async (show: boolean) => {
   const database = await getDb();
   await database.execute(`UPDATE ui_state SET show_completed_tasks = $1 WHERE id = 1`, [
@@ -945,10 +1047,13 @@ const HISTORY_FIELDS = [
   'parentUid',
   'url',
   'calendarId',
+  'rrule',
+  'repeatFrom',
+  'accountId',
 ] as const;
 
 const serializeHistoryValue = (value: unknown): string | null => {
-  if (value === undefined || value === null) return null;
+  if (value === undefined || value === null || value === '') return null;
   if (value instanceof Date) return value.toISOString();
   if (Array.isArray(value)) return JSON.stringify(value);
   return String(value);
