@@ -88,59 +88,78 @@ export const TagPickerModal = ({
         )}
 
         <div className="p-2 max-h-80 overflow-y-auto">
-          {noTagsExist ? (
-            <div className="p-4 text-center text-sm text-surface-500 dark:text-surface-400">
-              No tags created yet. Create a tag from the sidebar first.
-            </div>
-          ) : allTagsAssigned ? (
-            <div className="p-4 text-center text-sm text-surface-500 dark:text-surface-400">
-              All available tags have been assigned to this task.
-            </div>
-          ) : filteredTags.length === 0 ? (
-            onCreateTag && searchQuery.trim() ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onCreateTag(searchQuery.trim());
-                  onClose();
-                }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors text-surface-700 dark:text-surface-300"
-              >
-                <Plus className="w-4 h-4 text-surface-400 flex-shrink-0" />
-                Create tag "{searchQuery.trim()}"
-              </button>
-            ) : (
-              <div className="p-4 text-center text-sm text-surface-500 dark:text-surface-400">
-                No tags match your search.
-              </div>
-            )
-          ) : (
-            <div className="space-y-1">
-              {filteredTags.map((tag) => {
-                const TagIcon = getIconByName(tag.icon || 'tag');
-                return (
+          {!noTagsExist && (
+            <>
+              {allTagsAssigned && (
+                <div className="px-3 py-2 text-sm text-surface-500 dark:text-surface-400">
+                  All available tags have been assigned.
+                </div>
+              )}
+              {!allTagsAssigned && filteredTags.length === 0 && (
+                <div className="px-3 py-2 text-sm text-surface-500 dark:text-surface-400">
+                  No tags match your search.
+                </div>
+              )}
+              {!allTagsAssigned && filteredTags.length > 0 && (
+                <div className="space-y-1">
+                  {filteredTags.map((tag) => {
+                    const TagIcon = getIconByName(tag.icon || 'tag');
+                    return (
+                      <button
+                        type="button"
+                        key={tag.id}
+                        onClick={() => handleSelectTag(tag.id)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+                      >
+                        {tag.emoji ? (
+                          <span className="text-xs leading-none" style={{ color: tag.color }}>
+                            {tag.emoji}
+                          </span>
+                        ) : (
+                          <TagIcon className="w-4 h-4" style={{ color: tag.color }} />
+                        )}
+                        <span className="text-surface-700 dark:text-surface-300">{tag.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {onCreateTag && (
+                <>
+                  {!allTagsAssigned && filteredTags.length > 0 && (
+                    <div className="border-t border-surface-200 dark:border-surface-700 my-1" />
+                  )}
                   <button
                     type="button"
-                    key={tag.id}
-                    onClick={() => handleSelectTag(tag.id)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+                    onClick={() => {
+                      onCreateTag(searchQuery.trim());
+                      onClose();
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors text-surface-700 dark:text-surface-300"
                   >
-                    {tag.emoji ? (
-                      <span className="text-xs leading-none" style={{ color: tag.color }}>
-                        {tag.emoji}
-                      </span>
-                    ) : (
-                      <TagIcon className="w-4 h-4" style={{ color: tag.color }} />
-                    )}
-                    <span className="text-surface-700 dark:text-surface-300">{tag.name}</span>
+                    <Plus className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                    {searchQuery.trim() ? `Create tag "${searchQuery.trim()}"` : 'Create a new tag'}
                   </button>
-                );
-              })}
-            </div>
+                </>
+              )}
+            </>
+          )}
+          {noTagsExist && onCreateTag && (
+            <button
+              type="button"
+              onClick={() => {
+                onCreateTag('');
+                onClose();
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors text-surface-700 dark:text-surface-300"
+            >
+              <Plus className="w-4 h-4 text-surface-400 flex-shrink-0" />
+              Create a new tag
+            </button>
           )}
         </div>
 
-        <div className="flex justify-end p-4 border-t border-surface-200 dark:border-surface-700">
+        <div className="flex justify-end p-3 border-t border-surface-200 dark:border-surface-700">
           <button
             type="button"
             onClick={onClose}

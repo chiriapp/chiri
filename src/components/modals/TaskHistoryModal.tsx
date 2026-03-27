@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import Activity from 'lucide-react/icons/activity';
 import AlignLeft from 'lucide-react/icons/align-left';
@@ -11,6 +12,10 @@ import FolderSync from 'lucide-react/icons/folder-sync';
 import History from 'lucide-react/icons/history';
 import Link from 'lucide-react/icons/link';
 import Loader from 'lucide-react/icons/loader';
+import Network from 'lucide-react/icons/network';
+import Repeat from 'lucide-react/icons/repeat';
+import RotateCcw from 'lucide-react/icons/rotate-ccw';
+import Server from 'lucide-react/icons/server';
 import Sparkles from 'lucide-react/icons/sparkles';
 import Tag from 'lucide-react/icons/tag';
 import Type from 'lucide-react/icons/type';
@@ -21,6 +26,7 @@ import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import { useSettingsStore } from '$hooks/useSettingsStore';
 import type { TaskHistoryEntry } from '$types/index';
 import { formatDate, formatTime } from '$utils/date';
+import { rruleToText } from '$utils/recurrence';
 
 const FIELD_LABELS: Record<string, string> = {
   created: 'Created',
@@ -37,6 +43,10 @@ const FIELD_LABELS: Record<string, string> = {
   parentUid: 'Parent task',
   url: 'URL',
   calendarId: 'Calendar',
+  rrule: 'Recurrence',
+  repeatFrom: 'Repeat from',
+  accountId: 'Account',
+  subtask: 'Subtask',
 };
 
 const FIELD_ICONS: Record<string, LucideIcon> = {
@@ -54,9 +64,13 @@ const FIELD_ICONS: Record<string, LucideIcon> = {
   parentUid: CornerDownRight,
   url: Link,
   calendarId: FolderSync,
+  rrule: Repeat,
+  repeatFrom: RotateCcw,
+  accountId: Server,
+  subtask: Network,
 };
 
-const formatHistoryValue = (field: string, value: string | null): string => {
+const formatHistoryValue = (field: string, value: string | null): ReactNode => {
   if (value === null) return 'None';
   if (field === 'completed') return value === 'true' ? 'Completed' : 'Not completed'; // legacy
   if (field === 'status') {
@@ -99,15 +113,30 @@ const formatHistoryValue = (field: string, value: string | null): string => {
     if (!value) return 'Empty';
     return value.length > 80 ? `${value.slice(0, 80)}…` : value;
   }
+  if (field === 'rrule') {
+    try {
+      return rruleToText(value);
+    } catch {
+      return value;
+    }
+  }
+  if (field === 'repeatFrom') {
+    return value === '1' ? 'Completion date' : 'Due date';
+  }
+  if (field === 'subtask') {
+    return value.trim() ? value : <span className="italic">Untitled task</span>;
+  }
   return value;
 };
 
 const HistoryEntry = ({
   entry,
   timeFormat,
+  isLast,
 }: {
   entry: TaskHistoryEntry;
   timeFormat: '12' | '24';
+  isLast: boolean;
 }) => {
   const label = FIELD_LABELS[entry.field] ?? entry.field;
   const Icon = FIELD_ICONS[entry.field] ?? History;
@@ -117,9 +146,9 @@ const HistoryEntry = ({
     <div className="flex gap-3">
       <div className="flex flex-col items-center pt-1 shrink-0">
         <div className="w-2 h-2 rounded-full bg-surface-300 dark:bg-surface-600" />
-        <div className="w-px flex-1 bg-surface-200 dark:bg-surface-700 mt-1" />
+        {!isLast && <div className="w-px flex-1 bg-surface-200 dark:bg-surface-700 mt-1" />}
       </div>
-      <div className="flex-1 pb-4 min-w-0">
+      <div className={`flex-1 min-w-0 ${!isLast ? 'pb-4' : ''}`}>
         <div className="flex items-center gap-1.5 text-sm font-medium text-surface-700 dark:text-surface-300">
           <Icon className="w-3.5 h-3.5 shrink-0 text-surface-400 dark:text-surface-500" />
           <span>{label}</span>
@@ -134,7 +163,7 @@ const HistoryEntry = ({
         </div>
         {!isCreated && (
           <div className="text-xs text-surface-500 dark:text-surface-400 mt-0.5 pl-5">
-            {entry.oldValue !== null && (
+            {entry.oldValue !== null && entry.oldValue !== '' && (
               <>
                 <span className="line-through">
                   {formatHistoryValue(entry.field, entry.oldValue)}
@@ -204,8 +233,13 @@ export const TaskHistoryModal = ({
             <p className="text-sm text-surface-400 dark:text-surface-500">No history yet.</p>
           ) : (
             <div>
-              {history.map((entry) => (
-                <HistoryEntry key={entry.id} entry={entry} timeFormat={timeFormat} />
+              {history.map((entry, index) => (
+                <HistoryEntry
+                  key={entry.id}
+                  entry={entry}
+                  timeFormat={timeFormat}
+                  isLast={index === history.length - 1}
+                />
               ))}
             </div>
           )}

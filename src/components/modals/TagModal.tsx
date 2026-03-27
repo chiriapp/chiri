@@ -19,12 +19,13 @@ export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
   const { data: tags = [] } = useTags();
   const createTagMutation = useCreateTag();
   const updateTagMutation = useUpdateTag();
-  const { accentColor } = useSettingsStore();
+  const { defaultTagColor, accentColor } = useSettingsStore();
 
   const existingTag = tagId ? tags.find((t) => t.id === tagId) : null;
 
+  const resolvedDefaultTagColor = defaultTagColor === 'accent' ? accentColor : defaultTagColor;
   const [name, setName] = useState(existingTag?.name || initialName || '');
-  const [color, setColor] = useState(existingTag?.color ?? accentColor);
+  const [color, setColor] = useState(existingTag?.color ?? resolvedDefaultTagColor);
   const [icon, setIcon] = useState(existingTag?.icon || 'tag');
   const [emoji, setEmoji] = useState(existingTag?.emoji || '');
   const focusTrapRef = useFocusTrap();

@@ -9,7 +9,6 @@ import {
   startOfMonth,
   subMonths,
 } from 'date-fns';
-import { AppSelect } from '$components/AppSelect';
 import ChevronLeft from 'lucide-react/icons/chevron-left';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Clock from 'lucide-react/icons/clock';
@@ -17,9 +16,9 @@ import Sun from 'lucide-react/icons/sun';
 import Trash2 from 'lucide-react/icons/trash-2';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
+import { AppSelect } from '$components/AppSelect';
 import { settingsStore } from '$context/settingsContext';
 import { useFocusTrap } from '$hooks/useFocusTrap';
-import { formatMonthYear } from '$utils/date';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import {
   createAllDayDate,
@@ -31,6 +30,7 @@ import {
   updateTimeComponent,
 } from '$utils/calendar';
 import { DEFAULT_TIME } from '$utils/constants';
+import { formatMonthYear } from '$utils/date';
 
 interface DatePickerModalProps {
   isOpen: boolean;
@@ -40,6 +40,7 @@ interface DatePickerModalProps {
   title: string;
   allDay?: boolean;
   onAllDayChange?: (allDay: boolean) => void;
+  hideTimeControls?: boolean;
 }
 
 export const DatePickerModal = ({
@@ -50,6 +51,7 @@ export const DatePickerModal = ({
   title,
   allDay = false,
   onAllDayChange,
+  hideTimeControls = false,
 }: DatePickerModalProps) => {
   const [currentMonth, setCurrentMonth] = useState(value ? new Date(value) : new Date());
   const [localValue, setLocalValue] = useState<Date | undefined>(value);
@@ -134,8 +136,8 @@ export const DatePickerModal = ({
     const newDate = localAllDay
       ? createAllDayDate(date)
       : setDateTime(date, selectedTime.hours, selectedTime.minutes);
-    onChange(newDate, localAllDay);
-    onClose();
+    setLocalValue(newDate);
+    setCurrentMonth(newDate);
   };
 
   const handleClear = () => {
@@ -184,7 +186,6 @@ export const DatePickerModal = ({
         </div>
 
         <div className="p-4">
-          {/* Quick select buttons */}
           <div className="flex gap-2 mb-4">
             <button
               type="button"
@@ -209,7 +210,6 @@ export const DatePickerModal = ({
             </button>
           </div>
 
-          {/* Month navigation */}
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
@@ -230,7 +230,6 @@ export const DatePickerModal = ({
             </button>
           </div>
 
-          {/* Days of week header */}
           <div className="grid grid-cols-7 gap-1 mb-2">
             {daysOfWeek.map((day, idx) => (
               <div
@@ -242,7 +241,6 @@ export const DatePickerModal = ({
             ))}
           </div>
 
-          {/* Calendar days */}
           <div className="grid grid-cols-7 gap-1 mb-4">
             {paddedDays.map((day, index) => {
               if (!day) {
@@ -277,27 +275,27 @@ export const DatePickerModal = ({
             })}
           </div>
 
-          {/* All Day Toggle */}
-          <div className="flex items-center gap-2 py-3 border-t border-surface-200 dark:border-surface-700">
-            <Sun className="w-4 h-4 text-surface-400" />
-            <span className="text-sm text-surface-600 dark:text-surface-400">All day</span>
-            <button
-              type="button"
-              onClick={handleAllDayToggle}
-              className={`ml-auto relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
-                localAllDay ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
-              }`}
-            >
-              <span
-                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  localAllDay ? 'translate-x-4' : 'translate-x-0'
+          {!hideTimeControls && (
+            <div className="flex items-center gap-2 py-3 border-t border-surface-200 dark:border-surface-700">
+              <Sun className="w-4 h-4 text-surface-400" />
+              <span className="text-sm text-surface-600 dark:text-surface-400">All day</span>
+              <button
+                type="button"
+                onClick={handleAllDayToggle}
+                className={`ml-auto relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+                  localAllDay ? 'bg-primary-600' : 'bg-surface-300 dark:bg-surface-600'
                 }`}
-              />
-            </button>
-          </div>
+              >
+                <span
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    localAllDay ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          )}
 
-          {/* Time Picker - hidden when all day */}
-          {!localAllDay && (
+          {!hideTimeControls && !localAllDay && (
             <div className="flex items-center gap-2 py-3 border-t border-surface-200 dark:border-surface-700">
               <Clock className="w-4 h-4 text-surface-400" />
               <span className="text-sm text-surface-600 dark:text-surface-400">Time</span>
@@ -332,7 +330,6 @@ export const DatePickerModal = ({
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex justify-end gap-3 p-4 border-t border-surface-200 dark:border-surface-700">
           <button
             type="button"

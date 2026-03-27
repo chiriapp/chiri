@@ -17,10 +17,12 @@ interface CreateCalendarModalProps {
 
 export const CreateCalendarModal = ({ accountId, onClose }: CreateCalendarModalProps) => {
   const addCalendarMutation = useAddCalendar();
-  const { accentColor } = useSettingsStore();
+  const { defaultCalendarColor, accentColor } = useSettingsStore();
 
+  const resolvedDefaultCalendarColor =
+    defaultCalendarColor === 'accent' ? accentColor : defaultCalendarColor;
   const [displayName, setDisplayName] = useState('');
-  const [color, setColor] = useState(accentColor);
+  const [color, setColor] = useState(resolvedDefaultCalendarColor);
   const [icon, setIcon] = useState('calendar');
   const [emoji, setEmoji] = useState('');
   const [isLoading, setIsLoading] = useState(false);

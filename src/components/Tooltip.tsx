@@ -15,6 +15,7 @@ interface TooltipProps {
   delay?: number;
   position?: 'top' | 'bottom' | 'left' | 'right';
   className?: string;
+  triggerClassName?: string;
   allowInModal?: boolean;
 }
 
@@ -24,6 +25,7 @@ export const Tooltip = ({
   delay = 0,
   position = 'top',
   className = '',
+  triggerClassName = '',
   allowInModal = false,
 }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -185,7 +187,7 @@ export const Tooltip = ({
         ref={triggerRef}
         onMouseEnter={showTooltip}
         onMouseLeave={hideTooltip}
-        className="inline-flex"
+        className={`inline-flex ${triggerClassName}`}
         role="tooltip"
       >
         {children}

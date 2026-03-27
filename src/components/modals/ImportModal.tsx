@@ -272,9 +272,14 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
             ) : (
               <>
                 <Upload className="w-8 h-8 mx-auto text-surface-400 mb-2" />
-                <p className="text-surface-600 dark:text-surface-400">
-                  Drop an .ics or .json file here, or click to select
-                </p>
+                <div className="space-y-1">
+                  <p className="text-surface-600 dark:text-surface-400 font-semibold">
+                    Drop an .ics, .json, or Tasks.org backup file here
+                  </p>
+                  <p className="text-surface-600 dark:text-surface-400 text-sm">
+                    Or click to select a file
+                  </p>
+                </div>
               </>
             )}
             <input
@@ -298,7 +303,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
               <button
                 type="button"
                 onClick={() => setShowTaskList(!showTaskList)}
-                className="w-full flex items-center justify-between text-sm font-medium text-surface-700 dark:text-surface-300 mb-2 hover:text-surface-900 dark:hover:text-surface-100 transition-colors"
+                className="w-full flex items-center justify-between text-sm font-medium text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 transition-colors"
               >
                 <span>
                   Found {parsedTasks.length} {pluralize(parsedTasks.length, 'task')}

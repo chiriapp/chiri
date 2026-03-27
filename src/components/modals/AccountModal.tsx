@@ -20,10 +20,9 @@ import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
 import { caldavService } from '$lib/caldav';
 import { loggers } from '$lib/logger';
-import { createTag, getAllTags } from '$lib/store/tags';
+import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
 import type { Account, Calendar, ServerType } from '$types/index';
-import { generateTagColor } from '$utils/color';
 import { pluralize } from '$utils/format';
 import { generateUUID, isVikunjaServer } from '$utils/misc';
 import type { CalDAVConfig } from '$utils/mobileconfig';
@@ -84,28 +83,9 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   }
 
   /**
-   * ensure a tag exists by name, returns the tag ID
-   */
-  const ensureTagExists = (tagName: string): string => {
-    const currentTags = getAllTags();
-    const existing = currentTags.find((t) => t.name.toLowerCase() === tagName.toLowerCase());
-
-    if (existing) {
-      return existing.id;
-    }
-
-    const newTag = createTag({
-      name: tagName,
-      color: generateTagColor(tagName),
-    });
-
-    return newTag.id;
-  };
-
-  /**
    * show warning dialog for Vikunja servers
    */
-  const showVikunjaWarning = async (): Promise<boolean> => {
+  const showVikunjaWarning = async () => {
     return await confirm({
       title: 'Vikunja server detected',
       message: (

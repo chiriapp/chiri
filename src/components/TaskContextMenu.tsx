@@ -1,10 +1,10 @@
 import Ban from 'lucide-react/icons/ban';
-import CalendarMove from 'lucide-react/icons/folder-sync';
 import Check from 'lucide-react/icons/check';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Edit2 from 'lucide-react/icons/edit-2';
 import Flag from 'lucide-react/icons/flag';
+import CalendarMove from 'lucide-react/icons/folder-sync';
 import ListPlus from 'lucide-react/icons/list-plus';
 import Loader from 'lucide-react/icons/loader';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
@@ -15,10 +15,7 @@ import { ExportModal } from '$components/modals/ExportModal';
 import { MoveToCalendarModal } from '$components/modals/MoveToCalendarModal';
 import { SubtaskModal } from '$components/modals/SubtaskModal';
 import { useAccounts } from '$hooks/queries/useAccounts';
-import {
-  useAddSubtask,
-  useUpdateTask,
-} from '$hooks/queries/useTasks';
+import { useCreateTask, useUpdateTask } from '$hooks/queries/useTasks';
 import { useSetSelectedTask } from '$hooks/queries/useUIState';
 import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
 import { exportTaskAndChildren } from '$lib/store/tasks';
@@ -40,7 +37,7 @@ export const TaskContextMenu = ({
 }: TaskContextMenuProps) => {
   const { data: accounts = [] } = useAccounts();
   const updateTaskMutation = useUpdateTask();
-  const addSubtaskMutation = useAddSubtask();
+  const createTaskMutation = useCreateTask();
   const setSelectedTaskMutation = useSetSelectedTask();
   const { confirmAndDelete } = useConfirmTaskDelete();
 
@@ -48,16 +45,27 @@ export const TaskContextMenu = ({
   const [showSubtaskModal, setShowSubtaskModal] = useState(false);
   const [showMoveToCalendarModal, setShowMoveToCalendarModal] = useState(false);
   const [isMenuHidden, setIsMenuHidden] = useState(false);
-  const [priorityFlyoutPos, setPriorityFlyoutPos] = useState<{ x: number; y: number; useRight?: boolean } | null>(null);
+  const [priorityFlyoutPos, setPriorityFlyoutPos] = useState<{
+    x: number;
+    y: number;
+    useRight?: boolean;
+  } | null>(null);
   const priorityHideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [statusFlyoutPos, setStatusFlyoutPos] = useState<{ x: number; y: number; useRight?: boolean } | null>(null);
+  const [statusFlyoutPos, setStatusFlyoutPos] = useState<{
+    x: number;
+    y: number;
+    useRight?: boolean;
+  } | null>(null);
   const statusHideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Clear timers on unmount
-  useEffect(() => () => {
-    clearTimeout(priorityHideTimer.current);
-    clearTimeout(statusHideTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      clearTimeout(priorityHideTimer.current);
+      clearTimeout(statusHideTimer.current);
+    },
+    [],
+  );
 
   const allCalendars = accounts.flatMap((a) => a.calendars);
 
@@ -125,9 +133,9 @@ export const TaskContextMenu = ({
 
   const STATUS_OPTIONS = [
     { value: 'needs-action' as const, label: 'Needs Action', Icon: RotateCcw },
-    { value: 'in-process'   as const, label: 'In Process',   Icon: Loader },
-    { value: 'completed'    as const, label: 'Completed',    Icon: CheckCircle2 },
-    { value: 'cancelled'    as const, label: 'Cancelled',    Icon: Ban },
+    { value: 'in-process' as const, label: 'In Process', Icon: Loader },
+    { value: 'completed' as const, label: 'Completed', Icon: CheckCircle2 },
+    { value: 'cancelled' as const, label: 'Cancelled', Icon: Ban },
   ];
 
   const handleStatusMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -259,13 +267,16 @@ export const TaskContextMenu = ({
             </button>
           </div>
 
-          {/* Priority flyout — appears on hover, to the right (or left if no space) */}
           {priorityFlyoutPos && (
             <div
               data-context-menu-content
               role="menu"
               className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-[60] min-w-[140px] animate-scale-in"
-              style={priorityFlyoutPos.useRight ? { right: priorityFlyoutPos.x, top: priorityFlyoutPos.y } : { left: priorityFlyoutPos.x, top: priorityFlyoutPos.y }}
+              style={
+                priorityFlyoutPos.useRight
+                  ? { right: priorityFlyoutPos.x, top: priorityFlyoutPos.y }
+                  : { left: priorityFlyoutPos.x, top: priorityFlyoutPos.y }
+              }
               onMouseEnter={() => clearTimeout(priorityHideTimer.current)}
               onMouseLeave={handlePriorityMouseLeave}
             >
@@ -291,13 +302,16 @@ export const TaskContextMenu = ({
             </div>
           )}
 
-          {/* Status flyout */}
           {statusFlyoutPos && (
             <div
               data-context-menu-content
               role="menu"
               className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-[60] min-w-[160px] animate-scale-in"
-              style={statusFlyoutPos.useRight ? { right: statusFlyoutPos.x, top: statusFlyoutPos.y } : { left: statusFlyoutPos.x, top: statusFlyoutPos.y }}
+              style={
+                statusFlyoutPos.useRight
+                  ? { right: statusFlyoutPos.x, top: statusFlyoutPos.y }
+                  : { left: statusFlyoutPos.x, top: statusFlyoutPos.y }
+              }
               onMouseEnter={() => clearTimeout(statusHideTimer.current)}
               onMouseLeave={handleStatusMouseLeave}
             >
@@ -345,7 +359,15 @@ export const TaskContextMenu = ({
             setShowSubtaskModal(false);
             setContextMenu(null);
           }}
-          onAdd={(title) => addSubtaskMutation.mutate({ taskId: task.id, title })}
+          onAdd={(title) =>
+            createTaskMutation.mutate({
+              title,
+              parentUid: task.uid,
+              accountId: task.accountId,
+              calendarId: task.calendarId,
+              priority: 'none',
+            })
+          }
         />
       )}
 
@@ -360,7 +382,6 @@ export const TaskContextMenu = ({
           }}
         />
       )}
-
     </>
   );
 };
