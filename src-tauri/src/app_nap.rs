@@ -9,6 +9,7 @@
 
 #[cfg(target_os = "macos")]
 pub fn disable_app_nap() {
+    use crate::logging;
     use objc2_foundation::{NSActivityOptions, NSProcessInfo, NSString};
 
     // NSActivityUserInitiated = 0x00FFFFFF
@@ -31,6 +32,18 @@ pub fn disable_app_nap() {
     // The OS cleans this up when the app terminates.
     Box::leak(Box::new(activity));
 
-    println!("[AppNap] Activity assertion started (NSActivityUserInitiated)");
-    println!("[AppNap] Periodic sync and notifications will continue when window is hidden");
+    log::info!(
+        "{}",
+        logging::scoped_message(
+            "AppNap",
+            "Activity assertion started (NSActivityUserInitiated)"
+        )
+    );
+    log::info!(
+        "{}",
+        logging::scoped_message(
+            "AppNap",
+            "Periodic sync and notifications will continue when window is hidden",
+        )
+    );
 }
