@@ -135,7 +135,7 @@ export const SidebarContextMenu = ({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
           >
             <Edit2 className="w-4 h-4" />
-            Edit
+            Edit Account
           </button>
 
           <div className="border-t border-surface-200 dark:border-surface-700" />
@@ -163,7 +163,7 @@ export const SidebarContextMenu = ({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
           >
             <Trash2 className="w-4 h-4" />
-            Delete
+            Remove
           </button>
         </>
       )}
@@ -217,7 +217,7 @@ export const SidebarContextMenu = ({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
           >
             <Edit2 className="w-4 h-4" />
-            Edit
+            Edit Calendar
           </button>
 
           <div className="border-t border-surface-200 dark:border-surface-700" />
@@ -231,7 +231,7 @@ export const SidebarContextMenu = ({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
           >
             <Share2 className="w-4 h-4" />
-            Export
+            Export Tasks
           </button>
 
           <div className="border-t border-surface-200 dark:border-surface-700" />
@@ -293,7 +293,7 @@ export const SidebarContextMenu = ({
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700"
           >
             <Edit2 className="w-4 h-4" />
-            Edit
+            Edit Tag
           </button>
 
           <div className="border-t border-surface-200 dark:border-surface-700" />

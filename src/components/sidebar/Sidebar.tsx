@@ -88,18 +88,20 @@ export const Sidebar = ({
   const initializedAccountIdsRef = useRef<Set<string>>(new Set(expandedAccountIds));
 
   // Initialize expanded accounts: new accounts should follow defaultAccountsExpanded setting
-  const newAccountIds = accounts
-    .map((a) => a.id)
-    .filter((id) => !initializedAccountIdsRef.current.has(id));
+  useEffect(() => {
+    const newAccountIds = accounts
+      .map((a) => a.id)
+      .filter((id) => !initializedAccountIdsRef.current.has(id));
 
-  if (newAccountIds.length > 0) {
-    for (const id of newAccountIds) {
-      initializedAccountIdsRef.current.add(id);
+    if (newAccountIds.length > 0) {
+      for (const id of newAccountIds) {
+        initializedAccountIdsRef.current.add(id);
+      }
+      if (defaultAccountsExpanded) {
+        setExpandedAccountIds([...expandedAccountIds, ...newAccountIds]);
+      }
     }
-    if (defaultAccountsExpanded) {
-      setExpandedAccountIds([...expandedAccountIds, ...newAccountIds]);
-    }
-  }
+  }, [accounts, defaultAccountsExpanded, expandedAccountIds, setExpandedAccountIds]);
 
   // Convert expandedAccountIds array to a Set for efficient lookups
   const expandedAccounts = useMemo(() => new Set(expandedAccountIds), [expandedAccountIds]);
@@ -220,7 +222,6 @@ export const Sidebar = ({
         style={{ width: isCollapsed ? 48 : width }}
         onClick={handleCloseContextMenu}
       >
-        {/* Resize handle */}
         {!isCollapsed && !isTransitioning && (
           // biome-ignore lint/a11y/noStaticElementInteractions: Resize handle requires mouse events for drag functionality
           <div
@@ -309,7 +310,6 @@ export const Sidebar = ({
           </div>
         )}
 
-        {/* Collapsed state - show icons for navigation */}
         {isCollapsed && (
           <SidebarCollapsedView
             accounts={accounts}
@@ -335,7 +335,6 @@ export const Sidebar = ({
         )}
       </div>
 
-      {/* Context menu */}
       {contextMenu && (
         <SidebarContextMenu
           contextMenu={contextMenu}
