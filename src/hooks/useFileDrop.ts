@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { platform } from '@tauri-apps/plugin-os';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { loggers } from '$lib/logger';
 import { type CalDAVConfig, parseAppleConfigProfile } from '$utils/mobileconfig';
@@ -9,7 +10,7 @@ const log = loggers.fileDrop;
 // Supported file extensions for import
 const SUPPORTED_EXTENSIONS = ['.ics', '.ical', '.json', '.mobileconfig'];
 
-const isSupportedFile = (filename: string): boolean => {
+const isSupportedFile = (filename: string) => {
   const lower = filename.toLowerCase();
   return SUPPORTED_EXTENSIONS.some((ext) => lower.endsWith(ext));
 };
@@ -104,18 +105,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
         try {
           const rawBytes = await invoke<number[]>('read_file_bytes', { path: filePath });
           const content = new TextDecoder('utf-8').decode(new Uint8Array(rawBytes));
-          if (isJson) {
-            try {
-              const parsed = JSON.parse(content);
-              if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
-                onFileDrop?.({ name: fileName, content });
-              }
-            } catch {
-              // not valid JSON, ignore
-            }
-          } else {
-            onFileDrop?.({ name: fileName, content });
-          }
+          onFileDrop?.({ name: fileName, content });
         } catch (err) {
           log.error('Failed to read dropped file:', err);
         }
@@ -126,12 +116,15 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
 
   // Register Tauri drop event listeners for Linux (WebKitGTK).
   // On Linux, dragDropEnabled: true in tauri.linux.conf.json disables HTML5 DnD and enables
-  // these Tauri events instead. On macOS/Windows, dragDropEnabled: false means these events
-  // never fire, so both mechanisms can safely coexist without platform detection.
+  // these Tauri events instead. On macOS/Windows, we must NOT register these listeners: even
+  // with dragDropEnabled: false, registering them causes Tauri to intercept drags at the
+  // native level and empties e.dataTransfer.files, breaking HTML5 DnD.
   useEffect(() => {
     const unlisteners: Array<() => void> = [];
 
     const setup = async () => {
+      if ((await platform()) !== 'linux') return;
+
       const unlistenEnter = await listen('tauri://drag-enter', () => {
         tauriDragActive.current = true;
         setIsDragOver(true);
@@ -167,7 +160,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
   // Check if dragged files are supported
   // Note: In Tauri/WebKit, dataTransfer.items is empty during drag for security reasons
   // We can only show a generic message listing all supported file types
-  const checkDraggedFiles = useCallback((e: React.DragEvent): boolean => {
+  const checkDraggedFiles = useCallback((e: React.DragEvent) => {
     const types = e.dataTransfer?.types || [];
     // Tauri only exposes ["Files"] in types array during drag, no specific file info
     return types.includes('Files');
@@ -247,20 +240,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
       if (isIcs || isJson) {
         try {
           const content = await file.text();
-          // check if JSON is a tasks file (not settings)
-          if (isJson) {
-            try {
-              const parsed = JSON.parse(content);
-              // check if it looks like a tasks export (array with task properties)
-              if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
-                onFileDrop?.({ name: file.name, content });
-              }
-            } catch {
-              // not valid JSON, ignore
-            }
-          } else {
-            onFileDrop?.({ name: file.name, content });
-          }
+          onFileDrop?.({ name: file.name, content });
         } catch (err) {
           log.error('Failed to read dropped file:', err);
         }

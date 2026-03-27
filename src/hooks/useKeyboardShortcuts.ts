@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useModalState } from '$context/modalStateContext';
+import { useAccounts } from '$hooks/queries/useAccounts';
+import { useTags } from '$hooks/queries/useTags';
 import { useCreateTask, useFilteredTasks, useToggleTaskComplete } from '$hooks/queries/useTasks';
 import {
+  useSetActiveAccount,
+  useSetActiveCalendar,
+  useSetActiveTag,
+  useSetAllTasksView,
   useSetEditorOpen,
   useSetSearchQuery,
   useSetSelectedTask,
@@ -43,11 +49,19 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   const setShowUnstartedMutation = useSetShowUnstartedTasks();
 
   const selectedTaskId = uiState?.selectedTaskId ?? null;
+  const activeCalendarId = uiState?.activeCalendarId ?? null;
+  const activeTagId = uiState?.activeTagId ?? null;
   const showCompletedTasks = uiState?.showCompletedTasks ?? true;
   const showUnstartedTasks = uiState?.showUnstartedTasks ?? true;
   const sortConfig = uiState?.sortConfig ?? DEFAULT_SORT_CONFIG;
 
-  const { keyboardShortcuts } = useSettingsStore();
+  const { keyboardShortcuts, toggleSidebarCollapsed } = useSettingsStore();
+  const { data: accounts = [] } = useAccounts();
+  const { data: tags = [] } = useTags();
+  const setActiveAccountMutation = useSetActiveAccount();
+  const setActiveCalendarMutation = useSetActiveCalendar();
+  const setActiveTagMutation = useSetActiveTag();
+  const setAllTasksViewMutation = useSetAllTasksView();
   const { confirmAndDelete } = useConfirmTaskDelete();
   const { isOpen: isConfirmDialogOpen } = useConfirmDialog();
   const { isAnyModalOpen } = useModalState();
@@ -60,7 +74,9 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
     const getFilteredChildTasks = (parentUid: string) => {
       const children = getChildTasks(parentUid);
       if (!showCompletedTasks) {
-        return children.filter((task) => task.status !== 'completed' && task.status !== 'cancelled');
+        return children.filter(
+          (task) => task.status !== 'completed' && task.status !== 'cancelled',
+        );
       }
       return children;
     };
@@ -140,6 +156,70 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
     }
   }, [selectedTaskId, flattenedTasks, setSelectedTaskMutation]);
 
+  type ListItem =
+    | { type: 'all' }
+    | { type: 'calendar'; accountId: string; calendarId: string }
+    | { type: 'tag'; tagId: string };
+
+  const orderedLists = useMemo((): ListItem[] => {
+    const items: ListItem[] = [{ type: 'all' }];
+    for (const account of accounts) {
+      for (const cal of account.calendars) {
+        items.push({ type: 'calendar', accountId: account.id, calendarId: cal.id });
+      }
+    }
+    for (const tag of tags) {
+      items.push({ type: 'tag', tagId: tag.id });
+    }
+    return items;
+  }, [accounts, tags]);
+
+  const currentListIndex = useMemo(() => {
+    if (activeTagId !== null) {
+      return orderedLists.findIndex((item) => item.type === 'tag' && item.tagId === activeTagId);
+    }
+    if (activeCalendarId !== null) {
+      return orderedLists.findIndex(
+        (item) => item.type === 'calendar' && item.calendarId === activeCalendarId,
+      );
+    }
+    return 0;
+  }, [orderedLists, activeCalendarId, activeTagId]);
+
+  const activateListItem = useCallback(
+    (item: ListItem) => {
+      if (item.type === 'all') {
+        setAllTasksViewMutation.mutate();
+        setActiveAccountMutation.mutate(null);
+      } else if (item.type === 'calendar') {
+        setActiveAccountMutation.mutate(item.accountId);
+        setActiveCalendarMutation.mutate(item.calendarId);
+      } else {
+        setActiveTagMutation.mutate(item.tagId);
+      }
+    },
+    [
+      setAllTasksViewMutation,
+      setActiveAccountMutation,
+      setActiveCalendarMutation,
+      setActiveTagMutation,
+    ],
+  );
+
+  const handleNavPrevList = useCallback(() => {
+    const prevIndex = Math.max(0, currentListIndex - 1);
+    if (prevIndex !== currentListIndex) activateListItem(orderedLists[prevIndex]);
+  }, [orderedLists, currentListIndex, activateListItem]);
+
+  const handleNavNextList = useCallback(() => {
+    const nextIndex = Math.min(orderedLists.length - 1, currentListIndex + 1);
+    if (nextIndex !== currentListIndex) activateListItem(orderedLists[nextIndex]);
+  }, [orderedLists, currentListIndex, activateListItem]);
+
+  const handleToggleSidebar = useCallback(() => {
+    toggleSidebarCollapsed();
+  }, [toggleSidebarCollapsed]);
+
   const handleOpenSettings = useCallback(() => {
     // If settings is already open, this will close it (toggle behavior)
     onOpenSettings?.();
@@ -177,6 +257,9 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       close: handleEscape,
       'nav-up': handleNavigateUp,
       'nav-down': handleNavigateDown,
+      'nav-prev-list': handleNavPrevList,
+      'nav-next-list': handleNavNextList,
+      'toggle-sidebar': handleToggleSidebar,
     }),
     [
       handleNewTask,
@@ -191,6 +274,9 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       handleEscape,
       handleNavigateUp,
       handleNavigateDown,
+      handleNavPrevList,
+      handleNavNextList,
+      handleToggleSidebar,
     ],
   );
 
@@ -229,6 +315,8 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
         'toggle-show-unstarted',
         'nav-up',
         'nav-down',
+        'nav-prev-list',
+        'nav-next-list',
         'close', // Let modals handle Escape themselves
       ];
 
@@ -272,7 +360,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   return { shortcuts: keyboardShortcuts };
 };
 
-export const getShortcutDisplay = (shortcut: KeyboardShortcut): string => {
+export const getShortcutDisplay = (shortcut: KeyboardShortcut) => {
   const parts: string[] = [];
 
   if (shortcut.meta) {

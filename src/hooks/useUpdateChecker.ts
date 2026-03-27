@@ -4,6 +4,7 @@ import { check } from '@tauri-apps/plugin-updater';
 import { useCallback, useEffect, useState } from 'react';
 import { settingsStore } from '$context/settingsContext';
 import { loggers } from '$lib/logger';
+import { fetchReleaseNotes } from '$utils/version';
 
 const log = loggers.updater;
 
@@ -45,7 +46,7 @@ const notifyListeners = () => {
   }
 };
 
-const extractErrorMessage = (err: unknown): string => {
+const extractErrorMessage = (err: unknown) => {
   if (err instanceof Error) {
     return err.message;
   }
@@ -64,7 +65,7 @@ const extractErrorMessage = (err: unknown): string => {
   return 'Unknown error';
 };
 
-const toUserFriendlyUpdateCheckError = (rawMessage: string): string => {
+const toUserFriendlyUpdateCheckError = (rawMessage: string) => {
   const normalized = rawMessage.toLowerCase();
 
   if (
@@ -105,7 +106,7 @@ const toUserFriendlyUpdateCheckError = (rawMessage: string): string => {
   return `Update check failed: ${rawMessage}`;
 };
 
-const toUserFriendlyUpdateDownloadError = (rawMessage: string): string => {
+const toUserFriendlyUpdateDownloadError = (rawMessage: string) => {
   const normalized = rawMessage.toLowerCase();
 
   if (normalized.includes('not enough space') || normalized.includes('no space')) {
@@ -170,21 +171,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
         log.info(`Update available: ${update.version}`);
 
         // Fetch release notes from GitHub API if not provided by updater
-        let body = update.body || '';
-        if (!body) {
-          try {
-            const response = await fetch(
-              `https://api.github.com/repos/SapphoSys/chiri/releases/tags/app-v${update.version}`,
-              { headers: { Accept: 'application/vnd.github.v3+json' } },
-            );
-            if (response.ok) {
-              const release = await response.json();
-              body = release.body || '';
-            }
-          } catch (e) {
-            log.warn('Failed to fetch release notes from GitHub:', e);
-          }
-        }
+        const body = update.body || (await fetchReleaseNotes(update.version));
 
         const updateInfo = {
           version: update.version,
@@ -302,7 +289,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
     startupUpdateCheckScheduled = true;
 
-    void checkForUpdates('startup-auto');
+    checkForUpdates('startup-auto');
   }, [checkForUpdates]);
 
   return {

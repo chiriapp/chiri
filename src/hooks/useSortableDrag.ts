@@ -11,7 +11,7 @@ import { useReorderTasks } from '$hooks/queries/useTasks';
 import { TASK_LIST_INDENT_SHIFT_SIZE } from '$utils/constants';
 import type { FlattenedTask } from '$utils/tree';
 
-export const truncateName = (name: string, maxLength = 20): string => {
+export const truncateName = (name: string, maxLength = 20) => {
   if (name.length <= maxLength) return name;
   return `${name.substring(0, maxLength - 1)}…`;
 };
@@ -20,9 +20,15 @@ interface UseSortableDragOptions {
   flattenedItems: FlattenedTask[];
   /** Minimum allowed indent level. 0 for root-level lists, 1 for subtask editors. */
   minIndent?: number;
+  /** Called with the new parent task's ID when an item is dropped into a parent that is itself in the list. */
+  onDropIntoParent?: (parentId: string) => void;
 }
 
-export const useSortableDrag = ({ flattenedItems, minIndent = 0 }: UseSortableDragOptions) => {
+export const useSortableDrag = ({
+  flattenedItems,
+  minIndent = 0,
+  onDropIntoParent,
+}: UseSortableDragOptions) => {
   const reorderTasksMutation = useReorderTasks();
 
   const [activeItem, setActiveItem] = useState<FlattenedTask | null>(null);
@@ -145,8 +151,19 @@ export const useSortableDrag = ({ flattenedItems, minIndent = 0 }: UseSortableDr
         flattenedItems: visibleItems,
         targetIndent: finalIndent,
       });
+
+      if (onDropIntoParent && finalIndent > minIndent) {
+        const taskAboveIndex = activeIndex < overIndex ? overIndex : overIndex - 1;
+        for (let i = taskAboveIndex; i >= 0; i--) {
+          const t = visibleItems[i];
+          if (t.id !== active.id && t.depth === finalIndent - 1) {
+            onDropIntoParent(t.id);
+            break;
+          }
+        }
+      }
     },
-    [visibleItems, reorderTasksMutation, targetIndent],
+    [visibleItems, reorderTasksMutation, targetIndent, minIndent, onDropIntoParent],
   );
 
   return {

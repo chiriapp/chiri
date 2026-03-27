@@ -6,6 +6,22 @@ export interface AppInfo {
   author: string;
 }
 
+const GITHUB_REPO = 'SapphoSys/chiri';
+
+export const fetchReleaseNotes = async (version: string) => {
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/app-v${version}`,
+      { headers: { Accept: 'application/vnd.github.v3+json' } },
+    );
+    if (!response.ok) return '';
+    const release = (await response.json()) as { body?: string };
+    return release.body ?? '';
+  } catch {
+    return '';
+  }
+};
+
 /**
  * Get application information from package.json
  */

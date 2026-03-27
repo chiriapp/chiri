@@ -1,31 +1,40 @@
+import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { exit } from '@tauri-apps/plugin-process';
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useSettingsStore } from '$hooks/useSettingsStore';
-import { MENU_EVENTS } from '$utils/menu';
 import { isMacPlatform } from '$utils/platform';
 
 /**
- * On macOS, intercepts the Quit menu event (Cmd+Q or "Quit Chiri" click) and
- * requires a second press within 2 seconds to confirm when confirmBeforeQuit is enabled.
+ * Intercepts all quit requests (Cmd+Q, Dock quit, window close) emitted by the
+ * Rust backend via RunEvent::ExitRequested. When confirmBeforeQuit is enabled,
+ * requires a second quit action within 2 seconds to confirm. Otherwise exits immediately.
  *
- * Note: macOS does not expose whether the quit was triggered by keyboard shortcut or
- * menu click — both fire the same menu item action. Distinguishing them would require
- * ObjC runtime swizzling.
+ * The Rust backend always prevents the default exit and emits 'app:quit-requested',
+ * so this hook is the single exit point for the app. It calls the `force_quit` Tauri
+ * command which uses std::process::exit(0) directly, bypassing ExitRequested entirely.
+ * (tauri-plugin-process's exit() calls AppHandle::exit() which re-triggers ExitRequested,
+ * causing an infinite prevent/exit loop.)
  */
 export const useConfirmQuit = () => {
+  const isMac = isMacPlatform();
   const { confirmBeforeQuit } = useSettingsStore();
+  const confirmBeforeQuitRef = useRef(confirmBeforeQuit);
   const pendingQuit = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastIdRef = useRef<string | number | undefined>(undefined);
 
-  useEffect(() => {
-    if (!isMacPlatform()) return;
+  // Keep ref in sync so the listener always reads the latest value without re-registering
+  confirmBeforeQuitRef.current = confirmBeforeQuit;
 
-    const unlisten = listen(MENU_EVENTS.QUIT_MENU, () => {
-      if (!confirmBeforeQuit) {
-        exit(0);
+  useEffect(() => {
+    if (!isMac) {
+      return;
+    }
+
+    const unlisten = listen('app:quit-requested', () => {
+      if (!confirmBeforeQuitRef.current) {
+        invoke('force_quit');
         return;
       }
 
@@ -44,7 +53,7 @@ export const useConfirmQuit = () => {
         if (timerRef.current) clearTimeout(timerRef.current);
         if (toastIdRef.current !== undefined) toast.dismiss(toastIdRef.current);
         pendingQuit.current = false;
-        exit(0);
+        invoke('force_quit');
       }
     });
 
@@ -53,5 +62,5 @@ export const useConfirmQuit = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       pendingQuit.current = false;
     };
-  }, [confirmBeforeQuit]);
+  }, [isMac]);
 };

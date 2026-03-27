@@ -1,7 +1,7 @@
 import { listen } from '@tauri-apps/api/event';
 import { differenceInSeconds, isPast } from 'date-fns';
 import { useCallback, useEffect, useRef } from 'react';
-import { useTasks, useUpdateTask } from '$hooks/queries/useTasks';
+import { useTasks, useToggleTaskComplete, useUpdateTask } from '$hooks/queries/useTasks';
 import { useSettingsStore } from '$hooks/useSettingsStore';
 import { loggers } from '$lib/logger';
 import {
@@ -21,7 +21,7 @@ interface NotificationOptions {
   notificationType: NotificationType;
 }
 
-const showNotification = async (options: NotificationOptions): Promise<void> => {
+const showNotification = async (options: NotificationOptions) => {
   try {
     // Use our native permission check
     const permissionStatus = await checkNotificationPermission();
@@ -64,8 +64,16 @@ interface UseNotificationsOptions {
 export const useNotifications = (options: UseNotificationsOptions = {}) => {
   const { onOpenTaskActions } = options;
   const { data: tasks = [] } = useTasks();
-  const { notifications, notifyReminders, notifyOverdue } = useSettingsStore();
+  const {
+    notifications,
+    notifyReminders,
+    notifyOverdue,
+    quietHoursEnabled,
+    quietHoursStart,
+    quietHoursEnd,
+  } = useSettingsStore();
   const updateTaskMutation = useUpdateTask();
+  const toggleTaskCompleteMutation = useToggleTaskComplete();
   const notifiedTasksRef = useRef<Set<string>>(new Set());
   const notifiedRemindersRef = useRef<Set<string>>(new Set());
   const snoozedTasksRef = useRef<Map<string, number>>(new Map());
@@ -109,6 +117,15 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Notification polling has multiple conditions
     const checkDueTasks = () => {
       const now = new Date();
+
+      if (quietHoursEnabled) {
+        const hour = now.getHours();
+        const inQuietHours =
+          quietHoursStart <= quietHoursEnd
+            ? hour >= quietHoursStart && hour < quietHoursEnd
+            : hour >= quietHoursStart || hour < quietHoursEnd;
+        if (inQuietHours) return;
+      }
 
       for (const task of tasks) {
         // skip completed tasks
@@ -195,11 +212,8 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       log.info('Notification action received:', { action, taskId, notificationType });
 
       if (action === 'complete') {
-        // Complete the task
-        updateTaskMutation.mutate({
-          id: taskId,
-          updates: { status: 'completed' as const, completed: true, completedAt: new Date() },
-        });
+        // Use toggleTaskComplete so recurring tasks advance to their next occurrence
+        toggleTaskCompleteMutation.mutate(taskId);
         log.info('Completing task:', taskId);
       } else if (action === 'snooze-15min' || action === 'snooze-1hr') {
         // Snooze the notification
@@ -219,5 +233,17 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       }
       unlistenPromise.then((unlisten) => unlisten());
     };
-  }, [tasks, notifications, notifyReminders, notifyOverdue, updateTaskMutation, handleSnoozeTask, onOpenTaskActions]);
+  }, [
+    tasks,
+    notifications,
+    notifyReminders,
+    notifyOverdue,
+    quietHoursEnabled,
+    quietHoursStart,
+    quietHoursEnd,
+    updateTaskMutation,
+    toggleTaskCompleteMutation,
+    handleSnoozeTask,
+    onOpenTaskActions,
+  ]);
 };
