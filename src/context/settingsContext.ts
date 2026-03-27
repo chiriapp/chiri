@@ -24,6 +24,29 @@ import {
 
 const log = loggers.settings;
 
+export type TaskListDensity = 'comfortable' | 'compact';
+
+export interface EditorFieldVisibility {
+  status: boolean;
+  description: boolean;
+  url: boolean;
+  dates: boolean;
+  priority: boolean;
+  calendar: boolean;
+  tags: boolean;
+  reminders: boolean;
+  subtasks: boolean;
+}
+
+export interface TaskBadgeVisibility {
+  startDate: boolean;
+  tags: boolean;
+  calendar: boolean;
+  url: boolean;
+  status: boolean;
+  subtasks: boolean;
+}
+
 interface SettingsState {
   theme: Theme;
   accentColor: AccentColor;
@@ -67,6 +90,20 @@ interface SettingsState {
   systemTrayRestartNeeded: boolean;
   systemTrayAppliedValue: boolean;
   confirmBeforeQuit: boolean;
+  confirmBeforeQuitAppliedValue: boolean;
+  defaultAllDayReminderHour: number;
+  // Look & Feel
+  taskListDensity: TaskListDensity;
+  defaultTagColor: string;
+  defaultCalendarColor: string;
+  // Notifications
+  quietHoursEnabled: boolean;
+  quietHoursStart: number;
+  quietHoursEnd: number;
+  // Editor
+  editorFieldVisibility: EditorFieldVisibility;
+  // Badges
+  taskBadgeVisibility: TaskBadgeVisibility;
 }
 
 interface SettingsActions {
@@ -117,6 +154,16 @@ interface SettingsActions {
   setSystemTrayAppliedValue: (value: boolean) => void;
   setCheckForUpdatesAutomatically: (enabled: boolean) => void;
   setConfirmBeforeQuit: (confirm: boolean) => void;
+  setConfirmBeforeQuitAppliedValue: (value: boolean) => void;
+  setDefaultAllDayReminderHour: (hour: number) => void;
+  setTaskListDensity: (density: TaskListDensity) => void;
+  setDefaultTagColor: (color: string) => void;
+  setDefaultCalendarColor: (color: string) => void;
+  setQuietHoursEnabled: (enabled: boolean) => void;
+  setQuietHoursStart: (hour: number) => void;
+  setQuietHoursEnd: (hour: number) => void;
+  setEditorFieldVisibility: (visibility: EditorFieldVisibility) => void;
+  setTaskBadgeVisibility: (visibility: TaskBadgeVisibility) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;
   resetSettings: () => void;
@@ -169,7 +216,34 @@ const defaultState: SettingsState = {
   systemTrayRestartNeeded: false,
   systemTrayAppliedValue: true,
   checkForUpdatesAutomatically: true,
-  confirmBeforeQuit: false,
+  confirmBeforeQuit: true,
+  confirmBeforeQuitAppliedValue: true,
+  defaultAllDayReminderHour: 9,
+  taskListDensity: 'comfortable',
+  defaultTagColor: 'accent',
+  defaultCalendarColor: 'accent',
+  quietHoursEnabled: false,
+  quietHoursStart: 22,
+  quietHoursEnd: 8,
+  editorFieldVisibility: {
+    status: true,
+    description: true,
+    url: true,
+    dates: true,
+    priority: true,
+    calendar: true,
+    tags: true,
+    reminders: true,
+    subtasks: true,
+  },
+  taskBadgeVisibility: {
+    startDate: true,
+    tags: true,
+    calendar: true,
+    url: true,
+    status: true,
+    subtasks: true,
+  },
 };
 
 /**
@@ -178,7 +252,7 @@ const defaultState: SettingsState = {
 const mergeShortcuts = (
   existingShortcuts: KeyboardShortcut[],
   defaultShortcuts: KeyboardShortcut[],
-): KeyboardShortcut[] => {
+) => {
   const existingMap = new Map(existingShortcuts.map((s) => [s.id, s]));
 
   return defaultShortcuts.map((defaultShortcut) => {
@@ -337,9 +411,6 @@ export const settingsStore = {
       return true;
     }
 
-    log.debug(
-      `No new shortcuts to add (current: ${state.keyboardShortcuts.length}, defaults: ${DEFAULT_SHORTCUTS.length})`,
-    );
     return false;
   },
   setDefaultPriority: (defaultPriority: Priority) => setState({ defaultPriority }),
@@ -376,6 +447,20 @@ export const settingsStore = {
   setCheckForUpdatesAutomatically: (checkForUpdatesAutomatically: boolean) =>
     setState({ checkForUpdatesAutomatically }),
   setConfirmBeforeQuit: (confirmBeforeQuit: boolean) => setState({ confirmBeforeQuit }),
+  setConfirmBeforeQuitAppliedValue: (confirmBeforeQuitAppliedValue: boolean) =>
+    setState({ confirmBeforeQuitAppliedValue }),
+  setDefaultAllDayReminderHour: (defaultAllDayReminderHour: number) =>
+    setState({ defaultAllDayReminderHour }),
+  setTaskListDensity: (taskListDensity: TaskListDensity) => setState({ taskListDensity }),
+  setDefaultTagColor: (defaultTagColor: string) => setState({ defaultTagColor }),
+  setDefaultCalendarColor: (defaultCalendarColor: string) => setState({ defaultCalendarColor }),
+  setQuietHoursEnabled: (quietHoursEnabled: boolean) => setState({ quietHoursEnabled }),
+  setQuietHoursStart: (quietHoursStart: number) => setState({ quietHoursStart }),
+  setQuietHoursEnd: (quietHoursEnd: number) => setState({ quietHoursEnd }),
+  setEditorFieldVisibility: (editorFieldVisibility: EditorFieldVisibility) =>
+    setState({ editorFieldVisibility }),
+  setTaskBadgeVisibility: (taskBadgeVisibility: TaskBadgeVisibility) =>
+    setState({ taskBadgeVisibility }),
 
   exportSettings: () => {
     const exportData = {
@@ -444,6 +529,22 @@ export const settingsStore = {
         checkForUpdatesAutomatically:
           data.checkForUpdatesAutomatically ?? defaultState.checkForUpdatesAutomatically,
         confirmBeforeQuit: data.confirmBeforeQuit ?? defaultState.confirmBeforeQuit,
+        confirmBeforeQuitAppliedValue:
+          data.confirmBeforeQuitAppliedValue ?? defaultState.confirmBeforeQuitAppliedValue,
+        defaultAllDayReminderHour:
+          data.defaultAllDayReminderHour ?? defaultState.defaultAllDayReminderHour,
+        taskListDensity: data.taskListDensity ?? defaultState.taskListDensity,
+        defaultTagColor: data.defaultTagColor ?? defaultState.defaultTagColor,
+        defaultCalendarColor: data.defaultCalendarColor ?? defaultState.defaultCalendarColor,
+        quietHoursEnabled: data.quietHoursEnabled ?? defaultState.quietHoursEnabled,
+        quietHoursStart: data.quietHoursStart ?? defaultState.quietHoursStart,
+        quietHoursEnd: data.quietHoursEnd ?? defaultState.quietHoursEnd,
+        editorFieldVisibility: data.editorFieldVisibility
+          ? { ...defaultState.editorFieldVisibility, ...data.editorFieldVisibility }
+          : defaultState.editorFieldVisibility,
+        taskBadgeVisibility: data.taskBadgeVisibility
+          ? { ...defaultState.taskBadgeVisibility, ...data.taskBadgeVisibility }
+          : defaultState.taskBadgeVisibility,
       });
       return true;
     } catch (e) {

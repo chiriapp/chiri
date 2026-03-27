@@ -1,5 +1,12 @@
 import { type ReactNode, useCallback, useSyncExternalStore } from 'react';
-import { SettingsContext, type SettingsStore, settingsStore } from '$context/settingsContext';
+import type { TaskListDensity } from '$context/settingsContext';
+import {
+  type EditorFieldVisibility,
+  SettingsContext,
+  type SettingsStore,
+  settingsStore,
+  type TaskBadgeVisibility,
+} from '$context/settingsContext';
 import type {
   AccentColor,
   DateFormat,
@@ -188,6 +195,43 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (confirm: boolean) => settingsStore.setConfirmBeforeQuit(confirm),
     [],
   );
+  const setConfirmBeforeQuitAppliedValue = useCallback(
+    (value: boolean) => settingsStore.setConfirmBeforeQuitAppliedValue(value),
+    [],
+  );
+  const setDefaultAllDayReminderHour = useCallback(
+    (hour: number) => settingsStore.setDefaultAllDayReminderHour(hour),
+    [],
+  );
+  const setTaskListDensity = useCallback(
+    (density: TaskListDensity) => settingsStore.setTaskListDensity(density),
+    [],
+  );
+  const setDefaultTagColor = useCallback(
+    (color: string) => settingsStore.setDefaultTagColor(color),
+    [],
+  );
+  const setDefaultCalendarColor = useCallback(
+    (color: string) => settingsStore.setDefaultCalendarColor(color),
+    [],
+  );
+  const setQuietHoursEnabled = useCallback(
+    (enabled: boolean) => settingsStore.setQuietHoursEnabled(enabled),
+    [],
+  );
+  const setQuietHoursStart = useCallback(
+    (hour: number) => settingsStore.setQuietHoursStart(hour),
+    [],
+  );
+  const setQuietHoursEnd = useCallback((hour: number) => settingsStore.setQuietHoursEnd(hour), []);
+  const setEditorFieldVisibility = useCallback(
+    (visibility: EditorFieldVisibility) => settingsStore.setEditorFieldVisibility(visibility),
+    [],
+  );
+  const setTaskBadgeVisibility = useCallback(
+    (visibility: TaskBadgeVisibility) => settingsStore.setTaskBadgeVisibility(visibility),
+    [],
+  );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
   const resetSettings = useCallback(() => settingsStore.resetSettings(), []);
@@ -241,6 +285,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setCheckForUpdatesAutomatically,
     setEnableToasts,
     setConfirmBeforeQuit,
+    setConfirmBeforeQuitAppliedValue,
+    setDefaultAllDayReminderHour,
+    setTaskListDensity,
+    setDefaultTagColor,
+    setDefaultCalendarColor,
+    setQuietHoursEnabled,
+    setQuietHoursStart,
+    setQuietHoursEnd,
+    setEditorFieldVisibility,
+    setTaskBadgeVisibility,
     exportSettings,
     importSettings,
     resetSettings,
