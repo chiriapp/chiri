@@ -215,7 +215,6 @@ export const Header = ({
                   data-context-menu-content
                   className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-[240px] animate-scale-in"
                 >
-                  {/* Filter Options */}
                   <div className="px-3 py-2 border-b border-surface-200 dark:border-surface-700">
                     <button
                       type="button"
@@ -255,7 +254,6 @@ export const Header = ({
                     </button>
                   </div>
 
-                  {/* Sort By */}
                   <div className="py-2">
                     <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
                       Sort By
@@ -276,12 +274,19 @@ export const Header = ({
                     ))}
                   </div>
 
-                  {/* Sort Direction */}
                   <div className="pt-2 border-t border-surface-200 dark:border-surface-700">
                     <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
                       Sort Direction
                     </div>
-                    <div className="relative group">
+                    <Tooltip
+                      content={
+                        sortConfig.mode === 'manual' ? 'Not available for manual sorting' : ''
+                      }
+                      position="bottom"
+                      allowInModal
+                      className="whitespace-nowrap"
+                      triggerClassName="w-full"
+                    >
                       <button
                         type="button"
                         onClick={sortConfig.mode === 'manual' ? () => {} : toggleSortDirection}
@@ -301,12 +306,7 @@ export const Header = ({
                           <span>{sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}</span>
                         </div>
                       </button>
-                      {sortConfig.mode === 'manual' && (
-                        <div className="invisible group-hover:visible absolute right-full mr-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-medium text-white bg-surface-900 dark:bg-surface-700 rounded shadow-lg whitespace-nowrap pointer-events-none z-50">
-                          Not available for manual sorting
-                        </div>
-                      )}
-                    </div>
+                    </Tooltip>
                   </div>
                 </div>
               </>
