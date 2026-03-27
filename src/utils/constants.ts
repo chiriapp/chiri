@@ -1,4 +1,11 @@
-import type { KeyboardShortcut, SortDirection, SortMode } from '$types/index';
+import type {
+  AccountSortMode,
+  CalendarSortMode,
+  KeyboardShortcut,
+  SortDirection,
+  SortMode,
+  TagSortMode,
+} from '$types/index';
 
 // color presets for calendars, tags, etc
 export const COLOR_PRESETS = [
@@ -47,6 +54,37 @@ export const DEFAULT_SORT_CONFIG = {
   direction: 'asc' as const satisfies SortDirection,
 };
 
+export const DEFAULT_ACCOUNT_SORT_CONFIG = {
+  mode: 'manual' as const satisfies AccountSortMode,
+  direction: 'asc' as const satisfies SortDirection,
+};
+
+export const ACCOUNT_SORT_OPTIONS: Array<{ value: AccountSortMode; label: string }> = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'title', label: 'Title' },
+];
+
+export const DEFAULT_CALENDAR_SORT_CONFIG = {
+  mode: 'manual' as const satisfies CalendarSortMode,
+  direction: 'asc' as const satisfies SortDirection,
+};
+
+export const CALENDAR_SORT_OPTIONS: Array<{ value: CalendarSortMode; label: string }> = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'server', label: 'Server Order' },
+  { value: 'title', label: 'Title' },
+];
+
+export const DEFAULT_TAG_SORT_CONFIG = {
+  mode: 'manual' as const satisfies TagSortMode,
+  direction: 'asc' as const satisfies SortDirection,
+};
+
+export const TAG_SORT_OPTIONS: Array<{ value: TagSortMode; label: string }> = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'title', label: 'Title' },
+];
+
 export const SORT_OPTIONS: Array<{ value: SortMode; label: string }> = [
   { value: 'manual', label: 'Manual' },
   { value: 'smart', label: 'Smart Sort' },
@@ -75,7 +113,7 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     meta: true,
     description: 'Delete selected task',
   },
-  { id: 'toggle-complete', key: 'z', description: 'Toggle task completion' },
+  { id: 'toggle-complete', key: 'x', description: 'Toggle task completion' },
   {
     id: 'toggle-show-completed',
     key: 'h',
@@ -83,16 +121,13 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     shift: true,
     description: 'Toggle completed tasks',
   },
-  {
-    id: 'toggle-show-unstarted',
-    key: 'u',
-    meta: true,
-    shift: true,
-    description: 'Toggle unstarted tasks',
-  },
+  { id: 'toggle-show-unstarted', key: 'u', meta: true, description: 'Toggle unstarted tasks' },
   { id: 'close', key: 'Escape', description: 'Close editor / Clear search' },
   { id: 'nav-up', key: 'ArrowUp', description: 'Navigate to previous task' },
   { id: 'nav-down', key: 'ArrowDown', description: 'Navigate to next task' },
+  { id: 'nav-prev-list', key: '[', meta: true, description: 'Go to previous list' },
+  { id: 'nav-next-list', key: ']', meta: true, description: 'Go to next list' },
+  { id: 'toggle-sidebar', key: 'e', meta: true, description: 'Toggle sidebar' },
 ];
 
 export const TASK_LIST_INDENT_SHIFT_SIZE = 28;
@@ -101,6 +136,6 @@ export const MIN_SIDEBAR_WIDTH = 256;
 export const MAX_SIDEBAR_WIDTH = 600;
 export const DEFAULT_SIDEBAR_WIDTH = 300;
 
-export const MIN_EDITOR_WIDTH = 350;
+export const MIN_EDITOR_WIDTH = 330;
 export const MAX_EDITOR_WIDTH = 600;
 export const DEFAULT_EDITOR_WIDTH = 400;

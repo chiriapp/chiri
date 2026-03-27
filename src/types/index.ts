@@ -24,6 +24,27 @@ export type DefaultDateOffset =
   | '1day-before-due'
   | '1week-before-due';
 
+export type AccountSortMode = 'manual' | 'title';
+
+export interface AccountSortConfig {
+  mode: AccountSortMode;
+  direction: SortDirection;
+}
+
+export type CalendarSortMode = 'manual' | 'server' | 'title';
+
+export interface CalendarSortConfig {
+  mode: CalendarSortMode;
+  direction: SortDirection;
+}
+
+export type TagSortMode = 'manual' | 'title';
+
+export interface TagSortConfig {
+  mode: TagSortMode;
+  direction: SortDirection;
+}
+
 export type SortMode =
   | 'manual' // uses x-apple-sort-order
   | 'due-date'
@@ -58,6 +79,7 @@ export interface Task {
   // categorization
   tags?: string[]; // Array of tag IDs (maps to iCal CATEGORIES)
   categoryId?: string; // Raw CATEGORIES string from CalDAV (used during sync, mapped to tags)
+  tagColorsByName?: Record<string, string>; // Lowercase tag name -> #RRGGBB from X-TASKS-TAG-COLOR
   priority: Priority;
 
   // dates
@@ -81,6 +103,10 @@ export interface Task {
   // URL (RFC 7986)
   url?: string;
 
+  // recurrence (RFC 5545)
+  rrule?: string; // RRULE value string, e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR"
+  repeatFrom?: number; // 0 = due date (default), 1 = completion date
+
   // sync
   accountId: string;
   calendarId: string;
@@ -94,6 +120,7 @@ export interface Tag {
   color: string;
   icon?: string; // Icon name from lucide-react
   emoji?: string; // Emoji character(s)
+  sortOrder: number;
 }
 
 export interface Calendar {
@@ -107,6 +134,7 @@ export interface Calendar {
   emoji?: string; // Emoji character(s)
   accountId: string;
   supportedComponents?: string[]; // e.g., ['VTODO', 'VEVENT']
+  sortOrder: number; // apple-calendar-order
 }
 
 export type ServerType =
@@ -128,6 +156,7 @@ export interface Account {
   calendars: Calendar[];
   lastSync?: Date;
   isActive: boolean;
+  sortOrder: number;
 }
 
 export interface SortConfig {
@@ -148,10 +177,12 @@ export type SettingsCategory = 'tasks' | 'app' | 'accounts' | 'misc';
 export type SettingsSubtab =
   | 'behavior'
   | 'defaults'
-  | 'appearance'
+  | 'editor'
+  | 'badges'
+  | 'look-and-feel'
   | 'notifications'
   | 'region'
-  | 'shortcuts'
+  | 'keyboard-shortcuts'
   | 'system'
   | 'connections'
   | 'data'
@@ -192,6 +223,8 @@ export interface TaskRow {
   synced: number;
   local_only: number | null; // Nullable in database schema (DEFAULT 0)
   url: string | null;
+  rrule: string | null;
+  repeat_from: number;
 }
 
 export interface AccountRow {
@@ -203,6 +236,7 @@ export interface AccountRow {
   server_type: string | null;
   last_sync: string | null;
   is_active: number;
+  sort_order: number | null;
 }
 
 export interface CalendarRow {
@@ -216,6 +250,7 @@ export interface CalendarRow {
   icon: string | null;
   emoji: string | null;
   supported_components: string | null;
+  sort_order: number | null;
 }
 
 export interface TagRow {
@@ -224,6 +259,7 @@ export interface TagRow {
   color: string;
   icon: string | null;
   emoji: string | null;
+  sort_order: number | null;
 }
 
 export interface PendingDeletionRow {
@@ -245,6 +281,12 @@ export interface UIStateRow {
   show_completed_tasks: number;
   show_unstarted_tasks: number;
   is_editor_open: number;
+  account_sort_mode: string | null;
+  account_sort_direction: string | null;
+  calendar_sort_mode: string | null;
+  calendar_sort_direction: string | null;
+  tag_sort_mode: string | null;
+  tag_sort_direction: string | null;
 }
 
 export interface ReminderRow {
