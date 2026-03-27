@@ -27,10 +27,12 @@ body {
 
 /* Suppress all hover states while a drag is active (webkit doesn't respect overlay pointer-events) */
 html.is-dragging {
+  /* biome-ignore lint/complexity/noImportantStyles: 'grabbing' makes sense here, so we force it */
   cursor: grabbing !important;
 }
 
 html.is-dragging * {
+  /* biome-ignore lint/complexity/noImportantStyles: pointer-events is necessary to prevent hover states during dragging, especially in webkit browsers where the drag overlay doesn't block pointer events */
   pointer-events: none !important;
 }
 
