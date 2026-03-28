@@ -233,7 +233,6 @@ export const useToggleTaskComplete = () => {
       toggleTaskComplete(id);
       await logHistoryForTaskUpdate(task.uid, task, {
         status: newStatus,
-        percentComplete: newStatus === 'completed' ? 100 : 0,
       });
       return task;
     },

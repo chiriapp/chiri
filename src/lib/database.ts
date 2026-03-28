@@ -1068,8 +1068,6 @@ export const logHistoryForTaskUpdate = async (
 ): Promise<void> => {
   for (const field of HISTORY_FIELDS) {
     if (!(field in updates)) continue;
-    // Skip percentComplete when status is also changing — status already communicates the intent
-    if (field === 'percentComplete' && 'status' in updates) continue;
     const oldVal = serializeHistoryValue(oldTask[field]);
     const newVal = serializeHistoryValue(updates[field]);
     if (oldVal !== newVal) {
