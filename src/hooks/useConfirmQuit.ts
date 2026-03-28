@@ -32,6 +32,8 @@ export const useConfirmQuit = () => {
       return;
     }
 
+    let unlistenFn: (() => void) | undefined;
+
     const unlisten = listen('app:quit-requested', () => {
       if (!confirmBeforeQuitRef.current) {
         invoke('force_quit');
@@ -57,8 +59,24 @@ export const useConfirmQuit = () => {
       }
     });
 
+    // store the resolved unlisten fn so beforeunload can call it synchronously.
+    unlisten.then((fn) => {
+      unlistenFn = fn;
+    });
+
+    // in dev mode, a full page reload (Cmd+R) destroys the JS context without
+    // React running cleanup, leaving a stale handler registered in Rust's event system
+    // explicitly unregister before the webview navigates so the fresh
+    // listener registered after reload is the only one receiving the event
+    const onBeforeUnload = () => unlistenFn?.();
+    window.addEventListener('beforeunload', onBeforeUnload);
+
     return () => {
+      // use .then() here (not unlistenFn?.()) so React StrictMode's synchronous
+      // cleanup correctly defers the unlisten call until the Promise resolves,
+      // preventing the stale first-mount handler from lingering
       unlisten.then((fn) => fn());
+      window.removeEventListener('beforeunload', onBeforeUnload);
       if (timerRef.current) clearTimeout(timerRef.current);
       pendingQuit.current = false;
     };

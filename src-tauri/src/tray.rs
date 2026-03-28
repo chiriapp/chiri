@@ -158,6 +158,19 @@ pub async fn initialize_tray(
 ) -> Result<(), String> {
     debug!("[Tray] initialize_tray called with enabled={}", enabled);
 
+    // in dev mode the frontend can reload (Cmd+R / HMR) while the Rust process stays alive
+    // guard against creating a second tray icon on top of the existing one
+    let tray_id = TrayIconId::new("main");
+    if app_handle.tray_by_id(&tray_id).is_some() {
+        debug!("[Tray] Tray already exists, skipping re-initialization");
+        *TRAY_VISIBLE.lock().expect("Failed to lock TRAY_VISIBLE") = enabled;
+        *TRAY_ENABLED.lock().expect("Failed to lock TRAY_ENABLED") = enabled;
+        if let Some(tray) = app_handle.tray_by_id(&tray_id) {
+            let _ = tray.set_visible(enabled);
+        }
+        return Ok(());
+    }
+
     // update the global state
     *TRAY_VISIBLE.lock().expect("Failed to lock TRAY_VISIBLE") = enabled;
     *TRAY_ENABLED.lock().expect("Failed to lock TRAY_ENABLED") = enabled;
