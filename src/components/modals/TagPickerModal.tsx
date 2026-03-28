@@ -80,7 +80,7 @@ export const TagPickerModal = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search tags..."
+                placeholder="Search tags, or type to create..."
                 className="w-full pl-9 pr-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
               />
             </div>
@@ -124,23 +124,18 @@ export const TagPickerModal = ({
                   })}
                 </div>
               )}
-              {onCreateTag && (
-                <>
-                  {!allTagsAssigned && filteredTags.length > 0 && (
-                    <div className="border-t border-surface-200 dark:border-surface-700 my-1" />
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onCreateTag(searchQuery.trim());
-                      onClose();
-                    }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors text-surface-700 dark:text-surface-300"
-                  >
-                    <Plus className="w-4 h-4 text-surface-400 flex-shrink-0" />
-                    {searchQuery.trim() ? `Create tag "${searchQuery.trim()}"` : 'Create a new tag'}
-                  </button>
-                </>
+              {onCreateTag && filteredTags.length === 0 && !allTagsAssigned && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onCreateTag(searchQuery.trim());
+                    onClose();
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors text-surface-700 dark:text-surface-300"
+                >
+                  <Plus className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                  {searchQuery.trim() ? `Create tag "${searchQuery.trim()}"` : 'Create a new tag'}
+                </button>
               )}
             </>
           )}
