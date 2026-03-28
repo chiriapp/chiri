@@ -1,3 +1,4 @@
+import { AppSelect } from '$components/AppSelect';
 import { MacNotificationPermissionCard } from '$components/MacNotificationPermissionCard';
 import { useNotificationContext } from '$hooks/useNotificationContext';
 import { useSettingsStore } from '$hooks/useSettingsStore';
@@ -157,31 +158,31 @@ export const NotificationSettings = () => {
             <div className="space-y-3 pl-4 border-l-2 border-surface-200 dark:border-surface-600">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-surface-600 dark:text-surface-400">From</p>
-                <select
+                <AppSelect
                   value={quietHoursStart}
                   onChange={(e) => setQuietHoursStart(Number(e.target.value))}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-2 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
                 >
                   {hourOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
-                </select>
+                </AppSelect>
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-sm text-surface-600 dark:text-surface-400">Until</p>
-                <select
+                <AppSelect
                   value={quietHoursEnd}
                   onChange={(e) => setQuietHoursEnd(Number(e.target.value))}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-2 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
                 >
                   {hourOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>
                   ))}
-                </select>
+                </AppSelect>
               </div>
             </div>
           </div>
@@ -196,17 +197,17 @@ export const NotificationSettings = () => {
               Time used when a task has no specific time set
             </p>
           </div>
-          <select
+          <AppSelect
             value={defaultAllDayReminderHour}
             onChange={(e) => setDefaultAllDayReminderHour(Number(e.target.value))}
-            className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-2 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+            className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
           >
             {hourOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
             ))}
-          </select>
+          </AppSelect>
         </div>
       </div>
 
