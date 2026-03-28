@@ -1,21 +1,28 @@
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-use tauri::{AppHandle, Emitter, Manager, State};
+use tauri::State;
+#[cfg(target_os = "macos")]
+use tauri::{AppHandle, Emitter, Manager};
+use user_notify::{NotificationBuilder, NotificationManager};
+#[cfg(target_os = "macos")]
 use user_notify::{
-    get_notification_manager, NotificationBuilder, NotificationCategory,
-    NotificationCategoryAction, NotificationManager, NotificationResponse,
-    NotificationResponseAction,
+    get_notification_manager, NotificationCategory, NotificationCategoryAction,
+    NotificationResponse, NotificationResponseAction,
 };
 
 // Notification action category identifiers
-pub const TASK_OVERDUE_CATEGORY: &str = "moe.sapphic.chiri.task.overdue";
-pub const TASK_REMINDER_CATEGORY: &str = "moe.sapphic.chiri.task.reminder";
+pub const TASK_OVERDUE_CATEGORY: &str = "moe.sapphic.Chiri.task.overdue";
+pub const TASK_REMINDER_CATEGORY: &str = "moe.sapphic.Chiri.task.reminder";
 
 // Action identifiers
-pub const ACTION_COMPLETE: &str = "moe.sapphic.chiri.action.complete";
-pub const ACTION_SNOOZE_15MIN: &str = "moe.sapphic.chiri.action.snooze.15min";
-pub const ACTION_SNOOZE_1HR: &str = "moe.sapphic.chiri.action.snooze.1hr";
-pub const ACTION_VIEW: &str = "moe.sapphic.chiri.action.view";
+#[cfg(target_os = "macos")]
+pub const ACTION_COMPLETE: &str = "moe.sapphic.Chiri.action.complete";
+#[cfg(target_os = "macos")]
+pub const ACTION_SNOOZE_15MIN: &str = "moe.sapphic.Chiri.action.snooze.15min";
+#[cfg(target_os = "macos")]
+pub const ACTION_SNOOZE_1HR: &str = "moe.sapphic.Chiri.action.snooze.1hr";
+#[cfg(target_os = "macos")]
+pub const ACTION_VIEW: &str = "moe.sapphic.Chiri.action.view";
 
 // User info keys for notification metadata
 pub const USER_INFO_TASK_ID: &str = "taskId";
@@ -26,6 +33,7 @@ pub struct NotificationManagerState {
     pub manager: Arc<dyn NotificationManager>,
 }
 
+#[cfg(target_os = "macos")]
 impl NotificationManagerState {
     pub fn new(app_id: String) -> Self {
         Self {
@@ -105,6 +113,7 @@ pub enum NotificationType {
     Reminder,
 }
 
+#[cfg(target_os = "macos")]
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NotificationActionEvent {
@@ -147,6 +156,7 @@ pub async fn send_notification_with_actions(
 }
 
 /// Handle notification response (user clicked notification or action)
+#[cfg(target_os = "macos")]
 async fn handle_notification_response(app: &AppHandle, response: NotificationResponse) {
     eprintln!("[Notifications] Received response: {response:?}");
 

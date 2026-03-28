@@ -16,6 +16,7 @@ const LOGGING_TARGET_IGNORE_LIST: [&str; 7] = [
     "reqwest",
 ];
 
+#[cfg(target_os = "macos")]
 pub fn scoped_message(scope: &str, message: &str) -> String {
     format!("[{scope}] {message}")
 }

@@ -1,3 +1,4 @@
+#[cfg(target_os = "macos")]
 mod liquid_glass_icon;
 
 fn main() {

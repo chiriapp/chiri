@@ -48,65 +48,62 @@ pub async fn is_gnome_desktop() -> Result<bool, String> {
 }
 
 /// Get the current system theme
-fn get_current_theme(app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
-    // On Linux, use gsettings to detect theme (more reliable than Tauri's window.theme())
-    #[cfg(target_os = "linux")]
-    {
-        // GNOME's top bar is ALWAYS dark, even in light theme
-        // So always return Dark theme to load the light icon
-        if is_gnome() {
-            debug!("[Tray] GNOME detected - top bar is always dark, using light icon");
-            return Theme::Dark;
-        }
-
-        debug!("[Tray] Linux detected - using gsettings for theme detection");
-
-        match std::process::Command::new("gsettings")
-            .args(["get", "org.gnome.desktop.interface", "color-scheme"])
-            .output()
-        {
-            Ok(output) => {
-                let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
-                debug!("[Tray] gsettings color-scheme result: {:?}", result);
-
-                // Returns: 'prefer-dark', 'prefer-light', or 'default'
-                // 'prefer-dark' = Dark theme (use light icon)
-                // 'prefer-light' or 'default' = Light theme (use dark icon)
-                if result.contains("prefer-dark") {
-                    debug!("[Tray] Detected dark theme via gsettings");
-                    return Theme::Dark;
-                } else if result.contains("prefer-light") || result.contains("default") {
-                    debug!("[Tray] Detected light theme via gsettings");
-                    return Theme::Light;
-                } else {
-                    debug!("[Tray] Unknown gsettings result, defaulting to Dark theme");
-                    return Theme::Dark;
-                }
-            }
-            Err(e) => {
-                debug!(
-                    "[Tray] Failed to run gsettings command: {}, defaulting to Dark theme",
-                    e
-                );
-                return Theme::Dark;
-            }
-        }
+#[cfg(target_os = "linux")]
+fn get_current_theme(_app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
+    // GNOME's top bar is ALWAYS dark, even in light theme
+    // So always return Dark theme to load the light icon
+    if is_gnome() {
+        debug!("[Tray] GNOME detected - top bar is always dark, using light icon");
+        return Theme::Dark;
     }
 
-    // On other platforms, use Tauri's theme detection
-    #[cfg(not(target_os = "linux"))]
+    debug!("[Tray] Linux detected - using gsettings for theme detection");
+
+    match std::process::Command::new("gsettings")
+        .args(["get", "org.gnome.desktop.interface", "color-scheme"])
+        .output()
     {
-        if let Some(main_window) = app_handle.get_webview_window("main") {
-            let theme = main_window.theme().unwrap_or(Theme::Dark);
+        Ok(output) => {
+            let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            debug!("[Tray] gsettings color-scheme result: {:?}", result);
+
+            // Returns: 'prefer-dark', 'prefer-light', or 'default'
+            // 'prefer-dark' = Dark theme (use light icon)
+            // 'prefer-light' or 'default' = Light theme (use dark icon)
+            if result.contains("prefer-dark") {
+                debug!("[Tray] Detected dark theme via gsettings");
+                Theme::Dark
+            } else if result.contains("prefer-light") || result.contains("default") {
+                debug!("[Tray] Detected light theme via gsettings");
+                Theme::Light
+            } else {
+                debug!("[Tray] Unknown gsettings result, defaulting to Dark theme");
+                Theme::Dark
+            }
+        }
+        Err(e) => {
             debug!(
-                "[Tray] Detected system theme via window.theme(): {:?}",
-                theme
+                "[Tray] Failed to run gsettings command: {}, defaulting to Dark theme",
+                e
             );
-            theme
-        } else {
-            debug!("[Tray] No main window found, defaulting to Dark theme");
             Theme::Dark
         }
+    }
+}
+
+/// Get the current system theme
+#[cfg(not(target_os = "linux"))]
+fn get_current_theme(app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
+    if let Some(main_window) = app_handle.get_webview_window("main") {
+        let theme = main_window.theme().unwrap_or(Theme::Dark);
+        debug!(
+            "[Tray] Detected system theme via window.theme(): {:?}",
+            theme
+        );
+        theme
+    } else {
+        debug!("[Tray] No main window found, defaulting to Dark theme");
+        Theme::Dark
     }
 }
 

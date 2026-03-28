@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
+#[cfg(target_os = "macos")]
 use std::ffi::CStr;
+#[cfg(target_os = "macos")]
 use std::os::raw::c_char;
+#[cfg(target_os = "macos")]
 use std::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -15,7 +15,9 @@ mod tray;
 mod window_decorations;
 mod window_events;
 
-use tauri::{Emitter, Manager, RunEvent};
+use tauri::Manager;
+#[cfg(target_os = "macos")]
+use tauri::{Emitter, RunEvent};
 use tauri_plugin_sql::Builder;
 
 /// Exits the process directly via the OS, bypassing Tauri's RunEvent::ExitRequested.
@@ -116,7 +118,7 @@ fn main() {
         })
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
-        .run(|app_handle, event| {
+        .run(|_app_handle, event| {
             match event {
                 // Intercept all quit requests (Cmd+Q, Dock quit, window close) so the
                 // frontend can apply double-press confirmation when enabled. The frontend
@@ -124,18 +126,18 @@ fn main() {
                 #[cfg(target_os = "macos")]
                 RunEvent::ExitRequested { api, .. } => {
                     api.prevent_exit();
-                    let _ = app_handle.emit("app:quit-requested", ());
+                    let _ = _app_handle.emit("app:quit-requested", ());
                 }
 
                 // handle app reactivation (e.g., from Spotlight, Dock, Cmd+Tab)
                 #[cfg(target_os = "macos")]
                 RunEvent::Reopen { .. } => {
-                    if let Some(window) = app_handle.get_webview_window("main") {
+                    if let Some(window) = _app_handle.get_webview_window("main") {
                         let _ = window.show();
                         let _ = window.set_focus();
 
                         // restore the dock icon
-                        let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
+                        let _ = _app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
                     }
                 }
 

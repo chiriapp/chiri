@@ -3,7 +3,9 @@
 // This module contains window event handlers that need to be separate from main.rs
 // to keep the main file clean and focused on application setup.
 
-use tauri::{Manager, WindowEvent};
+#[cfg(target_os = "macos")]
+use tauri::Manager;
+use tauri::WindowEvent;
 
 /// Hide the dock icon on macOS when the window is hidden
 #[cfg(target_os = "macos")]
