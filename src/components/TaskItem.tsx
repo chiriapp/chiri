@@ -111,7 +111,14 @@ const TaskBadgesRow = ({
       className={`flex items-center gap-2 ${compact ? 'overflow-hidden flex-shrink-0' : 'mt-2 flex-wrap'}`}
     >
       {badgeVisibility.startDate && startDateDisplay && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 text-surface-600 dark:text-surface-400">
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border"
+          style={{
+            borderColor: startDateDisplay.borderColor,
+            backgroundColor: startDateDisplay.bgColor,
+            color: startDateDisplay.textColor,
+          }}
+        >
           <CalendarClock className="w-3 h-3" />
           {startDateDisplay.text}
         </span>
@@ -185,7 +192,14 @@ const TaskBadgesRow = ({
       )}
 
       {badgeVisibility.status && task.status === 'in-process' && (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+        <span
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border"
+          style={{
+            borderColor: '#3b82f6',
+            backgroundColor: '#3b82f615',
+            color: '#3b82f6',
+          }}
+        >
           <Loader className="w-3 h-3" />
           {task.percentComplete}%
         </span>
@@ -463,11 +477,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
               <div className="flex items-center gap-1 flex-shrink-0">
                 {dueDateDisplay && (
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
-                    style={{
-                      backgroundColor: dueDateDisplay.bgColor,
-                      color: dueDateDisplay.textColor,
-                    }}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${dueDateDisplay.className}`}
                   >
                     <Clock className="w-3 h-3" />
                     {dueDateDisplay.text}
@@ -494,11 +504,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                 <div className="flex items-center gap-1 flex-shrink-0">
                   {dueDateDisplay && (
                     <span
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
-                      style={{
-                        backgroundColor: dueDateDisplay.bgColor,
-                        color: dueDateDisplay.textColor,
-                      }}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${dueDateDisplay.className}`}
                     >
                       <Clock className="w-3 h-3" />
                       {dueDateDisplay.text}
