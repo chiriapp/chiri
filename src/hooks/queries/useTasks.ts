@@ -253,7 +253,13 @@ export const useSetTaskParent = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ taskId, parentUid }: { taskId: string; parentUid: string | undefined }) => {
+    mutationFn: async ({
+      taskId,
+      parentUid,
+    }: {
+      taskId: string;
+      parentUid: string | undefined;
+    }) => {
       const task = getTaskById(taskId);
       if (task) {
         if (task.parentUid) {
@@ -391,12 +397,20 @@ export const useAddTagToTask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ taskId, tagId }: { taskId: string; tagId: string }) => {
+    mutationFn: async ({ taskId, tagId }: { taskId: string; tagId: string }) => {
+      const oldTask = getTaskById(taskId);
       addTagToTask(taskId, tagId);
-      return Promise.resolve();
+      const newTask = getTaskById(taskId);
+      if (oldTask && newTask) {
+        await logHistoryForTaskUpdate(newTask.uid, oldTask, { tags: newTask.tags });
+      }
+      return newTask;
     },
-    onSuccess: () => {
+    onSuccess: (task) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      if (task?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', task.uid] });
+      }
     },
   });
 };
@@ -405,12 +419,20 @@ export const useRemoveTagFromTask = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ taskId, tagId }: { taskId: string; tagId: string }) => {
+    mutationFn: async ({ taskId, tagId }: { taskId: string; tagId: string }) => {
+      const oldTask = getTaskById(taskId);
       removeTagFromTask(taskId, tagId);
-      return Promise.resolve();
+      const newTask = getTaskById(taskId);
+      if (oldTask && newTask) {
+        await logHistoryForTaskUpdate(newTask.uid, oldTask, { tags: newTask.tags });
+      }
+      return newTask;
     },
-    onSuccess: () => {
+    onSuccess: (task) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      if (task?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', task.uid] });
+      }
     },
   });
 };
@@ -419,12 +441,20 @@ export const useAddReminder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ taskId, trigger }: { taskId: string; trigger: Date }) => {
+    mutationFn: async ({ taskId, trigger }: { taskId: string; trigger: Date }) => {
+      const oldTask = getTaskById(taskId);
       addReminder(taskId, trigger);
-      return Promise.resolve();
+      const newTask = getTaskById(taskId);
+      if (oldTask && newTask) {
+        await logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
+      }
+      return newTask;
     },
-    onSuccess: () => {
+    onSuccess: (task) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      if (task?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', task.uid] });
+      }
     },
   });
 };
@@ -433,12 +463,20 @@ export const useRemoveReminder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ taskId, reminderId }: { taskId: string; reminderId: string }) => {
+    mutationFn: async ({ taskId, reminderId }: { taskId: string; reminderId: string }) => {
+      const oldTask = getTaskById(taskId);
       removeReminder(taskId, reminderId);
-      return Promise.resolve();
+      const newTask = getTaskById(taskId);
+      if (oldTask && newTask) {
+        await logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
+      }
+      return newTask;
     },
-    onSuccess: () => {
+    onSuccess: (task) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      if (task?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', task.uid] });
+      }
     },
   });
 };
@@ -447,7 +485,7 @@ export const useUpdateReminder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       taskId,
       reminderId,
       trigger,
@@ -456,11 +494,19 @@ export const useUpdateReminder = () => {
       reminderId: string;
       trigger: Date;
     }) => {
+      const oldTask = getTaskById(taskId);
       updateReminder(taskId, reminderId, trigger);
-      return Promise.resolve();
+      const newTask = getTaskById(taskId);
+      if (oldTask && newTask) {
+        await logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
+      }
+      return newTask;
     },
-    onSuccess: () => {
+    onSuccess: (task) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      if (task?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', task.uid] });
+      }
     },
   });
 };
