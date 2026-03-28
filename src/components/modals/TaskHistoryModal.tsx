@@ -37,7 +37,9 @@ const FIELD_LABELS: Record<string, string> = {
   percentComplete: 'Progress',
   priority: 'Priority',
   startDate: 'Start date',
+  startDateAllDay: 'Start all-day',
   dueDate: 'Due date',
+  dueDateAllDay: 'Due all-day',
   tags: 'Tags',
   reminders: 'Reminders',
   parentUid: 'Parent task',
@@ -58,7 +60,9 @@ const FIELD_ICONS: Record<string, LucideIcon> = {
   percentComplete: Loader,
   priority: Flag,
   startDate: Calendar,
+  startDateAllDay: Calendar,
   dueDate: CalendarClock,
+  dueDateAllDay: CalendarClock,
   tags: Tag,
   reminders: Bell,
   parentUid: CornerDownRight,
@@ -91,6 +95,9 @@ const formatHistoryValue = (field: string, value: string | null): ReactNode => {
       none: 'None',
     };
     return labels[value] ?? value;
+  }
+  if (field === 'startDateAllDay' || field === 'dueDateAllDay') {
+    return value === 'true' ? 'All day' : 'Timed';
   }
   if (field === 'startDate' || field === 'dueDate') {
     try {
