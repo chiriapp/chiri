@@ -4,27 +4,33 @@ import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { getIconByName } from '$data/icons';
-import { useAccounts, useUpdateAccount } from '$hooks/queries/useAccounts';
+import { useAccounts, useAddCalendar, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useFocusTrap } from '$hooks/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useSettingsStore } from '$hooks/useSettingsStore';
 import { caldavService } from '$lib/caldav';
 import type { Calendar } from '$types/index';
 import { COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '$utils/constants';
 
 interface CalendarModalProps {
-  calendar: Calendar;
+  calendar?: Calendar;
   accountId: string;
   onClose: () => void;
 }
 
 export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalProps) => {
   const { data: accounts = [] } = useAccounts();
+  const addCalendarMutation = useAddCalendar();
   const updateAccountMutation = useUpdateAccount();
+  const { defaultCalendarColor, accentColor } = useSettingsStore();
 
-  const [displayName, setDisplayName] = useState(calendar.displayName);
-  const [color, setColor] = useState(calendar.color ?? FALLBACK_ITEM_COLOR);
-  const [icon, setIcon] = useState(calendar.icon || 'calendar');
-  const [emoji, setEmoji] = useState(calendar.emoji || '');
+  const resolvedDefaultCalendarColor =
+    defaultCalendarColor === 'accent' ? accentColor : defaultCalendarColor;
+
+  const [displayName, setDisplayName] = useState(calendar?.displayName ?? '');
+  const [color, setColor] = useState(calendar?.color ?? resolvedDefaultCalendarColor);
+  const [icon, setIcon] = useState(calendar?.icon || 'calendar');
+  const [emoji, setEmoji] = useState(calendar?.emoji || '');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
@@ -41,71 +47,68 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
     setIsLoading(true);
 
     try {
-      // only send properties that have actually changed (to server)
-      const serverUpdates: { displayName?: string; color?: string } = {};
+      if (calendar) {
+        // edit mode — only send properties that have actually changed (to server)
+        const serverUpdates: { displayName?: string; color?: string } = {};
 
-      if (displayName !== calendar.displayName) {
-        serverUpdates.displayName = displayName;
-      }
+        if (displayName !== calendar.displayName) {
+          serverUpdates.displayName = displayName;
+        }
 
-      if (color !== calendar.color) {
-        serverUpdates.color = color;
-      }
+        if (color !== calendar.color) {
+          serverUpdates.color = color;
+        }
 
-      // track local-only changes (icon and emoji are stored locally only)
-      const iconChanged = icon !== calendar.icon;
-      const emojiChanged = emoji !== calendar.emoji;
+        const iconChanged = icon !== calendar.icon;
+        const emojiChanged = emoji !== calendar.emoji;
 
-      // if nothing changed at all, just close the modal
-      if (Object.keys(serverUpdates).length === 0 && !iconChanged && !emojiChanged) {
-        onClose();
-        return;
-      }
+        if (Object.keys(serverUpdates).length === 0 && !iconChanged && !emojiChanged) {
+          onClose();
+          return;
+        }
 
-      let result = { failedProperties: [] as string[] };
+        let result = { failedProperties: [] as string[] };
 
-      // only call server if server properties changed
-      if (Object.keys(serverUpdates).length > 0) {
-        // update calendar on server via PROPPATCH
-        result = await caldavService.updateCalendar(accountId, calendar.url, serverUpdates);
-      }
+        if (Object.keys(serverUpdates).length > 0) {
+          result = await caldavService.updateCalendar(accountId, calendar.url, serverUpdates);
+        }
 
-      // update local state (only update what succeeded + local-only fields)
-      const account = accounts.find((a) => a.id === accountId);
-      if (account) {
-        const updatedCalendars = account.calendars.map((c) => {
-          if (c.id === calendar.id) {
-            const updates: Partial<Calendar> = {};
-            // only update displayName locally if server accepted it
-            if (!result.failedProperties.includes('displayname')) {
-              updates.displayName = displayName;
+        const account = accounts.find((a) => a.id === accountId);
+        if (account) {
+          const updatedCalendars = account.calendars.map((c) => {
+            if (c.id === calendar.id) {
+              const updates: Partial<Calendar> = {};
+              if (!result.failedProperties.includes('displayname')) {
+                updates.displayName = displayName;
+              }
+              if (!result.failedProperties.includes('calendar-color')) {
+                updates.color = color;
+              }
+              updates.icon = icon;
+              updates.emoji = emoji;
+              return { ...c, ...updates };
             }
-            // only update color locally if server accepted it
-            if (!result.failedProperties.includes('calendar-color')) {
-              updates.color = color;
-            }
-            // icon and emoji are always updated locally (not stored on server)
-            updates.icon = icon;
-            updates.emoji = emoji;
-            return { ...c, ...updates };
-          }
-          return c;
-        });
-        updateAccountMutation.mutate({ id: accountId, updates: { calendars: updatedCalendars } });
-      }
+            return c;
+          });
+          updateAccountMutation.mutate({ id: accountId, updates: { calendars: updatedCalendars } });
+        }
 
-      // show warning if some properties failed
-      if (result.failedProperties.length > 0) {
-        const failedNames = result.failedProperties
-          .map((p) => (p === 'displayname' ? 'calendar name' : 'color'))
-          .join(' and ');
-        setWarning(`Server doesn't support updating ${failedNames}. Other changes were saved.`);
-        return; // don't close modal so user can see the warning
+        if (result.failedProperties.length > 0) {
+          const failedNames = result.failedProperties
+            .map((p) => (p === 'displayname' ? 'calendar name' : 'color'))
+            .join(' and ');
+          setWarning(`Server doesn't support updating ${failedNames}. Other changes were saved.`);
+          return;
+        }
+      } else {
+        // create mode
+        const newCalendar = await caldavService.createCalendar(accountId, displayName, color);
+        addCalendarMutation.mutate({ accountId, calendarData: { ...newCalendar, icon, emoji } });
       }
 
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update calendar');
+      setError(err instanceof Error ? err.message : `Failed to ${calendar ? 'update' : 'create'} calendar`);
     } finally {
       setIsLoading(false);
     }
@@ -120,11 +123,11 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
     >
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in"
       >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
-            Edit Calendar
+            {calendar ? 'Edit Calendar' : 'New Calendar'}
           </h2>
           <button
             type="button"
@@ -152,6 +155,9 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
                 color={color}
               />
               <ComposedInput
+                ref={(el) => {
+                  if (el) setTimeout(() => el.focus(), 100);
+                }}
                 id="calendar-name"
                 type="text"
                 value={displayName}
@@ -216,7 +222,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
               ) : (
                 <IconComponent className="w-3.5 h-3.5" />
               )}
-              {displayName ?? 'My Calendar'}
+              {displayName || 'My Calendar'}
             </span>
           </div>
 
@@ -243,10 +249,10 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
             <button
               type="submit"
               disabled={isLoading || !displayName.trim()}
-              className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+              className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
             >
               {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Save
+              {calendar ? 'Save' : 'Create Calendar'}
             </button>
           </div>
         </form>

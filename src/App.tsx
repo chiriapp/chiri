@@ -5,7 +5,6 @@ import { Header } from '$components/Header';
 import { AccountModal } from '$components/modals/AccountModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
-import { CreateCalendarModal } from '$components/modals/CreateCalendarModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { ImportModal } from '$components/modals/ImportModal';
 import { OnboardingModal } from '$components/modals/OnboardingModal';
@@ -319,7 +318,7 @@ const App = () => {
       )}
 
       {menuHandlers.showCreateCalendar && menuHandlers.createCalendarAccountId && (
-        <CreateCalendarModal
+        <CalendarModal
           accountId={menuHandlers.createCalendarAccountId}
           onClose={() => menuHandlers.setShowCreateCalendar(false)}
         />

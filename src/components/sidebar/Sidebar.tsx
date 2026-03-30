@@ -2,7 +2,6 @@ import Inbox from 'lucide-react/icons/inbox';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AccountModal } from '$components/modals/AccountModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
-import { CreateCalendarModal } from '$components/modals/CreateCalendarModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { TagModal } from '$components/modals/TagModal';
 import { SidebarAccountsList } from '$components/sidebar/SidebarAccountsList';
@@ -409,7 +408,7 @@ export const Sidebar = ({
       )}
 
       {showCreateCalendarModal && (
-        <CreateCalendarModal
+        <CalendarModal
           accountId={showCreateCalendarModal}
           onClose={() => setShowCreateCalendarModal(null)}
         />
