@@ -1,8 +1,10 @@
 import CalendarClock from 'lucide-react/icons/calendar-clock';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
+import Clock from 'lucide-react/icons/clock';
 import FolderSync from 'lucide-react/icons/folder-sync';
 import Link from 'lucide-react/icons/link';
 import Loader from 'lucide-react/icons/loader';
+import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Tag from 'lucide-react/icons/tag';
 import type { TaskBadgeVisibility } from '$context/settingsContext';
 import { useSettingsStore } from '$hooks/useSettingsStore';
@@ -20,6 +22,12 @@ const BADGES: BadgeConfig[] = [
     label: 'Start date',
     description: 'Shown when a task has a future start date',
     icon: <CalendarClock className="w-4 h-4" />,
+  },
+  {
+    key: 'dueDate',
+    label: 'Due date',
+    description: 'When the task is due',
+    icon: <Clock className="w-4 h-4" />,
   },
   {
     key: 'tags',
@@ -44,6 +52,12 @@ const BADGES: BadgeConfig[] = [
     label: 'Status',
     description: 'In-progress status indicators with percent complete',
     icon: <Loader className="w-4 h-4" />,
+  },
+  {
+    key: 'repeat',
+    label: 'Repeat',
+    description: 'Shown when a task has a recurrence rule',
+    icon: <RefreshCw className="w-4 h-4" />,
   },
   {
     key: 'subtasks',

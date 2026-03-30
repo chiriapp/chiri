@@ -54,10 +54,12 @@ interface TaskBadgesRowProps {
   compact: boolean;
   badgeVisibility: {
     startDate: boolean;
+    dueDate: boolean;
     tags: boolean;
     calendar: boolean;
     url: boolean;
     status: boolean;
+    repeat: boolean;
     subtasks: boolean;
   };
 }
@@ -205,7 +207,7 @@ const TaskBadgesRow = ({
         </span>
       )}
 
-      {task.rrule && (
+      {badgeVisibility.repeat && task.rrule && (
         <span
           title="Repeating task"
           className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-800 text-surface-600 dark:text-surface-400"
@@ -475,7 +477,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                 />
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                {dueDateDisplay && (
+                {taskBadgeVisibility.dueDate && dueDateDisplay && (
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${dueDateDisplay.className}`}
                   >

@@ -40,10 +40,12 @@ export interface EditorFieldVisibility {
 
 export interface TaskBadgeVisibility {
   startDate: boolean;
+  dueDate: boolean;
   tags: boolean;
   calendar: boolean;
   url: boolean;
   status: boolean;
+  repeat: boolean;
   subtasks: boolean;
 }
 
@@ -74,7 +76,6 @@ interface SettingsState {
   notifications: boolean;
   notifyReminders: boolean;
   notifyOverdue: boolean;
-  enableToasts: boolean;
   defaultCalendarId: string | null;
   keyboardShortcuts: KeyboardShortcut[];
   enableSystemTray: boolean;
@@ -138,7 +139,6 @@ interface SettingsActions {
   setNotifications: (enabled: boolean) => void;
   setNotifyReminders: (enabled: boolean) => void;
   setNotifyOverdue: (enabled: boolean) => void;
-  setEnableToasts: (enabled: boolean) => void;
   setDefaultCalendarId: (calendarId: string | null) => void;
   setKeyboardShortcuts: (shortcuts: KeyboardShortcut[]) => void;
   updateShortcut: (id: string, updates: Partial<KeyboardShortcut>) => void;
@@ -204,7 +204,6 @@ const defaultState: SettingsState = {
   notifications: true,
   notifyReminders: true,
   notifyOverdue: true,
-  enableToasts: true,
   defaultCalendarId: null,
   keyboardShortcuts: DEFAULT_SHORTCUTS,
   defaultPriority: 'none',
@@ -248,10 +247,12 @@ const defaultState: SettingsState = {
   },
   taskBadgeVisibility: {
     startDate: true,
+    dueDate: true,
     tags: true,
     calendar: true,
     url: true,
     status: true,
+    repeat: true,
     subtasks: true,
   },
   // 9:00, 12:00, 17:00, 21:00 (minutes from midnight)
@@ -405,7 +406,6 @@ export const settingsStore = {
   setNotifications: (notifications: boolean) => setState({ notifications }),
   setNotifyReminders: (notifyReminders: boolean) => setState({ notifyReminders }),
   setNotifyOverdue: (notifyOverdue: boolean) => setState({ notifyOverdue }),
-  setEnableToasts: (enableToasts: boolean) => setState({ enableToasts }),
   setDefaultCalendarId: (defaultCalendarId: string | null) => setState({ defaultCalendarId }),
   setKeyboardShortcuts: (keyboardShortcuts: KeyboardShortcut[]) => setState({ keyboardShortcuts }),
   updateShortcut: (id: string, updates: Partial<KeyboardShortcut>) => {
@@ -518,7 +518,6 @@ export const settingsStore = {
         notifications: data.notifications ?? defaultState.notifications,
         notifyReminders: data.notifyReminders ?? defaultState.notifyReminders,
         notifyOverdue: data.notifyOverdue ?? defaultState.notifyOverdue,
-        enableToasts: data.enableToasts ?? defaultState.enableToasts,
         defaultCalendarId: data.defaultCalendarId ?? defaultState.defaultCalendarId,
         keyboardShortcuts: data.keyboardShortcuts
           ? mergeShortcuts(data.keyboardShortcuts, DEFAULT_SHORTCUTS)
