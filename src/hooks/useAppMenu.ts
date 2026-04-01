@@ -2,11 +2,8 @@ import { useEffect, useMemo } from 'react';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useUIState } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { loggers } from '$lib/logger';
 import { rebuildAppMenu, updateMenuState } from '$utils/menu';
 import { isCEF } from '$utils/platform';
-
-const log = loggers.app;
 
 /**
  * hook to manage macOS app menu state synchronization
@@ -37,7 +34,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
     const isEditorOpen =
       (uiState?.isEditorOpen ?? false) && (uiState?.selectedTaskId ?? null) !== null;
 
-    log.debug('Updating menu state with sortMode:', sortMode);
     updateMenuState({
       accountCount: accounts.length,
       showCompleted: uiState?.showCompletedTasks ?? true,
