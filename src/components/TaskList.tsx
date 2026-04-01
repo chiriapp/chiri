@@ -7,7 +7,7 @@ import { TaskItem } from '$components/TaskItem';
 import { DEFAULT_SORT_CONFIG } from '$constants';
 import { useCreateTask, useFilteredTasks } from '$hooks/queries/useTasks';
 import { useSetSelectedTask, useUIState } from '$hooks/queries/useUIState';
-import { truncateName, useSortableDrag } from '$hooks/useSortableDrag';
+import { truncateName, useSortableDrag } from '$hooks/ui/useSortableDrag';
 import { getSortedTasks } from '$lib/store/filters';
 import { getChildTasks } from '$lib/store/tasks';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';

@@ -4,6 +4,7 @@ import type { AccountRow, CalendarRow, ReminderRow, TagRow, TaskRow } from '$typ
 export const rowToTask = (row: TaskRow): Task => {
   const status =
     (row.status as TaskStatus | null) ?? (row.completed === 1 ? 'completed' : 'needs-action');
+
   return {
     id: row.id,
     uid: row.uid,
@@ -43,46 +44,38 @@ export const rowToTask = (row: TaskRow): Task => {
   };
 };
 
-export const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account => {
-  return {
-    id: row.id,
-    name: row.name,
-    serverUrl: row.server_url,
-    username: row.username,
-    password: row.password,
-    serverType: (row.server_type as ServerType) || undefined,
-    calendars: calendars.filter((c) => c.accountId === row.id),
-    lastSync: row.last_sync ? new Date(row.last_sync) : undefined,
-    isActive: row.is_active === 1,
-    sortOrder: row.sort_order ?? 0,
-  };
-};
+export const rowToCalendar = (row: CalendarRow): Calendar => ({
+  id: row.id,
+  displayName: row.display_name,
+  url: row.url,
+  ctag: row.ctag || undefined,
+  syncToken: row.sync_token || undefined,
+  color: row.color || undefined,
+  icon: row.icon || undefined,
+  emoji: row.emoji || undefined,
+  accountId: row.account_id,
+  supportedComponents: row.supported_components ? JSON.parse(row.supported_components) : undefined,
+  sortOrder: row.sort_order ?? 0,
+});
 
-export const rowToCalendar = (row: CalendarRow): Calendar => {
-  return {
-    id: row.id,
-    displayName: row.display_name,
-    url: row.url,
-    ctag: row.ctag || undefined,
-    syncToken: row.sync_token || undefined,
-    color: row.color || undefined,
-    icon: row.icon || undefined,
-    emoji: row.emoji || undefined,
-    accountId: row.account_id,
-    supportedComponents: row.supported_components
-      ? JSON.parse(row.supported_components)
-      : undefined,
-    sortOrder: row.sort_order ?? 0,
-  };
-};
+export const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account => ({
+  id: row.id,
+  name: row.name,
+  serverUrl: row.server_url,
+  username: row.username,
+  password: row.password,
+  serverType: (row.server_type as ServerType) || undefined,
+  calendars: calendars.filter((c) => c.accountId === row.id),
+  lastSync: row.last_sync ? new Date(row.last_sync) : undefined,
+  isActive: row.is_active === 1,
+  sortOrder: row.sort_order ?? 0,
+});
 
-export const rowToTag = (row: TagRow): Tag => {
-  return {
-    id: row.id,
-    name: row.name,
-    color: row.color,
-    icon: row.icon || undefined,
-    emoji: row.emoji || undefined,
-    sortOrder: row.sort_order ?? 0,
-  };
-};
+export const rowToTag = (row: TagRow): Tag => ({
+  id: row.id,
+  name: row.name,
+  color: row.color,
+  icon: row.icon || undefined,
+  emoji: row.emoji || undefined,
+  sortOrder: row.sort_order ?? 0,
+});

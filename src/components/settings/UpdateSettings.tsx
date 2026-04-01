@@ -5,8 +5,8 @@ import Loader from 'lucide-react/icons/loader-circle';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import { useState } from 'react';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
-import { useSettingsStore } from '$hooks/useSettingsStore';
-import { useUpdateChecker } from '$hooks/useUpdateChecker';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { useUpdateChecker } from '$hooks/system/useUpdateChecker';
 import { getAppInfo } from '$utils/version';
 
 export const UpdateSettings = () => {

@@ -5,7 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { queryKeys } from '$lib/queryClient';
-import { subscribeToDataChanges } from '$lib/store';
+import { dataStore } from '$lib/store';
 import {
   createAccount,
   deleteAccount,
@@ -14,8 +14,8 @@ import {
   updateAccount,
 } from '$lib/store/accounts';
 import { addCalendar, deleteCalendar } from '$lib/store/calendars';
-import { reorderAccounts } from '$lib/store/reorderAccounts';
-import { reorderCalendars } from '$lib/store/reorderCalendars';
+import { reorderAccounts } from '$lib/store/reorder/accounts';
+import { reorderCalendars } from '$lib/store/reorder/calendars';
 import type { Account, Calendar } from '$types';
 
 /**
@@ -25,7 +25,7 @@ export const useAccounts = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
     });
   }, [queryClient]);
@@ -44,7 +44,7 @@ export const useAccount = (id: string | null) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       if (id) {
         queryClient.invalidateQueries({ queryKey: queryKeys.accounts.byId(id) });
       }

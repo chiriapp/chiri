@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { useComposition } from '$hooks/useComposition';
+import { useComposition } from '$hooks/ui/useComposition';
 
 interface ComposedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value: string;

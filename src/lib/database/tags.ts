@@ -1,28 +1,24 @@
+import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import { FALLBACK_ITEM_COLOR } from '$constants';
-import { getDb, notifyListeners } from '$lib/database/connection';
 import { rowToTag } from '$lib/database/converters';
 import { getTasksByTag, updateTask } from '$lib/database/tasks';
-import { getUIState, setActiveTag } from '$lib/database/ui';
+import { setActiveTag } from '$lib/database/ui';
 import type { Tag } from '$types';
 import type { TagRow } from '$types/database';
 import { generateUUID } from '$utils/misc';
 
-export const getAllTags = async (): Promise<Tag[]> => {
-  const database = await getDb();
-  const rows = await database.select<TagRow[]>('SELECT * FROM tags ORDER BY sort_order ASC');
+export const getAllTags = async (conn: DatabasePlugin) => {
+  const rows = await conn.select<TagRow[]>('SELECT * FROM tags ORDER BY sort_order ASC');
   return rows.map(rowToTag);
 };
 
-export const getTagById = async (id: string): Promise<Tag | undefined> => {
-  const database = await getDb();
-  const rows = await database.select<TagRow[]>('SELECT * FROM tags WHERE id = $1', [id]);
+export const getTagById = async (conn: DatabasePlugin, id: string) => {
+  const rows = await conn.select<TagRow[]>('SELECT * FROM tags WHERE id = $1', [id]);
   return rows.length > 0 ? rowToTag(rows[0]) : undefined;
 };
 
-export const createTag = async (tagData: Partial<Tag>): Promise<Tag> => {
-  const database = await getDb();
-
-  const maxOrderRow = await database.select<[{ max_order: number | null }]>(
+export const createTag = async (conn: DatabasePlugin, tagData: Partial<Tag>) => {
+  const maxOrderRow = await conn.select<[{ max_order: number | null }]>(
     'SELECT MAX(sort_order) as max_order FROM tags',
   );
   const maxOrder = maxOrderRow[0]?.max_order ?? 0;
@@ -36,55 +32,47 @@ export const createTag = async (tagData: Partial<Tag>): Promise<Tag> => {
     sortOrder: tagData.sortOrder || maxOrder + 100,
   };
 
-  await database.execute(
-    `INSERT INTO tags (id, name, color, icon, emoji, sort_order) VALUES ($1, $2, $3, $4, $5, $6)`,
+  await conn.execute(
+    'INSERT INTO tags (id, name, color, icon, emoji, sort_order) VALUES ($1,$2,$3,$4,$5,$6)',
     [tag.id, tag.name, tag.color, tag.icon || null, tag.emoji || null, tag.sortOrder],
   );
 
-  notifyListeners();
   return tag;
 };
 
-export const updateTag = async (id: string, updates: Partial<Tag>): Promise<Tag | undefined> => {
-  const database = await getDb();
-  const existing = await getTagById(id);
+export const updateTag = async (conn: DatabasePlugin, id: string, updates: Partial<Tag>) => {
+  const existing = await getTagById(conn, id);
   if (!existing) return undefined;
 
-  const updatedTag: Tag = { ...existing, ...updates };
+  const updated: Tag = { ...existing, ...updates };
 
-  await database.execute(
-    `UPDATE tags SET name = $1, color = $2, icon = $3, emoji = $4, sort_order = $5 WHERE id = $6`,
+  await conn.execute(
+    'UPDATE tags SET name=$1, color=$2, icon=$3, emoji=$4, sort_order=$5 WHERE id=$6',
     [
-      updatedTag.name,
-      updatedTag.color,
-      updatedTag.icon || null,
-      updatedTag.emoji || null,
-      updatedTag.sortOrder,
+      updated.name,
+      updated.color,
+      updated.icon || null,
+      updated.emoji || null,
+      updated.sortOrder,
       id,
     ],
   );
 
-  notifyListeners();
-  return updatedTag;
+  return updated;
 };
 
-export const deleteTag = async (id: string) => {
-  const database = await getDb();
-
-  // Remove tag from all tasks
-  const tasks = await getTasksByTag(id);
+export const deleteTag = async (conn: DatabasePlugin, id: string) => {
+  const tasks = await getTasksByTag(conn, id);
   for (const task of tasks) {
-    const newTags = (task.tags ?? []).filter((t) => t !== id);
-    await updateTask(task.id, { tags: newTags });
+    await updateTask(conn, task.id, { tags: (task.tags ?? []).filter((t) => t !== id) });
   }
 
-  await database.execute('DELETE FROM tags WHERE id = $1', [id]);
+  await conn.execute('DELETE FROM tags WHERE id = $1', [id]);
 
-  // Update UI state if this was the active tag
-  const uiState = await getUIState();
-  if (uiState.activeTagId === id) {
-    await setActiveTag(null);
+  const uiState_rows = await conn.select<Array<{ active_tag_id: string | null }>>(
+    'SELECT active_tag_id FROM ui_state WHERE id = 1',
+  );
+  if (uiState_rows[0]?.active_tag_id === id) {
+    await setActiveTag(conn, null);
   }
-
-  notifyListeners();
 };

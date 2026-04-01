@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useDeleteTask, useTasks } from '$hooks/queries/useTasks';
-import { useConfirmDialog } from '$hooks/useConfirmDialog';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { pluralize } from '$utils/misc';
 
 export const useConfirmTaskDelete = () => {

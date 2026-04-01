@@ -3,7 +3,7 @@ import ExternalLink from 'lucide-react/icons/external-link';
 import Link from 'lucide-react/icons/link';
 import { useEffect, useRef } from 'react';
 import { ComposedTextarea } from '$components/ComposedTextarea';
-import { useDebouncedTaskUpdate } from '$hooks/useDebouncedTaskUpdate';
+import { useDebouncedTaskUpdate } from '$hooks/ui/useDebouncedTaskUpdate';
 import type { Task } from '$types';
 
 interface UrlProps {

@@ -1,8 +1,8 @@
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 
 interface SubtaskModalProps {
   isOpen: boolean;

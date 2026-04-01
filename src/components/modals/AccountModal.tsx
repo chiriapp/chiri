@@ -15,10 +15,10 @@ import {
   SERVER_TYPE_GROUPS,
 } from '$constants/settings';
 import { useAddCalendar, useCreateAccount, useUpdateAccount } from '$hooks/queries/useAccounts';
-import { useConfirmDialog } from '$hooks/useConfirmDialog';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
-import { caldavService } from '$lib/caldav';
+import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
@@ -119,7 +119,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
    */
   const fetchTasksForCalendar = async (accountId: string, calendar: Calendar) => {
     try {
-      const remoteTasks = await caldavService.fetchTasks(accountId, calendar);
+      const remoteTasks = await CalDAVClient.getForAccount(accountId).fetchTasks(calendar);
 
       if (!remoteTasks) {
         log.warn(`No tasks fetched from ${calendar.displayName}`);
@@ -171,7 +171,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       const tempId = generateUUID();
       log.debug(`Testing connection to ${serverUrl}...`);
 
-      const connectionInfo = await caldavService.connect(
+      const connectionInfo = await CalDAVClient.connect(
         tempId,
         serverUrl,
         username,
@@ -185,7 +185,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
 
         if (!proceed) {
           // User cancelled, disconnect and return
-          caldavService.disconnect(tempId);
+          CalDAVClient.disconnect(tempId);
           setIsTesting(false);
           return;
         }
@@ -193,7 +193,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
 
       // Fetch calendars to verify full connection
       log.debug(`Fetching calendars...`);
-      const calendars = await caldavService.fetchCalendars(tempId);
+      const calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
       log.info(`Connection test successful - found ${calendars.length} calendars`);
 
       // Store the connection info for reuse
@@ -224,7 +224,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
         if (effectivePassword) {
           // test connection with new credentials before saving
           log.debug(`Testing connection to ${serverUrl}...`);
-          await caldavService.connect(
+          await CalDAVClient.connect(
             account.id,
             serverUrl,
             username,
@@ -262,7 +262,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
           tempId = generateUUID();
 
           log.debug(`Connecting to ${serverUrl}...`);
-          const connectionInfo = await caldavService.connect(
+          const connectionInfo = await CalDAVClient.connect(
             tempId,
             serverUrl,
             username,
@@ -276,14 +276,14 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
 
             if (!proceed) {
               // User cancelled, disconnect and return
-              caldavService.disconnect(tempId);
+              CalDAVClient.disconnect(tempId);
               setIsLoading(false);
               return;
             }
           }
 
           log.debug(`Fetching calendars...`);
-          calendars = await caldavService.fetchCalendars(tempId);
+          calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
           log.info(`Found ${calendars.length} calendars:`, calendars);
         }
 

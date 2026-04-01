@@ -6,10 +6,10 @@ import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '$constants';
 import { getIconByName } from '$constants/icons';
 import { useAccounts, useAddCalendar, useUpdateAccount } from '$hooks/queries/useAccounts';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
-import { useSettingsStore } from '$hooks/useSettingsStore';
-import { caldavService } from '$lib/caldav';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { CalDAVClient } from '$lib/caldav';
 import type { Calendar } from '$types';
 
 interface CalendarModalProps {
@@ -70,7 +70,10 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
         let result = { failedProperties: [] as string[] };
 
         if (Object.keys(serverUpdates).length > 0) {
-          result = await caldavService.updateCalendar(accountId, calendar.url, serverUpdates);
+          result = await CalDAVClient.getForAccount(accountId).updateCalendar(
+            calendar.url,
+            serverUpdates,
+          );
         }
 
         const account = accounts.find((a) => a.id === accountId);
@@ -102,7 +105,10 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
         }
       } else {
         // create mode
-        const newCalendar = await caldavService.createCalendar(accountId, displayName, color);
+        const newCalendar = await CalDAVClient.getForAccount(accountId).createCalendar(
+          displayName,
+          color,
+        );
         addCalendarMutation.mutate({ accountId, calendarData: { ...newCalendar, icon, emoji } });
       }
 

@@ -2,33 +2,19 @@
  * UI state operations
  */
 
-import {
-  setAccountSortConfig as dbSetAccountSortConfig,
-  setActiveAccount as dbSetActiveAccount,
-  setActiveCalendar as dbSetActiveCalendar,
-  setActiveTag as dbSetActiveTag,
-  setAllTasksView as dbSetAllTasksView,
-  setCalendarSortConfig as dbSetCalendarSortConfig,
-  setEditorOpen as dbSetEditorOpen,
-  setSearchQuery as dbSetSearchQuery,
-  setSelectedTask as dbSetSelectedTask,
-  setShowCompletedTasks as dbSetShowCompletedTasks,
-  setShowUnstartedTasks as dbSetShowUnstartedTasks,
-  setSortConfig as dbSetSortConfig,
-  setTagSortConfig as dbSetTagSortConfig,
-} from '$lib/database/ui';
+import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
-import { loadDataStore, saveDataStore } from '$lib/store';
+import { dataStore } from '$lib/store';
 import type { AccountSortConfig, CalendarSortConfig, SortConfig, TagSortConfig } from '$types';
 
 const log = loggers.dataStore;
 
 export const getUIState = () => {
-  return loadDataStore().ui;
+  return dataStore.load().ui;
 };
 
 export const setActiveAccount = (id: string | null) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
   // Validate that the account exists before setting it
   if (id !== null) {
@@ -39,16 +25,16 @@ export const setActiveAccount = (id: string | null) => {
     }
   }
 
-  dbSetActiveAccount(id).catch((e) => log.error('Failed to persist active account:', e));
+  db.setActiveAccount(id).catch((e) => log.error('Failed to persist active account:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: { ...data.ui, activeAccountId: id, activeCalendarId: null },
   });
 };
 
 export const setActiveCalendar = (id: string | null) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
   // Validate that the calendar exists before setting it
   if (id !== null) {
@@ -61,9 +47,9 @@ export const setActiveCalendar = (id: string | null) => {
     }
   }
 
-  dbSetActiveCalendar(id).catch((e) => log.error('Failed to persist active calendar:', e));
+  db.setActiveCalendar(id).catch((e) => log.error('Failed to persist active calendar:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: {
       ...data.ui,
@@ -76,7 +62,7 @@ export const setActiveCalendar = (id: string | null) => {
 };
 
 export const setActiveTag = (id: string | null) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
   // Validate that the tag exists before setting it
   if (id !== null) {
@@ -87,9 +73,9 @@ export const setActiveTag = (id: string | null) => {
     }
   }
 
-  dbSetActiveTag(id).catch((e) => log.error('Failed to persist active tag:', e));
+  db.setActiveTag(id).catch((e) => log.error('Failed to persist active tag:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: {
       ...data.ui,
@@ -102,11 +88,11 @@ export const setActiveTag = (id: string | null) => {
 };
 
 export const setAllTasksView = () => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetAllTasksView().catch((e) => log.error('Failed to persist all tasks view:', e));
+  db.setAllTasksView().catch((e) => log.error('Failed to persist all tasks view:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: {
       ...data.ui,
@@ -119,7 +105,7 @@ export const setAllTasksView = () => {
 };
 
 export const setSelectedTask = (id: string | null) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
   // Validate that the task exists before setting it
   if (id !== null) {
@@ -130,9 +116,9 @@ export const setSelectedTask = (id: string | null) => {
     }
   }
 
-  dbSetSelectedTask(id).catch((e) => log.error('Failed to persist selected task:', e));
+  db.setSelectedTask(id).catch((e) => log.error('Failed to persist selected task:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: {
       ...data.ui,
@@ -143,11 +129,11 @@ export const setSelectedTask = (id: string | null) => {
 };
 
 export const setEditorOpen = (open: boolean) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetEditorOpen(open).catch((e) => log.error('Failed to persist editor open:', e));
+  db.setEditorOpen(open).catch((e) => log.error('Failed to persist editor open:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: {
       ...data.ui,
@@ -158,81 +144,81 @@ export const setEditorOpen = (open: boolean) => {
 };
 
 export const setSearchQuery = (query: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetSearchQuery(query).catch((e) => log.error('Failed to persist search query:', e));
+  db.setSearchQuery(query).catch((e) => log.error('Failed to persist search query:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: { ...data.ui, searchQuery: query },
   });
 };
 
 export const setSortConfig = (config: SortConfig) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetSortConfig(config).catch((e) => log.error('Failed to persist sort config:', e));
+  db.setSortConfig(config).catch((e) => log.error('Failed to persist sort config:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: { ...data.ui, sortConfig: config },
   });
 };
 
 export const setAccountSortConfig = (config: AccountSortConfig) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetAccountSortConfig(config).catch((e) =>
+  db.setAccountSortConfig(config).catch((e) =>
     log.error('Failed to persist account sort config:', e),
   );
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: { ...data.ui, accountSortConfig: config },
   });
 };
 
 export const setCalendarSortConfig = (config: CalendarSortConfig) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetCalendarSortConfig(config).catch((e) =>
+  db.setCalendarSortConfig(config).catch((e) =>
     log.error('Failed to persist calendar sort config:', e),
   );
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: { ...data.ui, calendarSortConfig: config },
   });
 };
 
 export const setTagSortConfig = (config: TagSortConfig) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetTagSortConfig(config).catch((e) => log.error('Failed to persist tag sort config:', e));
+  db.setTagSortConfig(config).catch((e) => log.error('Failed to persist tag sort config:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: { ...data.ui, tagSortConfig: config },
   });
 };
 
 export const setShowCompletedTasks = (show: boolean) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetShowCompletedTasks(show).catch((e) => log.error('Failed to persist show completed:', e));
+  db.setShowCompletedTasks(show).catch((e) => log.error('Failed to persist show completed:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: { ...data.ui, showCompletedTasks: show },
   });
 };
 
 export const setShowUnstartedTasks = (show: boolean) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbSetShowUnstartedTasks(show).catch((e) => log.error('Failed to persist show unstarted:', e));
+  db.setShowUnstartedTasks(show).catch((e) => log.error('Failed to persist show unstarted:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     ui: { ...data.ui, showUnstartedTasks: show },
   });

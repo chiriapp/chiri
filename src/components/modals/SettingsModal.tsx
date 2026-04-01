@@ -33,8 +33,8 @@ import { SystemSettings } from '$components/settings/SystemSettings';
 import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings';
 import { UpdateSettings } from '$components/settings/UpdateSettings';
 import { useAccounts } from '$hooks/queries/useAccounts';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { SettingsCategory, SettingsSubtab } from '$types';
 
 interface SettingsModalProps {

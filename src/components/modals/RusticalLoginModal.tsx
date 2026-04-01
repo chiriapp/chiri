@@ -6,9 +6,9 @@ import { useEffect, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
-import { caldavService } from '$lib/caldav';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
 import {
   cancelNextcloudLogin,
@@ -98,7 +98,7 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
       const accountId = generateUUID();
 
       // Connect to server to verify credentials and fetch calendars
-      await caldavService.connect(
+      await CalDAVClient.connect(
         accountId,
         credentials.server,
         credentials.loginName,
@@ -107,7 +107,7 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
       );
 
       // Fetch calendars from the server
-      const calendars = await caldavService.fetchCalendars(accountId);
+      const calendars = await CalDAVClient.getForAccount(accountId).fetchCalendars();
 
       log.info(`Found ${calendars?.length || 0} calendars on RustiCal server`);
 

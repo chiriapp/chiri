@@ -1,7 +1,7 @@
 import { AppSelect } from '$components/AppSelect';
 import { MacNotificationPermissionCard } from '$components/MacNotificationPermissionCard';
-import { useNotificationContext } from '$hooks/useNotificationContext';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useNotificationContext } from '$hooks/store/useNotificationContext';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { isMacPlatform } from '$utils/platform';
 
 const formatHour = (hour: number, use24h: boolean) => {

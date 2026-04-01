@@ -29,8 +29,8 @@ import {
 } from '$hooks/queries/useTasks';
 import { useSetEditorOpen } from '$hooks/queries/useUIState';
 import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import type { Task, TaskStatus } from '$types';
 import { getContrastTextColor } from '$utils/color';
 import { hasOpenModalElements } from '$utils/misc';

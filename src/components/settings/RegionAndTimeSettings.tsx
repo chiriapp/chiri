@@ -6,9 +6,9 @@ import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
 import { DATE_FORMAT_OPTIONS, WEEK_START_OPTIONS } from '$constants/settings';
-import type { QuickTimePresets } from '$context/settingsContext';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import type { DateFormat, StartOfWeek, TimeFormat } from '$types';
+import type { QuickTimePresets } from '$types/settings';
 import { formatTime } from '$utils/date';
 
 const TIME_CATEGORIES = [

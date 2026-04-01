@@ -1,14 +1,10 @@
 import { addDays, format, setHours, startOfDay, subDays, subHours, subMinutes } from 'date-fns';
 import { settingsStore } from '$context/settingsContext';
-import { toastManager } from '$hooks/useToast';
-import {
-  createTask as dbCreateTask,
-  deleteTask as dbDeleteTask,
-  updateTask as dbUpdateTask,
-} from '$lib/database/tasks';
-import { toAppleEpoch } from '$lib/ical';
+import { toastManager } from '$hooks/ui/useToast';
+import { db } from '$lib/database';
+import { toAppleEpoch } from '$lib/ical/vtodo';
 import { loggers } from '$lib/logger';
-import { getIsInitialized, loadDataStore, saveDataStore } from '$lib/store';
+import { dataStore } from '$lib/store';
 import type { DefaultDateOffset, DefaultReminderOffset, Reminder, Task } from '$types';
 import { generateUUID } from '$utils/misc';
 import { getNextOccurrence, parseRRule } from '$utils/recurrence';
@@ -61,35 +57,35 @@ const log = loggers.dataStore;
 
 // Task getters
 export const getAllTasks = () => {
-  return loadDataStore().tasks;
+  return dataStore.load().tasks;
 };
 
 export const getTaskById = (id: string) => {
-  return loadDataStore().tasks.find((t) => t.id === id);
+  return dataStore.load().tasks.find((t) => t.id === id);
 };
 
 export const getTaskByUid = (uid: string) => {
-  return loadDataStore().tasks.find((t) => t.uid === uid);
+  return dataStore.load().tasks.find((t) => t.uid === uid);
 };
 
 export const getTasksByCalendar = (calendarId: string) => {
-  return loadDataStore().tasks.filter((t) => t.calendarId === calendarId);
+  return dataStore.load().tasks.filter((t) => t.calendarId === calendarId);
 };
 
 export const getTasksByTag = (tagId: string) => {
-  return loadDataStore().tasks.filter((t) => (t.tags ?? []).includes(tagId));
+  return dataStore.load().tasks.filter((t) => (t.tags ?? []).includes(tagId));
 };
 
 export const getChildTasks = (parentUid: string) => {
-  return loadDataStore().tasks.filter((t) => t.parentUid === parentUid);
+  return dataStore.load().tasks.filter((t) => t.parentUid === parentUid);
 };
 
 export const countChildren = (parentUid: string) => {
-  return loadDataStore().tasks.filter((t) => t.parentUid === parentUid).length;
+  return dataStore.load().tasks.filter((t) => t.parentUid === parentUid).length;
 };
 
 export const getAllDescendants = (parentUid: string) => {
-  const tasks = loadDataStore().tasks;
+  const tasks = dataStore.load().tasks;
 
   const getDescendants = (uid: string): Task[] => {
     const children = tasks.filter((t) => t.parentUid === uid);
@@ -102,7 +98,7 @@ export const getAllDescendants = (parentUid: string) => {
 // Task create
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: complexity is acceptable. it'd be hard to reduce this even further
 export const createTask = (taskData: Partial<Task>) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const now = new Date();
 
   // Get default calendar and task defaults from settings
@@ -203,14 +199,14 @@ export const createTask = (taskData: Partial<Task>) => {
         : undefined),
   } satisfies Task;
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     tasks: [...data.tasks, task],
   });
 
   // Persist to SQLite including local-only tasks
-  if (getIsInitialized()) {
-    dbCreateTask(task).catch((e) => log.error('Failed to sync task to database:', e));
+  if (dataStore.getIsInitialized()) {
+    db.createTask(task).catch((e) => log.error('Failed to sync task to database:', e));
   }
 
   return task;
@@ -218,7 +214,7 @@ export const createTask = (taskData: Partial<Task>) => {
 
 // Task update
 export const updateTask = (id: string, updates: Partial<Task>) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   let updatedTask: Task | undefined;
 
   const tasks = data.tasks.map((task) => {
@@ -237,20 +233,20 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
   });
 
   if (updatedTask) {
-    dbUpdateTask(id, updatedTask).catch((e) => log.error('Failed to persist task update:', e));
+    db.updateTask(id, updatedTask).catch((e) => log.error('Failed to persist task update:', e));
   }
 
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
   return updatedTask;
 };
 
 // Task delete
 export const deleteTask = (id: string, deleteChildren: boolean = true) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const task = data.tasks.find((t) => t.id === id);
   if (!task) return;
 
-  dbDeleteTask(id, deleteChildren).catch((e) => log.error('Failed to persist task deletion:', e));
+  db.deleteTask(id, deleteChildren).catch((e) => log.error('Failed to persist task deletion:', e));
 
   // Get all descendants recursively
   const getAllDescendantIds = (parentUid: string): string[] => {
@@ -286,7 +282,7 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
     );
   }
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     tasks: updatedTasks.filter((t) => !tasksToDelete.includes(t.id)),
     pendingDeletions: newPendingDeletions,
@@ -301,7 +297,7 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
 
 // Task toggles
 export const toggleTaskComplete = (id: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const task = data.tasks.find((t) => t.id === id);
   if (!task) return;
 
@@ -359,11 +355,11 @@ export const toggleTaskComplete = (id: string) => {
           synced: false,
         };
 
-        dbUpdateTask(id, advances).catch((e) =>
+        db.updateTask(id, advances).catch((e) =>
           log.error('Failed to persist recurring task advance:', e),
         );
         const tasks = data.tasks.map((t) => (t.id === id ? { ...t, ...advances } : t));
-        saveDataStore({ ...data, tasks });
+        dataStore.save({ ...data, tasks });
 
         const dateStr = task.dueDateAllDay
           ? format(next, 'MMM d, yyyy')
@@ -389,14 +385,14 @@ export const toggleTaskComplete = (id: string) => {
     synced: false,
   };
 
-  dbUpdateTask(id, updates).catch((e) => log.error('Failed to persist task toggle:', e));
+  db.updateTask(id, updates).catch((e) => log.error('Failed to persist task toggle:', e));
 
   const tasks = data.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t));
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
 };
 
 export const toggleTaskCollapsed = (id: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const task = data.tasks.find((t) => t.id === id);
   if (!task) return;
 
@@ -404,15 +400,15 @@ export const toggleTaskCollapsed = (id: string) => {
     isCollapsed: !task.isCollapsed,
   };
 
-  dbUpdateTask(id, updates).catch((e) => log.error('Failed to persist task collapse:', e));
+  db.updateTask(id, updates).catch((e) => log.error('Failed to persist task collapse:', e));
 
   const tasks = data.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t));
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
 };
 
 // Task tags
 export const addTagToTask = (taskId: string, tagId: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const tasks = data.tasks.map((task) =>
     task.id === taskId
       ? {
@@ -423,11 +419,11 @@ export const addTagToTask = (taskId: string, tagId: string) => {
         }
       : task,
   );
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
 };
 
 export const removeTagFromTask = (taskId: string, tagId: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const tasks = data.tasks.map((task) =>
     task.id === taskId
       ? {
@@ -438,12 +434,12 @@ export const removeTagFromTask = (taskId: string, tagId: string) => {
         }
       : task,
   );
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
 };
 
 // Task hierarchy
 export const setTaskParent = (taskId: string, parentUid: string | undefined) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const task = data.tasks.find((t) => t.id === taskId);
   if (!task) return;
 
@@ -507,12 +503,12 @@ export const setTaskParent = (taskId: string, parentUid: string | undefined) => 
     return t;
   });
 
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
 };
 
 // Export helpers
 export const exportTaskAndChildren = (taskId: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const task = data.tasks.find((t) => t.id === taskId);
   if (!task) return null;
 

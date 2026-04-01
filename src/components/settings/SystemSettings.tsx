@@ -1,7 +1,7 @@
 import { relaunch } from '@tauri-apps/plugin-process';
 import AlertTriangle from 'lucide-react/icons/alert-triangle';
-import { usePlatform } from '$hooks/usePlatform';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { usePlatform } from '$hooks/system/usePlatform';
 
 export const SystemSettings = () => {
   const { isGNOME } = usePlatform();

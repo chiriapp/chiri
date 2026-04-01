@@ -7,8 +7,8 @@ import Flag from 'lucide-react/icons/flag';
 import FolderSync from 'lucide-react/icons/folder-sync';
 import Link from 'lucide-react/icons/link';
 import Tag from 'lucide-react/icons/tag';
-import type { EditorFieldVisibility } from '$context/settingsContext';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import type { EditorFieldVisibility } from '$types/settings';
 
 type FieldConfig = {
   key: keyof EditorFieldVisibility;

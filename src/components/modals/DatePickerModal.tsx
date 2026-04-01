@@ -25,10 +25,10 @@ import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
 import { DEFAULT_TIME } from '$constants';
-import type { QuickTimePresets } from '$context/settingsContext';
 import { settingsStore } from '$context/settingsContext';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import type { QuickTimePresets } from '$types/settings';
 import {
   createAllDayDate,
   createPaddedDaysArray,

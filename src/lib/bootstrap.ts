@@ -4,10 +4,10 @@ import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
 import { platform } from '@tauri-apps/plugin-os';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { settingsStore } from '$context/settingsContext';
-import { getUIState } from '$lib/database/ui';
+import { db } from '$lib/database';
 import { createBootstrapErrorUI } from '$lib/errorUI';
 import { initLogger, loggers } from '$lib/logger';
-import { initializeDataStore } from '$lib/store';
+import { dataStore } from '$lib/store';
 import { initAppMenu } from '$utils/menu';
 import { isCEF } from '$utils/platform';
 
@@ -24,7 +24,7 @@ export const initializeApp = async () => {
   log.info('Starting application initialization...');
 
   log.debug('Initializing data store...');
-  await initializeDataStore();
+  await dataStore.initialize();
   log.debug('Data store initialized');
 
   // initialize system tray based on settings
@@ -41,7 +41,7 @@ export const initializeApp = async () => {
   }
 
   log.debug('Getting UI state...');
-  const uiState = await getUIState();
+  const uiState = await db.getUIState();
   const sortMode = uiState.sortConfig?.mode ?? 'manual';
 
   const shortcuts = settingsStore.getState().keyboardShortcuts;

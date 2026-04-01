@@ -13,10 +13,10 @@ import {
   useSetSortConfig,
   useUIState,
 } from '$hooks/queries/useUIState';
-import { useConfirmDialog } from '$hooks/useConfirmDialog';
+import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
 import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
-import { useMenuEvents } from '$hooks/useMenuEvents';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useMenuEvents } from '$hooks/system/useMenuEvents';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import type { SettingsCategory, SettingsSubtab, SortDirection, SortMode } from '$types';
 
 export const useMenuHandlers = (

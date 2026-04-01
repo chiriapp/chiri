@@ -1,33 +1,28 @@
-import { getDb, notifyListeners } from '$lib/database/connection';
+import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import { rowToAccount, rowToCalendar } from '$lib/database/converters';
 import { getUIState } from '$lib/database/ui';
 import type { Account } from '$types';
 import type { AccountRow, CalendarRow } from '$types/database';
 import { generateUUID } from '$utils/misc';
 
-export const getAllAccounts = async (): Promise<Account[]> => {
-  const database = await getDb();
-
-  const accountRows = await database.select<AccountRow[]>(
+export const getAllAccounts = async (conn: DatabasePlugin) => {
+  const accountRows = await conn.select<AccountRow[]>(
     'SELECT * FROM accounts ORDER BY sort_order ASC',
   );
-  const calendarRows = await database.select<CalendarRow[]>(
+  const calendarRows = await conn.select<CalendarRow[]>(
     'SELECT * FROM calendars ORDER BY sort_order ASC',
   );
   const calendars = calendarRows.map(rowToCalendar);
-
   return accountRows.map((row) => rowToAccount(row, calendars));
 };
 
-export const getAccountById = async (id: string): Promise<Account | undefined> => {
-  const accounts = await getAllAccounts();
+export const getAccountById = async (conn: DatabasePlugin, id: string) => {
+  const accounts = await getAllAccounts(conn);
   return accounts.find((a) => a.id === id);
 };
 
-export const createAccount = async (accountData: Partial<Account>): Promise<Account> => {
-  const database = await getDb();
-
-  const maxOrderRow = await database.select<[{ max_order: number | null }]>(
+export const createAccount = async (conn: DatabasePlugin, accountData: Partial<Account>) => {
+  const maxOrderRow = await conn.select<[{ max_order: number | null }]>(
     'SELECT MAX(sort_order) as max_order FROM accounts',
   );
   const maxOrder = maxOrderRow[0]?.max_order ?? 0;
@@ -44,7 +39,7 @@ export const createAccount = async (accountData: Partial<Account>): Promise<Acco
     sortOrder: accountData.sortOrder || maxOrder + 100,
   };
 
-  await database.execute(
+  await conn.execute(
     `INSERT INTO accounts (id, name, server_url, username, password, server_type, last_sync, is_active, sort_order)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
     [
@@ -60,60 +55,51 @@ export const createAccount = async (accountData: Partial<Account>): Promise<Acco
     ],
   );
 
-  // Set as active account if none set
-  const uiState = await getUIState();
+  const uiState = await getUIState(conn);
   if (!uiState.activeAccountId) {
-    await database.execute(`UPDATE ui_state SET active_account_id = $1 WHERE id = 1`, [account.id]);
+    await conn.execute('UPDATE ui_state SET active_account_id = $1 WHERE id = 1', [account.id]);
   }
 
-  notifyListeners();
   return account;
 };
 
 export const updateAccount = async (
+  conn: DatabasePlugin,
   id: string,
   updates: Partial<Account>,
-): Promise<Account | undefined> => {
-  const database = await getDb();
-  const existing = await getAccountById(id);
+) => {
+  const existing = await getAccountById(conn, id);
   if (!existing) return undefined;
 
-  const updatedAccount: Account = { ...existing, ...updates };
+  const updated: Account = { ...existing, ...updates };
 
-  await database.execute(
+  await conn.execute(
     `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, last_sync = $6, is_active = $7, sort_order = $8
      WHERE id = $9`,
     [
-      updatedAccount.name,
-      updatedAccount.serverUrl,
-      updatedAccount.username,
-      updatedAccount.password,
-      updatedAccount.serverType || null,
-      updatedAccount.lastSync ? updatedAccount.lastSync.toISOString() : null,
-      updatedAccount.isActive ? 1 : 0,
-      updatedAccount.sortOrder,
+      updated.name,
+      updated.serverUrl,
+      updated.username,
+      updated.password,
+      updated.serverType || null,
+      updated.lastSync ? updated.lastSync.toISOString() : null,
+      updated.isActive ? 1 : 0,
+      updated.sortOrder,
       id,
     ],
   );
 
-  notifyListeners();
-  return updatedAccount;
+  return updated;
 };
 
-export const deleteAccount = async (id: string) => {
-  const database = await getDb();
+export const deleteAccount = async (conn: DatabasePlugin, id: string) => {
+  await conn.execute('DELETE FROM accounts WHERE id = $1', [id]);
 
-  // Delete cascades to calendars and tasks via foreign keys
-  await database.execute('DELETE FROM accounts WHERE id = $1', [id]);
-
-  // Update UI state
-  const accounts = await getAllAccounts();
-  const uiState = await getUIState();
+  const accounts = await getAllAccounts(conn);
+  const uiState = await getUIState(conn);
   if (uiState.activeAccountId === id) {
-    await database.execute(`UPDATE ui_state SET active_account_id = $1 WHERE id = 1`, [
+    await conn.execute('UPDATE ui_state SET active_account_id = $1 WHERE id = 1', [
       accounts[0]?.id || null,
     ]);
   }
-
-  notifyListeners();
 };

@@ -1,7 +1,7 @@
 import X from 'lucide-react/icons/x';
 import type { ReactNode } from 'react';
 import { MODAL_SIZE_CLASSES } from '$constants';
-import { useFocusTrap } from '$hooks/useFocusTrap';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
 
 interface ModalWrapperProps {
   isOpen?: boolean;

@@ -3,8 +3,8 @@ import Search from 'lucide-react/icons/search';
 import X from 'lucide-react/icons/x';
 import { useMemo, useState } from 'react';
 import { getIconByName } from '$constants/icons';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { Tag } from '$types';
 
 interface TagPickerModalProps {

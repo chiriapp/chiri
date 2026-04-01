@@ -4,9 +4,9 @@ import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import { formatDate } from '$utils/date';
 import {
   buildRRule,
@@ -128,7 +128,7 @@ const buildFromUIState = (state: RepeatUIState) => {
   if (state.endMode === 'count' && state.count > 0) {
     base.COUNT = String(state.count);
   } else if (state.endMode === 'until' && state.until) {
-    base.UNTIL = state.until.replace(/-/g, '') + 'T000000Z';
+    base.UNTIL = `${state.until.replace(/-/g, '')}T000000Z`;
   }
 
   return buildRRule(base);

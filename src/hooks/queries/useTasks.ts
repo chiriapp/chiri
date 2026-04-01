@@ -4,12 +4,12 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { logHistoryForTaskUpdate, logTaskChange } from '$lib/database/history';
+import { db } from '$lib/database';
 import { queryKeys } from '$lib/queryClient';
-import { subscribeToDataChanges } from '$lib/store';
+import { dataStore } from '$lib/store';
 import { getFilteredTasks, getSortedTasks } from '$lib/store/filters';
 import { addReminder, removeReminder, updateReminder } from '$lib/store/reminders';
-import { reorderTasks } from '$lib/store/reorder';
+import { reorderTasks } from '$lib/store/reorder/tasks';
 import {
   addSubtask,
   deleteSubtask,
@@ -54,7 +54,7 @@ export const useTasks = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
     });
   }, [queryClient]);
@@ -73,7 +73,7 @@ export const useFilteredTasks = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: ['filteredTasks'] });
     });
   }, [queryClient]);
@@ -103,7 +103,7 @@ export const useTask = (id: string | null) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       if (id) {
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byId(id) });
       }
@@ -125,7 +125,7 @@ export const useTasksByCalendar = (calendarId: string | null) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       if (calendarId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byCalendar(calendarId) });
       }
@@ -149,9 +149,9 @@ export const useCreateTask = () => {
   return useMutation({
     mutationFn: async (taskInput: Partial<Task>) => {
       const task = createTask(taskInput);
-      await logTaskChange(task.uid, 'created', null, task.title);
+      await db.logTaskChange(task.uid, 'created', null, task.title);
       if (task.parentUid) {
-        await logTaskChange(task.parentUid, 'subtask', null, task.title);
+        await db.logTaskChange(task.parentUid, 'subtask', null, task.title);
       }
       return task;
     },
@@ -178,7 +178,7 @@ export const useUpdateTask = () => {
       const oldTask = getTaskById(id);
       const result = updateTask(id, updates);
       if (result && oldTask && updates.synced !== true) {
-        await logHistoryForTaskUpdate(result.uid, oldTask, updates);
+        await db.logHistoryForTaskUpdate(result.uid, oldTask, updates);
       }
       return result;
     },
@@ -202,7 +202,7 @@ export const useDeleteTask = () => {
     mutationFn: async ({ id, deleteChildren = true }: { id: string; deleteChildren?: boolean }) => {
       const task = getTaskById(id);
       if (task?.parentUid) {
-        await logTaskChange(task.parentUid, 'subtask', task.title, null);
+        await db.logTaskChange(task.parentUid, 'subtask', task.title, null);
       }
       deleteTask(id, deleteChildren);
       return task;
@@ -231,7 +231,7 @@ export const useToggleTaskComplete = () => {
           ? 'needs-action'
           : 'completed';
       toggleTaskComplete(id);
-      await logHistoryForTaskUpdate(task.uid, task, {
+      await db.logHistoryForTaskUpdate(task.uid, task, {
         status: newStatus,
       });
       return task;
@@ -262,10 +262,10 @@ export const useSetTaskParent = () => {
       const task = getTaskById(taskId);
       if (task) {
         if (task.parentUid) {
-          await logTaskChange(task.parentUid, 'subtask', task.title, null);
+          await db.logTaskChange(task.parentUid, 'subtask', task.title, null);
         }
         if (parentUid) {
-          await logTaskChange(parentUid, 'subtask', null, task.title);
+          await db.logTaskChange(parentUid, 'subtask', null, task.title);
         }
       }
       setTaskParent(taskId, parentUid);
@@ -310,10 +310,10 @@ export const useReorderTasks = () => {
 
       if (taskBefore && oldParentUid !== newParentUid) {
         if (oldParentUid) {
-          await logTaskChange(oldParentUid, 'subtask', taskBefore.title, null);
+          await db.logTaskChange(oldParentUid, 'subtask', taskBefore.title, null);
         }
         if (newParentUid) {
-          await logTaskChange(newParentUid, 'subtask', null, taskBefore.title);
+          await db.logTaskChange(newParentUid, 'subtask', null, taskBefore.title);
         }
       }
 
@@ -401,7 +401,7 @@ export const useAddTagToTask = () => {
       addTagToTask(taskId, tagId);
       const newTask = getTaskById(taskId);
       if (oldTask && newTask) {
-        await logHistoryForTaskUpdate(newTask.uid, oldTask, { tags: newTask.tags });
+        await db.logHistoryForTaskUpdate(newTask.uid, oldTask, { tags: newTask.tags });
       }
       return newTask;
     },
@@ -423,7 +423,7 @@ export const useRemoveTagFromTask = () => {
       removeTagFromTask(taskId, tagId);
       const newTask = getTaskById(taskId);
       if (oldTask && newTask) {
-        await logHistoryForTaskUpdate(newTask.uid, oldTask, { tags: newTask.tags });
+        await db.logHistoryForTaskUpdate(newTask.uid, oldTask, { tags: newTask.tags });
       }
       return newTask;
     },
@@ -445,7 +445,7 @@ export const useAddReminder = () => {
       addReminder(taskId, trigger);
       const newTask = getTaskById(taskId);
       if (oldTask && newTask) {
-        await logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
+        await db.logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
       }
       return newTask;
     },
@@ -467,7 +467,7 @@ export const useRemoveReminder = () => {
       removeReminder(taskId, reminderId);
       const newTask = getTaskById(taskId);
       if (oldTask && newTask) {
-        await logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
+        await db.logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
       }
       return newTask;
     },
@@ -497,7 +497,7 @@ export const useUpdateReminder = () => {
       updateReminder(taskId, reminderId, trigger);
       const newTask = getTaskById(taskId);
       if (oldTask && newTask) {
-        await logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
+        await db.logHistoryForTaskUpdate(newTask.uid, oldTask, { reminders: newTask.reminders });
       }
       return newTask;
     },

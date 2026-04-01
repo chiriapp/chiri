@@ -1,12 +1,5 @@
 import { type ReactNode, useCallback, useSyncExternalStore } from 'react';
-import type { QuickTimePresets, TaskListDensity } from '$context/settingsContext';
-import {
-  type EditorFieldVisibility,
-  SettingsContext,
-  type SettingsStore,
-  settingsStore,
-  type TaskBadgeVisibility,
-} from '$context/settingsContext';
+import { SettingsContext, type SettingsStore, settingsStore } from '$context/settingsContext';
 import type {
   AccentColor,
   DateFormat,
@@ -20,6 +13,12 @@ import type {
   Theme,
   TimeFormat,
 } from '$types';
+import type {
+  EditorFieldVisibility,
+  QuickTimePresets,
+  TaskBadgeVisibility,
+  TaskListDensity,
+} from '$types/settings';
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const currentState = useSyncExternalStore(

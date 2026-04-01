@@ -6,8 +6,8 @@ import X from 'lucide-react/icons/x';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { useTasks, useUpdateTask } from '$hooks/queries/useTasks';
 import { useSetSelectedTask } from '$hooks/queries/useUIState';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { NotificationActionEvent } from '$lib/notifications';
 
 interface TaskActionsModalProps {

@@ -7,8 +7,8 @@ import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { ACCENT_COLORS, COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '$constants';
 import { THEME_OPTIONS } from '$constants/theme';
-import type { TaskListDensity } from '$context/settingsContext';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import type { TaskListDensity } from '$types/settings';
 
 const DENSITY_OPTIONS: { value: TaskListDensity; label: string; icon: React.ReactNode }[] = [
   { value: 'comfortable', label: 'Comfortable', icon: <LayoutList className="w-4 h-4" /> },

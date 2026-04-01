@@ -555,11 +555,3 @@ export const settingsStore = {
 
 // Context for React components
 export const SettingsContext = createContext<SettingsStore | null>(null);
-
-// Re-export settings-specific types for consumers that import from this module
-export type {
-  EditorFieldVisibility,
-  QuickTimePresets,
-  TaskBadgeVisibility,
-  TaskListDensity,
-} from '$types/settings';

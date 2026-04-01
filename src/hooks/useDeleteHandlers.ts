@@ -6,11 +6,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useDeleteAccount } from '$hooks/queries/useAccounts';
 import { useDeleteTag } from '$hooks/queries/useTags';
 import { useSetAllTasksView } from '$hooks/queries/useUIState';
-import { useConfirmDialog } from '$hooks/useConfirmDialog';
-import { useSettingsStore } from '$hooks/useSettingsStore';
-import { caldavService } from '$lib/caldav';
+import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
-import { deleteCalendar } from '$lib/store/calendars';
+import { deleteCalendar as storeDeleteCalendar } from '$lib/store/calendars';
 import type { Account, Tag } from '$types';
 
 const log = loggers.deleteHandlers;
@@ -98,9 +98,9 @@ export const useDeleteHandlers = () => {
 
     // Delete calendar from server
     try {
-      await caldavService.deleteCalendar(accountId, calendarId);
+      await CalDAVClient.getForAccount(accountId).deleteCalendar(calendarId);
       // Delete calendar and its tasks from local state
-      deleteCalendar(accountId, calendarId);
+      storeDeleteCalendar(accountId, calendarId);
 
       // If this was the active calendar, redirect to All Tasks
       if (isActiveCalendar) {

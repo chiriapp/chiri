@@ -4,8 +4,8 @@ import Download from 'lucide-react/icons/download';
 import FileText from 'lucide-react/icons/file-text';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Upload from 'lucide-react/icons/upload';
-import { useConfirmDialog } from '$hooks/useConfirmDialog';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { deleteDatabase } from '$lib/bootstrap';
 import { exportSettingsToFile, importSettingsFromFile } from '$utils/settings';
 

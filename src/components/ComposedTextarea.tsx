@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { useComposition } from '$hooks/useComposition';
+import { useComposition } from '$hooks/ui/useComposition';
 
 interface ComposedTextareaProps
   extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> {

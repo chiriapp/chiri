@@ -1,16 +1,9 @@
-import { getDb, notifyListeners } from '$lib/database/connection';
+import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import type { PendingDeletionRow } from '$types/database';
+import type { PendingDeletion } from '$types/store';
 
-export interface PendingDeletion {
-  uid: string;
-  href: string;
-  accountId: string;
-  calendarId: string;
-}
-
-export const getPendingDeletions = async (): Promise<PendingDeletion[]> => {
-  const database = await getDb();
-  const rows = await database.select<PendingDeletionRow[]>('SELECT * FROM pending_deletions');
+export const getPendingDeletions = async (conn: DatabasePlugin): Promise<PendingDeletion[]> => {
+  const rows = await conn.select<PendingDeletionRow[]>('SELECT * FROM pending_deletions');
   return rows.map((row) => ({
     uid: row.uid,
     href: row.href,
@@ -19,8 +12,6 @@ export const getPendingDeletions = async (): Promise<PendingDeletion[]> => {
   }));
 };
 
-export const clearPendingDeletion = async (uid: string) => {
-  const database = await getDb();
-  await database.execute('DELETE FROM pending_deletions WHERE uid = $1', [uid]);
-  notifyListeners();
+export const clearPendingDeletion = async (conn: DatabasePlugin, uid: string) => {
+  await conn.execute('DELETE FROM pending_deletions WHERE uid = $1', [uid]);
 };

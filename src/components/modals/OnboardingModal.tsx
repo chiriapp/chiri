@@ -16,9 +16,9 @@ import { ONBOARDING_STEPS } from '$constants/onboarding';
 import { SYNC_INTERVAL_OPTIONS } from '$constants/settings';
 import { THEME_OPTIONS } from '$constants/theme';
 import { useAccounts } from '$hooks/queries/useAccounts';
-import { useNotificationContext } from '$hooks/useNotificationContext';
-import { usePlatform } from '$hooks/usePlatform';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useNotificationContext } from '$hooks/store/useNotificationContext';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { usePlatform } from '$hooks/system/usePlatform';
 import { isMacPlatform } from '$utils/platform';
 
 interface OnboardingModalProps {

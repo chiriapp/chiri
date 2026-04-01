@@ -1,78 +1,65 @@
+import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import { settingsStore } from '$context/settingsContext';
 import { getAllAccounts } from '$lib/database/accounts';
-import { getDb, notifyListeners } from '$lib/database/connection';
 import { rowToTask } from '$lib/database/converters';
 import { getUIState, setSelectedTask } from '$lib/database/ui';
-import { toAppleEpoch } from '$lib/ical';
+import { toAppleEpoch } from '$lib/ical/vtodo';
 import type { Task, TaskStatus } from '$types';
 import type { TaskRow } from '$types/database';
 import { generateUUID } from '$utils/misc';
 
-export const getAllTasks = async (): Promise<Task[]> => {
-  const database = await getDb();
-  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks');
+export const getAllTasks = async (conn: DatabasePlugin) => {
+  const rows = await conn.select<TaskRow[]>('SELECT * FROM tasks');
   return rows.map(rowToTask);
 };
 
-export const getTaskById = async (id: string): Promise<Task | undefined> => {
-  const database = await getDb();
-  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE id = $1', [id]);
+export const getTaskById = async (conn: DatabasePlugin, id: string) => {
+  const rows = await conn.select<TaskRow[]>('SELECT * FROM tasks WHERE id = $1', [id]);
   return rows.length > 0 ? rowToTask(rows[0]) : undefined;
 };
 
-export const getTaskByUid = async (uid: string): Promise<Task | undefined> => {
-  const database = await getDb();
-  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE uid = $1', [uid]);
+export const getTaskByUid = async (conn: DatabasePlugin, uid: string) => {
+  const rows = await conn.select<TaskRow[]>('SELECT * FROM tasks WHERE uid = $1', [uid]);
   return rows.length > 0 ? rowToTask(rows[0]) : undefined;
 };
 
-export const getTasksByCalendar = async (calendarId: string): Promise<Task[]> => {
-  const database = await getDb();
-  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE calendar_id = $1', [
+export const getTasksByCalendar = async (conn: DatabasePlugin, calendarId: string) => {
+  const rows = await conn.select<TaskRow[]>('SELECT * FROM tasks WHERE calendar_id = $1', [
     calendarId,
   ]);
   return rows.map(rowToTask);
 };
 
-export const getTasksByTag = async (tagId: string): Promise<Task[]> => {
-  const database = await getDb();
-  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE tags LIKE $1', [
+export const getTasksByTag = async (conn: DatabasePlugin, tagId: string) => {
+  const rows = await conn.select<TaskRow[]>('SELECT * FROM tasks WHERE tags LIKE $1', [
     `%"${tagId}"%`,
   ]);
   return rows.map(rowToTask);
 };
 
-export const getChildTasks = async (parentUid: string): Promise<Task[]> => {
-  const database = await getDb();
-  const rows = await database.select<TaskRow[]>('SELECT * FROM tasks WHERE parent_uid = $1', [
+export const getChildTasks = async (conn: DatabasePlugin, parentUid: string) => {
+  const rows = await conn.select<TaskRow[]>('SELECT * FROM tasks WHERE parent_uid = $1', [
     parentUid,
   ]);
   return rows.map(rowToTask);
 };
 
-export const countChildren = async (parentUid: string): Promise<number> => {
-  const database = await getDb();
-  const rows = await database.select<Array<{ count: number }>>(
+export const countChildren = async (conn: DatabasePlugin, parentUid: string) => {
+  const rows = await conn.select<Array<{ count: number }>>(
     'SELECT COUNT(*) as count FROM tasks WHERE parent_uid = $1',
     [parentUid],
   );
   return rows[0]?.count || 0;
 };
 
-export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
-  const database = await getDb();
-
+export const createTask = async (conn: DatabasePlugin, taskData: Partial<Task>) => {
   const now = new Date();
   const { defaultCalendarId, defaultPriority, defaultTags } = settingsStore.getState();
+  const uiState = await getUIState(conn);
 
-  // Get UI state for active context
-  const uiState = await getUIState();
-
-  // Determine calendar and account to use
   let calendarId = taskData.calendarId ?? uiState.activeCalendarId;
   let accountId = taskData.accountId ?? uiState.activeAccountId;
 
-  // Handle tags
   let tags = taskData.tags ?? [];
   if (uiState.activeTagId && !tags.includes(uiState.activeTagId)) {
     tags = [uiState.activeTagId, ...tags];
@@ -81,37 +68,31 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
     tags = [...defaultTags];
   }
 
-  // If no active calendar, find one
   if (!calendarId) {
-    const accounts = await getAllAccounts();
+    const accounts = await getAllAccounts(conn);
     if (defaultCalendarId) {
       for (const account of accounts) {
-        const calendar = account.calendars.find((c) => c.id === defaultCalendarId);
-        if (calendar) {
-          calendarId = calendar.id;
+        const cal = account.calendars.find((cal) => cal.id === defaultCalendarId);
+        if (cal) {
+          calendarId = cal.id;
           accountId = account.id;
           break;
         }
       }
     }
-
     if (!calendarId) {
-      const firstAccount = accounts.find((a) => a.calendars.length > 0);
-      if (firstAccount) {
-        calendarId = firstAccount.calendars[0].id;
-        accountId = firstAccount.id;
+      const first = accounts.find((a) => a.calendars.length > 0);
+      if (first) {
+        calendarId = first.calendars[0].id;
+        accountId = first.id;
       }
     }
   }
 
-  // Calculate sort order
-  const maxOrderRows = await database.select<Array<{ max_order: number | null }>>(
+  const maxOrderRows = await conn.select<Array<{ max_order: number | null }>>(
     'SELECT MAX(sort_order) as max_order FROM tasks',
   );
   const maxSortOrder = maxOrderRows[0]?.max_order ?? toAppleEpoch(now.getTime()) - 1;
-
-  // Determine if this is a local-only task
-  const isLocalOnly = !calendarId || !accountId;
 
   const task: Task = {
     id: generateUUID(),
@@ -127,12 +108,12 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
     synced: false,
     createdAt: now,
     modifiedAt: now,
-    localOnly: isLocalOnly,
+    localOnly: !calendarId || !accountId,
     ...taskData,
     tags,
   };
 
-  await database.execute(
+  await conn.execute(
     `INSERT INTO tasks (
       id, uid, etag, href, title, description, completed, completed_at,
       tags, category_id, priority, start_date, start_date_all_day,
@@ -140,7 +121,7 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
       parent_uid, is_collapsed, sort_order, account_id,
       calendar_id, synced, local_only, url, status, percent_complete,
       rrule, repeat_from
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)`,
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)`,
     [
       task.id,
       task.uid,
@@ -175,13 +156,11 @@ export const createTask = async (taskData: Partial<Task>): Promise<Task> => {
     ],
   );
 
-  notifyListeners();
   return task;
 };
 
-export const updateTask = async (id: string, updates: Partial<Task>): Promise<Task | undefined> => {
-  const database = await getDb();
-  const existing = await getTaskById(id);
+export const updateTask = async (conn: DatabasePlugin, id: string, updates: Partial<Task>) => {
+  const existing = await getTaskById(conn, id);
   if (!existing) return undefined;
 
   const merged: Task = {
@@ -190,116 +169,99 @@ export const updateTask = async (id: string, updates: Partial<Task>): Promise<Ta
     modifiedAt: updates.modifiedAt !== undefined ? updates.modifiedAt : new Date(),
     synced: updates.synced !== undefined ? updates.synced : false,
   };
-  // Keep status and completed in sync
   if (updates.status !== undefined && updates.completed === undefined) {
     merged.completed = updates.status === 'completed';
   } else if (updates.completed !== undefined && updates.status === undefined) {
     merged.status = updates.completed ? 'completed' : 'needs-action';
   }
-  const updatedTask = merged;
 
-  await database.execute(
+  await conn.execute(
     `UPDATE tasks SET
-      uid = $1, etag = $2, href = $3, title = $4, description = $5,
-      completed = $6, completed_at = $7, tags = $8, category_id = $9,
-      priority = $10, start_date = $11, start_date_all_day = $12,
-      due_date = $13, due_date_all_day = $14, modified_at = $15,
-      reminders = $16, parent_uid = $17, is_collapsed = $18,
-      sort_order = $19, account_id = $20, calendar_id = $21, synced = $22,
-      local_only = $23, url = $24, status = $25, percent_complete = $26,
-      rrule = $27, repeat_from = $28
-     WHERE id = $29`,
+      uid=$1, etag=$2, href=$3, title=$4, description=$5,
+      completed=$6, completed_at=$7, tags=$8, category_id=$9,
+      priority=$10, start_date=$11, start_date_all_day=$12,
+      due_date=$13, due_date_all_day=$14, modified_at=$15,
+      reminders=$16, parent_uid=$17, is_collapsed=$18,
+      sort_order=$19, account_id=$20, calendar_id=$21, synced=$22,
+      local_only=$23, url=$24, status=$25, percent_complete=$26,
+      rrule=$27, repeat_from=$28
+     WHERE id=$29`,
     [
-      updatedTask.uid,
-      updatedTask.etag || null,
-      updatedTask.href || null,
-      updatedTask.title,
-      updatedTask.description,
-      updatedTask.completed ? 1 : 0,
-      updatedTask.completedAt ? updatedTask.completedAt.toISOString() : null,
-      updatedTask.tags && updatedTask.tags.length > 0 ? JSON.stringify(updatedTask.tags) : null,
-      updatedTask.categoryId || null,
-      updatedTask.priority,
-      updatedTask.startDate ? updatedTask.startDate.toISOString() : null,
-      updatedTask.startDateAllDay ? 1 : 0,
-      updatedTask.dueDate ? updatedTask.dueDate.toISOString() : null,
-      updatedTask.dueDateAllDay ? 1 : 0,
-      updatedTask.modifiedAt.toISOString(),
-      updatedTask.reminders && updatedTask.reminders.length > 0
-        ? JSON.stringify(updatedTask.reminders)
-        : null,
-      updatedTask.parentUid || null,
-      updatedTask.isCollapsed ? 1 : 0,
-      updatedTask.sortOrder,
-      updatedTask.accountId || null,
-      updatedTask.calendarId || null,
-      updatedTask.synced ? 1 : 0,
-      updatedTask.localOnly ? 1 : 0,
-      updatedTask.url || null,
-      updatedTask.status,
-      updatedTask.percentComplete ?? null,
-      updatedTask.rrule || null,
-      updatedTask.repeatFrom ?? 0,
+      merged.uid,
+      merged.etag || null,
+      merged.href || null,
+      merged.title,
+      merged.description,
+      merged.completed ? 1 : 0,
+      merged.completedAt ? merged.completedAt.toISOString() : null,
+      merged.tags && merged.tags.length > 0 ? JSON.stringify(merged.tags) : null,
+      merged.categoryId || null,
+      merged.priority,
+      merged.startDate ? merged.startDate.toISOString() : null,
+      merged.startDateAllDay ? 1 : 0,
+      merged.dueDate ? merged.dueDate.toISOString() : null,
+      merged.dueDateAllDay ? 1 : 0,
+      merged.modifiedAt.toISOString(),
+      merged.reminders && merged.reminders.length > 0 ? JSON.stringify(merged.reminders) : null,
+      merged.parentUid || null,
+      merged.isCollapsed ? 1 : 0,
+      merged.sortOrder,
+      merged.accountId || null,
+      merged.calendarId || null,
+      merged.synced ? 1 : 0,
+      merged.localOnly ? 1 : 0,
+      merged.url || null,
+      merged.status,
+      merged.percentComplete ?? null,
+      merged.rrule || null,
+      merged.repeatFrom ?? 0,
       id,
     ],
   );
 
-  notifyListeners();
-  return updatedTask;
+  return merged;
 };
 
-export const deleteTask = async (id: string, deleteChildren: boolean = true) => {
-  const database = await getDb();
-  const task = await getTaskById(id);
+export const deleteTask = async (conn: DatabasePlugin, id: string, deleteChildren = true) => {
+  const task = await getTaskById(conn, id);
   if (!task) return;
 
-  // Get all descendants recursively
   const getAllDescendantIds = async (parentUid: string): Promise<string[]> => {
-    const children = await getChildTasks(parentUid);
-    const childIds = children.map((c) => c.id);
-    const descendantIds = await Promise.all(children.map((c) => getAllDescendantIds(c.uid)));
-    return [...childIds, ...descendantIds.flat()];
+    const children = await getChildTasks(conn, parentUid);
+    const childIds = children.map((ch) => ch.id);
+    const nested = await Promise.all(children.map((ch) => getAllDescendantIds(ch.uid)));
+    return [...childIds, ...nested.flat()];
   };
 
   const descendantIds = await getAllDescendantIds(task.uid);
-  const tasksToDeleteIds = deleteChildren ? [id, ...descendantIds] : [id];
+  const toDelete = deleteChildren ? [id, ...descendantIds] : [id];
 
-  // Get tasks with href for pending deletions
-  const tasksToDelete = await Promise.all(tasksToDeleteIds.map(getTaskById));
-  const tasksWithHref = tasksToDelete.filter((t): t is Task => !!t && !!t.href);
-
-  // Add to pending deletions
-  for (const t of tasksWithHref) {
-    await database.execute(
-      `INSERT OR REPLACE INTO pending_deletions (uid, href, account_id, calendar_id)
-       VALUES ($1, $2, $3, $4)`,
+  const tasks = await Promise.all(toDelete.map((tid) => getTaskById(conn, tid)));
+  for (const t of tasks.filter((t): t is Task => !!t && !!t.href)) {
+    await conn.execute(
+      `INSERT OR REPLACE INTO pending_deletions (uid, href, account_id, calendar_id) VALUES ($1,$2,$3,$4)`,
       [t.uid, t.href, t.accountId, t.calendarId],
     );
   }
 
-  // If not deleting children, orphan them
   if (!deleteChildren) {
-    await database.execute(
-      `UPDATE tasks SET parent_uid = NULL, modified_at = $1, synced = 0 WHERE parent_uid = $2`,
+    await conn.execute(
+      'UPDATE tasks SET parent_uid = NULL, modified_at = $1, synced = 0 WHERE parent_uid = $2',
       [new Date().toISOString(), task.uid],
     );
   }
 
-  // Delete tasks
-  const placeholders = tasksToDeleteIds.map((_, i) => `$${i + 1}`).join(', ');
-  await database.execute(`DELETE FROM tasks WHERE id IN (${placeholders})`, tasksToDeleteIds);
+  const placeholders = toDelete.map((_, i) => `$${i + 1}`).join(', ');
+  await conn.execute(`DELETE FROM tasks WHERE id IN (${placeholders})`, toDelete);
 
-  // Update UI state if selected task was deleted
-  const uiState = await getUIState();
-  if (tasksToDeleteIds.includes(uiState.selectedTaskId || '')) {
-    await setSelectedTask(null);
+  const uiState = await getUIState(conn);
+  if (toDelete.includes(uiState.selectedTaskId || '')) {
+    await setSelectedTask(conn, null);
   }
-
-  notifyListeners();
 };
 
-export const toggleTaskComplete = async (id: string) => {
-  const task = await getTaskById(id);
+export const toggleTaskComplete = async (conn: DatabasePlugin, id: string) => {
+  const task = await getTaskById(conn, id);
   if (!task) return;
 
   const newStatus: TaskStatus =
@@ -308,7 +270,8 @@ export const toggleTaskComplete = async (id: string) => {
       : task.status === 'cancelled' || task.status === 'in-process'
         ? 'needs-action'
         : 'completed';
-  await updateTask(id, {
+
+  await updateTask(conn, id, {
     status: newStatus,
     completed: newStatus === 'completed',
     completedAt: newStatus === 'completed' ? new Date() : undefined,

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useGlobalContextMenuClose } from '$hooks/useGlobalContextMenu';
+import { useGlobalContextMenuClose } from '$hooks/ui/useGlobalContextMenu';
 import { clampToViewport } from '$utils/misc';
 
 /**

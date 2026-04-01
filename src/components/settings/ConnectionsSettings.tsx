@@ -10,10 +10,10 @@ import { Tooltip } from '$components/Tooltip';
 import { MENU_EVENTS } from '$constants/menu';
 import { useDeleteAccount } from '$hooks/queries/useAccounts';
 import { useTasks } from '$hooks/queries/useTasks';
-import { useConfirmDialog } from '$hooks/useConfirmDialog';
-import { useConnectionStore } from '$hooks/useConnectionStore';
-import { useSettingsStore } from '$hooks/useSettingsStore';
-import { caldavService } from '$lib/caldav';
+import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
+import { useConnectionStore } from '$hooks/store/useConnectionStore';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { CalDAVClient } from '$lib/caldav';
 import type { Account } from '$types';
 import { pluralize } from '$utils/misc';
 
@@ -72,8 +72,8 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
     });
 
     try {
-      await caldavService.reconnect(account);
-      const calendars = await caldavService.fetchCalendars(account.id);
+      await CalDAVClient.reconnect(account);
+      const calendars = await CalDAVClient.getForAccount(account.id).fetchCalendars();
 
       setTestResults((prev) => ({
         ...prev,

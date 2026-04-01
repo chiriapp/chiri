@@ -1,18 +1,13 @@
-import {
-  addCalendar as dbAddCalendar,
-  deleteCalendar as dbDeleteCalendar,
-  updateCalendar as dbUpdateCalendar,
-} from '$lib/database/calendars';
-import { updateTask as dbUpdateTask } from '$lib/database/tasks';
+import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
-import { loadDataStore, saveDataStore } from '$lib/store';
+import { dataStore } from '$lib/store';
 import type { Calendar, Task } from '$types';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.dataStore;
 
 export const addCalendar = (accountId: string, calendarData: Partial<Calendar>) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
   // Compute sortOrder: use provided value, or place after all existing calendars in this account
   const existingCalendars = data.accounts.find((a) => a.id === accountId)?.calendars ?? [];
@@ -30,7 +25,7 @@ export const addCalendar = (accountId: string, calendarData: Partial<Calendar>) 
 
   log.info(`Adding calendar: ${calendar.displayName} with ID: ${calendar.id}`);
 
-  dbAddCalendar(accountId, calendar).catch((e) => log.error('Failed to persist calendar:', e));
+  db.addCalendar(accountId, calendar).catch((e) => log.error('Failed to persist calendar:', e));
 
   // Check if this is the first calendar being added
   const allCalendars = data.accounts.flatMap((acc) => acc.calendars);
@@ -52,7 +47,7 @@ export const addCalendar = (accountId: string, calendarData: Partial<Calendar>) 
           modifiedAt: new Date(),
         } satisfies Task;
 
-        dbUpdateTask(task.id, {
+        db.updateTask(task.id, {
           calendarId: calendar.id,
           accountId: accountId,
           localOnly: false,
@@ -66,7 +61,7 @@ export const addCalendar = (accountId: string, calendarData: Partial<Calendar>) 
     });
   }
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     accounts: data.accounts.map((acc) =>
       acc.id === accountId ? { ...acc, calendars: [...acc.calendars, calendar] } : acc,
@@ -81,14 +76,14 @@ export const updateCalendar = (
   calendarId: string,
   updates: Partial<Calendar>,
 ) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbUpdateCalendar(calendarId, updates).catch((e) =>
+  db.updateCalendar(calendarId, updates).catch((e) =>
     log.error('Failed to persist calendar update:', e),
   );
 
   // Update in-memory store
-  saveDataStore({
+  dataStore.save({
     ...data,
     accounts: data.accounts.map((acc) =>
       acc.id === accountId
@@ -104,9 +99,9 @@ export const updateCalendar = (
 };
 
 export const deleteCalendar = (accountId: string, calendarId: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbDeleteCalendar(accountId, calendarId).catch((e) =>
+  db.deleteCalendar(accountId, calendarId).catch((e) =>
     log.error('Failed to persist calendar deletion:', e),
   );
 
@@ -127,7 +122,7 @@ export const deleteCalendar = (accountId: string, calendarId: string) => {
   // check if the active calendar is being deleted
   const isActiveCalendarDeleted = data.ui.activeCalendarId === calendarId;
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     accounts: data.accounts.map((acc) =>
       acc.id === accountId

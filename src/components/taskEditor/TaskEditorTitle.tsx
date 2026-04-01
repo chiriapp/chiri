@@ -5,7 +5,7 @@ import X from 'lucide-react/icons/x';
 import { useEffect, useRef } from 'react';
 import { ComposedTextarea } from '$components/ComposedTextarea';
 import { useToggleTaskComplete } from '$hooks/queries/useTasks';
-import { useDebouncedTaskUpdate } from '$hooks/useDebouncedTaskUpdate';
+import { useDebouncedTaskUpdate } from '$hooks/ui/useDebouncedTaskUpdate';
 import type { Task } from '$types';
 
 interface TaskEditorTitleProps {

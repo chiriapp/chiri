@@ -1,8 +1,8 @@
 import { listen } from '@tauri-apps/api/event';
 import { differenceInSeconds, isPast } from 'date-fns';
 import { useCallback, useEffect, useRef } from 'react';
-import { useTasks, useToggleTaskComplete, useUpdateTask } from '$hooks/queries/useTasks';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useTasks, useToggleTaskComplete } from '$hooks/queries/useTasks';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { loggers } from '$lib/logger';
 import {
   checkNotificationPermission,
@@ -72,7 +72,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     quietHoursStart,
     quietHoursEnd,
   } = useSettingsStore();
-  const updateTaskMutation = useUpdateTask();
   const toggleTaskCompleteMutation = useToggleTaskComplete();
   const notifiedTasksRef = useRef<Set<string>>(new Set());
   const notifiedRemindersRef = useRef<Set<string>>(new Set());
@@ -241,7 +240,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     quietHoursEnabled,
     quietHoursStart,
     quietHoursEnd,
-    updateTaskMutation,
     toggleTaskCompleteMutation,
     handleSnoozeTask,
     onOpenTaskActions,

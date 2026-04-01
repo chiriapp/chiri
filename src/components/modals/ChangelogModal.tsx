@@ -3,8 +3,8 @@ import ExternalLink from 'lucide-react/icons/external-link';
 import X from 'lucide-react/icons/x';
 import { marked } from 'marked';
 import { useMemo } from 'react';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 
 interface ChangelogModalProps {
   version: string;

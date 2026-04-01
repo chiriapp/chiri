@@ -1,6 +1,6 @@
 import { AppSelect } from '$components/AppSelect';
 import { SYNC_INTERVAL_OPTIONS } from '$constants/settings';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 
 export const SyncSettings = () => {
   const {

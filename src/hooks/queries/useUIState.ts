@@ -10,7 +10,7 @@ import {
   DEFAULT_SORT_CONFIG,
   DEFAULT_TAG_SORT_CONFIG,
 } from '$constants';
-import { subscribeToDataChanges } from '$lib/store';
+import { dataStore } from '$lib/store';
 import {
   getUIState,
   setAccountSortConfig,
@@ -36,7 +36,7 @@ export const useUIState = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: ['uiState'] });
     });
   }, [queryClient]);

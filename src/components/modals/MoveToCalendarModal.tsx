@@ -3,8 +3,8 @@ import X from 'lucide-react/icons/x';
 import { useMemo, useState } from 'react';
 import { FALLBACK_ITEM_COLOR } from '$constants';
 import { getIconByName } from '$constants/icons';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { Account, Task } from '$types';
 
 type CalendarEntry = Account['calendars'][number] & { accountName: string };

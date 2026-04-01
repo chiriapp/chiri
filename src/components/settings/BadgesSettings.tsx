@@ -6,8 +6,8 @@ import Link from 'lucide-react/icons/link';
 import Loader from 'lucide-react/icons/loader';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Tag from 'lucide-react/icons/tag';
-import type { TaskBadgeVisibility } from '$context/settingsContext';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import type { TaskBadgeVisibility } from '$types/settings';
 
 type BadgeConfig = {
   key: keyof TaskBadgeVisibility;

@@ -13,9 +13,9 @@ import { getIconByName } from '$constants/icons';
 import { PRIORITIES } from '$constants/priority';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useTags } from '$hooks/queries/useTags';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
-import { useSettingsStore } from '$hooks/useSettingsStore';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import type { DefaultReminderOffset, TaskStatus } from '$types';
 
 const REMINDER_OPTIONS: { value: DefaultReminderOffset; label: string }[] = [

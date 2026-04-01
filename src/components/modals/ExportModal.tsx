@@ -7,14 +7,14 @@ import Download from 'lucide-react/icons/download';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { EXPORT_FORMATS } from '$constants/export';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import {
   exportTasksAsCsv,
   exportTasksAsIcs,
   exportTasksAsJson,
   exportTasksAsMarkdown,
-} from '$lib/ical';
+} from '$lib/ical/export';
 import { loggers } from '$lib/logger';
 import type { Calendar, ExportFormat, ExportType, Task } from '$types';
 import { downloadFile, pluralize } from '$utils/misc';

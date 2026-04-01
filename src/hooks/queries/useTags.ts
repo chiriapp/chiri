@@ -5,8 +5,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { queryKeys } from '$lib/queryClient';
-import { subscribeToDataChanges } from '$lib/store';
-import { reorderTags } from '$lib/store/reorderTags';
+import { dataStore } from '$lib/store';
+import { reorderTags } from '$lib/store/reorder/tags';
 import { createTag, deleteTag, getAllTags, getTagById, updateTag } from '$lib/store/tags';
 import { getTasksByTag } from '$lib/store/tasks';
 import type { Tag } from '$types';
@@ -18,7 +18,7 @@ export const useTags = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
     });
   }, [queryClient]);
@@ -37,7 +37,7 @@ export const useTag = (id: string | null) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       if (id) {
         queryClient.invalidateQueries({ queryKey: queryKeys.tags.byId(id) });
       }
@@ -59,7 +59,7 @@ export const useTasksByTag = (tagId: string | null) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return subscribeToDataChanges(() => {
+    return dataStore.subscribe(() => {
       if (tagId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byTag(tagId) });
       }

@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { getTaskHistory } from '$lib/database/history';
+import { db } from '$lib/database';
 
 export const useTaskHistory = (taskUid: string) => {
   return useQuery({
     queryKey: ['taskHistory', taskUid],
-    queryFn: () => getTaskHistory(taskUid),
+    queryFn: () => db.getTaskHistory(taskUid),
   });
 };

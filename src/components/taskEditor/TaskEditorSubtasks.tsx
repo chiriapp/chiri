@@ -5,7 +5,7 @@ import Plus from 'lucide-react/icons/plus';
 import { useMemo, useState } from 'react';
 import { SubtaskTreeItem } from '$components/SubtaskTreeItem';
 import { useChildTasks, useCreateTask, useTasks } from '$hooks/queries/useTasks';
-import { truncateName, useSortableDrag } from '$hooks/useSortableDrag';
+import { truncateName, useSortableDrag } from '$hooks/ui/useSortableDrag';
 import { getSortedTasks } from '$lib/store/filters';
 import { countChildren } from '$lib/store/tasks';
 import type { Task } from '$types';

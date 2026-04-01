@@ -1,12 +1,12 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { emit } from '@tauri-apps/api/event';
 import { MENU_EVENTS } from '$constants/menu';
-import { toastManager } from '$hooks/useToast';
-import { caldavService } from '$lib/caldav';
-import { clearPendingDeletion as dbClearPendingDeletion } from '$lib/database/pendingDeletions';
+import { toastManager } from '$hooks/ui/useToast';
+import { CalDAVClient } from '$lib/caldav';
+import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { queryKeys } from '$lib/queryClient';
-import { loadDataStore, saveDataStore } from '$lib/store';
+import { dataStore } from '$lib/store';
 import { getAllAccounts } from '$lib/store/accounts';
 import { addCalendar, updateCalendar } from '$lib/store/calendars';
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
@@ -19,17 +19,17 @@ const log = loggers.dataStore;
 const syncLog = loggers.sync;
 
 export const getPendingDeletions = () => {
-  return loadDataStore().pendingDeletions;
+  return dataStore.load().pendingDeletions;
 };
 
 export const clearPendingDeletion = (uid: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
-  dbClearPendingDeletion(uid).catch((e) =>
+  db.clearPendingDeletion(uid).catch((e) =>
     log.error('Failed to persist pending deletion clear:', e),
   );
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     pendingDeletions: data.pendingDeletions.filter((d) => d.uid !== uid),
   });
@@ -38,9 +38,9 @@ export const clearPendingDeletion = (uid: string) => {
 export const reconnectAccounts = async () => {
   const accounts = getAllAccounts();
   for (const account of accounts) {
-    if (!caldavService.isConnected(account.id)) {
+    if (!CalDAVClient.isConnected(account.id)) {
       try {
-        await caldavService.reconnect(account);
+        await CalDAVClient.reconnect(account);
         syncLog.info(`Reconnected to account: ${account.name}`);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -118,13 +118,15 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
   if (!account) return;
 
   // Ensure we're connected
-  if (!caldavService.isConnected(accountId)) {
-    await caldavService.reconnect(account);
+  if (!CalDAVClient.isConnected(accountId)) {
+    await CalDAVClient.reconnect(account);
   }
+
+  const client = CalDAVClient.getForAccount(accountId);
 
   let remoteCalendars: Calendar[];
   try {
-    remoteCalendars = await caldavService.fetchCalendars(accountId);
+    remoteCalendars = await client.fetchCalendars();
   } catch (error) {
     syncLog.error(`Failed to fetch calendars for ${account.name}:`, error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -268,9 +270,11 @@ export const syncCalendarTasks = async (
 
   try {
     // Ensure we're connected
-    if (!caldavService.isConnected(account.id)) {
-      await caldavService.reconnect(account);
+    if (!CalDAVClient.isConnected(account.id)) {
+      await CalDAVClient.reconnect(account);
     }
+
+    const client = CalDAVClient.getForAccount(account.id);
 
     // STEP 0: Process pending deletions for this calendar
     const pendingDeletions = getPendingDeletions();
@@ -279,7 +283,7 @@ export const syncCalendarTasks = async (
     for (const deletion of calendarDeletions) {
       try {
         // Create minimal task object for deletion (only href is used by caldav service)
-        await caldavService.deleteTask(account.id, {
+        await client.deleteTask({
           id: '',
           uid: deletion.uid,
           href: deletion.href,
@@ -316,13 +320,13 @@ export const syncCalendarTasks = async (
       try {
         if (task.href) {
           // Update existing task on server
-          const result = await caldavService.updateTask(account.id, task);
+          const result = await client.updateTask(task);
           if (result) {
             updateTask(task.id, { etag: result.etag, synced: true });
           }
         } else {
           // Create new task on server
-          const result = await caldavService.createTask(account.id, calendar, task);
+          const result = await client.createTask(calendar, task);
           if (result) {
             updateTask(task.id, {
               href: result.href,
@@ -340,7 +344,7 @@ export const syncCalendarTasks = async (
     }
 
     // STEP 2: Fetch tasks from server
-    const remoteTasks = await caldavService.fetchTasks(account.id, calendar);
+    const remoteTasks = await client.fetchTasks(calendar);
 
     // If fetchTasks returns null, it indicates a server error (not just empty)
     // We can't trust the response, so skip the comparison/deletion logic
@@ -494,19 +498,21 @@ export const pushTaskToServer = async (task: Task, queryClient: QueryClient) => 
   const calendar = account.calendars.find((c) => c.id === task.calendarId);
   if (!calendar) return;
 
-  if (!caldavService.isConnected(account.id)) {
-    await caldavService.reconnect(account);
+  if (!CalDAVClient.isConnected(account.id)) {
+    await CalDAVClient.reconnect(account);
   }
+
+  const client = CalDAVClient.getForAccount(account.id);
 
   if (task.href) {
     // Update existing
-    const result = await caldavService.updateTask(account.id, task);
+    const result = await client.updateTask(task);
     if (result) {
       updateTask(task.id, { etag: result.etag, synced: true });
     }
   } else {
     // Create new
-    const result = await caldavService.createTask(account.id, calendar, task);
+    const result = await client.createTask(calendar, task);
     if (result) {
       updateTask(task.id, { href: result.href, etag: result.etag, synced: true });
     }
@@ -522,9 +528,9 @@ export const removeTaskFromServer = async (task: Task) => {
   const account = accounts.find((a) => a.id === task.accountId);
   if (!account) return false;
 
-  if (!caldavService.isConnected(account.id)) {
-    await caldavService.reconnect(account);
+  if (!CalDAVClient.isConnected(account.id)) {
+    await CalDAVClient.reconnect(account);
   }
 
-  return caldavService.deleteTask(account.id, task);
+  return CalDAVClient.getForAccount(account.id).deleteTask(task);
 };

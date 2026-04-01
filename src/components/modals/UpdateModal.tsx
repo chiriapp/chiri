@@ -3,9 +3,9 @@ import FileText from 'lucide-react/icons/file-text';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
-import { useFocusTrap } from '$hooks/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/useModalEscapeKey';
-import type { UpdateInfo } from '$hooks/useUpdateChecker';
+import type { UpdateInfo } from '$hooks/system/useUpdateChecker';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 
 interface UpdateModalProps {
   updateInfo: UpdateInfo;

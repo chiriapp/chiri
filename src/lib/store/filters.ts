@@ -1,4 +1,4 @@
-import { loadDataStore } from '$lib/store';
+import { dataStore } from '$lib/store';
 import type { Priority, SortConfig, Task } from '$types';
 
 const priorityOrder: Record<Priority, number> = {
@@ -9,7 +9,7 @@ const priorityOrder: Record<Priority, number> = {
 };
 
 export const getFilteredTasks = () => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const { searchQuery, showCompletedTasks, showUnstartedTasks, activeCalendarId, activeTagId } =
     data.ui;
 
@@ -59,7 +59,7 @@ export const getFilteredTasks = () => {
 };
 
 export const getSortedTasks = (tasks: Task[], sortConfig?: SortConfig) => {
-  const config = sortConfig ?? loadDataStore().ui.sortConfig;
+  const config = sortConfig ?? dataStore.load().ui.sortConfig;
   const { mode, direction } = config;
   const multiplier = direction === 'asc' ? 1 : -1;
 

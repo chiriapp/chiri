@@ -1,9 +1,9 @@
-import { loadDataStore, saveDataStore } from '$lib/store';
+import { dataStore } from '$lib/store';
 import type { Reminder } from '$types';
 import { generateUUID } from '$utils/misc';
 
 export const addReminder = (taskId: string, trigger: Date) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const reminder: Reminder = {
     id: generateUUID(),
     trigger,
@@ -18,11 +18,11 @@ export const addReminder = (taskId: string, trigger: Date) => {
         }
       : task,
   );
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
 };
 
 export const removeReminder = (taskId: string, reminderId: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const tasks = data.tasks.map((task) =>
     task.id === taskId
       ? {
@@ -33,11 +33,11 @@ export const removeReminder = (taskId: string, reminderId: string) => {
         }
       : task,
   );
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
 };
 
 export const updateReminder = (taskId: string, reminderId: string, trigger: Date) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const tasks = data.tasks.map((task) =>
     task.id === taskId
       ? {
@@ -50,5 +50,5 @@ export const updateReminder = (taskId: string, reminderId: string, trigger: Date
         }
       : task,
   );
-  saveDataStore({ ...data, tasks });
+  dataStore.save({ ...data, tasks });
 };

@@ -1,26 +1,22 @@
-import {
-  createAccount as dbCreateAccount,
-  deleteAccount as dbDeleteAccount,
-  updateAccount as dbUpdateAccount,
-} from '$lib/database/accounts';
+import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { deleteAppPassword as deleteNextcloudAppPassword } from '$lib/nextcloud-auth';
-import { loadDataStore, saveDataStore } from '$lib/store';
+import { dataStore } from '$lib/store';
 import type { Account } from '$types';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.dataStore;
 
 export const getAllAccounts = () => {
-  return loadDataStore().accounts;
+  return dataStore.load().accounts;
 };
 
 export const getAccountById = (id: string) => {
-  return loadDataStore().accounts.find((a) => a.id === id);
+  return dataStore.load().accounts.find((a) => a.id === id);
 };
 
 export const createAccount = (accountData: Partial<Account>) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
 
   const serverUrl = accountData.serverUrl ?? '';
   const username = accountData.username ?? '';
@@ -46,9 +42,9 @@ export const createAccount = (accountData: Partial<Account>) => {
     sortOrder: accountData.sortOrder || maxExistingOrder + 100,
   } satisfies Account;
 
-  dbCreateAccount(account).catch((e) => log.error('Failed to persist account:', e));
+  db.createAccount(account).catch((e) => log.error('Failed to persist account:', e));
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     accounts: [...data.accounts, account],
     ui: data.ui,
@@ -57,7 +53,7 @@ export const createAccount = (accountData: Partial<Account>) => {
 };
 
 export const updateAccount = (id: string, updates: Partial<Account>) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   let updatedAccount: Account | undefined;
 
   const accounts = data.accounts.map((acc) => {
@@ -69,15 +65,15 @@ export const updateAccount = (id: string, updates: Partial<Account>) => {
   });
 
   if (updatedAccount) {
-    dbUpdateAccount(id, updates).catch((e) => log.error('Failed to persist account update:', e));
+    db.updateAccount(id, updates).catch((e) => log.error('Failed to persist account update:', e));
   }
 
-  saveDataStore({ ...data, accounts });
+  dataStore.save({ ...data, accounts });
   return updatedAccount;
 };
 
 export const deleteAccount = (id: string) => {
-  const data = loadDataStore();
+  const data = dataStore.load();
   const newAccounts = data.accounts.filter((acc) => acc.id !== id);
   const deletedAccount = data.accounts.find((acc) => acc.id === id);
   const deletedCalendarIds = deletedAccount?.calendars.map((c) => c.id) ?? [];
@@ -93,12 +89,12 @@ export const deleteAccount = (id: string) => {
       .catch((e) => log.warn('Failed to delete Nextcloud app password:', e));
   }
 
-  dbDeleteAccount(id).catch((e) => log.error('Failed to persist account deletion:', e));
+  db.deleteAccount(id).catch((e) => log.error('Failed to persist account deletion:', e));
 
   // check if the active calendar belongs to the deleted account
   const isActiveCalendarDeleted = deletedCalendarIds.includes(data.ui.activeCalendarId ?? '');
 
-  saveDataStore({
+  dataStore.save({
     ...data,
     accounts: newAccounts,
     ui: {

@@ -1,15 +1,33 @@
-/**
- * Lightweight iCal VTODO parser and generator
- * Replaces ical.js (~266KB) with minimal implementation for VTODO support
- */
-
+import {
+  escapeICalText,
+  foldLine,
+  formatICalDate,
+  formatICalDateOnly,
+  parseICalDate,
+  parseProperty,
+  unescapeICalText,
+  unfoldLines,
+} from '$lib/ical';
 import { loggers } from '$lib/logger';
 import { getAllTags } from '$lib/store/tags';
 import type { Priority, Reminder, Task, TaskStatus } from '$types';
-import { formatDate } from '$utils/date';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.iCal;
+
+// Apple epoch: January 1, 2001 00:00:00 GMT in milliseconds since Unix epoch
+// Used for X-APPLE-SORT-ORDER which stores seconds since Apple epoch
+export const APPLE_EPOCH = 978307200000;
+
+// Convert Unix timestamp (milliseconds) to Apple epoch (seconds)
+export const toAppleEpoch = (timestamp: number) => {
+  return Math.floor((timestamp - APPLE_EPOCH) / 1000);
+};
+
+// Convert Apple epoch (seconds) to Unix timestamp (milliseconds)
+export const fromAppleEpoch = (appleSeconds: number) => {
+  return appleSeconds * 1000 + APPLE_EPOCH;
+};
 
 /**
  * default descriptions used by CalDAV clients that should be filtered out
@@ -40,20 +58,6 @@ export const filterCalDavDescription = (description: string | undefined | null) 
   if (!description) return '';
   if (isDefaultCalDavDescription(description)) return '';
   return description;
-};
-
-// Apple epoch: January 1, 2001 00:00:00 GMT in milliseconds since Unix epoch
-// Used for X-APPLE-SORT-ORDER which stores seconds since Apple epoch
-export const APPLE_EPOCH = 978307200000;
-
-// Convert Unix timestamp (milliseconds) to Apple epoch (seconds)
-export const toAppleEpoch = (timestamp: number) => {
-  return Math.floor((timestamp - APPLE_EPOCH) / 1000);
-};
-
-// Convert Apple epoch (seconds) to Unix timestamp (milliseconds)
-export const fromAppleEpoch = (appleSeconds: number) => {
-  return appleSeconds * 1000 + APPLE_EPOCH;
 };
 
 // Status mapping: iCalendar VTODO STATUS ↔ TaskStatus
@@ -97,109 +101,6 @@ const icalToPriority = (priority: number): Priority => {
   if (priority >= 1 && priority <= 4) return 'high';
   if (priority === 5) return 'medium';
   return 'low';
-};
-
-/**
- * Format a Date as iCalendar datetime (UTC)
- * Format: YYYYMMDDTHHMMSSZ
- */
-const formatICalDate = (date: Date) => {
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return (
-    date.getUTCFullYear().toString() +
-    pad(date.getUTCMonth() + 1) +
-    pad(date.getUTCDate()) +
-    'T' +
-    pad(date.getUTCHours()) +
-    pad(date.getUTCMinutes()) +
-    pad(date.getUTCSeconds()) +
-    'Z'
-  );
-};
-
-/**
- * Format a Date as iCalendar date (no time component)
- * Format: YYYYMMDD (VALUE=DATE)
- */
-const formatICalDateOnly = (date: Date) => {
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  // Use local date parts for all-day dates
-  return date.getFullYear().toString() + pad(date.getMonth() + 1) + pad(date.getDate());
-};
-
-/**
- * Parse an iCalendar datetime string to Date
- * Supports: YYYYMMDDTHHMMSSZ, YYYYMMDDTHHMMSS, YYYYMMDD
- */
-const parseICalDate = (value: string) => {
-  if (!value) return undefined;
-
-  // Remove any parameters before the value (e.g., TZID=...)
-  const cleanValue = value.trim();
-
-  // UTC format: 20231225T120000Z
-  if (cleanValue.endsWith('Z')) {
-    const match = cleanValue.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
-    if (match) {
-      const [, year, month, day, hour, minute, second] = match;
-      return new Date(
-        Date.UTC(
-          parseInt(year, 10),
-          parseInt(month, 10) - 1,
-          parseInt(day, 10),
-          parseInt(hour, 10),
-          parseInt(minute, 10),
-          parseInt(second, 10),
-        ),
-      );
-    }
-  }
-
-  // Local datetime: 20231225T120000
-  const dtMatch = cleanValue.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);
-  if (dtMatch) {
-    const [, year, month, day, hour, minute, second] = dtMatch;
-    return new Date(
-      parseInt(year, 10),
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10),
-    );
-  }
-
-  // Date only: 20231225
-  const dateMatch = cleanValue.match(/^(\d{4})(\d{2})(\d{2})$/);
-  if (dateMatch) {
-    const [, year, month, day] = dateMatch;
-    return new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
-  }
-
-  return undefined;
-};
-
-/**
- * Escape text for iCalendar format
- * Escapes: backslash, semicolon, comma, newline
- */
-const escapeICalText = (text: string) => {
-  return text
-    .replace(/\\/g, '\\\\')
-    .replace(/;/g, '\\;')
-    .replace(/,/g, '\\,')
-    .replace(/\n/g, '\\n');
-};
-
-/**
- * Unescape iCalendar text
- */
-const unescapeICalText = (text: string) => {
-  return text
-    .replace(/\\n/g, '\n')
-    .replace(/\\,/g, ',')
-    .replace(/\\;/g, ';')
-    .replace(/\\\\/g, '\\');
 };
 
 const HEX_COLOR_PATTERN = /^[0-9A-F]{6}$/i;
@@ -253,86 +154,13 @@ const parseTagColorValue = (value: string) => {
   return { tagName, color };
 };
 
-/**
- * Fold long lines according to RFC 5545 (max 75 octets per line)
- */
-const foldLine = (line: string) => {
-  const maxLength = 75;
-  if (line.length <= maxLength) return line;
-
-  const lines: string[] = [];
-  let remaining = line;
-
-  // First line can be up to 75 chars
-  lines.push(remaining.slice(0, maxLength));
-  remaining = remaining.slice(maxLength);
-
-  // Continuation lines start with space and can have 74 more chars
-  while (remaining.length > 0) {
-    lines.push(` ${remaining.slice(0, maxLength - 1)}`);
-    remaining = remaining.slice(maxLength - 1);
-  }
-
-  return lines.join('\r\n');
-};
-
-/**
- * Unfold iCalendar content lines (join lines that start with space/tab)
- */
-const unfoldLines = (content: string) => {
-  // Normalize line endings
-  return content
-    .replace(/\r\n/g, '\n')
-    .replace(/\r/g, '\n')
-    .replace(/\n[ \t]/g, '');
-};
-
-interface ICalProperty {
-  name: string;
-  params: Record<string, string>;
-  value: string;
-}
-
-/**
- * Parse a single iCalendar property line
- * Format: NAME;PARAM=value:VALUE or NAME:VALUE
- */
-const parseProperty = (line: string): ICalProperty | null => {
-  const colonIndex = line.indexOf(':');
-  if (colonIndex === -1) return null;
-
-  const header = line.slice(0, colonIndex);
-  const value = line.slice(colonIndex + 1);
-
-  // Parse name and parameters
-  const parts = header.split(';');
-  const name = parts[0].toUpperCase();
-  const params: Record<string, string> = {};
-
-  for (let i = 1; i < parts.length; i++) {
-    const paramPart = parts[i];
-    const eqIndex = paramPart.indexOf('=');
-    if (eqIndex !== -1) {
-      const paramName = paramPart.slice(0, eqIndex).toUpperCase();
-      let paramValue = paramPart.slice(eqIndex + 1);
-      // Remove quotes if present
-      if (paramValue.startsWith('"') && paramValue.endsWith('"')) {
-        paramValue = paramValue.slice(1, -1);
-      }
-      params[paramName] = paramValue;
-    }
-  }
-
-  return { name, params, value };
-};
-
-interface ParsedVAlarm {
+export interface ParsedVAlarm {
   action?: string;
   trigger?: Date;
   description?: string;
 }
 
-interface ParsedVTodo {
+export interface ParsedVTodo {
   uid?: string;
   summary?: string;
   description?: string;
@@ -431,7 +259,7 @@ const extractVAlarms = (vtodoContent: string) => {
 /**
  * Parse VTODO content into structured data
  */
-const parseVTodo = (vtodoContent: string): ParsedVTodo => {
+export const parseVTodo = (vtodoContent: string): ParsedVTodo => {
   const result: ParsedVTodo = {};
   const lines = unfoldLines(vtodoContent).split('\n');
 
@@ -540,7 +368,7 @@ const parseVTodo = (vtodoContent: string): ParsedVTodo => {
  * we return only the master (the one with RRULE / without RECURRENCE-ID) so the
  * app always works with the live series, not a completed snapshot.
  */
-const extractVTodos = (icalContent: string) => {
+export const extractVTodos = (icalContent: string) => {
   const all: string[] = [];
   const content = unfoldLines(icalContent);
   const lines = content.split('\n');
@@ -593,7 +421,7 @@ const generateVAlarm = (reminder: Reminder) => {
 /**
  * Generate a VTODO component as string
  */
-const generateVTodo = (task: Task) => {
+export const generateVTodo = (task: Task) => {
   const lines: string[] = [];
 
   lines.push('BEGIN:VTODO');
@@ -693,7 +521,7 @@ const generateVTodo = (task: Task) => {
 /**
  * Generate a complete VCALENDAR with VTODOs
  */
-const generateVCalendar = (vtodos: string[]) => {
+export const generateVCalendar = (vtodos: string[]) => {
   const lines: string[] = [];
   lines.push('BEGIN:VCALENDAR');
   lines.push('VERSION:2.0');
@@ -706,6 +534,73 @@ const generateVCalendar = (vtodos: string[]) => {
   lines.push('END:VCALENDAR');
 
   return lines.join('\r\n');
+};
+
+/**
+ * Shared helper: convert a ParsedVTodo into a Task or Partial<Task>.
+ * Used by both vtodoToTask (full Task) and parseIcsFile (Partial<Task>).
+ */
+export const parsedVTodoToTask = (
+  parsed: ParsedVTodo,
+  overrides: {
+    accountId?: string;
+    calendarId?: string;
+    href?: string;
+    etag?: string;
+    synced: boolean;
+  },
+): Task | Partial<Task> => {
+  let reminders: Reminder[] | undefined;
+  if (parsed.alarms && parsed.alarms.length > 0) {
+    reminders = parsed.alarms
+      .filter((a) => a.trigger)
+      .map((a) => ({
+        id: generateUUID(),
+        trigger: a.trigger!,
+      }));
+  }
+
+  // Calculate sort order
+  const createdDate = parsed.created ?? new Date();
+  let sortOrder: number;
+  if (parsed.sortOrder !== undefined && !Number.isNaN(parsed.sortOrder)) {
+    sortOrder = parsed.sortOrder;
+  } else {
+    sortOrder = toAppleEpoch(createdDate.getTime());
+  }
+
+  const taskStatus = icalStatusToTaskStatus(parsed.status);
+
+  return {
+    id: generateUUID(),
+    uid: parsed.uid ?? generateUUID(),
+    etag: overrides.etag,
+    href: overrides.href,
+    title: parsed.summary ?? 'Untitled Task',
+    description: filterCalDavDescription(parsed.description),
+    status: taskStatus,
+    completed: taskStatus === 'completed',
+    completedAt: parsed.completed,
+    percentComplete: parsed.percentComplete,
+    priority: icalToPriority(parsed.priority ?? 0),
+    categoryId: parsed.categories?.join(',') ?? undefined,
+    tagColorsByName: parsed.tagColorsByName,
+    startDate: parsed.dtstart,
+    startDateAllDay: parsed.dtstartAllDay,
+    dueDate: parsed.due,
+    dueDateAllDay: parsed.dueAllDay,
+    createdAt: createdDate,
+    modifiedAt: parsed.lastModified ?? new Date(),
+    parentUid: parsed.parentUid,
+    isCollapsed: parsed.isCollapsed ?? false,
+    sortOrder,
+    url: parsed.url,
+    rrule: parsed.rrule,
+    accountId: overrides.accountId,
+    calendarId: overrides.calendarId,
+    synced: overrides.synced,
+    reminders,
+  };
 };
 
 /**
@@ -732,59 +627,7 @@ export const vtodoToTask = (
 
     const parsed = parseVTodo(vtodos[0]);
 
-    // Parse reminders from alarms
-    let reminders: Reminder[] | undefined;
-    if (parsed.alarms && parsed.alarms.length > 0) {
-      reminders = parsed.alarms
-        .filter((a) => a.trigger)
-        .map((a) => ({
-          id: generateUUID(),
-          trigger: a.trigger!,
-        }));
-    }
-
-    // Calculate sort order
-    const createdDate = parsed.created ?? new Date();
-    let sortOrder: number;
-    if (parsed.sortOrder !== undefined && !Number.isNaN(parsed.sortOrder)) {
-      sortOrder = parsed.sortOrder;
-    } else {
-      sortOrder = toAppleEpoch(createdDate.getTime());
-    }
-
-    const taskStatus = icalStatusToTaskStatus(parsed.status);
-    const task: Task = {
-      id: generateUUID(),
-      uid: parsed.uid ?? generateUUID(),
-      etag,
-      href,
-      title: parsed.summary ?? 'Untitled Task',
-      description: filterCalDavDescription(parsed.description),
-      status: taskStatus,
-      completed: taskStatus === 'completed',
-      completedAt: parsed.completed,
-      percentComplete: parsed.percentComplete,
-      priority: icalToPriority(parsed.priority ?? 0),
-      categoryId: parsed.categories?.join(',') ?? undefined,
-      tagColorsByName: parsed.tagColorsByName,
-      startDate: parsed.dtstart,
-      startDateAllDay: parsed.dtstartAllDay,
-      dueDate: parsed.due,
-      dueDateAllDay: parsed.dueAllDay,
-      createdAt: createdDate,
-      modifiedAt: parsed.lastModified ?? new Date(),
-      parentUid: parsed.parentUid,
-      isCollapsed: parsed.isCollapsed ?? false,
-      sortOrder,
-      url: parsed.url,
-      rrule: parsed.rrule,
-      accountId,
-      calendarId,
-      synced: true,
-      reminders,
-    };
-
-    return task;
+    return parsedVTodoToTask(parsed, { accountId, calendarId, href, etag, synced: true }) as Task;
   } catch (error) {
     log.error('Error parsing VTODO:', error);
     return null;
@@ -796,243 +639,4 @@ export const vtodoToTask = (
  */
 export const generateICalUid = () => {
   return `${generateUUID()}@chiri`;
-};
-
-/**
- * Export a single task as iCalendar format with all its child tasks
- */
-export const exportTaskAsIcs = (task: Task, childTasks: Task[] = []) => {
-  const vtodos: string[] = [];
-  vtodos.push(generateVTodo(task));
-
-  for (const childTask of childTasks) {
-    vtodos.push(generateVTodo(childTask));
-  }
-
-  return generateVCalendar(vtodos);
-};
-
-/**
- * Export multiple tasks as iCalendar format
- */
-export const exportTasksAsIcs = (tasks: Task[]) => {
-  const vtodos = tasks.map((task) => generateVTodo(task));
-  return generateVCalendar(vtodos);
-};
-
-/**
- * Export tasks as JSON for backup/export
- */
-export const exportTasksAsJson = (tasks: Task[]) => {
-  return JSON.stringify(tasks, null, 2);
-};
-
-/**
- * Export tasks as Markdown checklist format
- */
-export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0) => {
-  let markdown = '';
-
-  for (const task of tasks) {
-    const indent = '  '.repeat(level);
-    const checkbox =
-      task.status === 'completed' ? '[x]' : task.status === 'cancelled' ? '[-]' : '[ ]';
-    let line = `${indent}${checkbox} ${task.title}`;
-
-    // Add metadata if present
-    const metadata: string[] = [];
-    if (task.priority !== 'none') {
-      metadata.push(`Priority: ${task.priority}`);
-    }
-    if (task.dueDate) {
-      metadata.push(`Due: ${formatDate(new Date(task.dueDate), true)}`);
-    }
-    if (task.categoryId) {
-      metadata.push(`Category: ${task.categoryId}`);
-    }
-
-    if (metadata.length > 0) {
-      line += ` (${metadata.join(', ')})`;
-    }
-
-    if (task.description) {
-      line += `\n${indent}  > ${task.description.replace(/\n/g, `\n${indent}  > `)}`;
-    }
-
-    markdown += `${line}\n`;
-  }
-
-  return markdown;
-};
-
-/**
- * Export tasks as CSV format
- */
-export const exportTasksAsCsv = (tasks: Task[]) => {
-  const headers = [
-    'Title',
-    'Description',
-    'Status',
-    'Priority',
-    'Due Date',
-    'Start Date',
-    'Category',
-    'Created',
-    'Modified',
-  ];
-  const rows = tasks.map((task) => [
-    `"${task.title.replace(/"/g, '""')}"`,
-    `"${task.description.replace(/"/g, '""')}"`,
-    task.status === 'completed'
-      ? 'Completed'
-      : task.status === 'cancelled'
-        ? 'Cancelled'
-        : task.status === 'in-process'
-          ? 'In Process'
-          : 'Needs Action',
-    task.priority,
-    task.dueDate ? formatDate(new Date(task.dueDate), true) : '',
-    task.startDate ? formatDate(new Date(task.startDate), true) : '',
-    task.categoryId ?? '',
-    formatDate(new Date(task.createdAt), true),
-    formatDate(new Date(task.modifiedAt), true),
-  ]);
-
-  return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
-};
-
-/**
- * Parse an ICS file and extract all tasks (VTODOs)
- * Returns parsed tasks without accountId/calendarId - caller must assign them
- */
-export const parseIcsFile = (icsContent: string) => {
-  try {
-    const vtodos = extractVTodos(icsContent);
-    const tasks: Partial<Task>[] = [];
-
-    for (const vtodoContent of vtodos) {
-      const parsed = parseVTodo(vtodoContent);
-
-      // Parse reminders from alarms
-      let reminders: Reminder[] | undefined;
-      if (parsed.alarms && parsed.alarms.length > 0) {
-        reminders = parsed.alarms
-          .filter((a) => a.trigger)
-          .map((a) => ({
-            id: generateUUID(),
-            trigger: a.trigger!,
-          }));
-      }
-
-      // Calculate sort order
-      const createdDate = parsed.created ?? new Date();
-      let sortOrder: number;
-      if (parsed.sortOrder !== undefined && !Number.isNaN(parsed.sortOrder)) {
-        sortOrder = parsed.sortOrder;
-      } else {
-        sortOrder = toAppleEpoch(createdDate.getTime());
-      }
-
-      const importedStatus = icalStatusToTaskStatus(parsed.status);
-      tasks.push({
-        id: generateUUID(),
-        uid: parsed.uid ?? generateUUID(),
-        title: parsed.summary ?? 'Untitled Task',
-        description: filterCalDavDescription(parsed.description),
-        status: importedStatus,
-        completed: importedStatus === 'completed',
-        completedAt: parsed.completed,
-        percentComplete: parsed.percentComplete,
-        priority: icalToPriority(parsed.priority ?? 0),
-        categoryId: parsed.categories?.join(',') ?? undefined,
-        tagColorsByName: parsed.tagColorsByName,
-        startDate: parsed.dtstart,
-        startDateAllDay: parsed.dtstartAllDay,
-        dueDate: parsed.due,
-        dueDateAllDay: parsed.dueAllDay,
-        createdAt: createdDate,
-        modifiedAt: parsed.lastModified ?? new Date(),
-        parentUid: parsed.parentUid,
-        isCollapsed: parsed.isCollapsed ?? false,
-        sortOrder,
-        url: parsed.url,
-        rrule: parsed.rrule,
-        synced: false,
-        reminders,
-      });
-    }
-
-    return tasks;
-  } catch (error) {
-    log.error('Error parsing ICS file:', error);
-    return [];
-  }
-};
-
-/**
- * Detect whether a parsed JSON object is a Tasks.org backup file
- */
-const isTasksOrgBackup = (data: unknown) => {
-  if (typeof data !== 'object' || data === null) return false;
-  const inner = (data as Record<string, unknown>).data;
-  if (typeof inner !== 'object' || inner === null) return false;
-  const tasks = (inner as Record<string, unknown>).tasks;
-  if (!Array.isArray(tasks)) return false;
-  return typeof (tasks[0] as Record<string, unknown>)?.vtodo === 'string';
-};
-
-/**
- * Parse a Tasks.org backup JSON file and extract all tasks
- * Each task entry contains a fully-formed VCALENDAR/VTODO string in the `vtodo` field
- */
-export const parseTasksOrgBackup = (data: unknown) => {
-  try {
-    const taskEntries = ((data as Record<string, unknown>).data as Record<string, unknown>)
-      .tasks as Record<string, unknown>[];
-
-    const result: Partial<Task>[] = [];
-
-    for (const entry of taskEntries) {
-      const vtodoContent = entry.vtodo as string;
-      if (!vtodoContent) continue;
-
-      const parsed = parseIcsFile(vtodoContent);
-      if (parsed.length > 0) {
-        result.push(parsed[0]);
-      }
-    }
-
-    return result;
-  } catch (error) {
-    log.error('Error parsing Tasks.org backup:', error);
-    return [];
-  }
-};
-
-/**
- * Parse a JSON file containing tasks (exported from this app or Tasks.org backup)
- */
-export const parseJsonTasksFile = (jsonContent: string): Partial<Task>[] => {
-  try {
-    const data = JSON.parse(jsonContent);
-
-    // Detect Tasks.org backup format
-    if (isTasksOrgBackup(data)) {
-      return parseTasksOrgBackup(data);
-    }
-
-    // Handle array of tasks directly
-    if (Array.isArray(data)) {
-      return data.map((task) => ({
-        ...task,
-        id: generateUUID(), // Always generate new IDs
-        synced: false,
-      }));
-    }
-
-    return [];
-  } catch (error) {
-    log.error('Error parsing JSON tasks file:', error);
-    return [];
-  }
 };
