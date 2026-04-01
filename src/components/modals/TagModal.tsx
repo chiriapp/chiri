@@ -151,7 +151,7 @@ export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
               }}
             >
               {emoji ? (
-                <span className="text-sm">{emoji}</span>
+                <span className="text-sm leading-none">{emoji}</span>
               ) : (
                 <IconComponent className="w-3.5 h-3.5" />
               )}
