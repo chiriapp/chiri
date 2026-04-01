@@ -1,4 +1,5 @@
 import { EmojiPicker } from 'frimousse';
+import { Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { FALLBACK_ITEM_COLOR } from '$constants';
 import { CALENDAR_ICONS, getIconByName } from '$constants/icons';
@@ -20,6 +21,7 @@ export const IconEmojiPicker = ({
 }: IconEmojiPickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'icon' | 'emoji'>('icon');
+  const [iconSearch, setIconSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside to close dropdown
@@ -60,6 +62,10 @@ export const IconEmojiPicker = ({
   }, [isOpen]);
 
   const SelectedIcon = getIconByName(iconValue);
+
+  const filteredIcons = iconSearch.trim()
+    ? CALENDAR_ICONS.filter(({ name }) => name.toLowerCase().includes(iconSearch.toLowerCase()))
+    : CALENDAR_ICONS;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -108,36 +114,49 @@ export const IconEmojiPicker = ({
 
           <div>
             {activeTab === 'icon' ? (
-              <div className="p-2">
-                <div className="h-[280px] overflow-y-auto px-1">
-                  <div className="grid grid-cols-9 gap-1">
-                    {CALENDAR_ICONS.map(({ name, icon: Icon }) => (
-                      <button
-                        key={name}
-                        type="button"
-                        onClick={() => {
-                          onIconChange(name);
-                          onEmojiChange(''); // Clear emoji when selecting icon
-                          setIsOpen(false);
-                        }}
-                        className={`
-                          w-8 h-8 rounded flex items-center justify-center transition-colors cursor-pointer border
-                          ${
-                            iconValue === name && !emojiValue
-                              ? 'bg-surface-100 dark:bg-surface-700'
-                              : 'border-transparent text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700'
-                          }
-                        `}
-                        style={
-                          iconValue === name && !emojiValue ? { borderColor: color } : undefined
-                        }
-                      >
-                        <Icon className="w-4 h-4" />
-                      </button>
-                    ))}
+              <>
+                <div className="px-2 pt-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-surface-400 pointer-events-none" />
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={iconSearch}
+                      onChange={(e) => setIconSearch(e.target.value)}
+                      className="w-full appearance-none rounded-md bg-surface-100 dark:bg-surface-700 pl-8 pr-2.5 py-2 text-sm text-surface-800 dark:text-surface-200 placeholder:text-surface-400 focus:outline-none"
+                    />
                   </div>
                 </div>
-              </div>
+                <div className="h-[286px] overflow-y-auto">
+                  {filteredIcons.length === 0 ? (
+                    <div className="flex items-center justify-center h-full text-surface-400 dark:text-surface-500 text-sm">
+                      No icons found
+                    </div>
+                  ) : (
+                    <>
+                      <div className="px-3 pt-3 pb-1.5 font-medium text-surface-600 dark:text-surface-400 text-xs">
+                        All
+                      </div>
+                      <div className="grid grid-cols-9 px-2 pb-1.5">
+                        {filteredIcons.map(({ name, icon: Icon }) => (
+                          <button
+                            key={name}
+                            type="button"
+                            onClick={() => {
+                              onIconChange(name);
+                              onEmojiChange(''); // Clear emoji when selecting icon
+                              setIsOpen(false);
+                            }}
+                            className="w-full h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700"
+                          >
+                            <Icon className="w-4 h-4" />
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
             ) : (
               <EmojiPicker.Root
                 className="w-full"
@@ -148,7 +167,13 @@ export const IconEmojiPicker = ({
                 columns={9}
               >
                 <div className="px-2 pt-2">
-                  <EmojiPicker.Search className="w-full appearance-none rounded-md bg-surface-100 dark:bg-surface-700 px-2.5 py-2 text-sm text-surface-800 dark:text-surface-200 placeholder:text-surface-400 focus:outline-none" />
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-surface-400 pointer-events-none" />
+                    <EmojiPicker.Search
+                      placeholder="Search..."
+                      className="w-full appearance-none rounded-md bg-surface-100 dark:bg-surface-700 pl-8 pr-2.5 py-2 text-sm text-surface-800 dark:text-surface-200 placeholder:text-surface-400 focus:outline-none"
+                    />
+                  </div>
                 </div>
 
                 <EmojiPicker.Viewport className="outline-hidden h-[252px]">
@@ -177,17 +202,8 @@ export const IconEmojiPicker = ({
                       Emoji: ({ emoji, ...props }) => (
                         <button
                           type="button"
-                          className="flex flex-1 max-w-[calc(100%/9)] h-8 items-center justify-center rounded-lg text-lg data-[active]:bg-surface-100 dark:data-[active]:bg-surface-700"
+                          className="flex flex-1 max-w-[calc(100%/9)] h-8 items-center justify-center rounded-lg text-lg hover:bg-surface-100 dark:hover:bg-surface-700"
                           {...props}
-                          style={
-                            emoji.emoji === emojiValue
-                              ? {
-                                  backgroundColor: `${color}20`,
-                                  borderColor: color,
-                                  borderWidth: '1px',
-                                }
-                              : undefined
-                          }
                         >
                           {emoji.emoji}
                         </button>
