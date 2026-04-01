@@ -22,7 +22,7 @@ import Sunrise from 'lucide-react/icons/sunrise';
 import Sunset from 'lucide-react/icons/sunset';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
-import { AppSelect } from '$components/AppSelect';
+import { TimePickerModal } from '$components/modals/TimePickerModal';
 import { DEFAULT_TIME } from '$constants';
 import { settingsStore } from '$context/settingsContext';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
@@ -129,12 +129,6 @@ export const ReminderPickerModal = ({
     return formatTime(d);
   };
 
-  const customTimePreview = (() => {
-    const d = new Date();
-    d.setHours(customHour, customMinute, 0, 0);
-    return formatTime(d);
-  })();
-
   const selectedMinutes = selectedTime.hours * 60 + selectedTime.minutes;
   const isCustomTime =
     timeSelected && !CATEGORY_PRESETS.some(({ id }) => quickTimePresets[id] === selectedMinutes);
@@ -176,12 +170,12 @@ export const ReminderPickerModal = ({
     setShowCustomModal(true);
   };
 
-  const handleCustomTimeConfirm = () => {
-    const newTime = { hours: customHour, minutes: customMinute };
+  const handleCustomTimeConfirm = (hour: number, minute: number) => {
+    const newTime = { hours: hour, minutes: minute };
     setSelectedTime(newTime);
     setTimeSelected(true);
     if (localValue !== undefined) {
-      setLocalValue(setDateTime(localValue, newTime.hours, newTime.minutes));
+      setLocalValue(setDateTime(localValue, hour, minute));
     }
     setShowCustomModal(false);
   };
@@ -206,9 +200,6 @@ export const ReminderPickerModal = ({
         ? 'bg-primary-600 text-primary-contrast'
         : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
     }`;
-
-  const customModalSelectClass =
-    'text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0';
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 animate-fade-in">
@@ -405,86 +396,14 @@ export const ReminderPickerModal = ({
         </div>
       </div>
 
-      {showCustomModal && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: backdrop click closes modal
-        // biome-ignore lint/a11y/useKeyWithClickEvents: closed via X button and Cancel
-        <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 animate-fade-in"
-          onClick={() => setShowCustomModal(false)}
-        >
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: stops backdrop propagation */}
-          {/* biome-ignore lint/a11y/useKeyWithClickEvents: handled by buttons inside */}
-          <div
-            className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-xs animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-              <h2 className="text-base font-semibold text-surface-800 dark:text-surface-200">
-                Custom time
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowCustomModal(false)}
-                className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="p-6 flex flex-col items-center gap-5">
-              <p className="text-3xl font-semibold text-surface-800 dark:text-surface-200 tabular-nums tracking-tight">
-                {customTimePreview}
-              </p>
-              <div className="flex items-center gap-3">
-                <AppSelect
-                  value={customHour}
-                  onChange={(e) => setCustomHour(parseInt(e.target.value, 10))}
-                  className={customModalSelectClass}
-                  aria-label="Hour"
-                >
-                  {Array.from({ length: 24 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {i.toString().padStart(2, '0')}
-                    </option>
-                  ))}
-                </AppSelect>
-                <span className="text-lg font-medium text-surface-500 dark:text-surface-400">
-                  :
-                </span>
-                <AppSelect
-                  value={customMinute}
-                  onChange={(e) => setCustomMinute(parseInt(e.target.value, 10))}
-                  className={customModalSelectClass}
-                  aria-label="Minute"
-                >
-                  {Array.from({ length: 60 }, (_, i) => (
-                    <option key={i} value={i}>
-                      {i.toString().padStart(2, '0')}
-                    </option>
-                  ))}
-                </AppSelect>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 p-4 border-t border-surface-200 dark:border-surface-700">
-              <button
-                type="button"
-                onClick={() => setShowCustomModal(false)}
-                className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleCustomTimeConfirm}
-                className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <TimePickerModal
+        isOpen={showCustomModal}
+        onClose={() => setShowCustomModal(false)}
+        onConfirm={handleCustomTimeConfirm}
+        initialHour={customHour}
+        initialMinute={customMinute}
+        title="Custom time"
+      />
     </div>
   );
 };

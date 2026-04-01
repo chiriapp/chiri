@@ -1,5 +1,6 @@
-import { AppSelect } from '$components/AppSelect';
+import { useState } from 'react';
 import { MacNotificationPermissionCard } from '$components/MacNotificationPermissionCard';
+import { TimePickerModal } from '$components/modals/TimePickerModal';
 import { useNotificationContext } from '$hooks/store/useNotificationContext';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { isMacPlatform } from '$utils/platform';
@@ -28,14 +29,16 @@ export const NotificationSettings = () => {
     setQuietHoursEnd,
     defaultAllDayReminderHour,
     setDefaultAllDayReminderHour,
+    allDayReminderNotificationsEnabled,
+    setAllDayReminderNotificationsEnabled,
     timeFormat,
   } = useSettingsStore();
 
+  const [quietHoursStartModalOpen, setQuietHoursStartModalOpen] = useState(false);
+  const [quietHoursEndModalOpen, setQuietHoursEndModalOpen] = useState(false);
+  const [allDayReminderModalOpen, setAllDayReminderModalOpen] = useState(false);
+
   const use24h = timeFormat === '24';
-  const hourOptions = Array.from({ length: 24 }, (_, i) => ({
-    value: i,
-    label: formatHour(i, use24h),
-  }));
   const { permissionStatus, isCheckingPermission, requestPermission } = useNotificationContext();
 
   // on macOS the toggle is gated behind OS permission
@@ -116,8 +119,15 @@ export const NotificationSettings = () => {
             </div>
           </div>
         )}
-
       </div>
+
+      {isMacPlatform() && permissionStatus !== null && (
+        <MacNotificationPermissionCard
+          permissionStatus={permissionStatus}
+          isCheckingPermission={isCheckingPermission}
+          requestPermission={requestPermission}
+        />
+      )}
 
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <label className="flex items-center justify-between p-4">
@@ -140,31 +150,23 @@ export const NotificationSettings = () => {
             <div className="space-y-3 pl-4 border-l-2 border-surface-200 dark:border-surface-600">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-surface-600 dark:text-surface-400">From</p>
-                <AppSelect
-                  value={quietHoursStart}
-                  onChange={(e) => setQuietHoursStart(Number(e.target.value))}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+                <button
+                  type="button"
+                  onClick={() => setQuietHoursStartModalOpen(true)}
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
                 >
-                  {hourOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </AppSelect>
+                  {formatHour(quietHoursStart, use24h)}
+                </button>
               </div>
               <div className="flex items-center justify-between">
                 <p className="text-sm text-surface-600 dark:text-surface-400">Until</p>
-                <AppSelect
-                  value={quietHoursEnd}
-                  onChange={(e) => setQuietHoursEnd(Number(e.target.value))}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+                <button
+                  type="button"
+                  onClick={() => setQuietHoursEndModalOpen(true)}
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
                 >
-                  {hourOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </AppSelect>
+                  {formatHour(quietHoursEnd, use24h)}
+                </button>
               </div>
             </div>
           </div>
@@ -172,34 +174,81 @@ export const NotificationSettings = () => {
       </div>
 
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
-        <div className="flex items-center justify-between p-4">
+        <label className="flex items-center justify-between p-4">
           <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">All-day reminder time</p>
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              All-day reminder notifications
+            </p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              Time used when a task has no specific time set
+              Set a default time for all-day task reminders
             </p>
           </div>
-          <AppSelect
-            value={defaultAllDayReminderHour}
-            onChange={(e) => setDefaultAllDayReminderHour(Number(e.target.value))}
-            className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
-          >
-            {hourOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </AppSelect>
-        </div>
+          <input
+            type="checkbox"
+            checked={allDayReminderNotificationsEnabled}
+            onChange={(e) => setAllDayReminderNotificationsEnabled(e.target.checked)}
+            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+          />
+        </label>
+
+        {allDayReminderNotificationsEnabled && (
+          <div className="px-4 pb-4">
+            <div className="space-y-3 pl-4 border-l-2 border-surface-200 dark:border-surface-600">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-surface-600 dark:text-surface-400">
+                  All-day reminder time
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setAllDayReminderModalOpen(true)}
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
+                >
+                  {formatHour(defaultAllDayReminderHour, use24h)}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {isMacPlatform() && permissionStatus !== null && (
-        <MacNotificationPermissionCard
-          permissionStatus={permissionStatus}
-          isCheckingPermission={isCheckingPermission}
-          requestPermission={requestPermission}
-        />
-      )}
+      <TimePickerModal
+        isOpen={quietHoursStartModalOpen}
+        onClose={() => setQuietHoursStartModalOpen(false)}
+        onConfirm={(hour, _minute) => {
+          setQuietHoursStart(hour);
+          setQuietHoursStartModalOpen(false);
+        }}
+        initialHour={quietHoursStart}
+        initialMinute={0}
+        title="Quiet hours start time"
+        description="Notifications will be silenced after this time"
+      />
+
+      <TimePickerModal
+        isOpen={quietHoursEndModalOpen}
+        onClose={() => setQuietHoursEndModalOpen(false)}
+        onConfirm={(hour, _minute) => {
+          setQuietHoursEnd(hour);
+          setQuietHoursEndModalOpen(false);
+        }}
+        initialHour={quietHoursEnd}
+        initialMinute={0}
+        title="Quiet hours end time"
+        description="Notifications will resume after this time"
+      />
+
+      <TimePickerModal
+        isOpen={allDayReminderModalOpen}
+        onClose={() => setAllDayReminderModalOpen(false)}
+        onConfirm={(hour, _minute) => {
+          setDefaultAllDayReminderHour(hour);
+          setAllDayReminderModalOpen(false);
+        }}
+        initialHour={defaultAllDayReminderHour}
+        initialMinute={0}
+        title="All-day reminder time"
+        description="Default time for all-day task reminders"
+      />
     </div>
   );
 };
