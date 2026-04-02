@@ -146,6 +146,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (reminders: DefaultReminderOffset[]) => settingsStore.setDefaultReminders(reminders),
     [],
   );
+  const setDefaultRrule = useCallback(
+    (rrule: string | undefined) => settingsStore.setDefaultRrule(rrule),
+    [],
+  );
+  const setDefaultRepeatFrom = useCallback(
+    (repeatFrom: number) => settingsStore.setDefaultRepeatFrom(repeatFrom),
+    [],
+  );
   const setOnboardingCompleted = useCallback(
     (completed: boolean) => settingsStore.setOnboardingCompleted(completed),
     [],
@@ -196,6 +204,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   );
   const setDefaultAllDayReminderHour = useCallback(
     (hour: number) => settingsStore.setDefaultAllDayReminderHour(hour),
+    [],
+  );
+  const setAllDayReminderNotificationsEnabled = useCallback(
+    (enabled: boolean) => settingsStore.setAllDayReminderNotificationsEnabled(enabled),
     [],
   );
   const setTaskListDensity = useCallback(
@@ -272,6 +284,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setDefaultStartDate,
     setDefaultDueDate,
     setDefaultReminders,
+    setDefaultRrule,
+    setDefaultRepeatFrom,
     setOnboardingCompleted,
     setExpandedAccountIds,
     toggleAccountExpanded,
@@ -285,6 +299,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setConfirmBeforeQuit,
     setConfirmBeforeQuitAppliedValue,
     setDefaultAllDayReminderHour,
+    setAllDayReminderNotificationsEnabled,
     setTaskListDensity,
     setDefaultTagColor,
     setDefaultCalendarColor,

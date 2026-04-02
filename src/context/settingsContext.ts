@@ -61,6 +61,8 @@ interface SettingsState {
   defaultStartDate: DefaultDateOffset;
   defaultDueDate: DefaultDateOffset;
   defaultReminders: DefaultReminderOffset[];
+  defaultRrule: string | undefined;
+  defaultRepeatFrom: number;
   sidebarCollapsed: boolean;
   sidebarWidth: number;
   taskEditorWidth: number;
@@ -74,6 +76,7 @@ interface SettingsState {
   confirmBeforeQuit: boolean;
   confirmBeforeQuitAppliedValue: boolean;
   defaultAllDayReminderHour: number;
+  allDayReminderNotificationsEnabled: boolean;
   // Look & Feel
   taskListDensity: TaskListDensity;
   defaultTagColor: string;
@@ -125,6 +128,8 @@ interface SettingsActions {
   setDefaultStartDate: (offset: DefaultDateOffset) => void;
   setDefaultDueDate: (offset: DefaultDateOffset) => void;
   setDefaultReminders: (reminders: DefaultReminderOffset[]) => void;
+  setDefaultRrule: (rrule: string | undefined) => void;
+  setDefaultRepeatFrom: (repeatFrom: number) => void;
   toggleSidebarCollapsed: () => void;
   setOnboardingCompleted: (completed: boolean) => void;
   setExpandedAccountIds: (accountIds: string[]) => void;
@@ -139,6 +144,7 @@ interface SettingsActions {
   setConfirmBeforeQuit: (confirm: boolean) => void;
   setConfirmBeforeQuitAppliedValue: (value: boolean) => void;
   setDefaultAllDayReminderHour: (hour: number) => void;
+  setAllDayReminderNotificationsEnabled: (enabled: boolean) => void;
   setTaskListDensity: (density: TaskListDensity) => void;
   setDefaultTagColor: (color: string) => void;
   setDefaultCalendarColor: (color: string) => void;
@@ -187,6 +193,8 @@ const defaultState: SettingsState = {
   defaultStartDate: 'none',
   defaultDueDate: 'none',
   defaultReminders: [],
+  defaultRrule: undefined,
+  defaultRepeatFrom: 0,
   sidebarCollapsed: false,
   sidebarWidth: DEFAULT_SIDEBAR_WIDTH,
   taskEditorWidth: DEFAULT_EDITOR_WIDTH,
@@ -201,7 +209,8 @@ const defaultState: SettingsState = {
   checkForUpdatesAutomatically: true,
   confirmBeforeQuit: true,
   confirmBeforeQuitAppliedValue: true,
-  defaultAllDayReminderHour: 9,
+  defaultAllDayReminderHour: 17,
+  allDayReminderNotificationsEnabled: true,
   taskListDensity: 'comfortable',
   defaultTagColor: 'accent',
   defaultCalendarColor: 'accent',
@@ -413,6 +422,8 @@ export const settingsStore = {
   setDefaultDueDate: (defaultDueDate: DefaultDateOffset) => setState({ defaultDueDate }),
   setDefaultReminders: (defaultReminders: DefaultReminderOffset[]) =>
     setState({ defaultReminders }),
+  setDefaultRrule: (defaultRrule: string | undefined) => setState({ defaultRrule }),
+  setDefaultRepeatFrom: (defaultRepeatFrom: number) => setState({ defaultRepeatFrom }),
   setOnboardingCompleted: (onboardingCompleted: boolean) => setState({ onboardingCompleted }),
   setExpandedAccountIds: (expandedAccountIds: string[]) => setState({ expandedAccountIds }),
   toggleAccountExpanded: (accountId: string) => {
@@ -442,6 +453,8 @@ export const settingsStore = {
     setState({ confirmBeforeQuitAppliedValue }),
   setDefaultAllDayReminderHour: (defaultAllDayReminderHour: number) =>
     setState({ defaultAllDayReminderHour }),
+  setAllDayReminderNotificationsEnabled: (allDayReminderNotificationsEnabled: boolean) =>
+    setState({ allDayReminderNotificationsEnabled }),
   setTaskListDensity: (taskListDensity: TaskListDensity) => setState({ taskListDensity }),
   setDefaultTagColor: (defaultTagColor: string) => setState({ defaultTagColor }),
   setDefaultCalendarColor: (defaultCalendarColor: string) => setState({ defaultCalendarColor }),
@@ -503,6 +516,8 @@ export const settingsStore = {
         defaultStartDate: data.defaultStartDate ?? defaultState.defaultStartDate,
         defaultDueDate: data.defaultDueDate ?? defaultState.defaultDueDate,
         defaultReminders: data.defaultReminders ?? defaultState.defaultReminders,
+        defaultRrule: data.defaultRrule ?? defaultState.defaultRrule,
+        defaultRepeatFrom: data.defaultRepeatFrom ?? defaultState.defaultRepeatFrom,
         sidebarCollapsed: data.sidebarCollapsed ?? defaultState.sidebarCollapsed,
         sidebarWidth: data.sidebarWidth ?? defaultState.sidebarWidth,
         taskEditorWidth: data.taskEditorWidth ?? defaultState.taskEditorWidth,
@@ -524,6 +539,9 @@ export const settingsStore = {
           data.confirmBeforeQuitAppliedValue ?? defaultState.confirmBeforeQuitAppliedValue,
         defaultAllDayReminderHour:
           data.defaultAllDayReminderHour ?? defaultState.defaultAllDayReminderHour,
+        allDayReminderNotificationsEnabled:
+          data.allDayReminderNotificationsEnabled ??
+          defaultState.allDayReminderNotificationsEnabled,
         taskListDensity: data.taskListDensity ?? defaultState.taskListDensity,
         defaultTagColor: data.defaultTagColor ?? defaultState.defaultTagColor,
         defaultCalendarColor: data.defaultCalendarColor ?? defaultState.defaultCalendarColor,

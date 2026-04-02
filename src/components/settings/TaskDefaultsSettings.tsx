@@ -399,6 +399,24 @@ export const TaskDefaultsSettings = () => {
 
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <div className="p-4">
+          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">Repeat</p>
+          <button
+            type="button"
+            onClick={() => setShowRepeatModal(true)}
+            className="flex items-center gap-2 px-3 py-2 w-full bg-surface-100 dark:bg-surface-700 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          >
+            <Repeat className="w-4 h-4 text-surface-400 flex-shrink-0" />
+            <span className="flex-1 text-left text-sm text-surface-700 dark:text-surface-300">
+              {defaultRrule
+                ? rruleToText(defaultRrule, defaultRepeatFrom, dateFormat)
+                : 'Does not repeat'}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
+        <div className="p-4">
           <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">Tags</p>
           <div className="flex flex-wrap gap-2">
             {selectedTags.map((tag) => {
@@ -494,24 +512,6 @@ export const TaskDefaultsSettings = () => {
               Add reminder
             </button>
           )}
-        </div>
-
-        <div className="border-t border-surface-200 dark:border-surface-700" />
-
-        <div className="p-4">
-          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">Repeat</p>
-          <button
-            type="button"
-            onClick={() => setShowRepeatModal(true)}
-            className="flex items-center gap-2 px-3 py-2 w-full bg-surface-100 dark:bg-surface-700 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
-            <Repeat className="w-4 h-4 text-surface-400 flex-shrink-0" />
-            <span className="flex-1 text-left text-sm text-surface-700 dark:text-surface-300">
-              {defaultRrule
-                ? rruleToText(defaultRrule, defaultRepeatFrom, dateFormat)
-                : 'Does not repeat'}
-            </span>
-          </button>
         </div>
       </div>
 

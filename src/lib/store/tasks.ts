@@ -111,6 +111,8 @@ export const createTask = (taskData: Partial<Task>) => {
     defaultStartDate,
     defaultDueDate,
     defaultReminders,
+    defaultRrule,
+    defaultRepeatFrom,
   } = settingsStore.getState();
 
   // Determine calendar and account to use
@@ -189,6 +191,8 @@ export const createTask = (taskData: Partial<Task>) => {
     startDateAllDay: start.date !== undefined ? start.allDay : undefined,
     dueDate: due.date,
     dueDateAllDay: due.date !== undefined ? due.allDay : undefined,
+    rrule: taskData.rrule ?? defaultRrule,
+    repeatFrom: taskData.repeatFrom ?? defaultRepeatFrom,
     ...taskData,
     // Apply tags and reminders after spread to ensure defaults are included
     tags,
