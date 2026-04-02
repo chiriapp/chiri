@@ -3,6 +3,7 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
 import { useCallback, useEffect, useState } from 'react';
 import { settingsStore } from '$context/settingsContext';
+import { toastManager } from '$hooks/ui/useToast';
 import { loggers } from '$lib/logger';
 import { shouldDisableUpdates } from '$utils/platform';
 import { fetchReleaseNotes } from '$utils/version';
@@ -26,7 +27,7 @@ export interface UseUpdateCheckerResult {
   updateAvailable: UpdateInfo | null;
   isChecking: boolean;
   error: UpdateError | null;
-  checkForUpdates: (trigger?: string) => Promise<void>;
+  checkForUpdates: (trigger?: string, onUpdateFound?: () => void) => Promise<void>;
   downloadAndInstall: () => Promise<void>;
   dismissUpdate: () => void;
   isDownloading: boolean;
@@ -146,7 +147,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
     };
   }, []);
 
-  const checkForUpdates = useCallback(async (trigger = 'unknown') => {
+  const checkForUpdates = useCallback(async (trigger = 'unknown', onUpdateFound?: () => void) => {
     if (sharedIsChecking) {
       log.info('Update check skipped - already in progress', {
         requestedBy: trigger,
@@ -160,6 +161,12 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
     notifyListeners();
     setIsChecking(true);
     setError(null);
+
+    // Show feedback only for app menu checks
+    const isMenuCheck = trigger === 'menu-manual';
+    if (isMenuCheck) {
+      toastManager.info('Checking for updates...', '', 'update-check-checking', undefined, false);
+    }
 
     try {
       const disableUpdates = await shouldDisableUpdates();
@@ -182,6 +189,11 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
       if (update) {
         log.info(`Update available: ${update.version}`);
 
+        // Dismiss the checking toast for menu checks
+        if (isMenuCheck) {
+          toastManager.dismiss('update-check-checking');
+        }
+
         // Fetch release notes from GitHub API if not provided by updater
         const body = update.body || (await fetchReleaseNotes(update.version));
 
@@ -194,11 +206,28 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
         sharedUpdateState = updateInfo;
         setUpdateAvailable(updateInfo);
         notifyListeners();
+
+        // Call the callback if provided (to show modal)
+        if (onUpdateFound) {
+          onUpdateFound();
+        }
       } else {
         log.info('No updates available');
         sharedUpdateState = null;
         setUpdateAvailable(null);
         notifyListeners();
+
+        // Show success message for menu checks
+        if (isMenuCheck) {
+          toastManager.dismiss('update-check-checking');
+          toastManager.success(
+            "You're up to date!",
+            `Running version ${currentVersion}`,
+            'update-check-success',
+            undefined,
+            false,
+          );
+        }
       }
     } catch (err) {
       const rawMessage = extractErrorMessage(err);
@@ -214,6 +243,18 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
         title: 'Update check failed',
         description: userMessage,
       });
+
+      // Show error toast for menu checks
+      if (isMenuCheck) {
+        toastManager.dismiss('update-check-checking');
+        toastManager.error(
+          'Update check failed',
+          userMessage,
+          'update-check-error',
+          undefined,
+          false,
+        );
+      }
     } finally {
       sharedIsChecking = false;
       activeUpdateCheckTrigger = null;

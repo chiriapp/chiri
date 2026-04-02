@@ -19,6 +19,7 @@ class ToastManager {
    * Show a toast notification
    * @param groupKey - Optional key to prevent duplicate toasts for the same event
    * @param action - Optional action button with label and onClick handler
+   * @param closeButton - Whether to show the close button (defaults to true)
    */
   show(
     title: string,
@@ -26,16 +27,18 @@ class ToastManager {
     type: 'error' | 'warning' | 'info' | 'success' = 'info',
     groupKey?: string,
     action?: ToastAction,
+    closeButton = true,
   ) {
     log.debug(
       `[${type.toUpperCase()}] Showing toast: "${title}" | "${message}" | groupKey: ${groupKey || 'none'}`,
     );
 
-    // If groupKey is provided, check if a toast is already active for this group
+    // If groupKey is provided, dismiss any existing toast for this group
     if (groupKey) {
       const existingToastId = this.activeToastIds.get(groupKey);
       if (existingToastId) {
-        return existingToastId;
+        toast.dismiss(existingToastId);
+        this.activeToastIds.delete(groupKey);
       }
     }
 
@@ -45,7 +48,7 @@ class ToastManager {
     const toastId = toastFn(title, {
       description: message,
       duration: 5000,
-      id: groupKey,
+      closeButton,
       action: action
         ? {
             label: action.label,
@@ -66,20 +69,55 @@ class ToastManager {
     return toastId;
   }
 
-  error(title: string, message: string, groupKey?: string, action?: ToastAction) {
-    return this.show(title, message, 'error', groupKey, action);
+  error(
+    title: string,
+    message: string,
+    groupKey?: string,
+    action?: ToastAction,
+    closeButton = true,
+  ) {
+    return this.show(title, message, 'error', groupKey, action, closeButton);
   }
 
-  warning(title: string, message: string, groupKey?: string, action?: ToastAction) {
-    return this.show(title, message, 'warning', groupKey, action);
+  warning(
+    title: string,
+    message: string,
+    groupKey?: string,
+    action?: ToastAction,
+    closeButton = true,
+  ) {
+    return this.show(title, message, 'warning', groupKey, action, closeButton);
   }
 
-  info(title: string, message: string, groupKey?: string, action?: ToastAction) {
-    return this.show(title, message, 'info', groupKey, action);
+  info(
+    title: string,
+    message: string,
+    groupKey?: string,
+    action?: ToastAction,
+    closeButton = true,
+  ) {
+    return this.show(title, message, 'info', groupKey, action, closeButton);
   }
 
-  success(title: string, message: string, groupKey?: string, action?: ToastAction) {
-    return this.show(title, message, 'success', groupKey, action);
+  success(
+    title: string,
+    message: string,
+    groupKey?: string,
+    action?: ToastAction,
+    closeButton = true,
+  ) {
+    return this.show(title, message, 'success', groupKey, action, closeButton);
+  }
+
+  /**
+   * Dismiss a toast by its group key
+   */
+  dismiss(groupKey: string) {
+    const toastId = this.activeToastIds.get(groupKey);
+    if (toastId) {
+      toast.dismiss(toastId);
+      this.activeToastIds.delete(groupKey);
+    }
   }
 }
 

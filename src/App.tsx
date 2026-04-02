@@ -28,6 +28,7 @@ import { useTray } from '$hooks/system/useTray';
 import { useUpdateChecker } from '$hooks/system/useUpdateChecker';
 import { useKeyboardShortcuts } from '$hooks/ui/useKeyboardShortcuts';
 import { useTheme } from '$hooks/ui/useTheme';
+import { toastManager } from '$hooks/ui/useToast';
 import { useAppMenu } from '$hooks/useAppMenu';
 import { useChangelog } from '$hooks/useChangelog';
 import { useMenuHandlers } from '$hooks/useMenuHandlers';
@@ -48,8 +49,14 @@ const App = () => {
     useSyncQuery();
 
   // app update checker (hoisted above callbacks that reference updateAvailable)
-  const { updateAvailable, downloadAndInstall, dismissUpdate, isDownloading, downloadProgress } =
-    useUpdateChecker();
+  const {
+    updateAvailable,
+    checkForUpdates,
+    downloadAndInstall,
+    dismissUpdate,
+    isDownloading,
+    downloadProgress,
+  } = useUpdateChecker();
   const handleHeaderSync = useCallback(() => {
     syncAll({
       source: 'header-sync-button',
@@ -74,12 +81,16 @@ const App = () => {
     });
   }, [syncAll]);
 
-  const handleMenuShowChangelog = useCallback(() => {
+  const handleMenuShowChangelog = useCallback(async () => {
+    toastManager.info('Loading release notes...', '', 'changelog-loading', undefined, false);
     if (updateAvailable?.body) {
-      openChangelog(updateAvailable.version, updateAvailable.body);
+      await openChangelog(updateAvailable.version, updateAvailable.body);
+      toastManager.dismiss('changelog-loading');
       return;
     }
-    getVersion().then((version) => openChangelog(version));
+    const version = await getVersion();
+    await openChangelog(version);
+    toastManager.dismiss('changelog-loading');
   }, [updateAvailable, openChangelog]);
 
   const handleMenuSync = useCallback(() => {
@@ -96,6 +107,10 @@ const App = () => {
     },
     [syncCalendar],
   );
+
+  const handleCheckForUpdates = useCallback(() => {
+    checkForUpdates('menu-manual', () => setShowUpdateModal(true));
+  }, [checkForUpdates]);
 
   const { data: accounts = [] } = useAccounts();
   const {
@@ -150,7 +165,7 @@ const App = () => {
   // menu handlers and modal state
   const menuHandlers = useMenuHandlers(
     handleMenuSync,
-    () => setShowUpdateModal(true),
+    handleCheckForUpdates,
     handleMenuShowChangelog,
     handleMenuSyncCalendar,
   );
