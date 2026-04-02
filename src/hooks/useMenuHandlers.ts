@@ -14,9 +14,9 @@ import {
   useUIState,
 } from '$hooks/queries/useUIState';
 import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
-import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
-import { useMenuEvents } from '$hooks/system/useMenuEvents';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { useMenuEvents } from '$hooks/system/useMenuEvents';
+import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
 import type { SettingsCategory, SettingsSubtab, SortDirection, SortMode } from '$types';
 
 export const useMenuHandlers = (
@@ -78,6 +78,9 @@ export const useMenuHandlers = (
   const onSyncRef = useRef<(() => void) | null>(null);
   const onSetSortModeRef = useRef<
     ((mode: SortMode, currentMode: SortMode, currentDirection: SortDirection) => void) | null
+  >(null);
+  const onSetSortDirectionRef = useRef<
+    ((direction: SortDirection, currentMode: SortMode) => void) | null
   >(null);
   const onToggleSidebarRef = useRef<(() => void) | null>(null);
   const onDeleteTaskRef = useRef<(() => void) | null>(null);
@@ -180,6 +183,13 @@ export const useMenuHandlers = (
   const handleSetSortMode = useCallback(
     (mode: SortMode, _currentMode: SortMode, currentDirection: SortDirection) => {
       setSortConfigMutation.mutate({ mode, direction: currentDirection });
+    },
+    [setSortConfigMutation],
+  );
+
+  const handleSetSortDirection = useCallback(
+    (direction: SortDirection, currentMode: SortMode) => {
+      setSortConfigMutation.mutate({ mode: currentMode, direction });
     },
     [setSortConfigMutation],
   );
@@ -323,6 +333,7 @@ export const useMenuHandlers = (
   onToggleUnstartedRef.current = handleToggleUnstarted;
   onSyncRef.current = onSync ?? null;
   onSetSortModeRef.current = handleSetSortMode;
+  onSetSortDirectionRef.current = handleSetSortDirection;
   onToggleSidebarRef.current = handleToggleSidebar;
   onDeleteTaskRef.current = handleDeleteTask;
   onNavPrevListRef.current = handleNavPrevList;
@@ -350,6 +361,7 @@ export const useMenuHandlers = (
     onToggleUnstarted: onToggleUnstartedRef,
     onSync: onSyncRef,
     onSetSortMode: onSetSortModeRef,
+    onSetSortDirection: onSetSortDirectionRef,
     onToggleSidebar: onToggleSidebarRef,
     onDeleteTask: onDeleteTaskRef,
     onNavPrevList: onNavPrevListRef,

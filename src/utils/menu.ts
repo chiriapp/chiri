@@ -10,7 +10,7 @@ import {
 } from '@tauri-apps/api/menu';
 import { MENU_EVENTS } from '$constants/menu';
 import { loggers } from '$lib/logger';
-import type { KeyboardShortcut, SortMode } from '$types';
+import type { KeyboardShortcut, SortDirection, SortMode } from '$types';
 import { isMacPlatform } from '$utils/platform';
 
 const log = loggers.menu;
@@ -29,6 +29,9 @@ const menuItemRefs: {
   sortTitle?: MenuItem;
   sortCreated?: MenuItem;
   sortModified?: MenuItem;
+  sortDirectionAsc?: MenuItem;
+  sortDirectionDesc?: MenuItem;
+  sortDirectionSubmenu?: Submenu;
 } = {};
 
 /**
@@ -88,6 +91,7 @@ export const createMacMenu = async (options?: {
   showCompleted?: boolean;
   showUnstarted?: boolean;
   sortMode?: SortMode;
+  sortDirection?: SortDirection;
   shortcuts?: KeyboardShortcut[];
   accounts?: MenuAccount[];
   isSyncing?: boolean;
@@ -96,6 +100,7 @@ export const createMacMenu = async (options?: {
   const showCompleted = options?.showCompleted ?? true;
   const showUnstarted = options?.showUnstarted ?? true;
   const sortMode = options?.sortMode ?? 'manual';
+  const sortDirection = options?.sortDirection ?? 'asc';
   const shortcuts = options?.shortcuts;
   const accounts = options?.accounts ?? [];
   const hasAccounts = accounts.length > 0;
@@ -331,6 +336,33 @@ export const createMacMenu = async (options?: {
   });
   menuItemRefs.sortModified = sortModifiedItem;
 
+  const sortDirectionAscItem = await MenuItem.new({
+    id: 'sort-direction-asc',
+    text: sortDirection === 'asc' ? '✓ Ascending' : 'Ascending',
+    enabled: sortMode !== 'manual',
+    action: () => {
+      emit(MENU_EVENTS.SORT_DIRECTION_ASC);
+    },
+  });
+  menuItemRefs.sortDirectionAsc = sortDirectionAscItem;
+
+  const sortDirectionDescItem = await MenuItem.new({
+    id: 'sort-direction-desc',
+    text: sortDirection === 'desc' ? '✓ Descending' : 'Descending',
+    enabled: sortMode !== 'manual',
+    action: () => {
+      emit(MENU_EVENTS.SORT_DIRECTION_DESC);
+    },
+  });
+  menuItemRefs.sortDirectionDesc = sortDirectionDescItem;
+
+  const sortDirectionSubmenu = await Submenu.new({
+    text: 'Sort Direction',
+    enabled: sortMode !== 'manual',
+    items: [sortDirectionAscItem, sortDirectionDescItem],
+  });
+  menuItemRefs.sortDirectionSubmenu = sortDirectionSubmenu;
+
   const viewSubmenu = await Submenu.new({
     text: 'View',
     items: [
@@ -352,6 +384,7 @@ export const createMacMenu = async (options?: {
           sortModifiedItem,
         ],
       }),
+      sortDirectionSubmenu,
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await MenuItem.new({
         id: 'toggle-sidebar',
@@ -579,6 +612,7 @@ export const createMacMenu = async (options?: {
 export const initAppMenu = async (options?: {
   showCompleted?: boolean;
   sortMode?: SortMode;
+  sortDirection?: SortDirection;
   shortcuts?: KeyboardShortcut[];
   accounts?: MenuAccount[];
   isSyncing?: boolean;
@@ -606,6 +640,7 @@ export const rebuildAppMenu = async (options?: {
   showCompleted?: boolean;
   showUnstarted?: boolean;
   sortMode?: SortMode;
+  sortDirection?: SortDirection;
   shortcuts?: KeyboardShortcut[];
   accounts?: MenuAccount[];
   isSyncing?: boolean;
@@ -627,7 +662,7 @@ export const updateMenuItem = async (
 ) => {
   try {
     // Use stored references instead of searching the menu
-    let item: MenuItem | IconMenuItem | CheckMenuItem | undefined;
+    let item: MenuItem | IconMenuItem | CheckMenuItem | Submenu | undefined;
 
     switch (menuId) {
       case 'sync':
@@ -663,6 +698,15 @@ export const updateMenuItem = async (
       case 'sort-modified':
         item = menuItemRefs.sortModified;
         break;
+      case 'sort-direction-asc':
+        item = menuItemRefs.sortDirectionAsc;
+        break;
+      case 'sort-direction-desc':
+        item = menuItemRefs.sortDirectionDesc;
+        break;
+      case 'sort-direction-submenu':
+        item = menuItemRefs.sortDirectionSubmenu;
+        break;
     }
 
     if (!item) return;
@@ -691,6 +735,7 @@ export const updateMenuState = async (options: {
   showCompleted?: boolean;
   showUnstarted?: boolean;
   sortMode?: SortMode;
+  sortDirection?: SortDirection;
   isSyncing?: boolean;
   isEditorOpen?: boolean;
 }) => {
@@ -721,12 +766,25 @@ export const updateMenuState = async (options: {
       modified: 'Date Modified',
     };
 
-    log.debug('Updating sort menu checkmarks, active mode:', options.sortMode);
     for (const [mode, label] of Object.entries(sortOptions)) {
       const hasCheck = mode === options.sortMode;
       await updateMenuItem(`sort-${mode}`, {
         text: hasCheck ? `✓ ${label}` : label,
       });
     }
+
+    // Enable/disable sort direction submenu and items based on sort mode
+    const directionEnabled = options.sortMode !== 'manual';
+    await updateMenuItem('sort-direction-submenu', { enabled: directionEnabled });
+    await updateMenuItem('sort-direction-asc', { enabled: directionEnabled });
+    await updateMenuItem('sort-direction-desc', { enabled: directionEnabled });
+  }
+  if (options.sortDirection !== undefined) {
+    await updateMenuItem('sort-direction-asc', {
+      text: options.sortDirection === 'asc' ? '✓ Ascending' : 'Ascending',
+    });
+    await updateMenuItem('sort-direction-desc', {
+      text: options.sortDirection === 'desc' ? '✓ Descending' : 'Descending',
+    });
   }
 };

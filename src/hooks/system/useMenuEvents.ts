@@ -29,6 +29,9 @@ export const useMenuEvents = (callbacks: {
   onSetSortMode?: React.RefObject<
     ((mode: SortMode, currentMode: SortMode, currentDirection: SortDirection) => void) | null
   >;
+  onSetSortDirection?: React.RefObject<
+    ((direction: SortDirection, currentMode: SortMode) => void) | null
+  >;
   onToggleSidebar?: React.RefObject<(() => void) | null>;
   onDeleteTask?: React.RefObject<(() => void) | null>;
   onNavPrevList?: React.RefObject<(() => void) | null>;
@@ -356,6 +359,30 @@ export const useMenuEvents = (callbacks: {
         }
         unlistenCallbacks.push(unlisten);
       }
+
+      // Sort Direction Ascending
+      const unlistenSortDirectionAsc = await listen(MENU_EVENTS.SORT_DIRECTION_ASC, () => {
+        log.debug('Sort Direction Ascending triggered');
+        const currentMode = uiState?.sortConfig?.mode ?? DEFAULT_SORT_CONFIG.mode;
+        callbacks.onSetSortDirection?.current?.('asc', currentMode);
+      });
+      if (!isActive) {
+        unlistenSortDirectionAsc();
+        return;
+      }
+      unlistenCallbacks.push(unlistenSortDirectionAsc);
+
+      // Sort Direction Descending
+      const unlistenSortDirectionDesc = await listen(MENU_EVENTS.SORT_DIRECTION_DESC, () => {
+        log.debug('Sort Direction Descending triggered');
+        const currentMode = uiState?.sortConfig?.mode ?? DEFAULT_SORT_CONFIG.mode;
+        callbacks.onSetSortDirection?.current?.('desc', currentMode);
+      });
+      if (!isActive) {
+        unlistenSortDirectionDesc();
+        return;
+      }
+      unlistenCallbacks.push(unlistenSortDirectionDesc);
     };
 
     setupListeners().catch((error) => {

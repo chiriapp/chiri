@@ -31,6 +31,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
   useEffect(() => {
     if (skipMenu) return;
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
+    const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
     const isEditorOpen =
       (uiState?.isEditorOpen ?? false) && (uiState?.selectedTaskId ?? null) !== null;
 
@@ -39,6 +40,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
       showCompleted: uiState?.showCompletedTasks ?? true,
       showUnstarted: uiState?.showUnstartedTasks ?? true,
       sortMode,
+      sortDirection,
       isSyncing: isSyncing ?? false,
       isEditorOpen,
     });
@@ -47,6 +49,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.showCompletedTasks,
     uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
+    uiState?.sortConfig?.direction,
     uiState?.isEditorOpen,
     uiState?.selectedTaskId,
     isSyncing,
@@ -57,6 +60,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
   useEffect(() => {
     if (skipMenu) return;
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
+    const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
     const isEditorOpen =
       (uiState?.isEditorOpen ?? false) && (uiState?.selectedTaskId ?? null) !== null;
 
@@ -64,6 +68,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
       showCompleted: uiState?.showCompletedTasks ?? true,
       showUnstarted: uiState?.showUnstartedTasks ?? true,
       sortMode,
+      sortDirection,
       shortcuts: keyboardShortcuts,
       accounts: menuAccounts,
       isSyncing: isSyncing ?? false,
@@ -75,6 +80,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.showCompletedTasks,
     uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
+    uiState?.sortConfig?.direction,
     uiState?.isEditorOpen,
     uiState?.selectedTaskId,
     isSyncing,

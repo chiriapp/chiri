@@ -21,6 +21,8 @@ export const MENU_EVENTS = {
   SORT_TITLE: 'menu:sort-title',
   SORT_CREATED: 'menu:sort-created',
   SORT_MODIFIED: 'menu:sort-modified',
+  SORT_DIRECTION_ASC: 'menu:sort-direction-asc',
+  SORT_DIRECTION_DESC: 'menu:sort-direction-desc',
   TOGGLE_SIDEBAR: 'menu:toggle-sidebar',
   DELETE_TASK: 'menu:delete-task',
   NAV_PREV_LIST: 'menu:nav-prev-list',
