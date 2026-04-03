@@ -1,3 +1,4 @@
+import { settingsStore } from '$context/settingsContext';
 import { db } from '$lib/database';
 import type { Task } from '$types';
 import { generateUUID } from '$utils/misc';
@@ -11,6 +12,8 @@ export const addSubtask = async (parentTaskId: string, title: string) => {
     throw new Error('Parent task not found');
   }
 
+  const { defaultPriority } = settingsStore.getState();
+
   const now = new Date();
   const childTask: Partial<Task> = {
     uid: generateUUID(),
@@ -19,7 +22,7 @@ export const addSubtask = async (parentTaskId: string, title: string) => {
     description: '',
     status: 'needs-action',
     completed: false,
-    priority: 'none',
+    priority: defaultPriority,
     sortOrder: 0,
     createdAt: now,
     modifiedAt: now,
