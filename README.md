@@ -19,7 +19,7 @@
 
 ## Disclaimer
 > [!IMPORTANT]  
-> Though the app is functional, it is currently in alpha so you might encounter bugs here and there.  
+> Though the app is functional, it is currently still in active development so you might encounter bugs here and there.  
 If you do, [file a bug report][header-repo-issues-link] and let me know.
 
 # Download
