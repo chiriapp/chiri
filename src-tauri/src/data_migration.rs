@@ -31,7 +31,7 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
 /// - App data directory (database + localStorage/WebView data)
 /// - Renaming caldav-tasks.db to chiri.db
 /// - On macOS: WebKit directory (separate from app data)
-pub fn migrate_from_caldav_tasks(app: &tauri::App) {
+pub fn migrate_from_caldav_tasks<R: tauri::Runtime>(app: &tauri::App<R>) {
     let old_dir_name = "caldav-tasks";
     let old_db_name = "caldav-tasks.db";
     let new_db_name = "chiri.db";

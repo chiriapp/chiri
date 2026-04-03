@@ -15,9 +15,11 @@ mod tray;
 mod window_decorations;
 mod window_events;
 
+#[cfg(target_os = "macos")]
+use tauri::Emitter;
 use tauri::Manager;
 #[cfg(target_os = "macos")]
-use tauri::{Emitter, RunEvent};
+use tauri::RunEvent;
 use tauri_plugin_sql::Builder;
 
 /// Exits the process directly via the OS, bypassing Tauri's RunEvent::ExitRequested.
@@ -39,7 +41,7 @@ fn main() {
 
     let db_migrations = migrations::get_migrations();
 
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // When a second instance is launched, focus the existing window
             if let Some(window) = app.get_webview_window("main") {
@@ -115,7 +117,16 @@ fn main() {
         })
         .on_window_event(|window, event| {
             window_events::handle_window_event(window, event);
-        })
+        });
+
+    // CEF/macOS runs without an application menu.
+    #[cfg(all(target_os = "macos", feature = "cef"))]
+    let builder = builder.enable_macos_default_menu(false);
+
+    #[cfg(not(all(target_os = "macos", feature = "cef")))]
+    let builder = builder;
+
+    builder
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|_app_handle, event| {
@@ -123,7 +134,7 @@ fn main() {
                 // Intercept all quit requests (Cmd+Q, Dock quit, window close) so the
                 // frontend can apply double-press confirmation when enabled. The frontend
                 // calls exit(0) via tauri-plugin-process, which bypasses this handler.
-                #[cfg(target_os = "macos")]
+                #[cfg(all(target_os = "macos", not(feature = "cef")))]
                 RunEvent::ExitRequested { api, .. } => {
                     api.prevent_exit();
                     let _ = _app_handle.emit("app:quit-requested", ());

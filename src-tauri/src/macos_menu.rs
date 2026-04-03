@@ -16,8 +16,8 @@
 /// Must be called on the main thread (use `AppHandle::run_on_main_thread`).
 #[cfg(target_os = "macos")]
 fn fix_help_menu() {
-    use objc2_foundation::MainThreadMarker;
     use objc2_app_kit::NSApplication;
+    use objc2_foundation::MainThreadMarker;
     use objc2_foundation::NSString;
 
     // This function is only ever called via `run_on_main_thread`, so the
@@ -51,7 +51,7 @@ fn fix_help_menu() {
 /// On non-macOS platforms this is a no-op.
 #[tauri::command]
 #[allow(unused_variables)]
-pub fn apply_macos_menu_fixes(app: tauri::AppHandle) {
+pub fn apply_macos_menu_fixes(app: tauri::AppHandle<impl tauri::Runtime>) {
     #[cfg(target_os = "macos")]
     let _ = app.run_on_main_thread(fix_help_menu);
 }
