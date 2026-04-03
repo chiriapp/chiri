@@ -45,6 +45,6 @@
   },
   "json.schemaDownload.trustedDomains": {
     "https://schema.tauri.app/config/2": true,
-    "https://biomejs.dev/schemas/2.4.6/schema.json": true
+    "https://biomejs.dev": true
   }
 }
