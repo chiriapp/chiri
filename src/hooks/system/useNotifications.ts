@@ -11,6 +11,7 @@ import {
   requestNotificationPermission,
   sendNotification,
 } from '$lib/notifications';
+import type { Task } from '$types';
 
 const log = loggers.notifications;
 
@@ -54,9 +55,157 @@ const showNotification = async (options: NotificationOptions) => {
   }
 };
 
+// Helper: Check if current time is within quiet hours
+const isInQuietHours = (
+  quietHoursEnabled: boolean,
+  quietHoursStart: number,
+  quietHoursEnd: number,
+): boolean => {
+  if (!quietHoursEnabled) return false;
+  const hour = new Date().getHours();
+  return quietHoursStart <= quietHoursEnd
+    ? hour >= quietHoursStart && hour < quietHoursEnd
+    : hour >= quietHoursStart || hour < quietHoursEnd;
+};
+
+// Helper: Check snooze status and return whether task just unsnoozed
+const checkSnoozeStatus = (
+  taskId: string,
+  now: Date,
+  snoozedTasks: Map<string, number>,
+): { isSnoozed: boolean; justUnsnoozed: boolean } => {
+  const snoozeUntil = snoozedTasks.get(taskId);
+  if (!snoozeUntil) return { isSnoozed: false, justUnsnoozed: false };
+
+  if (now.getTime() < snoozeUntil) {
+    return { isSnoozed: true, justUnsnoozed: false };
+  }
+
+  // Snooze expired, remove it
+  snoozedTasks.delete(taskId);
+  return { isSnoozed: false, justUnsnoozed: true };
+};
+
+// Helper: Process reminders for a task
+const processTaskReminders = (
+  task: Task,
+  now: Date,
+  justUnsnoozed: boolean,
+  notifiedReminders: Set<string>,
+): boolean => {
+  if (!task.reminders || task.reminders.length === 0) return justUnsnoozed;
+
+  let stillJustUnsnoozed = justUnsnoozed;
+
+  for (const reminder of task.reminders) {
+    const reminderKey = `reminder-${task.id}-${reminder.id}`;
+
+    // skip if we already notified about this reminder
+    if (notifiedReminders.has(reminderKey)) continue;
+
+    const reminderDate = new Date(reminder.trigger);
+    const secondsUntilReminder = differenceInSeconds(reminderDate, now);
+
+    // Fire reminder when the time has arrived (0 or past, within 60 second window to avoid missing)
+    // OR if the task was just unsnoozed
+    const shouldNotify =
+      (secondsUntilReminder <= 0 && secondsUntilReminder >= -60) || stillJustUnsnoozed;
+
+    if (shouldNotify) {
+      showNotification({
+        title: stillJustUnsnoozed ? 'Snoozed Task Reminder' : 'Task Reminder',
+        body: task.title,
+        taskId: task.id,
+        notificationType: 'reminder',
+      });
+      notifiedReminders.add(reminderKey);
+      stillJustUnsnoozed = false; // mark as handled so we don't re-trigger other notifications
+    }
+  }
+
+  return stillJustUnsnoozed;
+};
+
+// Helper: Process overdue notification for a task
+const processOverdueNotification = (
+  task: Task,
+  justUnsnoozed: boolean,
+  notifiedTasks: Set<string>,
+): void => {
+  if (!task.dueDate) return;
+
+  const dueDate = new Date(task.dueDate);
+  const taskKey = `due-${task.id}-${dueDate.getTime()}`;
+
+  // skip if we already notified about this task
+  if (notifiedTasks.has(taskKey)) return;
+
+  // Notify when task is overdue or just unsnoozed
+  if (isPast(dueDate) || justUnsnoozed) {
+    showNotification({
+      title: justUnsnoozed ? 'Snoozed Task Overdue' : 'Task Overdue',
+      body: task.title,
+      taskId: task.id,
+      notificationType: 'overdue',
+    });
+    notifiedTasks.add(taskKey);
+  }
+};
+
+// Helper: Handle notification action events
+const handleNotificationAction = (
+  action: string,
+  taskId: string,
+  toggleTaskComplete: (taskId: string) => void,
+  snoozeTask: (taskId: string, durationMinutes: number) => void,
+  openTaskActions?: (taskId: string) => void,
+): void => {
+  if (action === 'complete') {
+    toggleTaskComplete(taskId);
+    log.info('Completing task:', taskId);
+  } else if (action === 'snooze-15min' || action === 'snooze-1hr') {
+    const durationMinutes = action === 'snooze-1hr' ? 60 : 15;
+    snoozeTask(taskId, durationMinutes);
+  } else if (action === 'view') {
+    log.info('Viewing task:', taskId);
+    openTaskActions?.(taskId);
+  }
+};
+
+// Helper: Clean up notification refs to prevent memory leaks
+const cleanupNotificationRefs = (
+  notifiedTasks: Set<string>,
+  notifiedReminders: Set<string>,
+): void => {
+  if (notifiedTasks.size > 1000) {
+    notifiedTasks.clear();
+  }
+  if (notifiedReminders.size > 1000) {
+    notifiedReminders.clear();
+  }
+};
+
 interface UseNotificationsOptions {
   onOpenTaskActions?: (taskId: string) => void;
 }
+
+// Helper: Clear snooze notification keys for a task
+const clearSnoozeKeys = (
+  taskId: string,
+  notifiedReminders: Set<string>,
+  notifiedTasks: Set<string>,
+): void => {
+  for (const key of notifiedReminders) {
+    if (key.startsWith(`reminder-${taskId}`)) {
+      notifiedReminders.delete(key);
+    }
+  }
+  for (const key of notifiedTasks) {
+    if (key.startsWith(`due-${taskId}`)) {
+      notifiedTasks.delete(key);
+    }
+  }
+};
 
 /**
  * hook that monitors tasks and shows notifications for due tasks and reminders
@@ -80,32 +229,16 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
 
   // Helper function to handle snoozing a task
   const handleSnoozeTask = useCallback((taskId: string, durationMinutes: number) => {
-    // Calculate when the snooze expires
     const snoozeUntil = new Date();
     snoozeUntil.setMinutes(snoozeUntil.getMinutes() + durationMinutes);
     snoozedTasksRef.current.set(taskId, snoozeUntil.getTime());
 
-    // Remove from notified sets so notifications can fire again once the snooze expires
-    const reminderKeys = Array.from(notifiedRemindersRef.current).filter((key) =>
-      key.startsWith(`reminder-${taskId}`),
-    );
-    reminderKeys.forEach((key) => {
-      notifiedRemindersRef.current.delete(key);
-    });
-
-    const dueKeys = Array.from(notifiedTasksRef.current).filter((key) =>
-      key.startsWith(`due-${taskId}`),
-    );
-    dueKeys.forEach((key) => {
-      notifiedTasksRef.current.delete(key);
-    });
-
+    clearSnoozeKeys(taskId, notifiedRemindersRef.current, notifiedTasksRef.current);
     log.info(`Snoozed notification for task: ${taskId} for ${durationMinutes} minutes`);
   }, []);
 
   useEffect(() => {
     if (!notifications) {
-      // notifications disabled, clear interval
       if (checkIntervalRef.current) {
         clearInterval(checkIntervalRef.current);
         checkIntervalRef.current = null;
@@ -113,116 +246,50 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       return;
     }
 
-    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Notification polling has multiple conditions
     const checkDueTasks = () => {
+      if (isInQuietHours(quietHoursEnabled, quietHoursStart, quietHoursEnd)) return;
+
       const now = new Date();
 
-      if (quietHoursEnabled) {
-        const hour = now.getHours();
-        const inQuietHours =
-          quietHoursStart <= quietHoursEnd
-            ? hour >= quietHoursStart && hour < quietHoursEnd
-            : hour >= quietHoursStart || hour < quietHoursEnd;
-        if (inQuietHours) return;
-      }
-
       for (const task of tasks) {
-        // skip completed tasks
         if (task.completed) continue;
 
-        // Check if task is currently snoozed
-        let justUnsnoozed = false;
-        const snoozeUntil = snoozedTasksRef.current.get(task.id);
-        if (snoozeUntil && now.getTime() < snoozeUntil) {
-          continue; // still snoozed, skip all notifications for this task
-        } else if (snoozeUntil) {
-          // Snooze expired, remove it so we don't keep checking
-          snoozedTasksRef.current.delete(task.id);
-          justUnsnoozed = true;
+        const snoozeStatus = checkSnoozeStatus(task.id, now, snoozedTasksRef.current);
+        if (snoozeStatus.isSnoozed) continue;
+
+        let justUnsnoozed = snoozeStatus.justUnsnoozed;
+
+        if (notifyReminders) {
+          justUnsnoozed = processTaskReminders(
+            task,
+            now,
+            justUnsnoozed,
+            notifiedRemindersRef.current,
+          );
         }
 
-        // Check reminders (VALARM)
-        if (notifyReminders && task.reminders && task.reminders.length > 0) {
-          for (const reminder of task.reminders) {
-            const reminderKey = `reminder-${task.id}-${reminder.id}`;
-
-            // skip if we already notified about this reminder
-            if (notifiedRemindersRef.current.has(reminderKey)) continue;
-
-            const reminderDate = new Date(reminder.trigger);
-            const secondsUntilReminder = differenceInSeconds(reminderDate, now);
-
-            // Fire reminder when the time has arrived (0 or past, within 60 second window to avoid missing)
-            // OR if the task was just unsnoozed
-            if ((secondsUntilReminder <= 0 && secondsUntilReminder >= -60) || justUnsnoozed) {
-              showNotification({
-                title: justUnsnoozed ? 'Snoozed Task Reminder' : 'Task Reminder',
-                body: task.title,
-                taskId: task.id,
-                notificationType: 'reminder',
-              });
-              notifiedRemindersRef.current.add(reminderKey);
-              justUnsnoozed = false; // mark as handled so we don't re-trigger other notifications
-            }
-          }
-        }
-
-        // check due dates - notify when task becomes overdue
-        if (!notifyOverdue || !task.dueDate) continue;
-
-        const dueDate = new Date(task.dueDate);
-        const taskKey = `due-${task.id}-${dueDate.getTime()}`;
-
-        // skip if we already notified about this task
-        if (notifiedTasksRef.current.has(taskKey)) continue;
-
-        // Notify when task is overdue or just unsnoozed
-        if ((isPast(dueDate) || justUnsnoozed) && !notifiedTasksRef.current.has(taskKey)) {
-          showNotification({
-            title: justUnsnoozed ? 'Snoozed Task Overdue' : 'Task Overdue',
-            body: task.title,
-            taskId: task.id,
-            notificationType: 'overdue',
-          });
-
-          notifiedTasksRef.current.add(taskKey);
-          justUnsnoozed = false;
+        if (notifyOverdue) {
+          processOverdueNotification(task, justUnsnoozed, notifiedTasksRef.current);
         }
       }
 
-      // clean up old notification records (keep only recent ones)
-      if (notifiedTasksRef.current.size > 1000) {
-        notifiedTasksRef.current.clear();
-      }
-      if (notifiedRemindersRef.current.size > 1000) {
-        notifiedRemindersRef.current.clear();
-      }
+      cleanupNotificationRefs(notifiedTasksRef.current, notifiedRemindersRef.current);
     };
 
-    // check immediately
     checkDueTasks();
-
-    // check every minute
     checkIntervalRef.current = setInterval(checkDueTasks, 60 * 1000);
 
-    // Listen for notification actions
     const unlistenPromise = listen<NotificationActionEvent>('notification-action', (event) => {
       const { action, taskId, notificationType } = event.payload;
       log.info('Notification action received:', { action, taskId, notificationType });
 
-      if (action === 'complete') {
-        // Use toggleTaskComplete so recurring tasks advance to their next occurrence
-        toggleTaskCompleteMutation.mutate(taskId);
-        log.info('Completing task:', taskId);
-      } else if (action === 'snooze-15min' || action === 'snooze-1hr') {
-        // Snooze the notification
-        const durationMinutes = action === 'snooze-1hr' ? 60 : 15;
-        handleSnoozeTask(taskId, durationMinutes);
-      } else if (action === 'view') {
-        // View action - open the task actions modal
-        log.info('Viewing task:', taskId);
-        onOpenTaskActions?.(taskId);
-      }
+      handleNotificationAction(
+        action,
+        taskId,
+        (id) => toggleTaskCompleteMutation.mutate(id),
+        handleSnoozeTask,
+        onOpenTaskActions,
+      );
     });
 
     return () => {

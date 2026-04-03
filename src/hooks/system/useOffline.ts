@@ -19,6 +19,45 @@ const CONNECTIVITY_ENDPOINTS = [
 const CHECK_INTERVAL = 5000;
 const REQUEST_TIMEOUT = 3000;
 
+/**
+ * Check if a response indicates a successful connection
+ */
+const isSuccessfulResponse = (response: unknown): boolean => {
+  if (!response || typeof response !== 'object' || !('status' in response)) {
+    return false;
+  }
+  const status = (response as { status: number }).status;
+  return status >= 200 && status < 400;
+};
+
+/**
+ * Try to fetch a single endpoint to check connectivity
+ */
+const tryEndpoint = async (endpoint: string, signal: AbortSignal): Promise<boolean> => {
+  const response = await tauriFetch(endpoint, {
+    method: 'GET',
+    signal: AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),
+  });
+  return isSuccessfulResponse(response);
+};
+
+/**
+ * Try all endpoints in sequence until one succeeds
+ */
+const checkAllEndpoints = async (controller: AbortController): Promise<boolean> => {
+  for (const endpoint of CONNECTIVITY_ENDPOINTS) {
+    try {
+      if (await tryEndpoint(endpoint, controller.signal)) {
+        return true;
+      }
+    } catch (_) {
+      if (controller.signal.aborted) throw new Error('Aborted');
+      // Try next endpoint
+    }
+  }
+  return false;
+};
+
 export const useOffline = (options: UseOfflineOptions = {}) => {
   const [isOffline, setIsOffline] = useState(false);
   const isOfflineRef = useRef(false); // Synchronous ref for immediate reads
@@ -41,51 +80,26 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
     abortControllerRef.current = controller;
 
     try {
-      // Try each endpoint until one succeeds
-      for (const endpoint of CONNECTIVITY_ENDPOINTS) {
-        try {
-          const response = await tauriFetch(endpoint, {
-            method: 'GET',
-            signal: AbortSignal.any([controller.signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),
-          });
+      const isOnline = await checkAllEndpoints(controller);
 
-          // Any successful response means we're online
-          if (response && typeof response === 'object' && 'status' in response) {
-            const status = (response as { status: number }).status;
-            if (status >= 200 && status < 400) {
-              const wasOffline = isOfflineRef.current;
-              isOfflineRef.current = false; // Update ref synchronously
-              setIsOffline(false);
-              // Fire callback immediately now that ref is updated
-              if (wasOffline) {
-                onOnlineRef.current?.();
-              }
-              isCheckingRef.current = false;
-              return;
-            }
-          }
-        } catch (_) {
-          if (controller.signal.aborted) return;
-          // Try next endpoint
-        }
-      }
-
-      // All endpoints failed - we're offline
-      const wasOnline = !isOfflineRef.current;
-      isOfflineRef.current = true; // Update ref synchronously
-      setIsOffline(true);
-      // Fire callback immediately now that ref is updated
-      if (wasOnline) {
-        onOfflineRef.current?.();
+      if (isOnline) {
+        const wasOffline = isOfflineRef.current;
+        isOfflineRef.current = false;
+        setIsOffline(false);
+        if (wasOffline) onOnlineRef.current?.();
+      } else {
+        const wasOnline = !isOfflineRef.current;
+        isOfflineRef.current = true;
+        setIsOffline(true);
+        if (wasOnline) onOfflineRef.current?.();
       }
     } catch (_) {
-      // On error, assume offline
-      const wasOnline = !isOfflineRef.current;
-      isOfflineRef.current = true; // Update ref synchronously
-      setIsOffline(true);
-      // Fire callback immediately now that ref is updated
-      if (wasOnline) {
-        onOfflineRef.current?.();
+      // On error (including abort), assume offline if not aborted
+      if (!controller.signal.aborted) {
+        const wasOnline = !isOfflineRef.current;
+        isOfflineRef.current = true;
+        setIsOffline(true);
+        if (wasOnline) onOfflineRef.current?.();
       }
     } finally {
       isCheckingRef.current = false;

@@ -18,6 +18,111 @@ import { generateTagColor } from '$utils/color';
 const log = loggers.dataStore;
 const syncLog = loggers.sync;
 
+// Helper: process pending deletions for a calendar
+const processPendingDeletions = async (
+  client: ReturnType<typeof CalDAVClient.getForAccount>,
+  calendarId: string,
+  calendarDisplayName: string,
+) => {
+  const pendingDeletions = getPendingDeletions();
+  const calendarDeletions = pendingDeletions.filter((d) => d.calendarId === calendarId);
+
+  for (const deletion of calendarDeletions) {
+    try {
+      await client.deleteTask({
+        id: '',
+        uid: deletion.uid,
+        href: deletion.href,
+        title: '',
+        description: '',
+        status: 'needs-action',
+        completed: false,
+        priority: 'none',
+        sortOrder: 0,
+        accountId: deletion.accountId,
+        calendarId: deletion.calendarId,
+        synced: true,
+        createdAt: new Date(),
+        modifiedAt: new Date(),
+      });
+      clearPendingDeletion(deletion.uid);
+    } catch (error) {
+      syncLog.error(
+        `Failed to delete task from calendar ${calendarDisplayName} from server:`,
+        error,
+      );
+      clearPendingDeletion(deletion.uid);
+    }
+  }
+};
+
+// Helper: push unsynced local tasks to server
+const pushUnsyncedTasks = async (
+  client: ReturnType<typeof CalDAVClient.getForAccount>,
+  calendar: Calendar,
+  calendarId: string,
+) => {
+  const localCalendarTasks = getTasksByCalendar(calendarId);
+  const unsyncedTasks = localCalendarTasks.filter((t) => !t.synced);
+
+  for (const task of unsyncedTasks) {
+    try {
+      if (task.href) {
+        const result = await client.updateTask(task);
+        if (result) {
+          updateTask(task.id, { etag: result.etag, synced: true });
+        }
+      } else {
+        const result = await client.createTask(calendar, task);
+        if (result) {
+          updateTask(task.id, { href: result.href, etag: result.etag, synced: true });
+        }
+      }
+    } catch (error) {
+      syncLog.error(
+        `Failed to push task ${task.title} to calendar ${calendar.displayName}:`,
+        error,
+      );
+    }
+  }
+};
+
+// Helper: process a new task from server
+const processNewRemoteTask = (remoteTask: Task) => {
+  const { tagColorsByName: _tagColorsByName, ...remoteTaskData } = remoteTask;
+  const categoryNames = getRemoteCategoryNames(remoteTask);
+  const tagIds = categoryNames.map((name: string) => ensureTagExists(name));
+  applyRemoteTagColors(remoteTask, categoryNames);
+
+  createTask({ ...remoteTaskData, tags: tagIds });
+};
+
+// Helper: process an existing task from server (update if needed)
+const processExistingRemoteTask = (remoteTask: Task, localTask: Task) => {
+  const { tagColorsByName: _tagColorsByName, ...remoteTaskData } = remoteTask;
+  const categoryNames = getRemoteCategoryNames(remoteTask);
+  const remoteTagIds = categoryNames.map((name: string) => ensureTagExists(name));
+  applyRemoteTagColors(remoteTask, categoryNames);
+
+  const localTagIds = localTask.tags || [];
+  const tagsMatch =
+    remoteTagIds.length === localTagIds.length &&
+    remoteTagIds.every((id) => localTagIds.includes(id));
+
+  if (remoteTask.etag !== localTask.etag) {
+    if (localTask.synced) {
+      updateTask(localTask.id, {
+        ...remoteTaskData,
+        id: localTask.id,
+        tags: remoteTagIds,
+        synced: true,
+      });
+    }
+  } else if (!tagsMatch && localTask.synced) {
+    updateTask(localTask.id, { tags: remoteTagIds, synced: true });
+  }
+};
+
 export const getPendingDeletions = () => {
   return dataStore.load().pendingDeletions;
 };
@@ -112,6 +217,71 @@ const applyRemoteTagColors = (remoteTask: Task, categoryNames: string[]) => {
   }
 };
 
+/**
+ * Check if a calendar needs updates based on remote vs local comparison
+ */
+const getCalendarUpdates = (
+  localCalendar: Calendar,
+  remoteCalendar: Calendar,
+  calendarSortMode: string,
+): Partial<Calendar> | null => {
+  const displayNameChanged = localCalendar.displayName !== remoteCalendar.displayName;
+  const colorChanged = localCalendar.color !== remoteCalendar.color;
+  const ctagChanged = localCalendar.ctag !== remoteCalendar.ctag;
+  const syncTokenChanged = localCalendar.syncToken !== remoteCalendar.syncToken;
+  const serverPropertiesChanged = ctagChanged || syncTokenChanged;
+
+  const serverOrderChanged =
+    calendarSortMode === 'server' &&
+    remoteCalendar.sortOrder !== 0 &&
+    localCalendar.sortOrder !== remoteCalendar.sortOrder;
+
+  const hasChanges =
+    displayNameChanged || colorChanged || ctagChanged || syncTokenChanged || serverOrderChanged;
+
+  if (!hasChanges) return null;
+
+  return {
+    displayName: remoteCalendar.displayName,
+    color: serverPropertiesChanged ? remoteCalendar.color : localCalendar.color,
+    ctag: remoteCalendar.ctag,
+    syncToken: remoteCalendar.syncToken,
+    ...(serverOrderChanged ? { sortOrder: remoteCalendar.sortOrder } : {}),
+  };
+};
+
+/**
+ * Remove locally-deleted calendars that no longer exist on the server
+ */
+const removeDeletedCalendars = (
+  localCalendars: Calendar[],
+  remoteCalendarIds: Set<string>,
+  activeCalendarId: string | null,
+): boolean => {
+  let needsRedirectToAllTasks = false;
+
+  for (const localCalendar of localCalendars) {
+    if (remoteCalendarIds.has(localCalendar.id)) continue;
+
+    syncLog.warn(
+      `Calendar "${localCalendar.displayName}" (${localCalendar.id}) not found on server. Removing locally.`,
+    );
+
+    if (activeCalendarId === localCalendar.id) {
+      needsRedirectToAllTasks = true;
+    }
+
+    const tasks = getTasksByCalendar(localCalendar.id);
+    syncLog.warn(`Deleting ${tasks.length} tasks from calendar "${localCalendar.displayName}"`);
+
+    for (const task of tasks) {
+      deleteTask(task.id);
+    }
+  }
+
+  return needsRedirectToAllTasks;
+};
+
 export const syncCalendarsForAccount = async (accountId: string, queryClient: QueryClient) => {
   const accounts = getAllAccounts();
   const account = accounts.find((a) => a.id === accountId);
@@ -142,6 +312,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
 
   const localCalendars = account.calendars;
   const remoteCalendarIds = new Set(remoteCalendars.map((c) => c.id));
+  const calendarSortMode = getUIState().calendarSortConfig.mode;
 
   // Build updated calendar list
   const updatedCalendars: Calendar[] = [];
@@ -153,43 +324,10 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
     const localCalendar = localCalendars.find((c) => c.id === remoteCalendar.id);
 
     if (localCalendar) {
-      // Calendar exists - check if properties changed
-      const displayNameChanged = localCalendar.displayName !== remoteCalendar.displayName;
-      const colorChanged = localCalendar.color !== remoteCalendar.color;
-      const ctagChanged = localCalendar.ctag !== remoteCalendar.ctag;
-      const syncTokenChanged = localCalendar.syncToken !== remoteCalendar.syncToken;
-
-      // if ctag/syncToken changed, calendar properties were modified on server
-      const serverPropertiesChanged = ctagChanged || syncTokenChanged;
-
-      // In 'server' sort mode, update local sort_order from server's calendar-order
-      const calendarSortMode = getUIState().calendarSortConfig.mode;
-      const serverOrderChanged =
-        calendarSortMode === 'server' &&
-        remoteCalendar.sortOrder !== 0 &&
-        localCalendar.sortOrder !== remoteCalendar.sortOrder;
-
-      if (
-        displayNameChanged ||
-        colorChanged ||
-        ctagChanged ||
-        syncTokenChanged ||
-        serverOrderChanged
-      ) {
-        const updates: Partial<Calendar> = {
-          displayName: remoteCalendar.displayName,
-          color: serverPropertiesChanged ? remoteCalendar.color : localCalendar.color,
-          ctag: remoteCalendar.ctag,
-          syncToken: remoteCalendar.syncToken,
-          ...(serverOrderChanged ? { sortOrder: remoteCalendar.sortOrder } : {}),
-        };
-
+      const updates = getCalendarUpdates(localCalendar, remoteCalendar, calendarSortMode);
+      if (updates) {
         calendarUpdates.set(localCalendar.id, updates);
-
-        updatedCalendars.push({
-          ...localCalendar,
-          ...updates,
-        });
+        updatedCalendars.push({ ...localCalendar, ...updates });
       } else {
         updatedCalendars.push(localCalendar);
       }
@@ -200,31 +338,13 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
     }
   }
 
-  // track if we need to redirect to All Tasks
+  // Remove calendars deleted on server and check if redirect is needed
   const currentUIState = getUIState();
-  let needsRedirectToAllTasks = false;
-
-  // remove calendars that were deleted on server
-  for (const localCalendar of localCalendars) {
-    if (!remoteCalendarIds.has(localCalendar.id)) {
-      syncLog.warn(
-        `Calendar "${localCalendar.displayName}" (${localCalendar.id}) not found on server. Removing locally.`,
-      );
-
-      // check if this was the active calendar
-      if (currentUIState.activeCalendarId === localCalendar.id) {
-        needsRedirectToAllTasks = true;
-      }
-
-      // remove tasks for this calendar
-      const tasks = getTasksByCalendar(localCalendar.id);
-      syncLog.warn(`Deleting ${tasks.length} tasks from calendar "${localCalendar.displayName}"`);
-
-      for (const task of tasks) {
-        deleteTask(task.id);
-      }
-    }
-  }
+  const needsRedirectToAllTasks = removeDeletedCalendars(
+    localCalendars,
+    remoteCalendarIds,
+    currentUIState.activeCalendarId,
+  );
 
   // persist new calendars to database
   for (const calendar of newCalendars) {
@@ -277,83 +397,20 @@ export const syncCalendarTasks = async (
     const client = CalDAVClient.getForAccount(account.id);
 
     // STEP 0: Process pending deletions for this calendar
-    const pendingDeletions = getPendingDeletions();
-    const calendarDeletions = pendingDeletions.filter((d) => d.calendarId === calendarId);
-
-    for (const deletion of calendarDeletions) {
-      try {
-        // Create minimal task object for deletion (only href is used by caldav service)
-        await client.deleteTask({
-          id: '',
-          uid: deletion.uid,
-          href: deletion.href,
-          title: '',
-          description: '',
-          status: 'needs-action',
-          completed: false,
-          priority: 'none',
-          sortOrder: 0,
-          accountId: deletion.accountId,
-          calendarId: deletion.calendarId,
-          synced: true,
-          createdAt: new Date(),
-          modifiedAt: new Date(),
-        });
-        clearPendingDeletion(deletion.uid);
-      } catch (error) {
-        syncLog.error(
-          `Failed to delete task from calendar ${calendar.displayName} from server:`,
-          error,
-        );
-        // Still clear the pending deletion to avoid infinite retries
-        clearPendingDeletion(deletion.uid);
-      }
-    }
-
-    // Get local tasks for this calendar
-    const localCalendarTasks = getTasksByCalendar(calendarId);
+    await processPendingDeletions(client, calendarId, calendar.displayName);
 
     // STEP 1: Push unsynced local tasks to server
-    const unsyncedTasks = localCalendarTasks.filter((t) => !t.synced);
-
-    for (const task of unsyncedTasks) {
-      try {
-        if (task.href) {
-          // Update existing task on server
-          const result = await client.updateTask(task);
-          if (result) {
-            updateTask(task.id, { etag: result.etag, synced: true });
-          }
-        } else {
-          // Create new task on server
-          const result = await client.createTask(calendar, task);
-          if (result) {
-            updateTask(task.id, {
-              href: result.href,
-              etag: result.etag,
-              synced: true,
-            });
-          }
-        }
-      } catch (error) {
-        syncLog.error(
-          `Failed to push task ${task.title} to calendar ${calendar.displayName}:`,
-          error,
-        );
-      }
-    }
+    await pushUnsyncedTasks(client, calendar, calendarId);
 
     // STEP 2: Fetch tasks from server
     const remoteTasks = await client.fetchTasks(calendar);
 
     // If fetchTasks returns null, it indicates a server error (not just empty)
-    // We can't trust the response, so skip the comparison/deletion logic
-    // But we already pushed local changes above, so new tasks are safe
     if (remoteTasks === null) {
       syncLog.warn(
         `Failed to fetch tasks from ${calendar.displayName}. Local changes were pushed successfully, but skipping server comparison to prevent data loss.`,
       );
-      return; // Exit early, preserve local tasks (but pushes already happened)
+      return;
     }
 
     // Re-get local tasks (may have been updated by push)
@@ -361,64 +418,21 @@ export const syncCalendarTasks = async (
     const localUids = new Set(updatedLocalTasks.map((t) => t.uid));
     const remoteUids = new Set(remoteTasks.map((t) => t.uid));
 
-    // Find new tasks from server (not in local)
+    // STEP 3: Process remote tasks
     for (const remoteTask of remoteTasks) {
       if (!localUids.has(remoteTask.uid)) {
-        // New task from server
-        const { tagColorsByName: _tagColorsByName, ...remoteTaskData } = remoteTask;
-
-        // Extract category/tag from the task and create if needed
-        const categoryNames = getRemoteCategoryNames(remoteTask);
-        const tagIds = categoryNames.map((name: string) => ensureTagExists(name));
-        applyRemoteTagColors(remoteTask, categoryNames);
-
-        // Add the task with tags
-        createTask({
-          ...remoteTaskData,
-          tags: tagIds,
-        });
+        processNewRemoteTask(remoteTask);
       } else {
-        // Task exists locally - check if server version is newer
         const localTask = updatedLocalTasks.find((t) => t.uid === remoteTask.uid);
         if (localTask) {
-          const { tagColorsByName: _tagColorsByName, ...remoteTaskData } = remoteTask;
-
-          // Check if tags need to be synced from server
-          const categoryNames = getRemoteCategoryNames(remoteTask);
-          const remoteTagIds = categoryNames.map((name: string) => ensureTagExists(name));
-          applyRemoteTagColors(remoteTask, categoryNames);
-
-          // Check if local task is missing tags that exist on server
-          const localTagIds = localTask.tags || [];
-          const tagsMatch =
-            remoteTagIds.length === localTagIds.length &&
-            remoteTagIds.every((id) => localTagIds.includes(id));
-
-          if (remoteTask.etag !== localTask.etag) {
-            // Only update from server if local task is synced (no local changes)
-            if (localTask.synced) {
-              updateTask(localTask.id, {
-                ...remoteTaskData,
-                id: localTask.id, // Keep local ID
-                tags: remoteTagIds,
-                synced: true,
-              });
-            }
-          } else if (!tagsMatch && localTask.synced) {
-            // Etag matches but tags don't - sync tags without marking as unsynced
-            updateTask(localTask.id, {
-              tags: remoteTagIds,
-              synced: true,
-            });
-          }
+          processExistingRemoteTask(remoteTask, localTask);
         }
       }
     }
 
-    // Find tasks deleted on server (in local but not in remote)
+    // STEP 4: Find tasks deleted on server (in local but not in remote)
     for (const localTask of updatedLocalTasks) {
       if (localTask.synced && !remoteUids.has(localTask.uid)) {
-        // Task was deleted on server
         deleteTask(localTask.id);
       }
     }

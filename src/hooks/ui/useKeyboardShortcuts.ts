@@ -30,6 +30,70 @@ import {
 } from '$utils/keyboard';
 import { flattenTasks } from '$utils/tree';
 
+// Shortcuts that should NOT work when a modal is open
+const BLOCKED_IN_MODAL = new Set([
+  'new-task',
+  'search',
+  'sync',
+  'delete',
+  'toggle-complete',
+  'toggle-show-completed',
+  'toggle-show-unstarted',
+  'nav-up',
+  'nav-down',
+  'nav-prev-list',
+  'nav-next-list',
+  'close', // Let modals handle Escape themselves
+]);
+
+// Keys allowed even when typing in inputs
+const ALLOWED_IN_INPUT = new Set(['Escape']);
+
+/**
+ * Check if the current event target is an input element
+ */
+const isInputElement = (target: HTMLElement): boolean =>
+  target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+/**
+ * Check if a keyboard event matches a shortcut's modifier requirements
+ */
+const matchesModifiers = (e: KeyboardEvent, shortcut: KeyboardShortcut): boolean => {
+  const metaMatch = shortcut.meta ? e.metaKey || e.ctrlKey : true;
+  const ctrlMatch = shortcut.ctrl ? e.ctrlKey : true;
+  const shiftMatch = shortcut.shift ? e.shiftKey : !e.shiftKey;
+  const altMatch = shortcut.alt ? e.altKey : !e.altKey;
+
+  if (!metaMatch || !ctrlMatch || !shiftMatch || !altMatch) return false;
+
+  // Verify modifier requirements are exactly met
+  if (shortcut.meta) return e.metaKey || e.ctrlKey;
+  if (shortcut.ctrl) return e.ctrlKey;
+  return true;
+};
+
+/**
+ * Find matching shortcut for a keyboard event
+ */
+const findMatchingShortcut = (
+  e: KeyboardEvent,
+  shortcuts: KeyboardShortcut[],
+  handlers: Record<string, () => void>,
+  isModalOpen: boolean,
+): { shortcut: KeyboardShortcut; handler: () => void } | null => {
+  for (const shortcut of shortcuts) {
+    const handler = handlers[shortcut.id];
+    if (!handler) continue;
+
+    if (isModalOpen && BLOCKED_IN_MODAL.has(shortcut.id)) continue;
+
+    if (e.key.toLowerCase() === shortcut.key.toLowerCase() && matchesModifiers(e, shortcut)) {
+      return { shortcut, handler };
+    }
+  }
+  return null;
+};
+
 interface UseKeyboardShortcutsOptions {
   onOpenSettings?: () => void;
   onOpenKeyboardShortcuts?: () => void;
@@ -282,7 +346,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // if confirm dialog is open, let it consume keys (Esc/Enter) without triggering app shortcuts
+      // If confirm dialog is open, let it consume keys (Esc/Enter) without triggering app shortcuts
       if (isConfirmDialogOpen) {
         if (e.key === 'Escape' || e.key === 'Enter') {
           e.preventDefault();
@@ -290,66 +354,16 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
         return;
       }
 
-      // don't trigger shortcuts when typing in inputs
+      // Don't trigger shortcuts when typing in inputs (except allowed keys)
       const target = e.target as HTMLElement;
-      const isInput =
-        target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+      if (isInputElement(target) && !ALLOWED_IN_INPUT.has(e.key)) {
+        return;
+      }
 
-      // allow some shortcuts even in inputs
-      // Escape: close editor/clear search
-      const allowInInput = ['Escape'];
-
-      const isAllowedInInput = allowInInput.includes(e.key);
-
-      if (isInput && !isAllowedInInput) return;
-
-      // Shortcuts that should NOT work when a modal is open
-      // (except for 'settings' which toggles)
-      const blockedInModal = [
-        'new-task',
-        'search',
-        'sync',
-        'delete',
-        'toggle-complete',
-        'toggle-show-completed',
-        'toggle-show-unstarted',
-        'nav-up',
-        'nav-down',
-        'nav-prev-list',
-        'nav-next-list',
-        'close', // Let modals handle Escape themselves
-      ];
-
-      for (const shortcut of keyboardShortcuts) {
-        const handler = actionHandlers[shortcut.id];
-        if (!handler) continue;
-
-        // Block certain shortcuts when a modal is open
-        if (isAnyModalOpen && blockedInModal.includes(shortcut.id)) continue;
-
-        const metaMatch = shortcut.meta ? e.metaKey || e.ctrlKey : true;
-        const ctrlMatch = shortcut.ctrl ? e.ctrlKey : true;
-        const shiftMatch = shortcut.shift ? e.shiftKey : !e.shiftKey;
-        const altMatch = shortcut.alt ? e.altKey : !e.altKey;
-
-        if (
-          e.key.toLowerCase() === shortcut.key.toLowerCase() &&
-          metaMatch &&
-          ctrlMatch &&
-          shiftMatch &&
-          altMatch
-        ) {
-          // only match if modifier requirements are exactly met
-          if (
-            (shortcut.meta && (e.metaKey || e.ctrlKey)) ||
-            (shortcut.ctrl && e.ctrlKey) ||
-            (!shortcut.meta && !shortcut.ctrl)
-          ) {
-            e.preventDefault();
-            handler();
-            return;
-          }
-        }
+      const match = findMatchingShortcut(e, keyboardShortcuts, actionHandlers, isAnyModalOpen);
+      if (match) {
+        e.preventDefault();
+        match.handler();
       }
     };
 

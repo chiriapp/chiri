@@ -23,7 +23,7 @@ import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { useContextMenu } from '$hooks/ui/useContextMenu';
 import { filterCalDavDescription } from '$lib/ical/vtodo';
 import { toggleTaskCollapsed } from '$lib/store/tasks';
-import type { Task } from '$types';
+import type { Account, Task, TaskStatus } from '$types';
 import { getContrastTextColor } from '$utils/color';
 import { formatDueDate } from '$utils/date';
 
@@ -33,6 +33,90 @@ const animateLayoutChanges: AnimateLayoutChanges = (args) => {
   if (wasDragging || !isSorting) return false;
   return defaultAnimateLayoutChanges(args);
 };
+
+interface TaskCheckboxProps {
+  status: TaskStatus;
+  flashComplete: boolean;
+  checkmarkColor: string;
+  onClick: (e: React.MouseEvent) => void;
+}
+
+const TaskCheckbox = ({ status, flashComplete, checkmarkColor, onClick }: TaskCheckboxProps) => {
+  const isCompleted = status === 'completed' || flashComplete;
+  const isCancelled = status === 'cancelled';
+  const isInProcess = status === 'in-process';
+
+  const getTitle = () => {
+    if (isCancelled) return 'Cancelled';
+    if (isInProcess) return 'In Progress';
+    if (status === 'completed') return 'Completed — click to reopen';
+    return 'Mark complete';
+  };
+
+  const getClassName = () => {
+    const base =
+      'w-5 h-5 rounded border-2 flex items-center justify-center transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
+    if (isCompleted) return `${base} bg-primary-500 border-primary-500`;
+    if (isCancelled)
+      return `${base} bg-rose-400 border-rose-400 dark:bg-rose-500 dark:border-rose-500`;
+    if (isInProcess)
+      return `${base} bg-blue-400 border-blue-400 dark:bg-blue-500 dark:border-blue-500`;
+    return `${base} border-surface-300 dark:border-surface-600 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30`;
+  };
+
+  return (
+    <button type="button" onClick={onClick} title={getTitle()} className={getClassName()}>
+      {isCompleted && (
+        <Check className="w-4 h-4" style={{ color: checkmarkColor }} strokeWidth={3} />
+      )}
+      {isCancelled && <X className="w-4 h-4 text-white dark:text-surface-200" strokeWidth={3} />}
+      {isInProcess && <Loader className="w-4 h-4 text-white dark:text-blue-100" />}
+    </button>
+  );
+};
+
+interface TaskTitleProps {
+  title: string;
+  status: TaskStatus;
+  isUnstarted: boolean;
+  className?: string;
+}
+
+const TaskTitle = ({ title, status, isUnstarted, className = '' }: TaskTitleProps) => {
+  const getTextClass = () => {
+    if (status === 'completed') return 'line-through text-surface-400';
+    if (status === 'cancelled') return 'line-through text-surface-400 dark:text-surface-500';
+    if (isUnstarted) return 'text-surface-500 dark:text-surface-400';
+    return 'text-surface-800 dark:text-surface-200';
+  };
+
+  return (
+    <div className={`${className} ${getTextClass()}`}>
+      {title || <span className="text-surface-400 italic">Untitled task</span>}
+    </div>
+  );
+};
+
+interface DueDateBadgeProps {
+  dueDate: Date | undefined;
+}
+
+const DueDateBadge = ({ dueDate }: DueDateBadgeProps) => {
+  if (!dueDate) return null;
+  const display = formatDueDate(dueDate);
+  if (!display) return null;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${display.className}`}
+    >
+      <Clock className="w-3 h-3" />
+      {display.text}
+    </span>
+  );
+};
+
+// --- Main Component ---
 
 interface TaskItemProps {
   task: Task;
@@ -66,19 +150,13 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
 
   // Focus the task element when it becomes selected via keyboard navigation
   useEffect(() => {
-    if (isSelected && !isOverlay) {
-      // Only focus if this element is not already focused
-      // This prevents re-focusing when clicking with mouse
-      if (document.activeElement !== taskElementRef.current) {
-        taskElementRef.current?.focus();
-      }
+    if (isSelected && !isOverlay && document.activeElement !== taskElementRef.current) {
+      taskElementRef.current?.focus();
     }
   }, [isSelected, isOverlay]);
 
-  // get contrast color for checkbox checkmark
   const checkmarkColor = getContrastTextColor(accentColor);
 
-  // pass ancestorIds as data so it can be accessed in handleDragEnd
   const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: task.id,
     disabled: !isDragEnabled,
@@ -86,16 +164,13 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
     animateLayoutChanges,
   });
 
-  // Merge refs: need both sortable's setNodeRef and our taskElementRef for focus management
   const mergedRef = (node: HTMLDivElement | null) => {
     setNodeRef(node);
     taskElementRef.current = node;
   };
 
   // Disable all transitions - items will snap to positions immediately.
-  // This prevents the "jumping" animation when drag ends and displaced items
-  // return to their natural positions.
-  // Use opacity: 0 instead of visibility: hidden for instant hiding without flash.
+  // Prevents the "jumping" animation when drag ends and displaced items return to their natural positions.
   const style: React.CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition: 'none',
@@ -103,11 +178,9 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
     pointerEvents: isDragging ? 'none' : undefined,
   };
 
-  const dueDateDisplay = task.dueDate ? formatDueDate(task.dueDate) : null;
-  const isUnstarted = task.startDate && new Date(task.startDate) > new Date();
+  const isUnstarted = !!(task.startDate && new Date(task.startDate) > new Date());
 
   const handleClick = (e: React.MouseEvent) => {
-    // don't select if clicking the checkbox or collapse button
     if (
       (e.target as HTMLElement).closest('.task-checkbox-wrapper') ||
       (e.target as HTMLElement).closest('.collapse-button')
@@ -115,7 +188,6 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
       return;
     }
 
-    // If the task is already selected and editor is open, close the editor
     if (isSelected && isEditorOpen) {
       setEditorOpenMutation.mutate(false);
       return;
@@ -129,8 +201,6 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // For recurring tasks that will advance (not permanently complete), briefly flash
-    // the completed state so the user can tell their click registered.
     if (task.rrule && task.status !== 'completed') {
       setFlashComplete(true);
       flashTimerRef.current = setTimeout(() => setFlashComplete(false), 600);
@@ -149,11 +219,45 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
     toggleTaskCollapsed(task.id);
   };
 
-  // todo: implement duplicate functionality at some point
+  const handleCalendarClick = (calendarId: string) => {
+    const account = accounts.find((a: Account) => a.calendars.some((c) => c.id === calendarId));
+    if (account) setActiveAccountMutation.mutate(account.id);
+    setActiveCalendarMutation.mutate(calendarId);
+  };
 
-  // calculate left margin based on depth
-  const marginLeft = depth * 24; // 24px per level
+  const marginLeft = depth * 24;
   const paddingLeft = 12 + depth * 4;
+
+  const containerClass = [
+    'group relative flex items-start gap-3 pr-3 rounded-lg border transition-all outline-none',
+    'focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900',
+    taskListDensity === 'compact' ? 'py-2' : 'py-3',
+    contextMenu && !isOverlay
+      ? 'bg-surface-100 dark:bg-surface-700/60'
+      : 'bg-white dark:bg-surface-800',
+    isOverlay ? 'shadow-xl' : 'shadow-sm hover:shadow-md',
+    isSelected ? '' : task.priority === 'none' ? 'border-surface-200 dark:border-surface-700' : '',
+    task.status === 'completed' || task.status === 'cancelled'
+      ? 'opacity-60'
+      : isUnstarted
+        ? 'opacity-70'
+        : '',
+    isDragEnabled ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
+    !isOverlay ? 'hover:bg-surface-50 dark:hover:bg-surface-800/70' : '',
+    isSelected && `border-transparent ${getPriorityRingColor(task.priority)}`,
+    getPriorityColor(task.priority),
+  ].join(' ');
+
+  const badgesProps = {
+    task,
+    accounts,
+    activeCalendarId,
+    showCompletedTasks,
+    onTagClick: (tagId: string) => setActiveTagMutation.mutate(tagId),
+    onCalendarClick: handleCalendarClick,
+    onToggleCollapsed: handleToggleCollapsed,
+    badgeVisibility: taskBadgeVisibility,
+  };
 
   return (
     <>
@@ -169,128 +273,44 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
         role="button"
         tabIndex={0}
         data-context-menu
-        className={`
-          group relative flex items-start gap-3 pr-3 ${taskListDensity === 'compact' ? 'py-2' : 'py-3'} rounded-lg border transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900
-          ${contextMenu && !isOverlay ? 'bg-surface-100 dark:bg-surface-700/60' : 'bg-white dark:bg-surface-800'}
-          ${isOverlay ? 'shadow-xl' : 'shadow-sm hover:shadow-md'}
-          ${isSelected ? '' : task.priority === 'none' ? 'border-surface-200 dark:border-surface-700' : ''}
-          ${task.status === 'completed' || task.status === 'cancelled' ? 'opacity-60' : isUnstarted ? 'opacity-70' : ''}
-          ${isDragEnabled ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}
-          ${!isOverlay ? 'hover:bg-surface-50 dark:hover:bg-surface-800/70' : ''}
-          ${isSelected && `border-transparent ${getPriorityRingColor(task.priority)}`}
-          ${getPriorityColor(task.priority)}
-        `}
+        className={containerClass}
       >
         <div className="task-checkbox-wrapper flex-shrink-0">
-          <button
-            type="button"
+          <TaskCheckbox
+            status={task.status}
+            flashComplete={flashComplete}
+            checkmarkColor={checkmarkColor}
             onClick={handleCheckboxClick}
-            title={
-              task.status === 'cancelled'
-                ? 'Cancelled'
-                : task.status === 'in-process'
-                  ? 'In Progress'
-                  : task.status === 'completed'
-                    ? 'Completed — click to reopen'
-                    : 'Mark complete'
-            }
-            className={`
-              w-5 h-5 rounded border-2 flex items-center justify-center transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
-              ${
-                task.status === 'completed' || flashComplete
-                  ? 'bg-primary-500 border-primary-500'
-                  : task.status === 'cancelled'
-                    ? 'bg-rose-400 border-rose-400 dark:bg-rose-500 dark:border-rose-500'
-                    : task.status === 'in-process'
-                      ? 'bg-blue-400 border-blue-400 dark:bg-blue-500 dark:border-blue-500'
-                      : 'border-surface-300 dark:border-surface-600 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30'
-              }
-            `}
-          >
-            {(task.status === 'completed' || flashComplete) && (
-              <Check className="w-4 h-4" style={{ color: checkmarkColor }} strokeWidth={3} />
-            )}
-            {task.status === 'cancelled' && (
-              <X className="w-4 h-4 text-white dark:text-surface-200" strokeWidth={3} />
-            )}
-            {task.status === 'in-process' && (
-              <Loader className="w-4 h-4 text-white dark:text-blue-100" />
-            )}
-          </button>
+          />
         </div>
 
         <div className="flex-1 min-w-0">
           {taskListDensity === 'compact' ? (
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
-                <div
-                  className={`text-sm font-medium truncate shrink min-w-0 ${
-                    task.status === 'completed'
-                      ? 'line-through text-surface-400'
-                      : task.status === 'cancelled'
-                        ? 'line-through text-surface-400 dark:text-surface-500'
-                        : isUnstarted
-                          ? 'text-surface-500 dark:text-surface-400'
-                          : 'text-surface-800 dark:text-surface-200'
-                  }`}
-                >
-                  {task.title || <span className="text-surface-400 italic">Untitled task</span>}
-                </div>
-
-                <TaskItemBadges
-                  task={task}
-                  accounts={accounts}
-                  activeCalendarId={activeCalendarId}
-                  showCompletedTasks={showCompletedTasks}
-                  onTagClick={(tagId) => setActiveTagMutation.mutate(tagId)}
-                  onCalendarClick={(calendarId) => {
-                    const account = accounts.find((a) =>
-                      a.calendars.some((c) => c.id === calendarId),
-                    );
-                    if (account) setActiveAccountMutation.mutate(account.id);
-                    setActiveCalendarMutation.mutate(calendarId);
-                  }}
-                  onToggleCollapsed={handleToggleCollapsed}
-                  compact={true}
-                  badgeVisibility={taskBadgeVisibility}
+                <TaskTitle
+                  title={task.title}
+                  status={task.status}
+                  isUnstarted={isUnstarted}
+                  className="text-sm font-medium truncate shrink min-w-0"
                 />
+                <TaskItemBadges {...badgesProps} compact={true} />
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
-                {taskBadgeVisibility.dueDate && dueDateDisplay && (
-                  <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${dueDateDisplay.className}`}
-                  >
-                    <Clock className="w-3 h-3" />
-                    {dueDateDisplay.text}
-                  </span>
-                )}
+                {taskBadgeVisibility.dueDate && <DueDateBadge dueDate={task.dueDate} />}
               </div>
             </div>
           ) : (
             <>
               <div className="flex items-start justify-between gap-2">
-                <div
-                  className={`text-sm font-medium leading-5 truncate flex-1 min-w-0 ${
-                    task.status === 'completed'
-                      ? 'line-through text-surface-400'
-                      : task.status === 'cancelled'
-                        ? 'line-through text-surface-400 dark:text-surface-500'
-                        : isUnstarted
-                          ? 'text-surface-500 dark:text-surface-400'
-                          : 'text-surface-800 dark:text-surface-200'
-                  }`}
-                >
-                  {task.title || <span className="text-surface-400 italic">Untitled task</span>}
-                </div>
+                <TaskTitle
+                  title={task.title}
+                  status={task.status}
+                  isUnstarted={isUnstarted}
+                  className="text-sm font-medium leading-5 truncate flex-1 min-w-0"
+                />
                 <div className="flex items-center gap-1 flex-shrink-0">
-                  {dueDateDisplay && (
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border ${dueDateDisplay.className}`}
-                    >
-                      <Clock className="w-3 h-3" />
-                      {dueDateDisplay.text}
-                    </span>
-                  )}
+                  <DueDateBadge dueDate={task.dueDate} />
                 </div>
               </div>
               {filterCalDavDescription(task.description) && (
@@ -300,23 +320,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                   {filterCalDavDescription(task.description)}
                 </div>
               )}
-              <TaskItemBadges
-                task={task}
-                accounts={accounts}
-                activeCalendarId={activeCalendarId}
-                showCompletedTasks={showCompletedTasks}
-                onTagClick={(tagId) => setActiveTagMutation.mutate(tagId)}
-                onCalendarClick={(calendarId) => {
-                  const account = accounts.find((a) =>
-                    a.calendars.some((c) => c.id === calendarId),
-                  );
-                  if (account) setActiveAccountMutation.mutate(account.id);
-                  setActiveCalendarMutation.mutate(calendarId);
-                }}
-                onToggleCollapsed={handleToggleCollapsed}
-                compact={false}
-                badgeVisibility={taskBadgeVisibility}
-              />
+              <TaskItemBadges {...badgesProps} compact={false} />
             </>
           )}
         </div>

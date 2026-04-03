@@ -73,6 +73,16 @@ const FREQ_LABEL: Record<string, string> = {
   SECONDLY: 'Every second',
 };
 
+const FREQ_UNIT: Record<string, string> = {
+  DAILY: 'days',
+  WEEKLY: 'weeks',
+  MONTHLY: 'months',
+  YEARLY: 'years',
+  HOURLY: 'hours',
+  MINUTELY: 'minutes',
+  SECONDLY: 'seconds',
+};
+
 const BYDAY_LABEL: Record<string, string> = {
   MO: 'Mon',
   TU: 'Tue',
@@ -113,6 +123,48 @@ export const buildRRule = (parts: Record<string, string>) => {
 };
 
 /**
+ * Get frequency label for interval > 1 (e.g., "Every 2 weeks")
+ */
+const getIntervalLabel = (freq: string, interval: number): string => {
+  const unit = FREQ_UNIT[freq] ?? freq.toLowerCase();
+  return `Every ${interval} ${unit}`;
+};
+
+/**
+ * Format BYDAY list for weekly recurrence (e.g., "Mon, Wed, Fri")
+ */
+const formatWeeklyDays = (byday: string): string => {
+  return byday
+    .split(',')
+    .map((d) => BYDAY_LABEL[d.replace(/^[+-]?\d+/, '')] ?? d)
+    .join(', ');
+};
+
+/**
+ * Format monthly BYDAY (e.g., "1MO" → "on the 1st Mon")
+ */
+const formatMonthlyByday = (byday: string): string | null => {
+  const match = byday.match(/^([+-]?\d+)([A-Z]+)$/);
+  if (!match) return null;
+
+  const n = parseInt(match[1], 10);
+  const day = match[2];
+  const ordinal =
+    n === -1 ? 'last' : n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : `${n}th`;
+  return ` on the ${ordinal} ${BYDAY_LABEL[day] ?? day}`;
+};
+
+/**
+ * Format the UNTIL date (e.g., "until Jan 1, 2024")
+ */
+const formatUntilDate = (until: string, dateFormat?: DateFormat): string => {
+  const y = parseInt(until.slice(0, 4), 10);
+  const m = parseInt(until.slice(4, 6), 10) - 1;
+  const d = parseInt(until.slice(6, 8), 10);
+  return formatDate(new Date(y, m, d), true, dateFormat);
+};
+
+/**
  * Return a short human-readable summary of a RRULE value string.
  * e.g. "FREQ=WEEKLY;BYDAY=MO,WE,FR" → "Weekly on Mon, Wed, Fri"
  *
@@ -125,66 +177,30 @@ export const rruleToText = (rruleValue: string, repeatFrom?: number, dateFormat?
     const freq = parts.FREQ ?? '';
     const interval = parseInt(parts.INTERVAL ?? '1', 10);
     const count = parts.COUNT ? parseInt(parts.COUNT, 10) : undefined;
-    const until = parts.UNTIL;
     const byday = parts.BYDAY;
 
     // Base frequency label
-    let label: string;
-    if (interval > 1) {
-      const unit =
-        freq === 'DAILY'
-          ? 'days'
-          : freq === 'WEEKLY'
-            ? 'weeks'
-            : freq === 'MONTHLY'
-              ? 'months'
-              : freq === 'YEARLY'
-                ? 'years'
-                : freq === 'HOURLY'
-                  ? 'hours'
-                  : freq === 'MINUTELY'
-                    ? 'minutes'
-                    : freq === 'SECONDLY'
-                      ? 'seconds'
-                      : freq.toLowerCase();
-      label = `Every ${interval} ${unit}`;
-    } else {
-      label = FREQ_LABEL[freq] ?? freq;
-    }
+    let label = interval > 1 ? getIntervalLabel(freq, interval) : (FREQ_LABEL[freq] ?? freq);
 
     // Day list for weekly
     if (freq === 'WEEKLY' && byday) {
-      const days = byday
-        .split(',')
-        .map((d) => BYDAY_LABEL[d.replace(/^[+-]?\d+/, '')] ?? d)
-        .join(', ');
-      label += ` on ${days}`;
+      label += ` on ${formatWeeklyDays(byday)}`;
     }
 
     // Monthly with specific weekday (e.g. 1MO = first Monday)
     if (freq === 'MONTHLY' && byday) {
-      const match = byday.match(/^([+-]?\d+)([A-Z]+)$/);
-      if (match) {
-        const [, offset, day] = match;
-        const n = parseInt(offset, 10);
-        const ordinal =
-          n === -1 ? 'last' : n === 1 ? '1st' : n === 2 ? '2nd' : n === 3 ? '3rd' : `${n}th`;
-        label += ` on the ${ordinal} ${BYDAY_LABEL[day] ?? day}`;
-      }
+      const monthlyByday = formatMonthlyByday(byday);
+      if (monthlyByday) label += monthlyByday;
     }
 
     // End condition suffix
     if (count !== undefined) {
       label += `, ${count} ${count === 1 ? 'time' : 'times'}`;
-    } else if (until) {
-      // UNTIL format: YYYYMMDD or YYYYMMDDTHHMMSSZ
-      const y = parseInt(until.slice(0, 4), 10);
-      const m = parseInt(until.slice(4, 6), 10) - 1;
-      const d = parseInt(until.slice(6, 8), 10);
-      const untilDate = new Date(y, m, d);
-      label += ` until ${formatDate(untilDate, true, dateFormat)}`;
+    } else if (parts.UNTIL) {
+      label += ` until ${formatUntilDate(parts.UNTIL, dateFormat)}`;
     }
 
+    // Repeat from suffix
     if (repeatFrom === 1) {
       label += ' · from completion';
     } else if (repeatFrom === 0) {

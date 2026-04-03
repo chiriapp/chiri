@@ -419,11 +419,50 @@ const generateVAlarm = (reminder: Reminder) => {
 };
 
 /**
+ * Generate date property line (DTSTART or DUE)
+ */
+const generateDateLine = (property: 'DTSTART' | 'DUE', date: Date, allDay: boolean): string => {
+  if (allDay) {
+    return `${property};VALUE=DATE:${formatICalDateOnly(date)}`;
+  }
+  return `${property}:${formatICalDate(date)}`;
+};
+
+/**
+ * Generate CATEGORIES and tag color lines
+ */
+const generateTagLines = (taskTagIds: string[]): string[] => {
+  const lines: string[] = [];
+  const tags = getAllTags();
+  const taskTags = taskTagIds
+    .map((tagId) => tags.find((t) => t.id === tagId)?.name)
+    .filter((name): name is string => Boolean(name));
+
+  if (taskTags.length === 0) return lines;
+
+  const escaped = taskTags.map((n) => escapeICalText(n));
+  lines.push(`CATEGORIES:${escaped.join(',')}`);
+
+  for (const tagName of taskTags) {
+    const tag = tags.find((t) => t.name === tagName);
+    if (!tag?.color) continue;
+
+    const hexColor = toIcalHexColor(tag.color);
+    if (!hexColor) continue;
+
+    lines.push(`X-TASKS-TAG-COLOR:${escapeICalText(tagName)}|${hexColor}`);
+  }
+
+  return lines;
+};
+
+/**
  * Generate a VTODO component as string
  */
 export const generateVTodo = (task: Task) => {
   const lines: string[] = [];
 
+  // Core properties
   lines.push('BEGIN:VTODO');
   lines.push(`UID:${task.uid}`);
   lines.push(`DTSTAMP:${formatICalDate(new Date())}`);
@@ -435,6 +474,7 @@ export const generateVTodo = (task: Task) => {
     lines.push(`DESCRIPTION:${escapeICalText(task.description)}`);
   }
 
+  // Status and completion
   lines.push(
     `STATUS:${taskStatusToIcal(task.status ?? (task.completed ? 'completed' : 'needs-action'))}`,
   );
@@ -449,58 +489,31 @@ export const generateVTodo = (task: Task) => {
 
   lines.push(`PRIORITY:${priorityToIcal[task.priority]}`);
 
+  // Dates
   if (task.startDate) {
-    if (task.startDateAllDay) {
-      lines.push(`DTSTART;VALUE=DATE:${formatICalDateOnly(new Date(task.startDate))}`);
-    } else {
-      lines.push(`DTSTART:${formatICalDate(new Date(task.startDate))}`);
-    }
+    lines.push(generateDateLine('DTSTART', new Date(task.startDate), !!task.startDateAllDay));
   }
 
   if (task.dueDate) {
-    if (task.dueDateAllDay) {
-      lines.push(`DUE;VALUE=DATE:${formatICalDateOnly(new Date(task.dueDate))}`);
-    } else {
-      lines.push(`DUE:${formatICalDate(new Date(task.dueDate))}`);
-    }
+    lines.push(generateDateLine('DUE', new Date(task.dueDate), !!task.dueDateAllDay));
   }
 
   lines.push(`X-APPLE-SORT-ORDER:${task.sortOrder}`);
 
   // Tags as CATEGORIES
   if (task.tags && task.tags.length > 0) {
-    const tags = getAllTags();
-    const taskTags = task.tags
-      .map((tagId) => tags.find((t) => t.id === tagId)?.name)
-      .filter((name): name is string => Boolean(name));
-
-    if (taskTags.length > 0) {
-      const escaped = taskTags.map((n) => escapeICalText(n));
-      lines.push(`CATEGORIES:${escaped.join(',')}`);
-
-      for (const tagName of taskTags) {
-        const tag = tags.find((t) => t.name === tagName);
-        if (!tag?.color) continue;
-
-        const hexColor = toIcalHexColor(tag.color);
-        if (!hexColor) continue;
-
-        lines.push(`X-TASKS-TAG-COLOR:${escapeICalText(tagName)}|${hexColor}`);
-      }
-    }
+    lines.push(...generateTagLines(task.tags));
   }
 
-  // Parent relationship
+  // Optional properties
   if (task.parentUid) {
     lines.push(`RELATED-TO;RELTYPE=PARENT:${task.parentUid}`);
   }
 
-  // URL (RFC 7986)
   if (task.url) {
     lines.push(`URL:${escapeICalText(task.url)}`);
   }
 
-  // Recurrence rule (RFC 5545)
   if (task.rrule) {
     lines.push(`RRULE:${task.rrule}`);
   }

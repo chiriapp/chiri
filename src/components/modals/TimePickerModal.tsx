@@ -89,14 +89,14 @@ export const TimePickerModal = ({
     const filtered = value.replace(/\D/g, '').slice(0, 2);
     setHourInput(filtered);
     const parsed = parseInt(filtered, 10);
-    if (!isNaN(parsed) && parsed >= 0 && parsed <= 23) {
+    if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 23) {
       setHour(parsed);
     }
   };
 
   const handleHourInputBlur = () => {
     const parsed = parseInt(hourInput, 10);
-    if (isNaN(parsed) || parsed < 0 || parsed > 23) {
+    if (Number.isNaN(parsed) || parsed < 0 || parsed > 23) {
       setHourInput(hour.toString().padStart(2, '0'));
     } else {
       setHour(parsed);
@@ -122,14 +122,14 @@ export const TimePickerModal = ({
     const filtered = value.replace(/\D/g, '').slice(0, 2);
     setMinuteInput(filtered);
     const parsed = parseInt(filtered, 10);
-    if (!isNaN(parsed) && parsed >= 0 && parsed <= 59) {
+    if (!Number.isNaN(parsed) && parsed >= 0 && parsed <= 59) {
       setMinute(parsed);
     }
   };
 
   const handleMinuteInputBlur = () => {
     const parsed = parseInt(minuteInput, 10);
-    if (isNaN(parsed) || parsed < 0 || parsed > 59) {
+    if (Number.isNaN(parsed) || parsed < 0 || parsed > 59) {
       setMinuteInput(minute.toString().padStart(2, '0'));
     } else {
       setMinute(parsed);

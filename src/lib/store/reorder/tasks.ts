@@ -52,6 +52,34 @@ const getDescendantIds = (flattenedItems: FlattenedTask[], activeId: string): Se
   return ids;
 };
 
+/**
+ * Search backwards from a starting index to find the insert position among siblings
+ */
+const searchForInsertPosition = (
+  flattenedItems: FlattenedTask[],
+  startIndex: number,
+  activeId: string,
+  newParentUid: string | undefined,
+  sortedSiblings: Task[],
+  descendantIds: Set<string>,
+  isMovingDown: boolean,
+): number => {
+  for (let i = startIndex; i >= 0; i--) {
+    const item = flattenedItems[i];
+    if (item.id === activeId || descendantIds.has(item.id)) continue;
+
+    if (item.parentUid === newParentUid) {
+      const siblingIndex = sortedSiblings.findIndex((s) => s.id === item.id);
+      if (siblingIndex !== -1) {
+        return isMovingDown ? siblingIndex + 1 : siblingIndex;
+      }
+    } else if (item.uid === newParentUid) {
+      return 0; // insert at beginning of parent's children
+    }
+  }
+  return 0;
+};
+
 const findInsertIndex = (
   flattenedItems: FlattenedTask[],
   activeId: string,
@@ -64,43 +92,21 @@ const findInsertIndex = (
   isReindent: boolean,
 ): number => {
   const isMovingDown = activeIndex < overIndex;
-  let insertIndex = 0;
 
-  for (let i = overIndex; i >= 0; i--) {
-    const item = flattenedItems[i];
-    if (item.id === activeId || descendantIds.has(item.id)) continue;
+  // For re-indent without moving (parent changed), search from overIndex - 1
+  const shouldUseReindentSearch = isReindent && activeItem.parentUid !== newParentUid;
+  const searchStart = shouldUseReindentSearch ? overIndex - 1 : overIndex;
+  const effectiveIsMovingDown = shouldUseReindentSearch ? true : isMovingDown;
 
-    if (item.parentUid === newParentUid) {
-      const siblingIndex = sortedSiblings.findIndex((s) => s.id === item.id);
-      if (siblingIndex !== -1) {
-        insertIndex = isMovingDown ? siblingIndex + 1 : siblingIndex;
-        break;
-      }
-    } else if (item.uid === newParentUid) {
-      break; // insertIndex stays 0 (insert at beginning of parent's children)
-    }
-  }
-
-  // Re-indent without moving: activeId === overId but parent changed — recalculate from overIndex - 1
-  if (isReindent && activeItem.parentUid !== newParentUid) {
-    insertIndex = 0;
-    for (let i = overIndex - 1; i >= 0; i--) {
-      const item = flattenedItems[i];
-      if (item.id === activeId || descendantIds.has(item.id)) continue;
-
-      if (item.parentUid === newParentUid) {
-        const siblingIndex = sortedSiblings.findIndex((s) => s.id === item.id);
-        if (siblingIndex !== -1) {
-          insertIndex = siblingIndex + 1;
-          break;
-        }
-      } else if (item.uid === newParentUid) {
-        break;
-      }
-    }
-  }
-
-  return insertIndex;
+  return searchForInsertPosition(
+    flattenedItems,
+    searchStart,
+    activeId,
+    newParentUid,
+    sortedSiblings,
+    descendantIds,
+    effectiveIsMovingDown,
+  );
 };
 
 const getCalendarInheritance = (

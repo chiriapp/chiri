@@ -55,6 +55,121 @@ const resolveDateOffset = (
 
 const log = loggers.dataStore;
 
+// Helper: resolve tags including active tag and defaults
+const resolveTaskTags = (
+  providedTags: string[] | undefined,
+  activeTagId: string | null,
+  defaultTags: string[],
+): string[] => {
+  let tags = providedTags ?? [];
+  if (activeTagId && !tags.includes(activeTagId)) {
+    tags = [activeTagId, ...tags];
+  }
+  if (tags.length === 0 && defaultTags.length > 0) {
+    tags = [...defaultTags];
+  }
+  return tags;
+};
+
+// Helper: find calendar and account to use for new task
+const resolveCalendarAndAccount = (
+  taskCalendarId: string | undefined,
+  taskAccountId: string | undefined,
+  uiActiveCalendarId: string | null,
+  uiActiveAccountId: string | null,
+  accounts: Array<{ id: string; calendars: Array<{ id: string }> }>,
+  defaultCalendarId: string | null | undefined,
+): { calendarId: string | undefined; accountId: string | undefined } => {
+  let calendarId = taskCalendarId ?? uiActiveCalendarId ?? undefined;
+  let accountId = taskAccountId ?? uiActiveAccountId ?? undefined;
+
+  if (!calendarId && accounts.length > 0) {
+    // Try default calendar first
+    if (defaultCalendarId) {
+      for (const account of accounts) {
+        const calendar = account.calendars.find((c) => c.id === defaultCalendarId);
+        if (calendar) {
+          calendarId = calendar.id;
+          accountId = account.id;
+          break;
+        }
+      }
+    }
+    // Fallback to first available
+    if (!calendarId) {
+      const firstAccount = accounts.find((a) => a.calendars.length > 0);
+      if (firstAccount) {
+        calendarId = firstAccount.calendars[0].id;
+        accountId = firstAccount.id;
+      }
+    }
+  }
+
+  return { calendarId, accountId };
+};
+
+// Helper: handle recurring task completion (advance to next occurrence)
+const handleRecurringTaskCompletion = (
+  task: Task,
+  data: ReturnType<typeof dataStore.load>,
+): boolean => {
+  const rruleParts = parseRRule(task.rrule!);
+  const count = rruleParts.COUNT ? parseInt(rruleParts.COUNT, 10) : undefined;
+
+  // If COUNT=1 this is the last instance — fall through to normal completion
+  if (count === 1) return false;
+
+  const now = new Date();
+  const baseDate = task.repeatFrom === 1 ? now : task.dueDate ? new Date(task.dueDate) : now;
+  const next = getNextOccurrence(
+    task.rrule!,
+    baseDate,
+    task.dueDate ? new Date(task.dueDate) : undefined,
+  );
+
+  if (!next) return false;
+
+  // Build an updated RRULE with COUNT decremented if applicable
+  let updatedRrule = task.rrule!;
+  if (count !== undefined && count > 1) {
+    updatedRrule = task.rrule!.replace(/COUNT=\d+/, `COUNT=${count - 1}`);
+  }
+
+  const dueDelta = next.getTime() - new Date(task.dueDate ?? next).getTime();
+
+  const advances: Partial<Task> = {
+    dueDate: next,
+    dueDateAllDay: task.dueDateAllDay,
+    startDate: task.startDate ? new Date(new Date(task.startDate).getTime() + dueDelta) : undefined,
+    reminders:
+      task.reminders && task.reminders.length > 0
+        ? task.reminders.map((r) => ({
+            ...r,
+            trigger: new Date(new Date(r.trigger).getTime() + dueDelta),
+          }))
+        : task.reminders,
+    status: 'needs-action',
+    completed: false,
+    completedAt: undefined,
+    percentComplete: 0,
+    rrule: updatedRrule,
+    modifiedAt: now,
+    synced: false,
+  };
+
+  db.updateTask(task.id, advances).catch((e) =>
+    log.error('Failed to persist recurring task advance:', e),
+  );
+  const tasks = data.tasks.map((t) => (t.id === task.id ? { ...t, ...advances } : t));
+  dataStore.save({ ...data, tasks });
+
+  const dateStr = task.dueDateAllDay
+    ? format(next, 'MMM d, yyyy')
+    : format(next, "MMM d, yyyy 'at' h:mm a");
+  toastManager.success('Task rescheduled', dateStr);
+  return true;
+};
+
 // Task getters
 export const getAllTasks = () => {
   return dataStore.load().tasks;
@@ -96,7 +211,6 @@ export const getAllDescendants = (parentUid: string) => {
 };
 
 // Task create
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: complexity is acceptable. it'd be hard to reduce this even further
 export const createTask = (taskData: Partial<Task>) => {
   const data = dataStore.load();
   const now = new Date();
@@ -115,43 +229,18 @@ export const createTask = (taskData: Partial<Task>) => {
     defaultRepeatFrom,
   } = settingsStore.getState();
 
-  // Determine calendar and account to use
-  let calendarId = taskData.calendarId ?? data.ui.activeCalendarId;
-  let accountId = taskData.accountId ?? data.ui.activeAccountId;
+  // Resolve tags using helper
+  const tags = resolveTaskTags(taskData.tags, data.ui.activeTagId, defaultTags);
 
-  // If viewing a tag, include that tag in the new task
-  let tags = taskData.tags ?? [];
-  if (data.ui.activeTagId && !tags.includes(data.ui.activeTagId)) {
-    tags = [data.ui.activeTagId, ...tags];
-  }
-  // Add default tags if no tags provided
-  if (tags.length === 0 && defaultTags.length > 0) {
-    tags = [...defaultTags];
-  }
-
-  // If no active calendar (All Tasks view), use default or first available
-  if (!calendarId && data.accounts.length > 0) {
-    if (defaultCalendarId) {
-      // Find the calendar and its account
-      for (const account of data.accounts) {
-        const calendar = account.calendars.find((c) => c.id === defaultCalendarId);
-        if (calendar) {
-          calendarId = calendar.id;
-          accountId = account.id;
-          break;
-        }
-      }
-    }
-
-    // Fallback to first available calendar if default not found
-    if (!calendarId) {
-      const firstAccount = data.accounts.find((a) => a.calendars.length > 0);
-      if (firstAccount) {
-        calendarId = firstAccount.calendars[0].id;
-        accountId = firstAccount.id;
-      }
-    }
-  }
+  // Resolve calendar and account using helper
+  const { calendarId, accountId } = resolveCalendarAndAccount(
+    taskData.calendarId,
+    taskData.accountId,
+    data.ui.activeCalendarId,
+    data.ui.activeAccountId,
+    data.accounts,
+    defaultCalendarId,
+  );
 
   // Determine if this is a local-only task (no calendar/account assigned)
   const isLocalOnly = !calendarId || !accountId;
@@ -307,71 +396,10 @@ export const toggleTaskComplete = (id: string) => {
 
   const isCompleting = task.status !== 'completed';
 
+  // Handle recurring task completion with helper
   if (isCompleting && task.rrule) {
-    const rruleParts = parseRRule(task.rrule);
-    const count = rruleParts.COUNT ? parseInt(rruleParts.COUNT, 10) : undefined;
-
-    // If COUNT=1 this is the last instance — fall through to normal completion.
-    if (count !== 1) {
-      const now = new Date();
-
-      // Base date for "next occurrence" depends on repeatFrom setting:
-      // 0 (default) = advance from original due date; 1 = advance from today.
-      const baseDate = task.repeatFrom === 1 ? now : task.dueDate ? new Date(task.dueDate) : now;
-
-      const next = getNextOccurrence(
-        task.rrule,
-        baseDate,
-        task.dueDate ? new Date(task.dueDate) : undefined,
-      );
-
-      if (next) {
-        // Build an updated RRULE with COUNT decremented if applicable
-        let updatedRrule = task.rrule;
-        if (count !== undefined && count > 1) {
-          updatedRrule = task.rrule.replace(/COUNT=\d+/, `COUNT=${count - 1}`);
-        }
-
-        const dueDelta = next.getTime() - new Date(task.dueDate ?? next).getTime();
-
-        const advances: Partial<Task> = {
-          dueDate: next,
-          // Preserve all-day flag
-          dueDateAllDay: task.dueDateAllDay,
-          // Advance startDate by the same delta if present
-          startDate: task.startDate
-            ? new Date(new Date(task.startDate).getTime() + dueDelta)
-            : undefined,
-          // Shift reminder triggers by the same delta so they stay relative to the new due date
-          reminders:
-            task.reminders && task.reminders.length > 0
-              ? task.reminders.map((r) => ({
-                  ...r,
-                  trigger: new Date(new Date(r.trigger).getTime() + dueDelta),
-                }))
-              : task.reminders,
-          status: 'needs-action',
-          completed: false,
-          completedAt: undefined,
-          percentComplete: 0,
-          rrule: updatedRrule,
-          modifiedAt: now,
-          synced: false,
-        };
-
-        db.updateTask(id, advances).catch((e) =>
-          log.error('Failed to persist recurring task advance:', e),
-        );
-        const tasks = data.tasks.map((t) => (t.id === id ? { ...t, ...advances } : t));
-        dataStore.save({ ...data, tasks });
-
-        const dateStr = task.dueDateAllDay
-          ? format(next, 'MMM d, yyyy')
-          : format(next, "MMM d, yyyy 'at' h:mm a");
-        toastManager.success('Task rescheduled', dateStr);
-        return;
-      }
-    }
+    const handled = handleRecurringTaskCompletion(task, data);
+    if (handled) return;
   }
 
   const newStatus =

@@ -56,6 +56,70 @@ const CATEGORY_PRESETS: {
   { id: 'night', Icon: Moon },
 ];
 
+const btnClass = (active: boolean) =>
+  `w-full flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+    active
+      ? 'bg-primary-600 text-primary-contrast'
+      : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
+  }`;
+
+const minutesToTimeLabel = (minutes: number): string => {
+  const d = new Date();
+  d.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+  return formatTime(d);
+};
+
+const getDayButtonClass = (
+  isSelected: boolean,
+  isTodayDate: boolean,
+  isCurrentMonth: boolean,
+): string => {
+  if (isSelected) return 'bg-primary-600 text-primary-contrast';
+  if (isTodayDate)
+    return 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium';
+  if (isCurrentMonth)
+    return 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700';
+  return 'text-surface-400 dark:text-surface-600';
+};
+
+/**
+ * Compute the selected time from a value
+ */
+const getSelectedTime = (
+  value: Date | undefined,
+  allDay: boolean,
+): { hours: number; minutes: number } => {
+  if (value && !allDay) {
+    return { hours: value.getHours(), minutes: value.getMinutes() };
+  }
+  return DEFAULT_TIME;
+};
+
+/**
+ * Check if a time is a custom (non-preset) time
+ */
+const isTimeCustom = (
+  timeSelected: boolean,
+  localNoTime: boolean,
+  selectedMinutes: number,
+  quickTimePresets: QuickTimePresets,
+): boolean => {
+  if (!timeSelected || localNoTime) return false;
+  return !CATEGORY_PRESETS.some(({ id }) => quickTimePresets[id] === selectedMinutes);
+};
+
+/**
+ * Compute quick date selection state
+ */
+const getQuickDateState = (
+  localValue: Date | undefined,
+  today: Date,
+): { isToday: boolean; isTomorrow: boolean; isNextWeek: boolean } => ({
+  isToday: localValue ? isSameDay(localValue, today) : false,
+  isTomorrow: localValue ? isSameDay(localValue, addDays(today, 1)) : false,
+  isNextWeek: localValue ? isSameDay(localValue, addDays(today, 7)) : false,
+});
+
 interface DatePickerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -80,12 +144,7 @@ export const DatePickerModal = ({
   const [currentMonth, setCurrentMonth] = useState(value ? new Date(value) : new Date());
   const [localValue, setLocalValue] = useState<Date | undefined>(value);
   const [initialValue, setInitialValue] = useState<Date | undefined>(value);
-  const [selectedTime, setSelectedTime] = useState(() => {
-    if (value && !allDay) {
-      return { hours: value.getHours(), minutes: value.getMinutes() };
-    }
-    return DEFAULT_TIME;
-  });
+  const [selectedTime, setSelectedTime] = useState(() => getSelectedTime(value, allDay));
   // localNoTime maps to the iCal DATE type (no time component), equivalent to what was "allDay"
   // defaults to true when no existing value (date-only is the common case for tasks)
   const [localNoTime, setLocalNoTime] = useState(!value || allDay);
@@ -103,11 +162,7 @@ export const DatePickerModal = ({
       setInitialValue(value);
       setLocalNoTime(!value || allDay);
       setTimeSelected(!!value && !allDay);
-      if (value && !allDay) {
-        setSelectedTime({ hours: value.getHours(), minutes: value.getMinutes() });
-      } else {
-        setSelectedTime(DEFAULT_TIME);
-      }
+      setSelectedTime(getSelectedTime(value, allDay));
     }
   }
 
@@ -130,22 +185,15 @@ export const DatePickerModal = ({
   const startPadding = getMonthStartPadding(monthStart.getDay(), weekStartsOn);
   const paddedDays = createPaddedDaysArray(days, startPadding);
 
-  const minutesToTimeLabel = (minutes: number): string => {
-    const d = new Date();
-    d.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-    return formatTime(d);
-  };
-
   const selectedMinutes = selectedTime.hours * 60 + selectedTime.minutes;
-  const isCustomTime =
-    timeSelected &&
-    !localNoTime &&
-    !CATEGORY_PRESETS.some(({ id }) => quickTimePresets[id] === selectedMinutes);
+  const isCustomTime = isTimeCustom(timeSelected, localNoTime, selectedMinutes, quickTimePresets);
 
   const today = new Date();
-  const isQuickToday = localValue ? isSameDay(localValue, today) : false;
-  const isQuickTomorrow = localValue ? isSameDay(localValue, addDays(today, 1)) : false;
-  const isQuickNextWeek = localValue ? isSameDay(localValue, addDays(today, 7)) : false;
+  const {
+    isToday: isQuickToday,
+    isTomorrow: isQuickTomorrow,
+    isNextWeek: isQuickNextWeek,
+  } = getQuickDateState(localValue, today);
 
   const selectedDateLabel = localValue
     ? `${format(localValue, 'EEEE')}, ${formatDate(localValue, true)}`
@@ -222,13 +270,6 @@ export const DatePickerModal = ({
     onAllDayChange?.(localNoTime);
     onClose();
   };
-
-  const btnClass = (active: boolean) =>
-    `w-full flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-      active
-        ? 'bg-primary-600 text-primary-contrast'
-        : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
-    }`;
 
   const showBorderAboveQuickSelects = !hideTimeControls;
 
@@ -366,9 +407,9 @@ export const DatePickerModal = ({
             </div>
 
             <div className="grid grid-cols-7 gap-1 mb-2">
-              {daysOfWeek.map((day, idx) => (
+              {daysOfWeek.map((day) => (
                 <div
-                  key={`day-${idx}-${day}`}
+                  key={day}
                   className="text-center text-xs font-medium text-surface-500 dark:text-surface-400"
                 >
                   {day}
@@ -381,7 +422,7 @@ export const DatePickerModal = ({
                 if (!day) {
                   return <div key={`empty-${index}-${day}`} />;
                 }
-                const isLocalSelected = localValue && isSameDay(day, localValue);
+                const isLocalSelected = !!(localValue && isSameDay(day, localValue));
                 const isCurrentMonth = isSameMonth(day, currentMonth);
                 const isTodayDate = isToday(day);
                 return (
@@ -391,15 +432,7 @@ export const DatePickerModal = ({
                     onClick={() => handleDayClick(day)}
                     className={`
                       w-8 h-8 rounded-full text-sm flex items-center justify-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
-                      ${
-                        isLocalSelected
-                          ? 'bg-primary-600 text-primary-contrast'
-                          : isTodayDate
-                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
-                            : isCurrentMonth
-                              ? 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
-                              : 'text-surface-400 dark:text-surface-600'
-                      }
+                      ${getDayButtonClass(isLocalSelected, isTodayDate, isCurrentMonth)}
                     `}
                   >
                     {day.getDate()}

@@ -20,8 +20,134 @@ import {
   useSetSortConfig,
   useUIState,
 } from '$hooks/queries/useUIState';
-import type { SortDirection, SortMode } from '$types';
+import type { SortConfig, SortDirection, SortMode } from '$types';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
+
+// Extracted helper: get sync button tooltip content
+const getSyncTooltip = (
+  disableSync: boolean,
+  isOffline: boolean,
+  isSyncing: boolean,
+  lastSyncTime: Date | null | undefined,
+  showJustNow: boolean,
+  syncShortcut: string,
+): string => {
+  if (disableSync) return 'Add an account to be able to use sync';
+  if (isOffline) return 'Cannot sync while offline';
+  if (isSyncing) return 'Sync in progress...';
+  if (lastSyncTime && showJustNow) return 'Last synced just now';
+  if (lastSyncTime) return `Last synced ${formatDistanceToNow(lastSyncTime, { addSuffix: true })}`;
+  return `Sync with server (${syncShortcut})`;
+};
+
+// Extracted helper: get sync button class
+const getSyncButtonClass = (
+  isSyncing: boolean,
+  isOffline: boolean,
+  disableSync: boolean,
+  isAnyModalOpen: boolean,
+): string => {
+  const base =
+    'w-9 h-9 rounded-lg border text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset flex items-center justify-center';
+  if (isSyncing) {
+    return `${base} text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-400 cursor-not-allowed`;
+  }
+  if (isOffline || disableSync) {
+    return `${base} text-surface-300 dark:text-surface-600 border-transparent cursor-not-allowed`;
+  }
+  return `${base} text-surface-500 dark:text-surface-400 border-transparent ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`;
+};
+
+// Extracted sub-component: Checkbox toggle for view menu
+const ViewMenuCheckbox = ({
+  label,
+  checked,
+  onClick,
+}: {
+  label: string;
+  checked: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset rounded"
+  >
+    <span>{label}</span>
+    <div
+      className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
+        checked ? 'bg-primary-500 border-primary-500' : 'border-surface-300 dark:border-surface-600'
+      }`}
+    >
+      {checked && <Check className="w-3 h-3 text-primary-contrast" strokeWidth={3} />}
+    </div>
+  </button>
+);
+
+// Extracted sub-component: Sort option button
+const SortOptionButton = ({
+  option,
+  isActive,
+  onClick,
+}: {
+  option: { value: SortMode; label: string };
+  isActive: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+      isActive
+        ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
+        : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
+    }`}
+  >
+    <span>{option.label}</span>
+  </button>
+);
+
+// Extracted sub-component: Sort direction button
+const SortDirectionButton = ({
+  sortConfig,
+  onToggle,
+}: {
+  sortConfig: SortConfig;
+  onToggle: () => void;
+}) => {
+  const isDisabled = sortConfig.mode === 'manual';
+  const buttonClass = `w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+    isDisabled
+      ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
+      : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
+  }`;
+
+  return (
+    <Tooltip
+      content={isDisabled ? 'Not available for manual sorting' : ''}
+      position="bottom"
+      allowInModal
+      className="whitespace-nowrap"
+      triggerClassName="w-full"
+    >
+      <button
+        type="button"
+        onClick={isDisabled ? () => {} : onToggle}
+        disabled={isDisabled}
+        className={buttonClass}
+      >
+        <div className="flex items-center gap-2">
+          {sortConfig.direction === 'asc' ? (
+            <SortAsc className="w-4 h-4" />
+          ) : (
+            <SortDesc className="w-4 h-4" />
+          )}
+          <span>{sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}</span>
+        </div>
+      </button>
+    </Tooltip>
+  );
+};
 
 interface HeaderProps {
   isSyncing?: boolean;
@@ -154,32 +280,21 @@ export const Header = ({
         <div className="flex items-center gap-2 flex-shrink-0">
           {onSync && (
             <Tooltip
-              content={
-                disableSync
-                  ? 'Add an account to be able to use sync'
-                  : isOffline
-                    ? 'Cannot sync while offline'
-                    : isSyncing
-                      ? 'Sync in progress...'
-                      : lastSyncTime && showJustNow
-                        ? 'Last synced just now'
-                        : lastSyncTime
-                          ? `Last synced ${formatDistanceToNow(lastSyncTime, { addSuffix: true })}`
-                          : `Sync with server (${syncShortcut})`
-              }
+              content={getSyncTooltip(
+                disableSync,
+                isOffline,
+                isSyncing,
+                lastSyncTime,
+                showJustNow,
+                syncShortcut,
+              )}
               position="bottom"
             >
               <button
                 type="button"
                 onClick={onSync}
                 disabled={isSyncing || isOffline || disableSync}
-                className={`w-9 h-9 rounded-lg border text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset flex items-center justify-center ${
-                  isSyncing
-                    ? 'text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-400 cursor-not-allowed'
-                    : isOffline || disableSync
-                      ? 'text-surface-300 dark:text-surface-600 border-transparent cursor-not-allowed'
-                      : `text-surface-500 dark:text-surface-400 border-transparent ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
-                }`}
+                className={getSyncButtonClass(isSyncing, isOffline, disableSync, isAnyModalOpen)}
               >
                 <RefreshCw className={`w-5 h-5 flex-shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
               </button>
@@ -212,42 +327,16 @@ export const Header = ({
                   className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-[240px] animate-scale-in"
                 >
                   <div className="px-3 py-2 border-b border-surface-200 dark:border-surface-700">
-                    <button
-                      type="button"
+                    <ViewMenuCheckbox
+                      label="Show completed"
+                      checked={showCompletedTasks}
                       onClick={() => setShowCompletedTasksMutation.mutate(!showCompletedTasks)}
-                      className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset rounded"
-                    >
-                      <span>Show completed</span>
-                      <div
-                        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
-                          showCompletedTasks
-                            ? 'bg-primary-500 border-primary-500'
-                            : 'border-surface-300 dark:border-surface-600'
-                        }`}
-                      >
-                        {showCompletedTasks && (
-                          <Check className="w-3 h-3 text-primary-contrast" strokeWidth={3} />
-                        )}
-                      </div>
-                    </button>
-                    <button
-                      type="button"
+                    />
+                    <ViewMenuCheckbox
+                      label="Show unstarted"
+                      checked={showUnstartedTasks}
                       onClick={() => setShowUnstartedTasksMutation.mutate(!showUnstartedTasks)}
-                      className="w-full flex items-center justify-between gap-2.5 py-1.5 text-sm text-surface-700 dark:text-surface-300 hover:text-surface-900 dark:hover:text-surface-100 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset rounded"
-                    >
-                      <span>Show unstarted</span>
-                      <div
-                        className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
-                          showUnstartedTasks
-                            ? 'bg-primary-500 border-primary-500'
-                            : 'border-surface-300 dark:border-surface-600'
-                        }`}
-                      >
-                        {showUnstartedTasks && (
-                          <Check className="w-3 h-3 text-primary-contrast" strokeWidth={3} />
-                        )}
-                      </div>
-                    </button>
+                    />
                   </div>
 
                   <div className="py-2">
@@ -255,18 +344,12 @@ export const Header = ({
                       Sort By
                     </div>
                     {SORT_OPTIONS.map((option) => (
-                      <button
-                        type="button"
+                      <SortOptionButton
                         key={option.value}
+                        option={option}
+                        isActive={sortConfig.mode === option.value}
                         onClick={() => handleSortChange(option.value)}
-                        className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                          sortConfig.mode === option.value
-                            ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
-                            : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
-                        }`}
-                      >
-                        <span>{option.label}</span>
-                      </button>
+                      />
                     ))}
                   </div>
 
@@ -274,35 +357,7 @@ export const Header = ({
                     <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
                       Sort Direction
                     </div>
-                    <Tooltip
-                      content={
-                        sortConfig.mode === 'manual' ? 'Not available for manual sorting' : ''
-                      }
-                      position="bottom"
-                      allowInModal
-                      className="whitespace-nowrap"
-                      triggerClassName="w-full"
-                    >
-                      <button
-                        type="button"
-                        onClick={sortConfig.mode === 'manual' ? () => {} : toggleSortDirection}
-                        disabled={sortConfig.mode === 'manual'}
-                        className={`w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                          sortConfig.mode === 'manual'
-                            ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
-                            : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2">
-                          {sortConfig.direction === 'asc' ? (
-                            <SortAsc className="w-4 h-4" />
-                          ) : (
-                            <SortDesc className="w-4 h-4" />
-                          )}
-                          <span>{sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}</span>
-                        </div>
-                      </button>
-                    </Tooltip>
+                    <SortDirectionButton sortConfig={sortConfig} onToggle={toggleSortDirection} />
                   </div>
                 </div>
               </>

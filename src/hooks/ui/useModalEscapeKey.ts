@@ -7,6 +7,35 @@ import { hasOpenModalElements } from '$utils/misc';
 const activeHandlers: Set<symbol> = new Set();
 
 /**
+ * Check if this handler should be blocked from handling escape
+ */
+const shouldBlockEscape = (
+  confirmDialogOpen: boolean,
+  isPanel: boolean,
+  handlerId: symbol,
+): boolean => {
+  // Block if confirm dialog is open
+  if (confirmDialogOpen) return true;
+
+  // Block if icon/emoji picker is open
+  if (document.querySelector('[data-icon-emoji-picker-dropdown]')) return true;
+
+  if (isPanel) {
+    // Panels yield to context menus
+    if (document.querySelector('[data-context-menu-content]')) return true;
+    // Panels yield to modals
+    if (hasOpenModalElements()) return true;
+  } else {
+    // For modals, only the topmost handler should respond
+    const handlersArray = Array.from(activeHandlers);
+    const myIndex = handlersArray.indexOf(handlerId);
+    if (myIndex !== handlersArray.length - 1) return true;
+  }
+
+  return false;
+};
+
+/**
  * hook to close a modal when the Escape key is pressed
  * won't trigger if a confirm dialog is open (to allow proper nesting)
  * only the most recently registered handler will respond to Escape
@@ -47,50 +76,22 @@ export const useModalEscapeKey = (
     }
 
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        // don't handle if a confirm dialog is open - let it handle the escape
-        if (confirmDialogOpenRef.current) {
-          return;
-        }
+      if (e.key !== 'Escape') return;
 
-        // don't handle if an icon/emoji picker dropdown is open - let it handle the escape
-        if (document.querySelector('[data-icon-emoji-picker-dropdown]')) {
-          return;
-        }
-
-        // if this is a panel, only respond if no modals or context menus are open
-        if (isPanelRef.current) {
-          // Don't handle if a context menu is open - let it handle the escape first
-          if (document.querySelector('[data-context-menu-content]')) {
-            return;
-          }
-
-          // Check for actual modal DOM elements instead of relying on activeHandlers
-          if (hasOpenModalElements()) {
-            return;
-          }
-        } else {
-          // This is a modal, check if it's the topmost one
-          const handlersArray = Array.from(activeHandlers);
-          const myIndex = handlersArray.indexOf(handlerId);
-
-          // only the last registered (topmost) handler should respond
-          if (myIndex !== handlersArray.length - 1) {
-            return;
-          }
-        }
-
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation(); // Prevent other capture-phase handlers from running
-
-        // blur active element to prevent focus ring on underlying elements
-        if (document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur();
-        }
-
-        onCloseRef.current();
+      if (shouldBlockEscape(confirmDialogOpenRef.current, isPanelRef.current, handlerId)) {
+        return;
       }
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation(); // Prevent other capture-phase handlers from running
+
+      // blur active element to prevent focus ring on underlying elements
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+
+      onCloseRef.current();
     };
 
     window.addEventListener('keydown', handleEsc, { capture: true });

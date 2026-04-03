@@ -74,66 +74,84 @@ const FIELD_ICONS: Record<string, LucideIcon> = {
   subtask: Network,
 };
 
-const formatHistoryValue = (field: string, value: string | null): ReactNode => {
-  if (value === null) return 'None';
-  if (field === 'completed') return value === 'true' ? 'Completed' : 'Not completed'; // legacy
-  if (field === 'status') {
-    const labels: Record<string, string> = {
-      'needs-action': 'Needs Action',
-      'in-process': 'In Process',
-      completed: 'Completed',
-      cancelled: 'Cancelled',
-    };
-    return labels[value] ?? value;
+// Label maps for enum-like fields
+const STATUS_LABELS: Record<string, string> = {
+  'needs-action': 'Needs Action',
+  'in-process': 'In Process',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
+};
+
+const PRIORITY_LABELS: Record<string, string> = {
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+  none: 'None',
+};
+
+// Field-specific formatters
+const formatCompletedField = (value: string) => (value === 'true' ? 'Completed' : 'Not completed');
+const formatStatusField = (value: string) => STATUS_LABELS[value] ?? value;
+const formatPriorityField = (value: string) => PRIORITY_LABELS[value] ?? value;
+const formatAllDayField = (value: string) => (value === 'true' ? 'All day' : 'Timed');
+
+const formatDateField = (value: string) => {
+  try {
+    return formatDate(new Date(value), true);
+  } catch {
+    return value;
   }
-  if (field === 'percentComplete') return `${value}%`;
-  if (field === 'priority') {
-    const labels: Record<string, string> = {
-      high: 'High',
-      medium: 'Medium',
-      low: 'Low',
-      none: 'None',
-    };
-    return labels[value] ?? value;
-  }
-  if (field === 'startDateAllDay' || field === 'dueDateAllDay') {
-    return value === 'true' ? 'All day' : 'Timed';
-  }
-  if (field === 'startDate' || field === 'dueDate') {
-    try {
-      return formatDate(new Date(value), true);
-    } catch {
-      return value;
+};
+
+const formatArrayField = (value: string) => {
+  try {
+    const arr = JSON.parse(value);
+    if (Array.isArray(arr)) {
+      return arr.length === 0 ? 'None' : `${arr.length} item${arr.length !== 1 ? 's' : ''}`;
     }
-  }
-  if (field === 'tags' || field === 'reminders') {
-    try {
-      const arr = JSON.parse(value);
-      if (Array.isArray(arr)) {
-        return arr.length === 0 ? 'None' : `${arr.length} item${arr.length !== 1 ? 's' : ''}`;
-      }
-    } catch {
-      // fall through
-    }
-  }
-  if (field === 'description') {
-    if (!value) return 'Empty';
-    return value.length > 80 ? `${value.slice(0, 80)}…` : value;
-  }
-  if (field === 'rrule') {
-    try {
-      return rruleToText(value);
-    } catch {
-      return value;
-    }
-  }
-  if (field === 'repeatFrom') {
-    return value === '1' ? 'Completion date' : 'Due date';
-  }
-  if (field === 'subtask') {
-    return value.trim() ? value : <span className="italic">Untitled task</span>;
+  } catch {
+    // fall through
   }
   return value;
+};
+
+const formatDescriptionField = (value: string) => {
+  if (!value) return 'Empty';
+  return value.length > 80 ? `${value.slice(0, 80)}…` : value;
+};
+
+const formatRruleField = (value: string) => {
+  try {
+    return rruleToText(value);
+  } catch {
+    return value;
+  }
+};
+
+// Field formatter map
+type FieldFormatter = (value: string) => ReactNode;
+const FIELD_FORMATTERS: Record<string, FieldFormatter> = {
+  completed: formatCompletedField,
+  status: formatStatusField,
+  percentComplete: (v) => `${v}%`,
+  priority: formatPriorityField,
+  startDateAllDay: formatAllDayField,
+  dueDateAllDay: formatAllDayField,
+  startDate: formatDateField,
+  dueDate: formatDateField,
+  tags: formatArrayField,
+  reminders: formatArrayField,
+  description: formatDescriptionField,
+  rrule: formatRruleField,
+  repeatFrom: (v) => (v === '1' ? 'Completion date' : 'Due date'),
+  subtask: (v) => (v.trim() ? v : ((<span className="italic">Untitled task</span>) as ReactNode)),
+};
+
+const formatHistoryValue = (field: string, value: string | null): ReactNode => {
+  if (value === null) return 'None';
+
+  const formatter = FIELD_FORMATTERS[field];
+  return formatter ? formatter(value) : value;
 };
 
 const HistoryEntry = ({

@@ -113,47 +113,44 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     }
   }, [isOpen, onFileDrop]);
 
-  const handleFileContent = useCallback(
-    (name: string, content: string) => {
-      setFileName(name);
-      setError('');
-      setParseErrors([]);
-      setImportSuccess(false);
+  const handleFileContent = useCallback((name: string, content: string) => {
+    setFileName(name);
+    setError('');
+    setParseErrors([]);
+    setImportSuccess(false);
 
-      let tasks: Partial<Task>[] = [];
+    let tasks: Partial<Task>[] = [];
 
-      try {
-        if (name.endsWith('.ics') || name.endsWith('.ical')) {
+    try {
+      if (name.endsWith('.ics') || name.endsWith('.ical')) {
+        tasks = parseIcsFile(content);
+      } else if (name.endsWith('.json')) {
+        tasks = parseJsonTasksFile(content);
+      } else {
+        // Try to detect format by content
+        if (content.trim().startsWith('BEGIN:VCALENDAR')) {
           tasks = parseIcsFile(content);
-        } else if (name.endsWith('.json')) {
+        } else if (content.trim().startsWith('[') || content.trim().startsWith('{')) {
           tasks = parseJsonTasksFile(content);
         } else {
-          // Try to detect format by content
-          if (content.trim().startsWith('BEGIN:VCALENDAR')) {
-            tasks = parseIcsFile(content);
-          } else if (content.trim().startsWith('[') || content.trim().startsWith('{')) {
-            tasks = parseJsonTasksFile(content);
-          } else {
-            setError('Unsupported file format. Please use .ics or .json files.');
-            return;
-          }
+          setError('Unsupported file format. Please use .ics or .json files.');
+          return;
         }
-      } catch (err) {
-        log.error('Error parsing file:', err);
-        setError('Failed to parse file. The file may be corrupted or in an unsupported format.');
-        return;
       }
+    } catch (err) {
+      log.error('Error parsing file:', err);
+      setError('Failed to parse file. The file may be corrupted or in an unsupported format.');
+      return;
+    }
 
-      if (tasks.length === 0) {
-        setError('No tasks found in the file.');
-        return;
-      }
+    if (tasks.length === 0) {
+      setError('No tasks found in the file.');
+      return;
+    }
 
-      setParsedTasks(tasks.map((t) => ({ ...t, importStatus: 'pending' })));
-      // Stay on upload step - let user click Continue to proceed
-    },
-    [hasAccounts],
-  );
+    setParsedTasks(tasks.map((t) => ({ ...t, importStatus: 'pending' })));
+    // Stay on upload step - let user click Continue to proceed
+  }, []);
 
   const handleFileSelect = useCallback(
     async (file: File) => {

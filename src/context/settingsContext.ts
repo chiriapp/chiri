@@ -482,83 +482,87 @@ export const settingsStore = {
         log.error('Unsupported settings version');
         return false;
       }
-      setState({
-        theme: data.theme ?? defaultState.theme,
-        accentColor: data.accentColor ?? defaultState.accentColor,
-        autoSync: data.autoSync ?? defaultState.autoSync,
-        syncInterval: data.syncInterval ?? defaultState.syncInterval,
-        syncOnStartup: data.syncOnStartup ?? defaultState.syncOnStartup,
-        syncOnReconnect: data.syncOnReconnect ?? defaultState.syncOnReconnect,
-        showCompletedByDefault: data.showCompletedByDefault ?? defaultState.showCompletedByDefault,
-        confirmBeforeDeletion: data.confirmBeforeDeletion ?? defaultState.confirmBeforeDeletion,
-        confirmBeforeDelete: data.confirmBeforeDelete ?? defaultState.confirmBeforeDelete,
-        confirmBeforeDeleteCalendar:
-          data.confirmBeforeDeleteCalendar ?? defaultState.confirmBeforeDeleteCalendar,
-        confirmBeforeDeleteAccount:
-          data.confirmBeforeDeleteAccount ?? defaultState.confirmBeforeDeleteAccount,
-        confirmBeforeDeleteTag: data.confirmBeforeDeleteTag ?? defaultState.confirmBeforeDeleteTag,
-        deleteSubtasksWithParent:
-          data.deleteSubtasksWithParent ?? defaultState.deleteSubtasksWithParent,
-        startOfWeek: data.startOfWeek ?? defaultState.startOfWeek,
-        timeFormat: data.timeFormat ?? defaultState.timeFormat,
-        dateFormat: data.dateFormat ?? defaultState.dateFormat,
-        notifications: data.notifications ?? defaultState.notifications,
-        notifyReminders: data.notifyReminders ?? defaultState.notifyReminders,
-        notifyOverdue: data.notifyOverdue ?? defaultState.notifyOverdue,
-        defaultCalendarId: data.defaultCalendarId ?? defaultState.defaultCalendarId,
-        keyboardShortcuts: data.keyboardShortcuts
-          ? mergeShortcuts(data.keyboardShortcuts, DEFAULT_SHORTCUTS)
-          : defaultState.keyboardShortcuts,
-        defaultPriority: data.defaultPriority ?? defaultState.defaultPriority,
-        defaultStatus: data.defaultStatus ?? defaultState.defaultStatus,
-        defaultPercentComplete: data.defaultPercentComplete ?? defaultState.defaultPercentComplete,
-        defaultTags: data.defaultTags ?? defaultState.defaultTags,
-        defaultStartDate: data.defaultStartDate ?? defaultState.defaultStartDate,
-        defaultDueDate: data.defaultDueDate ?? defaultState.defaultDueDate,
-        defaultReminders: data.defaultReminders ?? defaultState.defaultReminders,
-        defaultRrule: data.defaultRrule ?? defaultState.defaultRrule,
-        defaultRepeatFrom: data.defaultRepeatFrom ?? defaultState.defaultRepeatFrom,
-        sidebarCollapsed: data.sidebarCollapsed ?? defaultState.sidebarCollapsed,
-        sidebarWidth: data.sidebarWidth ?? defaultState.sidebarWidth,
-        taskEditorWidth: data.taskEditorWidth ?? defaultState.taskEditorWidth,
-        onboardingCompleted: data.onboardingCompleted ?? defaultState.onboardingCompleted,
-        expandedAccountIds: data.expandedAccountIds ?? defaultState.expandedAccountIds,
-        defaultAccountsExpanded:
-          data.defaultAccountsExpanded ?? defaultState.defaultAccountsExpanded,
-        accountsSectionCollapsed:
-          data.accountsSectionCollapsed ?? defaultState.accountsSectionCollapsed,
-        tagsSectionCollapsed: data.tagsSectionCollapsed ?? defaultState.tagsSectionCollapsed,
-        enableSystemTray: data.enableSystemTray ?? defaultState.enableSystemTray,
-        systemTrayRestartNeeded:
-          data.systemTrayRestartNeeded ?? defaultState.systemTrayRestartNeeded,
-        systemTrayAppliedValue: data.systemTrayAppliedValue ?? defaultState.systemTrayAppliedValue,
-        checkForUpdatesAutomatically:
-          data.checkForUpdatesAutomatically ?? defaultState.checkForUpdatesAutomatically,
-        confirmBeforeQuit: data.confirmBeforeQuit ?? defaultState.confirmBeforeQuit,
-        confirmBeforeQuitAppliedValue:
-          data.confirmBeforeQuitAppliedValue ?? defaultState.confirmBeforeQuitAppliedValue,
-        defaultAllDayReminderHour:
-          data.defaultAllDayReminderHour ?? defaultState.defaultAllDayReminderHour,
-        allDayReminderNotificationsEnabled:
-          data.allDayReminderNotificationsEnabled ??
-          defaultState.allDayReminderNotificationsEnabled,
-        taskListDensity: data.taskListDensity ?? defaultState.taskListDensity,
-        defaultTagColor: data.defaultTagColor ?? defaultState.defaultTagColor,
-        defaultCalendarColor: data.defaultCalendarColor ?? defaultState.defaultCalendarColor,
-        quietHoursEnabled: data.quietHoursEnabled ?? defaultState.quietHoursEnabled,
-        quietHoursStart: data.quietHoursStart ?? defaultState.quietHoursStart,
-        quietHoursEnd: data.quietHoursEnd ?? defaultState.quietHoursEnd,
-        editorFieldVisibility: data.editorFieldVisibility
-          ? { ...defaultState.editorFieldVisibility, ...data.editorFieldVisibility }
-          : defaultState.editorFieldVisibility,
-        taskBadgeVisibility: data.taskBadgeVisibility
-          ? { ...defaultState.taskBadgeVisibility, ...data.taskBadgeVisibility }
-          : defaultState.taskBadgeVisibility,
-        quickTimePresets:
-          data.quickTimePresets && !Array.isArray(data.quickTimePresets)
-            ? { ...defaultState.quickTimePresets, ...data.quickTimePresets }
-            : defaultState.quickTimePresets,
-      });
+
+      // Simple scalar/primitive settings
+      const simpleSettings: Array<keyof SettingsState> = [
+        'theme',
+        'accentColor',
+        'autoSync',
+        'syncInterval',
+        'syncOnStartup',
+        'syncOnReconnect',
+        'showCompletedByDefault',
+        'confirmBeforeDeletion',
+        'confirmBeforeDelete',
+        'confirmBeforeDeleteCalendar',
+        'confirmBeforeDeleteAccount',
+        'confirmBeforeDeleteTag',
+        'deleteSubtasksWithParent',
+        'startOfWeek',
+        'timeFormat',
+        'dateFormat',
+        'notifications',
+        'notifyReminders',
+        'notifyOverdue',
+        'defaultCalendarId',
+        'defaultPriority',
+        'defaultStatus',
+        'defaultPercentComplete',
+        'defaultTags',
+        'defaultStartDate',
+        'defaultDueDate',
+        'defaultReminders',
+        'defaultRrule',
+        'defaultRepeatFrom',
+        'sidebarCollapsed',
+        'sidebarWidth',
+        'taskEditorWidth',
+        'onboardingCompleted',
+        'expandedAccountIds',
+        'defaultAccountsExpanded',
+        'accountsSectionCollapsed',
+        'tagsSectionCollapsed',
+        'enableSystemTray',
+        'systemTrayRestartNeeded',
+        'systemTrayAppliedValue',
+        'checkForUpdatesAutomatically',
+        'confirmBeforeQuit',
+        'confirmBeforeQuitAppliedValue',
+        'defaultAllDayReminderHour',
+        'allDayReminderNotificationsEnabled',
+        'taskListDensity',
+        'defaultTagColor',
+        'defaultCalendarColor',
+        'quietHoursEnabled',
+        'quietHoursStart',
+        'quietHoursEnd',
+      ];
+
+      // Build new state with simple settings
+      const newState: Partial<SettingsState> = {};
+      for (const key of simpleSettings) {
+        newState[key] = data[key] ?? defaultState[key];
+      }
+
+      // Handle complex/merged settings separately
+      newState.keyboardShortcuts = data.keyboardShortcuts
+        ? mergeShortcuts(data.keyboardShortcuts, DEFAULT_SHORTCUTS)
+        : defaultState.keyboardShortcuts;
+
+      newState.editorFieldVisibility = data.editorFieldVisibility
+        ? { ...defaultState.editorFieldVisibility, ...data.editorFieldVisibility }
+        : defaultState.editorFieldVisibility;
+
+      newState.taskBadgeVisibility = data.taskBadgeVisibility
+        ? { ...defaultState.taskBadgeVisibility, ...data.taskBadgeVisibility }
+        : defaultState.taskBadgeVisibility;
+
+      newState.quickTimePresets =
+        data.quickTimePresets && !Array.isArray(data.quickTimePresets)
+          ? { ...defaultState.quickTimePresets, ...data.quickTimePresets }
+          : defaultState.quickTimePresets;
+
+      setState(newState as SettingsState);
       return true;
     } catch (e) {
       log.error('Failed to import settings:', e);
