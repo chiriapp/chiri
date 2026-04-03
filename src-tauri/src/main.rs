@@ -131,6 +131,13 @@ fn main() {
         .expect("error while running tauri application")
         .run(|_app_handle, event| {
             match event {
+                // On macOS + CEF, going through NSApplication terminate can trigger
+                // a CEF shutdown crash report even on normal quits. Exit directly.
+                #[cfg(all(target_os = "macos", feature = "cef"))]
+                RunEvent::ExitRequested { .. } => {
+                    std::process::exit(0);
+                }
+
                 // Intercept all quit requests (Cmd+Q, Dock quit, window close) so the
                 // frontend can apply double-press confirmation when enabled. The frontend
                 // calls exit(0) via tauri-plugin-process, which bypasses this handler.

@@ -90,7 +90,6 @@ fn get_current_theme(_app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
         }
     }
 }
-
 /// Get the current system theme
 #[cfg(not(target_os = "linux"))]
 fn get_current_theme(app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
@@ -258,7 +257,15 @@ pub async fn initialize_tray(
                 }
             }
             "quit" => {
-                app.exit(0);
+                #[cfg(all(target_os = "macos", feature = "cef"))]
+                {
+                    let _ = app.emit("app:quit-requested", ());
+                }
+
+                #[cfg(not(all(target_os = "macos", feature = "cef")))]
+                {
+                    app.exit(0);
+                }
             }
             _ => {}
         })
