@@ -3,12 +3,12 @@ use std::sync::Arc;
 use tauri::State;
 #[cfg(target_os = "macos")]
 use tauri::{AppHandle, Emitter, Manager};
-use user_notify::{NotificationBuilder, NotificationManager};
 #[cfg(target_os = "macos")]
 use user_notify::{
     get_notification_manager, NotificationCategory, NotificationCategoryAction,
     NotificationResponse, NotificationResponseAction,
 };
+use user_notify::{NotificationBuilder, NotificationManager};
 
 // Notification action category identifiers
 pub const TASK_OVERDUE_CATEGORY: &str = "moe.sapphic.Chiri.task.overdue";
@@ -41,7 +41,7 @@ impl NotificationManagerState {
         }
     }
 
-    pub fn register_categories_and_handler(&self, app: AppHandle) {
+    pub fn register_categories_and_handler(&self, app: AppHandle<impl tauri::Runtime>) {
         let categories = vec![
             // Category for overdue task notifications
             NotificationCategory {
@@ -155,9 +155,39 @@ pub async fn send_notification_with_actions(
     Ok(())
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SimpleNotificationRequest {
+    pub title: String,
+    pub body: String,
+}
+
+/// Send a simple notification without actions or task metadata.
+/// Used for system notifications like quit confirmation.
+#[tauri::command]
+pub async fn send_simple_notification(
+    request: SimpleNotificationRequest,
+    state: State<'_, NotificationManagerState>,
+) -> Result<(), String> {
+    let notification = NotificationBuilder::new()
+        .title(&request.title)
+        .body(&request.body);
+
+    state
+        .manager
+        .send_notification(notification)
+        .await
+        .map_err(|e| format!("Failed to send notification: {e:?}"))?;
+
+    Ok(())
+}
+
 /// Handle notification response (user clicked notification or action)
 #[cfg(target_os = "macos")]
-async fn handle_notification_response(app: &AppHandle, response: NotificationResponse) {
+async fn handle_notification_response(
+    app: &AppHandle<impl tauri::Runtime>,
+    response: NotificationResponse,
+) {
     eprintln!("[Notifications] Received response: {response:?}");
 
     let task_id = match response.user_info.get(USER_INFO_TASK_ID) {

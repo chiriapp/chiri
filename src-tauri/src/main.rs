@@ -83,6 +83,7 @@ fn main() {
             notifications::check_notification_permission,
             notifications::request_notification_permission,
             notification_manager::send_notification_with_actions,
+            notification_manager::send_simple_notification,
             macos_menu::apply_macos_menu_fixes,
             force_quit,
             install_type::should_disable_updates,

@@ -62,6 +62,19 @@ export const sendNotification = async (options: SendNotificationOptions) => {
   await invoke('send_notification_with_actions', { request: options });
 };
 
+export interface SimpleNotificationOptions {
+  title: string;
+  body: string;
+}
+
+/**
+ * Send a simple notification without actions or task metadata.
+ * Used for system notifications like quit confirmation.
+ */
+export const sendSimpleNotification = async (options: SimpleNotificationOptions) => {
+  await invoke('send_simple_notification', { request: options });
+};
+
 export interface NotificationActionEvent {
   action: 'complete' | 'snooze-15min' | 'snooze-1hr' | 'view';
   taskId: string;
