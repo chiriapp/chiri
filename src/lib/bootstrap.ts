@@ -94,6 +94,11 @@ export const deleteDatabase = async () => {
     await remove('chiri.db', { baseDir });
     log.info('Database file deleted successfully');
 
+    // Reset user preferences along with the database
+    log.info('Resetting user preferences...');
+    settingsStore.resetSettings();
+    log.info('User preferences reset successfully');
+
     // Relaunch the app so migrations run on the fresh database
     log.info('Relaunching app to reinitialize database...');
     await relaunch();
