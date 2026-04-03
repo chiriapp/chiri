@@ -238,7 +238,7 @@ jobs:
           chmod 600 "$APPLE_KEY_FILE"
           echo "APPLE_API_KEY_PATH=$APPLE_KEY_FILE" >> "$GITHUB_ENV"
 
-      - uses: tauri-apps/tauri-action@v1
+      - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY || secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -251,10 +251,6 @@ jobs:
           # use existing release created by prepare-release job
           releaseId: ${{ needs.prepare-release.outputs.release_id }}
           args: ${{ matrix.args }}
-          # Consistent naming pattern for release assets
-          releaseAssetNamePattern: 'chiri-[version]-[platform]-[arch][ext]'
-          # Keep signatures for secure auto-updates
-          uploadUpdaterSignatures: true
 
   # third job: Update README with new version
   update-readme:
