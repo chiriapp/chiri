@@ -213,7 +213,7 @@ Chiri is licensed under the [<span aria-hidden="true">&nearr;</span> zlib/libpng
 [header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/SapphoSys/chiri/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
 
 [header-repo-issues-link]: https://github.com/SapphoSys/chiri/issues
-[header-screenshot]: ./.github/assets/screenshot.png
+[header-screenshot]: https://raw.githubusercontent.com/SapphoSys/chiri/refs/heads/master/.github/assets/screenshot.png
 
 [release-windows-msi-x64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri_0.8.0_x64_en-US.msi
 [release-windows-msi-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri_0.8.0_arm64-en_US.msi
