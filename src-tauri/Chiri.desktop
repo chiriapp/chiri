@@ -1,13 +1,15 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Chiri
-GenericName=CalDAV Task Manager
-Comment=A cross-platform CalDAV task management app
-Icon=chiri
-Exec=chiri
+Name={{{name}}}
+GenericName=CalDAV task manager
+Comment={{{comment}}}
+Exec={{{exec}}}
+Icon={{{icon}}}
 Terminal=false
-Categories=Office;Calendar;ProjectManagement;GTK;
-Keywords=caldav;tasks;todo;calendar;productivity;chiri;
-StartupWMClass=moe.sapphic.Chiri
+Categories={{{categories}}}
+Keywords=caldav;tasks;todo;calendar;productivity;reminder;sync;nextcloud;gtd;checklist;planner;organize;schedule;agenda;ical;vtodo;
+StartupWMClass={{{exec}}}
 StartupNotify=true
+X-GNOME-UsesNotifications=true
+X-GNOME-SingleWindow=true

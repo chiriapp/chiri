@@ -2,12 +2,12 @@
 Version=1.0
 Type=Application
 Name=Chiri
-GenericName=CalDAV Task Manager
-Comment=A cross-platform CalDAV task management app
-Icon=moe.sapphic.Chiri
+GenericName=CalDAV task manager
+Comment=A cross-platform CalDAV task management app. Currently in very early alpha!
 Exec=Chiri
+Icon=moe.sapphic.Chiri
 Terminal=false
 Categories=Office;Calendar;ProjectManagement;GTK;
-Keywords=caldav;tasks;todo;calendar;productivity;chiri;
+Keywords=caldav;tasks;todo;calendar;productivity;reminder;sync;nextcloud;gtd;checklist;planner;organize;schedule;agenda;ical;vtodo;
 StartupWMClass=moe.sapphic.Chiri
 StartupNotify=true

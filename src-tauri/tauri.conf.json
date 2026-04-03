@@ -22,13 +22,17 @@
         "minHeight": 600,
         "dragDropEnabled": false,
         "backgroundColor": "#18181B",
-        "visible": false
+        "visible": false,
+        "focus": true
       }
     ]
   },
   "bundle": {
     "active": true,
-    "createUpdaterArtifacts": true
+    "createUpdaterArtifacts": true,
+    "category": "Productivity",
+    "homepage": "https://github.com/SapphoSys/chiri",
+    "copyright": "Copyright (c) 2026 Sapphic Angels"
   },
   "plugins": {
     "updater": {

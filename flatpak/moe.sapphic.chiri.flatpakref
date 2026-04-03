@@ -2,7 +2,7 @@
 Name=moe.sapphic.Chiri
 Branch=stable
 Title=Chiri
-Comment=A cross-platform CalDAV task management app
+Comment=A cross-platform CalDAV task management app. Currently in very early alpha!
 # Update this URL once you have a repository hosted
 # Url=https://YOUR_REPO_URL/repo/
 Homepage=https://github.com/SapphoSys/chiri
