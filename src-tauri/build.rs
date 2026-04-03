@@ -18,8 +18,9 @@ fn compile_swift_notifications() {
 
     let project_root = env!("CARGO_MANIFEST_DIR");
     let objc_source = format!("{}/src/notifications.m", project_root);
-    let output_lib = format!("{}/target/libnotifications.a", project_root);
-    let obj_file = format!("{}/target/notifications.o", project_root);
+    let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR is not set");
+    let output_lib = format!("{}/libnotifications.a", out_dir);
+    let obj_file = format!("{}/notifications.o", out_dir);
 
     // Recompile if Objective-C source changes
     println!("cargo:rerun-if-changed={}", objc_source);
@@ -76,7 +77,7 @@ fn compile_swift_notifications() {
         }
     }
 
-    // Link the static library
-    println!("cargo:rustc-link-search=native={}/target", project_root);
+    // Link the static library from Cargo's writable build output directory.
+    println!("cargo:rustc-link-search=native={}", out_dir);
     println!("cargo:rustc-link-lib=static=notifications");
 }

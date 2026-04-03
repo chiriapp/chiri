@@ -29,7 +29,6 @@ npm-debug.log*
 
 # Tauri
 src-tauri/target/
-src-tauri/gen
 src-tauri/Assets.car
 src-tauri/partial.plist
 
