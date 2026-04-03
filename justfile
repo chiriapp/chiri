@@ -19,13 +19,13 @@ build:
   pnpm tauri build {{build_args}}
 
 build-cef:
-  cd src-tauri && cargo tauri build --features cef
+  cd src-tauri && ./fix-libs.sh && cargo tauri build --features cef -- --no-default-features
 
 dev:
   pnpm tauri dev
 
 dev-cef:
-  cd src-tauri && cargo tauri dev --features cef
+  cd src-tauri && ./fix-libs.sh && cargo tauri dev --features cef -- --no-default-features
 
 hash:
   ./nix/update-hashes.sh

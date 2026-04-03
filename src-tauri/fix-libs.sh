@@ -1,29 +1,43 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
-BINARY_PATH="target/release/Chiri"
+APP_BINARY_PATH="target/release/Chiri"
+CARGO_TAURI_PATH="${CARGO_TAURI_PATH:-$HOME/.cargo/bin/cargo-tauri}"
 
-echo "Fixing library dependencies for signed binary..."
-
-# Check if the binary exists
-if [ ! -f "$BINARY_PATH" ]; then
-    echo "Binary not found at $BINARY_PATH, skipping library fix"
-    exit 0
-fi
-
-# Check if libiconv needs fixing
-if otool -L "$BINARY_PATH" | grep -q "/nix/store.*libiconv"; then
-    echo "Found Nix libiconv dependency, replacing with system library..."
-
-    # Get the current Nix path
-    NIX_ICONV=$(otool -L "$BINARY_PATH" | grep "/nix/store.*libiconv" | awk '{print $1}')
-
-    # Replace with system libiconv
-    install_name_tool -change "$NIX_ICONV" /usr/lib/libiconv.dylib "$BINARY_PATH"
-
-    echo "Successfully replaced Nix libiconv with system library"
-    echo "Updated library path:"
-    otool -L "$BINARY_PATH" | grep iconv
+if [ -e "/usr/lib/libiconv.2.dylib" ]; then
+    SYSTEM_ICONV="/usr/lib/libiconv.2.dylib"
+elif [ -e "/usr/lib/libiconv.dylib" ]; then
+    SYSTEM_ICONV="/usr/lib/libiconv.dylib"
 else
-    echo "No Nix libiconv dependency found, no changes needed"
+    # Keep a sane default even if the host cannot validate the path at script start.
+    SYSTEM_ICONV="/usr/lib/libiconv.2.dylib"
 fi
+
+fix_iconv_dependency() {
+    local binary_path="$1"
+    local binary_label="$2"
+
+    if [ ! -f "$binary_path" ]; then
+        echo "Skipping ${binary_label}: binary not found at ${binary_path}"
+        return 0
+    fi
+
+    local nix_iconv
+    nix_iconv=$(otool -L "$binary_path" | awk '/\/nix\/store\/.*libiconv/ { print $1; exit }')
+
+    if [ -z "$nix_iconv" ]; then
+        echo "No Nix libiconv dependency found for ${binary_label}, no changes needed"
+        return 0
+    fi
+
+    echo "Found Nix libiconv dependency for ${binary_label}: ${nix_iconv}"
+    echo "Replacing with system library: ${SYSTEM_ICONV}"
+    install_name_tool -change "$nix_iconv" "$SYSTEM_ICONV" "$binary_path"
+
+    echo "Updated iconv references for ${binary_label}:"
+    otool -L "$binary_path" | grep iconv || true
+}
+
+echo "Fixing library dependencies for local macOS binaries..."
+fix_iconv_dependency "$APP_BINARY_PATH" "app binary"
+fix_iconv_dependency "$CARGO_TAURI_PATH" "cargo-tauri"
