@@ -3,6 +3,7 @@ import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '$constants';
 import { getIconByName } from '$constants/icons';
 import { useAccounts, useAddCalendar, useUpdateAccount } from '$hooks/queries/useAccounts';
@@ -123,15 +124,10 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-fade-in"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <ModalBackdrop zIndex="z-[60]">
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in"
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in relative"
       >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
@@ -265,6 +261,6 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
           </div>
         </form>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 };

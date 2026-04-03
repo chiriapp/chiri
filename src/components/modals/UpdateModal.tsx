@@ -2,6 +2,7 @@ import Download from 'lucide-react/icons/download';
 import FileText from 'lucide-react/icons/file-text';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import type { UpdateInfo } from '$hooks/system/useUpdateChecker';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
@@ -28,15 +29,10 @@ export const UpdateModal = ({
   useModalEscapeKey(onClose);
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via custom handler
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <ModalBackdrop className="p-4">
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md mx-4 animate-scale-in"
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in relative"
       >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
@@ -109,6 +105,6 @@ export const UpdateModal = ({
           onClose={() => setShowChangelogModal(false)}
         />
       )}
-    </div>
+    </ModalBackdrop>
   );
 };

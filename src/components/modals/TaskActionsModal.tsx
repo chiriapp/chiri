@@ -3,7 +3,7 @@ import SnoozeIcon from 'lucide-react/icons/alarm-clock';
 import CheckSquare from 'lucide-react/icons/check-square';
 import Edit from 'lucide-react/icons/edit';
 import X from 'lucide-react/icons/x';
-import { ModalWrapper } from '$components/ModalWrapper';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { useTasks, useUpdateTask } from '$hooks/queries/useTasks';
 import { useSetSelectedTask } from '$hooks/queries/useUIState';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
@@ -54,85 +54,75 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
   };
 
   return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose}>
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook */}
+    <ModalBackdrop>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/70"
-        onClick={onClose}
+        className="relative flex w-full max-w-md flex-col gap-4 rounded-xl bg-white p-6 shadow-xl dark:bg-surface-800 animate-scale-in"
+        ref={focusTrapRef}
       >
-        {/* biome-ignore lint/a11y/useKeyWithClickEvents: Content click does not require keyboard handler; interactions handled by descendant buttons */}
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: Content click does not require keyboard handler; interactions handled by descendant buttons */}
-        <div
-          className="relative flex w-full max-w-md flex-col gap-4 rounded-xl bg-white p-6 shadow-xl dark:bg-surface-800 animate-scale-in"
-          onClick={(e) => e.stopPropagation()}
-          ref={focusTrapRef}
-        >
-          <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
+              Task Actions
+            </h2>
+            <p className="mt-1 text-sm text-surface-600 dark:text-surface-400 line-clamp-2">
+              {task.title}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={handleComplete}
+            disabled={task.completed}
+            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
+          >
+            <CheckSquare className="h-5 w-5 text-green-600 dark:text-green-500" />
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
-                Task Actions
-              </h2>
-              <p className="mt-1 text-sm text-surface-600 dark:text-surface-400 line-clamp-2">
-                {task.title}
-              </p>
+              <div className="font-semibold">Complete Task</div>
+              <div className="text-xs text-surface-500 dark:text-surface-400">
+                Mark this task as done
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+          </button>
 
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={handleComplete}
-              disabled={task.completed}
-              className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
-            >
-              <CheckSquare className="h-5 w-5 text-green-600 dark:text-green-500" />
-              <div className="flex-1">
-                <div className="font-semibold">Complete Task</div>
-                <div className="text-xs text-surface-500 dark:text-surface-400">
-                  Mark this task as done
-                </div>
+          <button
+            type="button"
+            onClick={handleEdit}
+            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
+          >
+            <Edit className="h-5 w-5 text-blue-600 dark:text-blue-500" />
+            <div className="flex-1">
+              <div className="font-semibold">Edit Task</div>
+              <div className="text-xs text-surface-500 dark:text-surface-400">
+                Open the task editor
               </div>
-            </button>
+            </div>
+          </button>
 
-            <button
-              type="button"
-              onClick={handleEdit}
-              className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
-            >
-              <Edit className="h-5 w-5 text-blue-600 dark:text-blue-500" />
-              <div className="flex-1">
-                <div className="font-semibold">Edit Task</div>
-                <div className="text-xs text-surface-500 dark:text-surface-400">
-                  Open the task editor
-                </div>
+          <button
+            type="button"
+            onClick={handleSnooze}
+            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
+          >
+            <SnoozeIcon className="h-5 w-5 text-orange-600 dark:text-orange-500" />
+            <div className="flex-1">
+              <div className="font-semibold">Snooze</div>
+              <div className="text-xs text-surface-500 dark:text-surface-400">
+                Remind me again later
               </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSnooze}
-              className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700"
-            >
-              <SnoozeIcon className="h-5 w-5 text-orange-600 dark:text-orange-500" />
-              <div className="flex-1">
-                <div className="font-semibold">Snooze</div>
-                <div className="text-xs text-surface-500 dark:text-surface-400">
-                  Remind me again later
-                </div>
-              </div>
-            </button>
-          </div>
+            </div>
+          </button>
         </div>
       </div>
-    </ModalWrapper>
+    </ModalBackdrop>
   );
 };

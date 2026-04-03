@@ -66,8 +66,7 @@ interface CalendarItemContentProps {
   textColor: string | undefined;
   calendarColor: string;
   isDragging?: boolean;
-  // biome-ignore lint/suspicious/noExplicitAny: spread onto button from useSortable
-  dragHandleProps?: Record<string, any>;
+  dragHandleProps?: React.HTMLAttributes<HTMLElement>;
   onSelect: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
 }
@@ -286,8 +285,7 @@ interface AccountRowContentProps {
     id: string,
     accountId?: string,
   ) => void;
-  // biome-ignore lint/suspicious/noExplicitAny: spread from useSortable
-  dragHandleProps?: Record<string, any>;
+  dragHandleProps?: React.HTMLAttributes<HTMLElement>;
 }
 
 const AccountRowContent = ({

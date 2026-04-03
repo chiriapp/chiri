@@ -4,6 +4,7 @@ import Loader2 from 'lucide-react/icons/loader-2';
 import X from 'lucide-react/icons/x';
 import { useEffect, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
@@ -166,15 +167,10 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
   const isLoading = isValidating || isLoggingIn || isProcessing;
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
-    <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 animate-fade-in"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <ModalBackdrop zIndex="z-[70]">
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in relative"
       >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <div className="flex items-center gap-2">
@@ -283,6 +279,6 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
           )}
         </div>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 };

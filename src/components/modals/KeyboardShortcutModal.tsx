@@ -1,6 +1,7 @@
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { KeyboardShortcut } from '$types';
@@ -93,15 +94,10 @@ export const KeyboardShortcutModal = ({
   if (!isOpen || !shortcut) return null;
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; intentionally captures all keyboard for shortcut capture mode
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4 animate-fade-in"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <ModalBackdrop zIndex="z-[60]" className="p-4">
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in relative"
       >
         <div className="flex items-start justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <div>
@@ -216,6 +212,6 @@ export const KeyboardShortcutModal = ({
           </button>
         </div>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 };

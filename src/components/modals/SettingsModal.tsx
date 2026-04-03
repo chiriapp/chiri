@@ -18,6 +18,7 @@ import SquarePen from 'lucide-react/icons/square-pen';
 import User from 'lucide-react/icons/user';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { AboutSettings } from '$components/settings/AboutSettings';
 import { BadgesSettings } from '$components/settings/BadgesSettings';
 import { BehaviorSettings } from '$components/settings/BehaviorSettings';
@@ -125,15 +126,10 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
   const currentSubtab = activeSubtabs[activeCategory];
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <ModalBackdrop>
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-3xl flex flex-col animate-scale-in h-full max-h-[75vh] overflow-hidden"
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-3xl flex flex-col animate-scale-in h-full max-h-[75vh] overflow-hidden relative"
       >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Settings</h2>
@@ -235,6 +231,6 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
           </div>
         </div>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 };

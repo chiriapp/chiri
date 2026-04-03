@@ -7,6 +7,7 @@ import X from 'lucide-react/icons/x';
 import { useRef, useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
 import { ComposedInput } from '$components/ComposedInput';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { NextcloudLoginModal } from '$components/modals/NextcloudLoginModal';
 import { RusticalLoginModal } from '$components/modals/RusticalLoginModal';
 import {
@@ -358,15 +359,10 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       )}
 
       {!showNextcloudLogin && !showRusticalLogin && (
-        // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
-        // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-fade-in"
-          onClick={(e) => e.stopPropagation()}
-        >
+        <ModalBackdrop zIndex="z-[60]">
           <div
             ref={focusTrapRef}
-            className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
+            className="relative bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
           >
             <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
               <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
@@ -613,7 +609,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               </div>
             </form>
           </div>
-        </div>
+        </ModalBackdrop>
       )}
     </>
   );

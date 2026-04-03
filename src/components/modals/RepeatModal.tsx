@@ -3,6 +3,7 @@ import CalendarPlus from 'lucide-react/icons/calendar-plus';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
@@ -234,15 +235,10 @@ export const RepeatModal = ({
   ];
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via useModalEscapeKey hook
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-fade-in"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <ModalBackdrop zIndex="z-[60]">
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in flex flex-col max-h-[90vh]"
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in flex flex-col max-h-[90vh] relative"
       >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Repeat</h2>
@@ -490,6 +486,6 @@ export const RepeatModal = ({
           hideTimeControls
         />
       )}
-    </div>
+    </ModalBackdrop>
   );
 };

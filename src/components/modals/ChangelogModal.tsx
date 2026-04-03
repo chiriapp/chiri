@@ -3,6 +3,7 @@ import ExternalLink from 'lucide-react/icons/external-link';
 import X from 'lucide-react/icons/x';
 import { marked } from 'marked';
 import { useMemo } from 'react';
+import { ModalBackdrop } from '$components/ModalBackdrop';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 
@@ -36,19 +37,10 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
   }, [cleanedChangelog, hasContent]);
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop does not require keyboard handler; ESC key closes modal via custom handler
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop is non-interactive; users close with Escape or X button
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 animate-fade-in"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
-    >
+    <ModalBackdrop className="p-4">
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col animate-scale-in"
+        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col animate-scale-in relative"
       >
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 shrink-0">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
@@ -104,6 +96,6 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
           </button>
         </div>
       </div>
-    </div>
+    </ModalBackdrop>
   );
 };

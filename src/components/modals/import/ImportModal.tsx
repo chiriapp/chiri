@@ -377,19 +377,16 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   const showDropZoneHighlight = isDraggingInDropZone && step === 'upload';
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop requires drag handlers
+    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop requires drag handlers for file drop functionality
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] animate-fade-in"
       onDrop={handleModalDrop}
       onDragOver={handleModalDragOver}
       onDragLeave={handleModalDragLeave}
     >
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: Modal content click handler prevents backdrop close */}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: Stops click propagation to backdrop */}
       <div
         ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
+        className="relative bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in max-h-[90vh] flex flex-col"
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
