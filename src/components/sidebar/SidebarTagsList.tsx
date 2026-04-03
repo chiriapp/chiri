@@ -51,8 +51,7 @@ interface TagItemContentProps {
   taskCount: number;
   isAnyTagDragging?: boolean;
   isDragging?: boolean;
-  // biome-ignore lint/suspicious/noExplicitAny: spread onto button from useSortable
-  dragHandleProps?: Record<string, any>;
+  dragHandleProps?: React.HTMLAttributes<HTMLElement>;
   onSelect: () => void;
   onContextMenu: (e: React.MouseEvent) => void;
 }
