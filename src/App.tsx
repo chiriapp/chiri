@@ -7,7 +7,7 @@ import { AccountModal } from '$components/modals/AccountModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import { ExportModal } from '$components/modals/ExportModal';
-import { ImportModal } from '$components/modals/ImportModal';
+import { ImportModal } from '$components/modals/import/ImportModal';
 import { OnboardingModal } from '$components/modals/OnboardingModal';
 import { SettingsModal } from '$components/modals/SettingsModal';
 import { TaskActionsModal } from '$components/modals/TaskActionsModal';
