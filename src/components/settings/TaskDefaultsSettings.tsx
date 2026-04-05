@@ -336,7 +336,7 @@ export const TaskDefaultsSettings = () => {
             disabled={
               accounts.length === 0 || !accounts.some((account) => account.calendars.length > 0)
             }
-            className="max-w-[200px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="max-w-50 text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {accounts.length === 0 || !accounts.some((account) => account.calendars.length > 0) ? (
               <option value="">No accounts available</option>

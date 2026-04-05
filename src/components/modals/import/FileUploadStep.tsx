@@ -100,7 +100,7 @@ export const FileUploadStep = ({
           <div className="flex items-center justify-center gap-3 pointer-events-none">
             <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg shadow-xs">
               <span className="text-primary-600 dark:text-primary-400">{getFileIcon()}</span>
-              <span className="text-sm font-medium text-surface-700 dark:text-surface-300 max-w-[200px] truncate">
+              <span className="text-sm font-medium text-surface-700 dark:text-surface-300 max-w-50 truncate">
                 {fileName}
               </span>
               <button

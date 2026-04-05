@@ -85,7 +85,7 @@ export const IconEmojiPicker = ({
       {isOpen && (
         <div
           data-icon-emoji-picker-dropdown
-          className="absolute z-50 mt-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg shadow-lg animate-scale-in w-[352px]"
+          className="absolute z-50 mt-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 rounded-lg shadow-lg animate-scale-in w-88"
         >
           <div className="flex border-b border-surface-200 dark:border-surface-700">
             <button
@@ -126,7 +126,7 @@ export const IconEmojiPicker = ({
                   />
                 </div>
               </div>
-              <div className="h-[286px] overflow-y-auto">
+              <div className="h-71.5 overflow-y-auto">
                 {filteredIcons.length === 0 ? (
                   <div className="flex items-center justify-center h-full text-surface-400 dark:text-surface-500 text-sm">
                     No icons found
@@ -176,7 +176,7 @@ export const IconEmojiPicker = ({
                   </div>
                 </div>
 
-                <EmojiPicker.Viewport className="outline-hidden h-[252px]">
+                <EmojiPicker.Viewport className="outline-hidden h-63">
                   <EmojiPicker.Loading className="absolute inset-0 flex items-center justify-center text-surface-400 text-sm dark:text-surface-500">
                     Loading…
                   </EmojiPicker.Loading>
@@ -212,7 +212,7 @@ export const IconEmojiPicker = ({
                   />
                 </EmojiPicker.Viewport>
 
-                <div className="flex items-center gap-2 border-t border-surface-200 dark:border-surface-700 px-3 py-2 min-h-[34px]">
+                <div className="flex items-center gap-2 border-t border-surface-200 dark:border-surface-700 px-3 py-2 min-h-8.5">
                   <EmojiPicker.ActiveEmoji>
                     {({ emoji }) =>
                       emoji ? (

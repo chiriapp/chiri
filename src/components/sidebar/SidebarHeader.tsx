@@ -15,7 +15,7 @@ export const SidebarHeader = ({
   onToggleCollapse,
 }: SidebarHeaderProps) => {
   return (
-    <div className="h-[53px] px-2 flex items-center justify-center border-b border-surface-200 dark:border-surface-700 shrink-0">
+    <div className="h-13.25 px-2 flex items-center justify-center border-b border-surface-200 dark:border-surface-700 shrink-0">
       {isCollapsed ? (
         <Tooltip content="Expand sidebar" position="right">
           <button
