@@ -2,7 +2,7 @@ import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import { pluralize } from '$utils/misc';
 
-export const TaskItemCollapseButton = ({
+export const TaskItemCollapseButtonBadge = ({
   isCollapsed,
   childCount,
   onToggleCollapsed,

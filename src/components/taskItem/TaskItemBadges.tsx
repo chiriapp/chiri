@@ -1,12 +1,12 @@
-import { TaskItemCalendarBadge } from '$components/taskItem/TaskItemCalendarBadge';
-import { TaskItemCollapseButton } from '$components/taskItem/TaskItemCollapseButton';
-import { TaskItemHiddenSubtasksBadge } from '$components/taskItem/TaskItemHiddenSubtasksBadge';
-import { TaskItemInProgressBadge } from '$components/taskItem/TaskItemInProgressBadge';
-import { TaskItemRepeatBadge } from '$components/taskItem/TaskItemRepeatBadge';
-import { TaskItemStartDateBadge } from '$components/taskItem/TaskItemStartDateBadge';
-import { TaskItemSubtaskProgressBadge } from '$components/taskItem/TaskItemSubtaskProgressBadge';
-import { TaskItemTagBadge } from '$components/taskItem/TaskItemTagBadge';
-import { TaskItemURLBadge } from '$components/taskItem/TaskItemURLBadge';
+import { TaskItemCalendarBadge } from '$components/taskItem/badges/TaskItemCalendarBadge';
+import { TaskItemCollapseButtonBadge } from '$components/taskItem/badges/TaskItemCollapseButtonBadge';
+import { TaskItemHiddenSubtasksBadge } from '$components/taskItem/badges/TaskItemHiddenSubtasksBadge';
+import { TaskItemInProgressBadge } from '$components/taskItem/badges/TaskItemInProgressBadge';
+import { TaskItemRepeatBadge } from '$components/taskItem/badges/TaskItemRepeatBadge';
+import { TaskItemStartDateBadge } from '$components/taskItem/badges/TaskItemStartDateBadge';
+import { TaskItemSubtaskProgressBadge } from '$components/taskItem/badges/TaskItemSubtaskProgressBadge';
+import { TaskItemTagBadge } from '$components/taskItem/badges/TaskItemTagBadge';
+import { TaskItemURLBadge } from '$components/taskItem/badges/TaskItemURLBadge';
 import { FALLBACK_ITEM_COLOR } from '$constants';
 import { getAllTags } from '$lib/store/tags';
 import { countChildren, getChildTasks } from '$lib/store/tasks';
@@ -108,7 +108,7 @@ export const TaskItemBadges = ({
       )}
 
       {badgeVisibility.subtasks && childCount > 0 && (
-        <TaskItemCollapseButton
+        <TaskItemCollapseButtonBadge
           isCollapsed={!!task.isCollapsed}
           childCount={childCount}
           onToggleCollapsed={onToggleCollapsed}
