@@ -1,47 +1,37 @@
-import { useEffect, useState } from 'react';
-import { getInstallType, type InstallType } from '$utils/platform';
+import { useQuery } from '@tanstack/react-query';
+import { invoke } from '@tauri-apps/api/core';
+import { loggers } from '$lib/logger';
+import type { InstallType } from '$types';
 
-// Cache the installation type at module level to avoid re-fetching.
-let cachedInstallType: InstallType | null = null;
-let fetchPromise: Promise<InstallType> | null = null;
+const log = loggers.platform;
 
 /**
  * Hook to detect if the app is running under a managed installation
  * where updates are handled externally.
  */
 export const useManagedInstallation = () => {
-  const [installType, setInstallType] = useState<InstallType | null>(cachedInstallType);
-
-  useEffect(() => {
-    let mounted = true;
-
-    if (cachedInstallType !== null) {
-      return;
-    }
-
-    if (!fetchPromise) {
-      fetchPromise = getInstallType().finally(() => {
-        fetchPromise = null;
-      });
-    }
-
-    fetchPromise.then((type) => {
-      cachedInstallType = type;
-      if (mounted) {
-        setInstallType(type);
+  const query = useQuery({
+    queryKey: ['platform', 'installType'],
+    queryFn: async () => {
+      try {
+        return await invoke<InstallType>('get_install_type');
+      } catch (error) {
+        log.error('[Platform] Failed to get installation type:', error);
+        return 'standard';
       }
-    });
+    },
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    retry: false,
+  });
 
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const installType = query.data ?? null;
 
   const isManagedInstall = installType !== null && installType !== 'standard';
 
   return {
     isManagedInstall,
     installType,
-    isLoading: installType === null,
+    isLoading: query.isPending,
   };
 };

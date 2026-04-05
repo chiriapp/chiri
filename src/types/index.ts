@@ -1,3 +1,5 @@
+export type InstallType = 'nix' | 'aur' | 'flatpak' | 'standard';
+
 export type Priority = 'high' | 'medium' | 'low' | 'none';
 
 export type TaskStatus = 'needs-action' | 'in-process' | 'completed' | 'cancelled';

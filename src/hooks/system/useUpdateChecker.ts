@@ -1,3 +1,4 @@
+import { useIsMutating, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getVersion } from '@tauri-apps/api/app';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
@@ -34,19 +35,19 @@ export interface UseUpdateCheckerResult {
   downloadProgress: number;
 }
 
-// Module-level state that persists across component mounts
-let sharedUpdateState: UpdateInfo | null = null;
-let sharedDismissed = false;
-let sharedIsChecking = false;
-let activeUpdateCheckTrigger: string | null = null;
-let startupUpdateCheckScheduled = false;
-const stateChangeListeners = new Set<() => void>();
+const UPDATE_AVAILABLE_QUERY_KEY = ['system', 'updater', 'available'] as const;
+const UPDATE_DISMISSED_QUERY_KEY = ['system', 'updater', 'dismissed'] as const;
+const CHECK_UPDATES_MUTATION_KEY = ['system', 'updater', 'check'] as const;
+const DOWNLOAD_UPDATE_MUTATION_KEY = ['system', 'updater', 'download'] as const;
 
-const notifyListeners = () => {
-  for (const listener of stateChangeListeners) {
-    listener();
-  }
+type CheckForUpdatesArgs = {
+  trigger: string;
+  onUpdateFound?: () => void;
 };
+
+let activeUpdateCheckTrigger: string | null = null;
+let isCheckInProgress = false;
+let startupUpdateCheckScheduled = false;
 
 const extractErrorMessage = (err: unknown) => {
   if (err instanceof Error) {
@@ -127,56 +128,38 @@ const toUserFriendlyUpdateDownloadError = (rawMessage: string) => {
 };
 
 export const useUpdateChecker = (): UseUpdateCheckerResult => {
-  const [updateAvailable, setUpdateAvailable] = useState<UpdateInfo | null>(sharedUpdateState);
-  const [isChecking, setIsChecking] = useState(sharedIsChecking);
+  const queryClient = useQueryClient();
+
+  const { data: updateAvailable = null } = useQuery<UpdateInfo | null>({
+    queryKey: UPDATE_AVAILABLE_QUERY_KEY,
+    queryFn: () => null,
+    initialData: null,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
+
+  const { data: dismissed = false } = useQuery<boolean>({
+    queryKey: UPDATE_DISMISSED_QUERY_KEY,
+    queryFn: () => false,
+    initialData: false,
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+  });
+
   const [error, setError] = useState<UpdateError | null>(null);
-  const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-  const [dismissed, setDismissed] = useState(sharedDismissed);
 
-  // Sync with shared state
-  useEffect(() => {
-    const listener = () => {
-      setUpdateAvailable(sharedUpdateState);
-      setDismissed(sharedDismissed);
-      setIsChecking(sharedIsChecking);
-    };
-    stateChangeListeners.add(listener);
-    return () => {
-      stateChangeListeners.delete(listener);
-    };
-  }, []);
+  const checkForUpdatesMutation = useMutation<void, unknown, CheckForUpdatesArgs>({
+    mutationKey: CHECK_UPDATES_MUTATION_KEY,
+    mutationFn: async ({ trigger, onUpdateFound }) => {
+      const isMenuCheck = trigger === 'menu-manual';
 
-  const checkForUpdates = useCallback(async (trigger = 'unknown', onUpdateFound?: () => void) => {
-    if (sharedIsChecking) {
-      log.info('Update check skipped - already in progress', {
-        requestedBy: trigger,
-        activeBy: activeUpdateCheckTrigger,
-      });
-      return;
-    }
-
-    sharedIsChecking = true;
-    activeUpdateCheckTrigger = trigger;
-    notifyListeners();
-    setIsChecking(true);
-    setError(null);
-
-    // Show feedback only for app menu checks
-    const isMenuCheck = trigger === 'menu-manual';
-    if (isMenuCheck) {
-      toastManager.info('Checking for updates...', '', 'update-check-checking', undefined, false);
-    }
-
-    try {
       const disableUpdates = await shouldDisableUpdates();
       if (disableUpdates) {
         log.info('Update check skipped for managed installation', {
           trigger,
         });
-        sharedUpdateState = null;
-        setUpdateAvailable(null);
-        notifyListeners();
+        queryClient.setQueryData(UPDATE_AVAILABLE_QUERY_KEY, null);
         return;
       }
 
@@ -189,102 +172,50 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
       if (update) {
         log.info(`Update available: ${update.version}`);
 
-        // Dismiss the checking toast for menu checks
         if (isMenuCheck) {
           toastManager.dismiss('update-check-checking');
         }
 
-        // Fetch release notes from GitHub API if not provided by updater
         const body = update.body || (await fetchReleaseNotes(update.version));
-
-        const updateInfo = {
+        const updateInfo: UpdateInfo = {
           version: update.version,
           body,
           date: update.date,
           currentVersion,
         };
-        sharedUpdateState = updateInfo;
-        setUpdateAvailable(updateInfo);
-        notifyListeners();
 
-        // Call the callback if provided (to show modal)
+        queryClient.setQueryData(UPDATE_AVAILABLE_QUERY_KEY, updateInfo);
+
         if (onUpdateFound) {
           onUpdateFound();
         }
-      } else {
-        log.info('No updates available');
-        sharedUpdateState = null;
-        setUpdateAvailable(null);
-        notifyListeners();
-
-        // Show success message for menu checks
-        if (isMenuCheck) {
-          toastManager.dismiss('update-check-checking');
-          toastManager.success(
-            "You're up to date!",
-            `Running version ${currentVersion}`,
-            'update-check-success',
-            undefined,
-            false,
-          );
-        }
+        return;
       }
-    } catch (err) {
-      const rawMessage = extractErrorMessage(err);
-      const userMessage = toUserFriendlyUpdateCheckError(rawMessage);
-      log.error('Update check failed:', {
-        error: err,
-        trigger,
-        rawMessage,
-        userMessage,
-      });
-      setError({
-        kind: 'check',
-        title: 'Update check failed',
-        description: userMessage,
-      });
 
-      // Show error toast for menu checks
+      log.info('No updates available');
+      queryClient.setQueryData(UPDATE_AVAILABLE_QUERY_KEY, null);
+
       if (isMenuCheck) {
         toastManager.dismiss('update-check-checking');
-        toastManager.error(
-          'Update check failed',
-          userMessage,
-          'update-check-error',
+        toastManager.success(
+          "You're up to date!",
+          `Running version ${currentVersion}`,
+          'update-check-success',
           undefined,
           false,
         );
       }
-    } finally {
-      sharedIsChecking = false;
-      activeUpdateCheckTrigger = null;
-      notifyListeners();
-      setIsChecking(false);
-    }
-  }, []);
+    },
+  });
 
-  const downloadAndInstall = useCallback(async () => {
-    if (!updateAvailable) {
-      return;
-    }
+  const downloadUpdateMutation = useMutation<void, unknown, UpdateInfo>({
+    mutationKey: DOWNLOAD_UPDATE_MUTATION_KEY,
+    mutationFn: async () => {
+      const disableUpdates = await shouldDisableUpdates();
+      if (disableUpdates) {
+        throw new Error('__managed_installation__');
+      }
 
-    const disableUpdates = await shouldDisableUpdates();
-    if (disableUpdates) {
-      log.warn('Update download blocked for managed installation');
-      setError({
-        kind: 'download',
-        title: 'Updates are managed by your package manager',
-        description:
-          'This installation is managed externally. Please update Chiri through your system package manager.',
-      });
-      return;
-    }
-
-    setIsDownloading(true);
-    setDownloadProgress(0);
-    setError(null);
-
-    try {
       const update = await check();
       if (!update) {
         throw new Error('Update no longer available');
@@ -314,7 +245,88 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
       log.info('Update installed, relaunching...');
       await relaunch();
+    },
+  });
+
+  const isChecking = useIsMutating({ mutationKey: CHECK_UPDATES_MUTATION_KEY }) > 0;
+  const isDownloading = useIsMutating({ mutationKey: DOWNLOAD_UPDATE_MUTATION_KEY }) > 0;
+
+  const checkForUpdates = useCallback(
+    async (trigger = 'unknown', onUpdateFound?: () => void) => {
+      if (isCheckInProgress) {
+        log.info('Update check skipped - already in progress', {
+          requestedBy: trigger,
+          activeBy: activeUpdateCheckTrigger,
+        });
+        return;
+      }
+
+      isCheckInProgress = true;
+      activeUpdateCheckTrigger = trigger;
+      setError(null);
+
+      const isMenuCheck = trigger === 'menu-manual';
+      if (isMenuCheck) {
+        toastManager.info('Checking for updates...', '', 'update-check-checking', undefined, false);
+      }
+
+      try {
+        await checkForUpdatesMutation.mutateAsync({ trigger, onUpdateFound });
+      } catch (err) {
+        const rawMessage = extractErrorMessage(err);
+        const userMessage = toUserFriendlyUpdateCheckError(rawMessage);
+        log.error('Update check failed:', {
+          error: err,
+          trigger,
+          rawMessage,
+          userMessage,
+        });
+        setError({
+          kind: 'check',
+          title: 'Update check failed',
+          description: userMessage,
+        });
+
+        if (isMenuCheck) {
+          toastManager.dismiss('update-check-checking');
+          toastManager.error(
+            'Update check failed',
+            userMessage,
+            'update-check-error',
+            undefined,
+            false,
+          );
+        }
+      } finally {
+        isCheckInProgress = false;
+        activeUpdateCheckTrigger = null;
+      }
+    },
+    [checkForUpdatesMutation],
+  );
+
+  const downloadAndInstall = useCallback(async () => {
+    if (!updateAvailable) {
+      return;
+    }
+
+    setError(null);
+    setDownloadProgress(0);
+
+    try {
+      await downloadUpdateMutation.mutateAsync(updateAvailable);
     } catch (err) {
+      if (err instanceof Error && err.message === '__managed_installation__') {
+        log.warn('Update download blocked for managed installation');
+        setError({
+          kind: 'download',
+          title: 'Updates are managed by your package manager',
+          description:
+            'This installation is managed externally. Please update Chiri through your system package manager.',
+        });
+        return;
+      }
+
       const rawMessage = extractErrorMessage(err);
       const userMessage = toUserFriendlyUpdateDownloadError(rawMessage);
       log.error('Update download failed:', {
@@ -327,18 +339,13 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
         title: 'Update download failed',
         description: userMessage,
       });
-    } finally {
-      setIsDownloading(false);
     }
-  }, [updateAvailable]);
+  }, [downloadUpdateMutation, updateAvailable]);
 
   const dismissUpdate = useCallback(() => {
-    sharedDismissed = true;
-    sharedUpdateState = null;
-    setDismissed(true);
-    setUpdateAvailable(null);
-    notifyListeners();
-  }, []);
+    queryClient.setQueryData(UPDATE_DISMISSED_QUERY_KEY, true);
+    queryClient.setQueryData(UPDATE_AVAILABLE_QUERY_KEY, null);
+  }, [queryClient]);
 
   useEffect(() => {
     // Check if automatic updates are enabled
