@@ -1,3 +1,5 @@
+export type InstallType = 'nix' | 'aur' | 'flatpak' | 'standard';
+
 export type Priority = 'high' | 'medium' | 'low' | 'none';
 
 export type TaskStatus = 'needs-action' | 'in-process' | 'completed' | 'cancelled';
@@ -59,9 +61,7 @@ export type SortDirection = 'asc' | 'desc';
 
 export interface Reminder {
   id: string;
-  trigger: Date; // absolute date/time when the reminder fires (resolved from relative if needed)
-  relativeOffset?: number; // milliseconds; if set, this was a relative trigger and should round-trip as one
-  relatedTo?: 'start' | 'end'; // which date the offset is relative to (RELATED=START/END)
+  trigger: Date; // absolute date/time when the reminder should fire
 }
 
 export interface Task {
@@ -155,12 +155,10 @@ export interface Account {
   username: string;
   password: string;
   serverType?: ServerType;
-  calendarHomeUrl?: string;
   calendars: Calendar[];
   lastSync?: Date;
   isActive: boolean;
   sortOrder: number;
-  acceptInvalidCerts?: boolean;
 }
 
 export interface SortConfig {

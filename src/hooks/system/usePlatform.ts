@@ -1,23 +1,24 @@
+import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
-import { useEffect, useState } from 'react';
 
 export const usePlatform = () => {
-  const [isGNOME, setIsGNOME] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    invoke<boolean>('is_gnome_desktop')
-      .then((result) => {
-        setIsGNOME(result);
-      })
-      .catch((error) => {
+  const query = useQuery({
+    queryKey: ['platform', 'isGnomeDesktop'],
+    queryFn: async () => {
+      try {
+        return await invoke<boolean>('is_gnome_desktop');
+      } catch (error) {
         console.error('Failed to detect GNOME desktop:', error);
-        setIsGNOME(false);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+        return false;
+      }
+    },
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    retry: false,
+  });
 
-  return { isGNOME, isLoading };
+  return {
+    isGNOME: query.data ?? false,
+    isLoading: query.isPending,
+  };
 };

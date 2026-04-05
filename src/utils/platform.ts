@@ -4,8 +4,6 @@ import { loggers } from '$lib/logger';
 let isCefRuntime: boolean | null = null;
 const log = loggers.platform;
 
-export type InstallType = 'nix' | 'aur' | 'flatpak' | 'standard';
-
 /**
  * Detect if running under CEF (Chromium Embedded Framework) runtime
  */
@@ -46,17 +44,5 @@ export const shouldDisableUpdates = async (): Promise<boolean> => {
   } catch (error) {
     log.error('[Platform] Failed to check installation type:', error);
     return false;
-  }
-};
-
-/**
- * Get the installation type.
- */
-export const getInstallType = async (): Promise<InstallType> => {
-  try {
-    return await invoke<InstallType>('get_install_type');
-  } catch (error) {
-    log.error('[Platform] Failed to get installation type:', error);
-    return 'standard';
   }
 };
