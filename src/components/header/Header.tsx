@@ -234,7 +234,7 @@ export const Header = ({
                 <div className="fixed inset-0 z-40" onClick={() => setShowViewMenu(false)} />
                 <div
                   data-context-menu-content
-                  className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-[240px] animate-scale-in"
+                  className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-60 animate-scale-in"
                 >
                   <div className="px-3 py-2 border-b border-surface-200 dark:border-surface-700">
                     <HeaderViewMenuCheckbox

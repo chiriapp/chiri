@@ -185,7 +185,7 @@ export const TaskItemContextMenu = ({
 
           <div
             data-context-menu-content
-            className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 my-1 z-50 min-w-[200px] animate-scale-in"
+            className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 my-1 z-50 min-w-50 animate-scale-in"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
             <button
@@ -271,7 +271,7 @@ export const TaskItemContextMenu = ({
             <div
               data-context-menu-content
               role="menu"
-              className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-60 min-w-[140px] animate-scale-in"
+              className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-60 min-w-35 animate-scale-in"
               style={
                 priorityFlyoutPos.useRight
                   ? { right: priorityFlyoutPos.x, top: priorityFlyoutPos.y }
@@ -306,7 +306,7 @@ export const TaskItemContextMenu = ({
             <div
               data-context-menu-content
               role="menu"
-              className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-60 min-w-[160px] animate-scale-in"
+              className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-60 min-w-40 animate-scale-in"
               style={
                 statusFlyoutPos.useRight
                   ? { right: statusFlyoutPos.x, top: statusFlyoutPos.y }

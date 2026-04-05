@@ -284,7 +284,7 @@ export const SidebarTagsList = ({
             <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
             <div
               data-context-menu-content
-              className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-[200px] animate-scale-in"
+              className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-50 animate-scale-in"
             >
               <div className="py-2">
                 <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
