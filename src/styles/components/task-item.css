@@ -1,0 +1,6 @@
+/* hide focus ring on task items when not focused via keyboard */
+/* the focus:outline-none class on task items handles keyboard focus */
+/* but we also need to remove any programmatic focus rings */
+.task-item:focus-visible {
+  outline: none;
+}
