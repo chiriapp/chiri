@@ -1,0 +1,14 @@
+/* Drag and drop styling */
+.dragging {
+  opacity: 0.5;
+  /* biome-ignore lint/complexity/noImportantStyles: 'grabbing' makes sense here, so we force it */
+  cursor: grabbing !important;
+}
+
+.drag-overlay {
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  transform: scale(1.02);
+  cursor: grabbing;
+}

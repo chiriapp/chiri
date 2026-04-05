@@ -1,0 +1,69 @@
+/* Prevent text selection on all UI elements by default, only allow in input fields */
+* {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Date picker styling */
+input[type="date"],
+input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+/* Explicitly allow selection only in input fields and editable content */
+input,
+textarea,
+[contenteditable="true"],
+.selectable {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Accent-colored checkboxes */
+input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(var(--primary-rgb-400, 96 165 250));
+  border-radius: 4px;
+  background-color: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+
+  &:hover {
+    border-color: rgb(var(--primary-rgb-500, 59 130 246));
+    background-color: rgb(var(--primary-rgb-50, 239 246 255));
+  }
+
+  &:checked {
+    background-color: rgb(var(--primary-rgb-600, 37 99 235));
+    border-color: rgb(var(--primary-rgb-600, 37 99 235));
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 4px;
+      height: 8px;
+      border: solid var(--primary-contrast-color, white);
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+  }
+}
+
+.dark input[type="checkbox"] {
+  border-color: rgb(var(--primary-rgb-500, 59 130 246));
+
+  &:hover {
+    background-color: rgb(var(--primary-rgb-900, 30 58 138) / 0.3);
+  }
+
+  &:checked {
+    background-color: rgb(var(--primary-rgb-500, 59 130 246));
+    border-color: rgb(var(--primary-rgb-500, 59 130 246));
+  }
+}
