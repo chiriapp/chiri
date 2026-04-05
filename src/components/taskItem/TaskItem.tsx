@@ -2,10 +2,10 @@ import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import { useEffect, useRef, useState } from 'react';
+import { TaskItemDueDateBadge } from '$components/taskItem/badges/TaskItemDueDateBadge';
 import { TaskItemBadges } from '$components/taskItem/TaskItemBadges';
 import { TaskItemCheckbox } from '$components/taskItem/TaskItemCheckbox';
 import { TaskItemContextMenu } from '$components/taskItem/TaskItemContextMenu';
-import { TaskItemDueDateBadge } from '$components/taskItem/TaskItemDueDateBadge';
 import { TaskItemTitle } from '$components/taskItem/TaskItemTitle';
 import { getPriorityColor, getPriorityRingColor } from '$constants/priority';
 import { useAccounts } from '$hooks/queries/useAccounts';
@@ -227,6 +227,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                   <TaskItemDueDateBadge dueDate={task.dueDate} />
                 </div>
               </div>
+
               {filterCalDavDescription(task.description) && (
                 <div
                   className={`text-xs mt-1 line-clamp-1 ${task.status === 'completed' || task.status === 'cancelled' ? 'text-surface-400 dark:text-surface-500' : 'text-surface-500 dark:text-surface-400'}`}
