@@ -94,7 +94,7 @@ export const KeyboardShortcutModal = ({
   if (!isOpen || !shortcut) return null;
 
   return (
-    <ModalBackdrop zIndex="z-[60]" className="p-4">
+    <ModalBackdrop zIndex="z-60" className="p-4">
       <div
         ref={focusTrapRef}
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in relative"
@@ -111,7 +111,7 @@ export const KeyboardShortcutModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex-shrink-0 p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="shrink-0 p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <X className="w-5 h-5" />
           </button>
@@ -129,7 +129,7 @@ export const KeyboardShortcutModal = ({
               // biome-ignore lint/a11y/noNoninteractiveTabindex: we need to make this div focusable to capture key events, but it doesn't have typical interactive behavior
               tabIndex={0}
               onKeyDown={handleKeyCapture}
-              className="w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg focus:outline-none focus:border-primary-500 focus:bg-primary-50 dark:focus:bg-primary-900/20 transition-colors cursor-text"
+              className="w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-primary-50 dark:focus:bg-primary-900/20 transition-colors cursor-text"
               aria-label="Press keys to set shortcut"
             >
               {displayShortcut ? (
@@ -139,7 +139,7 @@ export const KeyboardShortcutModal = ({
                     .map((key, idx, arr) => (
                       <span key={`key-${key}`} className="flex items-center">
                         <kbd
-                          className={`px-3 py-2 rounded-lg text-sm font-mono shadow-sm ${
+                          className={`px-3 py-2 rounded-lg text-sm font-mono shadow-xs ${
                             pendingShortcut
                               ? 'bg-primary-100 dark:bg-primary-900/50 border-2 border-primary-400 dark:border-primary-600 text-primary-700 dark:text-primary-300'
                               : 'bg-surface-100 dark:bg-surface-700 border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300'
@@ -164,7 +164,7 @@ export const KeyboardShortcutModal = ({
               <button
                 type="button"
                 onClick={handleReset}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <RotateCcw className="w-3 h-3" />
                 Reset to original
@@ -175,14 +175,14 @@ export const KeyboardShortcutModal = ({
           <div className="text-xs text-surface-500 dark:text-surface-400 text-center space-y-1">
             <p>
               Press{' '}
-              <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded text-surface-600 dark:text-surface-400">
+              <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded-sm text-surface-600 dark:text-surface-400">
                 Enter
               </kbd>{' '}
               to save
             </p>
             <p>
               Press{' '}
-              <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded text-surface-600 dark:text-surface-400">
+              <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded-sm text-surface-600 dark:text-surface-400">
                 Esc
               </kbd>{' '}
               to cancel recording
@@ -194,7 +194,7 @@ export const KeyboardShortcutModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             Cancel
           </button>
@@ -202,7 +202,7 @@ export const KeyboardShortcutModal = ({
             type="button"
             onClick={handleSave}
             disabled={!pendingShortcut}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset ${
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset ${
               pendingShortcut
                 ? 'bg-primary-600 hover:bg-primary-700 text-primary-contrast'
                 : 'bg-surface-300 dark:bg-surface-600 text-white cursor-not-allowed'

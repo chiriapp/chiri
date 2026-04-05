@@ -128,7 +128,7 @@ export const ReviewStep = ({
                 }`}
               >
                 {/* Status indicator */}
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   {task.importStatus === 'importing' ? (
                     <Loader2 className="w-4 h-4 text-primary-500 animate-spin" />
                   ) : task.importStatus === 'success' ? (
@@ -154,7 +154,7 @@ export const ReviewStep = ({
                 </span>
 
                 {/* Metadata badges */}
-                <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {task.priority && task.priority !== 'none' && (
                     <span
                       className={`flex items-center gap-0.5 text-xs ${PRIORITY_CONFIG[task.priority].color}`}

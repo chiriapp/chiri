@@ -33,7 +33,7 @@ export const RegionAndTimeSettings = () => {
   const [editingCategory, setEditingCategory] = useState<keyof QuickTimePresets | null>(null);
 
   const selectClassName =
-    'text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0';
+    'text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0';
 
   const minutesToTimeLabel = (minutes: number): string => {
     const d = new Date();
@@ -128,10 +128,10 @@ export const RegionAndTimeSettings = () => {
                   type="button"
                   key={id}
                   onClick={() => setEditingCategory(id)}
-                  className="w-full flex items-center justify-between gap-4 px-3 py-2.5 rounded-lg bg-surface-50 dark:bg-surface-700/50 hover:bg-surface-100 dark:hover:bg-surface-700 border border-transparent hover:border-surface-200 dark:hover:border-surface-600 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  className="w-full flex items-center justify-between gap-4 px-3 py-2.5 rounded-lg bg-surface-50 dark:bg-surface-700/50 hover:bg-surface-100 dark:hover:bg-surface-700 border border-transparent hover:border-surface-200 dark:hover:border-surface-600 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 >
                   <div className="flex items-center gap-2.5">
-                    <Icon className="w-4 h-4 text-surface-500 dark:text-surface-400 flex-shrink-0" />
+                    <Icon className="w-4 h-4 text-surface-500 dark:text-surface-400 shrink-0" />
                     <span className="text-sm font-medium text-surface-700 dark:text-surface-300">
                       {label}
                     </span>

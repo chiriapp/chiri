@@ -71,7 +71,7 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="rounded-lg p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -83,7 +83,7 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
             type="button"
             onClick={handleComplete}
             disabled={task.completed}
-            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <CheckSquare className="h-5 w-5 text-green-600 dark:text-green-500" />
             <div className="flex-1">
@@ -97,7 +97,7 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
           <button
             type="button"
             onClick={handleEdit}
-            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Edit className="h-5 w-5 text-blue-600 dark:text-blue-500" />
             <div className="flex-1">
@@ -111,7 +111,7 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
           <button
             type="button"
             onClick={handleSnooze}
-            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <SnoozeIcon className="h-5 w-5 text-orange-600 dark:text-orange-500" />
             <div className="flex-1">

@@ -76,7 +76,7 @@ export const ShortcutsSettings = ({
           <button
             type="button"
             onClick={resetShortcuts}
-            className="flex items-center gap-1.5 px-2 py-1 text-xs bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="flex items-center gap-1.5 px-2 py-1 text-xs bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             title="Reset to defaults"
           >
             <RotateCcw className="w-3 h-3" />
@@ -111,7 +111,7 @@ export const ShortcutsSettings = ({
                             .split(' + ')
                             .map((key, keyIndex, arr) => (
                               <span key={key} className="flex items-center gap-1.5">
-                                <kbd className="inline-flex items-center px-2 py-1 bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded text-xs font-mono leading-none text-surface-700 dark:text-surface-300">
+                                <kbd className="inline-flex items-center px-2 py-1 bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-sm text-xs font-mono leading-none text-surface-700 dark:text-surface-300">
                                   {key}
                                 </kbd>
                                 {keyIndex < arr.length - 1 && !isMacPlatform() && (
@@ -123,7 +123,7 @@ export const ShortcutsSettings = ({
                         <button
                           type="button"
                           onClick={() => handleOpenEdit(shortcut)}
-                          className="p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                          className="p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                           title="Edit shortcut"
                         >
                           <Pencil className="w-3.5 h-3.5" />

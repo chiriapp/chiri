@@ -176,7 +176,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
   const isLoading = isValidating || isLoggingIn || isProcessing;
 
   return (
-    <ModalBackdrop zIndex="z-[60]">
+    <ModalBackdrop zIndex="z-60">
       <div
         ref={focusTrapRef}
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in relative"
@@ -192,7 +192,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
             type="button"
             onClick={onClose}
             disabled={isProcessing}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent"
           >
             <X className="w-5 h-5" />
           </button>
@@ -223,7 +223,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
                       handleValidateAndLogin();
                     }
                   }}
-                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
                 />
                 <p className="mt-1.5 text-xs text-surface-500 dark:text-surface-400">
                   Your browser will open for authentication
@@ -240,7 +240,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 >
                   Cancel
                 </button>
@@ -248,7 +248,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
                   type="button"
                   onClick={handleValidateAndLogin}
                   disabled={isLoading || !serverUrl.trim()}
-                  className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+                  className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
                 >
                   {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                   Connect

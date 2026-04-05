@@ -21,7 +21,7 @@ export const SidebarHeader = ({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="p-2 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="p-2 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             aria-label="Expand sidebar"
           >
             <PanelLeftOpen className="w-5 h-5" />
@@ -39,7 +39,7 @@ export const SidebarHeader = ({
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="p-1.5 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="p-1.5 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               aria-label="Collapse sidebar"
             >
               <PanelLeftClose className="w-5 h-5" />

@@ -75,7 +75,7 @@ export const NotificationSettings = () => {
             checked={notifications}
             onChange={(e) => setNotifications(e.target.checked)}
             disabled={macPermissionPending}
-            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none disabled:cursor-not-allowed"
+            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden disabled:cursor-not-allowed"
           />
         </label>
 
@@ -96,7 +96,7 @@ export const NotificationSettings = () => {
                   checked={notifyReminders}
                   onChange={(e) => setNotifyReminders(e.target.checked)}
                   disabled={macPermissionPending}
-                  className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none disabled:cursor-not-allowed"
+                  className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden disabled:cursor-not-allowed"
                 />
               </label>
               <label
@@ -113,7 +113,7 @@ export const NotificationSettings = () => {
                   checked={notifyOverdue}
                   onChange={(e) => setNotifyOverdue(e.target.checked)}
                   disabled={macPermissionPending}
-                  className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none disabled:cursor-not-allowed"
+                  className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden disabled:cursor-not-allowed"
                 />
               </label>
             </div>
@@ -141,7 +141,7 @@ export const NotificationSettings = () => {
             type="checkbox"
             checked={quietHoursEnabled}
             onChange={(e) => setQuietHoursEnabled(e.target.checked)}
-            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
           />
         </label>
 
@@ -153,7 +153,7 @@ export const NotificationSettings = () => {
                 <button
                   type="button"
                   onClick={() => setQuietHoursStartModalOpen(true)}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
                 >
                   {formatHour(quietHoursStart, use24h)}
                 </button>
@@ -163,7 +163,7 @@ export const NotificationSettings = () => {
                 <button
                   type="button"
                   onClick={() => setQuietHoursEndModalOpen(true)}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
                 >
                   {formatHour(quietHoursEnd, use24h)}
                 </button>
@@ -187,7 +187,7 @@ export const NotificationSettings = () => {
             type="checkbox"
             checked={allDayReminderNotificationsEnabled}
             onChange={(e) => setAllDayReminderNotificationsEnabled(e.target.checked)}
-            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
           />
         </label>
 
@@ -201,7 +201,7 @@ export const NotificationSettings = () => {
                 <button
                   type="button"
                   onClick={() => setAllDayReminderModalOpen(true)}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
                 >
                   {formatHour(defaultAllDayReminderHour, use24h)}
                 </button>

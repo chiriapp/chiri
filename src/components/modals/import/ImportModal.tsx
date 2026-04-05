@@ -379,7 +379,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop requires drag handlers for file drop functionality
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] animate-fade-in"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 animate-fade-in"
       onDrop={handleModalDrop}
       onDragOver={handleModalDragOver}
       onDragLeave={handleModalDragLeave}
@@ -389,7 +389,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
         className="relative bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in max-h-[90vh] flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 shrink-0">
           <div className="flex items-center gap-3">
             {step !== 'upload' && !isImporting && !importSuccess && (
               <button
@@ -417,7 +417,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
         </div>
 
         {/* Step Indicator */}
-        <div className="px-4 py-3 border-b border-surface-100 dark:border-surface-700/50 flex-shrink-0">
+        <div className="px-4 py-3 border-b border-surface-100 dark:border-surface-700/50 shrink-0">
           <StepIndicator
             currentStep={step}
             hasFile={parsedTasks.length > 0}
@@ -461,7 +461,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-2 p-4 border-t border-surface-200 dark:border-surface-700 flex-shrink-0">
+        <div className="flex items-center justify-between gap-2 p-4 border-t border-surface-200 dark:border-surface-700 shrink-0">
           <div className="text-sm text-surface-500 dark:text-surface-400">
             {parsedTasks.length > 0 && step !== 'review' && (
               <span>
@@ -476,7 +476,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
                 type="button"
                 onClick={handleClose}
                 disabled={isImporting}
-                className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors disabled:opacity-50 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 Cancel
               </button>
@@ -487,7 +487,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
                 type="button"
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+                className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
               >
                 Continue
               </button>
@@ -496,7 +496,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
                 type="button"
                 onClick={handleImport}
                 disabled={isImporting || importSuccess || parsedTasks.length === 0}
-                className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+                className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
               >
                 {importSuccess ? (
                   <>

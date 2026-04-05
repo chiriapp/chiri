@@ -154,7 +154,7 @@ export const ExportModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4 animate-fade-in">
       <div
         ref={focusTrapRef}
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col animate-scale-in"
@@ -171,7 +171,7 @@ export const ExportModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -189,7 +189,7 @@ export const ExportModal = ({
                   type="button"
                   key={format.id}
                   onClick={() => setSelectedFormat(format.id)}
-                  className={`flex items-start gap-3 p-3 rounded-lg border transition-colors text-left outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  className={`flex items-start gap-3 p-3 rounded-lg border transition-colors text-left outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     selectedFormat === format.id
                       ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
                       : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600'
@@ -210,7 +210,7 @@ export const ExportModal = ({
                     </div>
                   </div>
                   {selectedFormat === format.id && (
-                    <div className="text-primary-500 dark:text-primary-400 flex-shrink-0">
+                    <div className="text-primary-500 dark:text-primary-400 shrink-0">
                       <CheckCircle2 className="w-5 h-5" />
                     </div>
                   )}
@@ -221,7 +221,7 @@ export const ExportModal = ({
 
           {error && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
             </div>
           )}
@@ -231,7 +231,7 @@ export const ExportModal = ({
           <button
             type="button"
             onClick={handleCopyToClipboard}
-            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset flex items-center gap-2"
+            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset flex items-center gap-2"
           >
             <Copy className="w-4 h-4" />
             {copied ? 'Copied!' : 'Copy'}
@@ -240,7 +240,7 @@ export const ExportModal = ({
             type="button"
             onClick={handleExportToFile}
             disabled={exporting}
-            className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset flex items-center gap-2"
+            className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             {exporting ? 'Exporting...' : 'Download'}

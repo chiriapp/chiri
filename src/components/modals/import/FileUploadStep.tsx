@@ -83,7 +83,7 @@ export const FileUploadStep = ({
         }}
         onDragEnter={onDragEnter}
         onDragLeave={handleDragLeave}
-        className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
+        className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
           isDraggingOver
             ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 scale-[1.02]'
             : fileName
@@ -98,7 +98,7 @@ export const FileUploadStep = ({
           </div>
         ) : fileName ? (
           <div className="flex items-center justify-center gap-3 pointer-events-none">
-            <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg shadow-xs">
               <span className="text-primary-600 dark:text-primary-400">{getFileIcon()}</span>
               <span className="text-sm font-medium text-surface-700 dark:text-surface-300 max-w-[200px] truncate">
                 {fileName}
@@ -106,7 +106,7 @@ export const FileUploadStep = ({
               <button
                 type="button"
                 onClick={handleRemoveFile}
-                className="p-1 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded transition-colors pointer-events-auto outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                className="p-1 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors pointer-events-auto outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
                 aria-label="Remove file"
               >
                 <X className="w-4 h-4" />
@@ -147,7 +147,7 @@ export const FileUploadStep = ({
       {/* Error Display */}
       {error && (
         <div className="flex items-start gap-2 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
       )}
@@ -156,7 +156,7 @@ export const FileUploadStep = ({
       {parseErrors.length > 0 && (
         <div className="p-3 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <div className="space-y-1">
               <p className="font-medium">Some items couldn't be parsed:</p>
               <ul className="text-xs space-y-0.5 opacity-80">

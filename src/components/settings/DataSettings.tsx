@@ -81,7 +81,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
               const json = exportSettings();
               await exportSettingsToFile(json);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
           >
             <Download className="w-4 h-4" />
             Export
@@ -102,7 +102,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
             onClick={async () => {
               await importSettingsFromFile(importSettings);
             }}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
           >
             <Upload className="w-4 h-4" />
             Import
@@ -131,7 +131,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
           <button
             type="button"
             onClick={async () => openPath(await appLogDir())}
-            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
           >
             <FileText className="w-4 h-4" />
             Open folder
@@ -152,7 +152,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
           <button
             type="button"
             onClick={handleResetPreferences}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reset
@@ -171,7 +171,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
           <button
             type="button"
             onClick={handleResetDatabase}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 dark:bg-red-500 hover:bg-red-700 dark:hover:bg-red-600 text-white rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 dark:bg-red-500 hover:bg-red-700 dark:hover:bg-red-600 text-white rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset shrink-0"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reset

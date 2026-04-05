@@ -63,7 +63,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: <Check className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center py-8">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+        <div className="w-20 h-20 rounded-full bg-linear-to-br from-primary-400 to-primary-600 flex items-center justify-center">
           <Check className="w-10 h-10 text-primary-contrast" />
         </div>
       </div>

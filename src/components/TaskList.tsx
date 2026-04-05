@@ -103,7 +103,7 @@ export const TaskList = () => {
           ) : (
             <>
               Click the button below or press{' '}
-              <kbd className="px-2 py-1 bg-surface-100 dark:bg-surface-700 rounded text-sm font-mono">
+              <kbd className="px-2 py-1 bg-surface-100 dark:bg-surface-700 rounded-sm text-sm font-mono">
                 {newTaskShortcut}
               </kbd>{' '}
               to create a new task.
@@ -156,7 +156,7 @@ export const TaskList = () => {
           {activeTask ? (
             <div className="drag-overlay relative" style={{ marginLeft: `${targetIndent * 24}px` }}>
               {targetIndent !== originalIndentRef.current && (
-                <div className="absolute -top-6 left-2 px-2 py-0.5 bg-primary-600 text-primary-contrast text-xs rounded shadow whitespace-nowrap">
+                <div className="absolute -top-6 left-2 px-2 py-0.5 bg-primary-600 text-primary-contrast text-xs rounded-sm shadow-sm whitespace-nowrap">
                   {targetIndent > originalIndentRef.current
                     ? `→ Nest in ${truncateName(targetParentName || 'parent')}`
                     : targetIndent === 0
@@ -179,7 +179,7 @@ export const TaskList = () => {
       <button
         type="button"
         onClick={handleQuickAdd}
-        className="mt-4 w-full flex items-center gap-3 p-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors border border-surface-200 dark:border-surface-600 hover:border-surface-300 dark:hover:border-surface-500 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+        className="mt-4 w-full flex items-center gap-3 p-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors border border-surface-200 dark:border-surface-600 hover:border-surface-300 dark:hover:border-surface-500 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
       >
         <Plus className="w-5 h-5" />
         <span>Add a task...</span>

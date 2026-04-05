@@ -35,7 +35,7 @@ export const TaskEditorTags = ({ task, onRemoveTag, onOpenTagPicker }: TagsProps
           return (
             <span
               key={tag.id}
-              className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded border text-xs font-medium group"
+              className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-sm border text-xs font-medium group"
               style={{
                 borderColor: tag.color,
                 backgroundColor: `${tag.color}15`,
@@ -51,7 +51,7 @@ export const TaskEditorTags = ({ task, onRemoveTag, onOpenTagPicker }: TagsProps
               <button
                 type="button"
                 onClick={() => onRemoveTag(tag.id)}
-                className="p-0.5 rounded hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="p-0.5 rounded-sm hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -62,7 +62,7 @@ export const TaskEditorTags = ({ task, onRemoveTag, onOpenTagPicker }: TagsProps
         <button
           type="button"
           onClick={onOpenTagPicker}
-          className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded-sm hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
         >
           <Plus className="w-3 h-3" />
           Add tag

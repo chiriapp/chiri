@@ -59,10 +59,10 @@ export const PRIORITY_COLORS: Record<Priority, string> = {
 };
 
 export const RING_COLORS: Record<Priority, string> = {
-  high: 'ring ring-red-400 dark:ring-red-500',
-  medium: 'ring ring-amber-400 dark:ring-amber-500',
-  low: 'ring ring-blue-400 dark:ring-blue-500',
-  none: 'ring ring-primary-400 dark:ring-primary-500',
+  high: 'ring-3 ring-red-400 dark:ring-red-500',
+  medium: 'ring-3 ring-amber-400 dark:ring-amber-500',
+  low: 'ring-3 ring-blue-400 dark:ring-blue-500',
+  none: 'ring-3 ring-primary-400 dark:ring-primary-500',
 };
 
 /**

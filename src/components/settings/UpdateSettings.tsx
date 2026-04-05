@@ -96,7 +96,7 @@ export const UpdateSettings = () => {
                 type="checkbox"
                 checked={checkForUpdatesAutomatically}
                 onChange={(e) => setCheckForUpdatesAutomatically(e.target.checked)}
-                className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+                className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
               />
             </label>
 
@@ -113,7 +113,7 @@ export const UpdateSettings = () => {
                 type="button"
                 onClick={handleManualCheck}
                 disabled={isChecking}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 disabled:opacity-50 disabled:cursor-not-allowed text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 disabled:opacity-50 disabled:cursor-not-allowed text-surface-700 dark:text-surface-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
               >
                 {isChecking ? (
                   <>
@@ -194,7 +194,7 @@ export const UpdateSettings = () => {
             <button
               type="button"
               onClick={() => setShowChangelogModal(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 border border-surface-200 dark:border-surface-600 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 border border-surface-200 dark:border-surface-600 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <FileText className="w-4 h-4" />
               Changelog
@@ -204,7 +204,7 @@ export const UpdateSettings = () => {
               type="button"
               onClick={downloadAndInstall}
               disabled={isDownloading}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               {isDownloading ? (
                 <>

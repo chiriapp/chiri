@@ -10,7 +10,7 @@ export const hasOpenModalElements = () => {
 
   return Array.from(fixedInsetElements).some((el) => {
     const classList = el.classList;
-    return ['z-50', 'z-[60]', 'z-[70]'].some((zClass) => classList.contains(zClass));
+    return ['z-50', 'z-60', 'z-70'].some((zClass) => classList.contains(zClass));
   });
 };
 

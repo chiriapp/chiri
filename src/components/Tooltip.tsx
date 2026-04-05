@@ -197,7 +197,7 @@ export const Tooltip = ({
         createPortal(
           <div
             ref={tooltipRef}
-            className={`fixed z-[100] px-2 py-1 text-xs font-medium text-white bg-surface-900 dark:bg-surface-700 rounded shadow-lg pointer-events-none tooltip-anim animate-tooltip-in ${className}`}
+            className={`fixed z-100 px-2 py-1 text-xs font-medium text-white bg-surface-900 dark:bg-surface-700 rounded-sm shadow-lg pointer-events-none tooltip-anim animate-tooltip-in ${className}`}
             style={
               {
                 left: coords.x,

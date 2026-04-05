@@ -31,7 +31,7 @@ export const TaskEditorPriority = ({ task }: PriorityProps) => {
             key={p.value}
             onClick={() => handlePriorityChange(p.value)}
             className={`
-              flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500
+              flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500
               ${
                 task.priority === p.value
                   ? `${p.borderColor} ${p.bgColor}`

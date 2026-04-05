@@ -182,11 +182,11 @@ export const applyAccentColor = (color: string) => {
 
   for (const { shade, l } of shades) {
     const [sr, sg, sb] = hslToRgb(h, s, l);
-    root.style.setProperty(`--color-primary-${shade}`, `${sr} ${sg} ${sb}`);
+    root.style.setProperty(`--primary-rgb-${shade}`, `${sr} ${sg} ${sb}`);
   }
 
   // set contrast text color for primary-500 and primary-600 backgrounds
   // this will be black for bright colors, white for dark colors
   const contrastColor = getContrastTextColor(color);
-  root.style.setProperty('--color-primary-contrast', contrastColor);
+  root.style.setProperty('--primary-contrast-color', contrastColor);
 };

@@ -137,19 +137,19 @@ const buildFromUIState = (state: RepeatUIState) => {
 
 const inputCls =
   'h-9 px-3 py-2 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg ' +
-  'focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 ' +
+  'focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 ' +
   'focus:bg-white dark:focus:bg-primary-900/30 transition-colors ' +
   'text-surface-800 dark:text-surface-200';
 
 const selectCls =
   'h-9 text-sm border border-surface-200 dark:border-surface-600 bg-surface-100 dark:bg-surface-700 ' +
-  'text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none ' +
+  'text-surface-800 dark:text-surface-200 rounded-lg focus:outline-hidden ' +
   'focus:border-primary-300 dark:focus:border-primary-400 ' +
   'focus:bg-white dark:focus:bg-primary-900/30 transition-colors';
 
 const btnBase =
   'flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ' +
-  'outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500';
+  'outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500';
 
 const btnActive =
   'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400';
@@ -235,17 +235,17 @@ export const RepeatModal = ({
   ];
 
   return (
-    <ModalBackdrop zIndex="z-[60]">
+    <ModalBackdrop zIndex="z-60">
       <div
         ref={focusTrapRef}
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in flex flex-col max-h-[90vh] relative"
       >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 shrink-0">
           <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Repeat</h2>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <X className="w-5 h-5" />
           </button>
@@ -277,7 +277,7 @@ export const RepeatModal = ({
 
           {showInterval && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-surface-600 dark:text-surface-400 flex-shrink-0">
+              <span className="text-sm text-surface-600 dark:text-surface-400 shrink-0">
                 Every
               </span>
               <input
@@ -330,7 +330,7 @@ export const RepeatModal = ({
                         : [...ui.byday, value];
                       update({ byday });
                     }}
-                    className={`w-9 h-9 rounded-full text-xs font-medium border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                    className={`w-9 h-9 rounded-full text-xs font-medium border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 ${
                       active
                         ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
                         : 'border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-400 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700'
@@ -397,12 +397,12 @@ export const RepeatModal = ({
                     <button
                       type="button"
                       onClick={() => setShowUntilPicker(true)}
-                      className="w-full flex items-center gap-2 h-9 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                      className="w-full flex items-center gap-2 h-9 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
                     >
                       {untilDate ? (
-                        <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                        <Calendar className="w-4 h-4 text-surface-400 shrink-0" />
                       ) : (
-                        <CalendarPlus className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                        <CalendarPlus className="w-4 h-4 text-surface-400 shrink-0" />
                       )}
                       <span
                         className={
@@ -441,11 +441,11 @@ export const RepeatModal = ({
           )}
         </div>
 
-        <div className="flex justify-end gap-3 p-4 border-t border-surface-200 dark:border-surface-700 flex-shrink-0">
+        <div className="flex justify-end gap-3 p-4 border-t border-surface-200 dark:border-surface-700 shrink-0">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             Cancel
           </button>
@@ -453,7 +453,7 @@ export const RepeatModal = ({
             type="button"
             onClick={handleDone}
             disabled={isDoneDisabled}
-            className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary-600"
+            className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-primary-600"
           >
             Done
           </button>

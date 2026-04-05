@@ -113,7 +113,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
           <button
             type="button"
             onClick={handleAddAccount}
-            className="flex items-center gap-1.5 px-2 py-1 text-xs bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="flex items-center gap-1.5 px-2 py-1 text-xs bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Plus className="w-3.5 h-3.5" />
             Add Account
@@ -145,7 +145,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="flex flex-row gap-1.5 items-center text-sm font-medium text-surface-700 dark:text-surface-300">
-                          <User className="w-4 h-4 text-surface-500 dark:text-surface-400 flex-shrink-0" />
+                          <User className="w-4 h-4 text-surface-500 dark:text-surface-400 shrink-0" />
                           {account.name}
                         </p>
                         {!isConnected && (
@@ -176,7 +176,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
                         <button
                           type="button"
                           onClick={() => handleEditAccount(account.id)}
-                          className="p-1.5 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                          className="p-1.5 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                         >
                           <Edit2 className="w-5 h-5" />
                         </button>
@@ -186,7 +186,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
                           type="button"
                           onClick={() => handleTestConnection(account)}
                           disabled={isTesting}
-                          className="p-1.5 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset disabled:opacity-50"
+                          className="p-1.5 text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-600 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset disabled:opacity-50"
                         >
                           {isTesting ? (
                             <Loader2 className="w-5 h-5 animate-spin" />
@@ -199,7 +199,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
                         <button
                           type="button"
                           onClick={() => handleDeleteAccount(account)}
-                          className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                          className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>

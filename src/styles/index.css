@@ -1,9 +1,85 @@
-/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind CSS requires @tailwind directives */
-@tailwind base;
-/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind CSS requires @tailwind directives */
-@tailwind components;
-/* biome-ignore lint/suspicious/noUnknownAtRules: Tailwind CSS requires @tailwind directives */
-@tailwind utilities;
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary-50: rgb(var(--primary-rgb-50, 239 246 255));
+  --color-primary-100: rgb(var(--primary-rgb-100, 219 234 254));
+  --color-primary-200: rgb(var(--primary-rgb-200, 191 219 254));
+  --color-primary-300: rgb(var(--primary-rgb-300, 147 197 253));
+  --color-primary-400: rgb(var(--primary-rgb-400, 96 165 250));
+  --color-primary-500: rgb(var(--primary-rgb-500, 59 130 246));
+  --color-primary-600: rgb(var(--primary-rgb-600, 37 99 235));
+  --color-primary-700: rgb(var(--primary-rgb-700, 29 78 216));
+  --color-primary-800: rgb(var(--primary-rgb-800, 30 64 175));
+  --color-primary-900: rgb(var(--primary-rgb-900, 30 58 138));
+  --color-primary-950: rgb(var(--primary-rgb-950, 23 37 84));
+  --color-primary-contrast: var(--primary-contrast-color, #ffffff);
+
+  --color-surface-50: #fafafa;
+  --color-surface-100: #f4f4f5;
+  --color-surface-200: #e4e4e7;
+  --color-surface-300: #d4d4d8;
+  --color-surface-400: #a1a1aa;
+  --color-surface-500: #71717a;
+  --color-surface-600: #52525b;
+  --color-surface-700: #3f3f46;
+  --color-surface-800: #27272a;
+  --color-surface-900: #18181b;
+
+  --animate-fade-in: fadeIn 0.2s ease-out;
+  --animate-slide-up: slideUp 0.2s ease-out;
+  --animate-scale-in: scaleIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 * {
   margin: 0;
@@ -112,7 +188,7 @@ input[type="checkbox"] {
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border: 2px solid rgb(var(--color-primary-400));
+  border: 2px solid rgb(var(--primary-rgb-400, 96 165 250));
   border-radius: 4px;
   background-color: transparent;
   cursor: pointer;
@@ -121,13 +197,13 @@ input[type="checkbox"] {
 }
 
 input[type="checkbox"]:hover {
-  border-color: rgb(var(--color-primary-500));
-  background-color: rgb(var(--color-primary-50));
+  border-color: rgb(var(--primary-rgb-500, 59 130 246));
+  background-color: rgb(var(--primary-rgb-50, 239 246 255));
 }
 
 input[type="checkbox"]:checked {
-  background-color: rgb(var(--color-primary-600));
-  border-color: rgb(var(--color-primary-600));
+  background-color: rgb(var(--primary-rgb-600, 37 99 235));
+  border-color: rgb(var(--primary-rgb-600, 37 99 235));
 }
 
 input[type="checkbox"]:checked::after {
@@ -137,22 +213,22 @@ input[type="checkbox"]:checked::after {
   top: 1px;
   width: 4px;
   height: 8px;
-  border: solid var(--color-primary-contrast, white);
+  border: solid var(--primary-contrast-color, white);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
 
 .dark input[type="checkbox"] {
-  border-color: rgb(var(--color-primary-500));
+  border-color: rgb(var(--primary-rgb-500, 59 130 246));
 }
 
 .dark input[type="checkbox"]:hover {
-  background-color: rgb(var(--color-primary-900) / 0.3);
+  background-color: rgb(var(--primary-rgb-900, 30 58 138) / 0.3);
 }
 
 .dark input[type="checkbox"]:checked {
-  background-color: rgb(var(--color-primary-500));
-  border-color: rgb(var(--color-primary-500));
+  background-color: rgb(var(--primary-rgb-500, 59 130 246));
+  border-color: rgb(var(--primary-rgb-500, 59 130 246));
 }
 
 /* Custom tooltip animation */

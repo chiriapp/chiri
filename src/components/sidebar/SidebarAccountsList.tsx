@@ -94,7 +94,7 @@ const CalendarItemContent = ({
       data-context-menu
       onClick={onSelect}
       onContextMenu={onContextMenu}
-      className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+      className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
         isActive
           ? ''
           : `text-surface-600 dark:text-surface-400 ${
@@ -110,14 +110,14 @@ const CalendarItemContent = ({
     >
       {calendar.emoji ? (
         <span
-          className="text-xs leading-none flex-shrink-0"
+          className="text-xs leading-none shrink-0"
           style={{ color: isActive ? textColor : calendarColor }}
         >
           {calendar.emoji}
         </span>
       ) : (
         <CalendarIcon
-          className="w-4 h-4 flex-shrink-0"
+          className="w-4 h-4 shrink-0"
           style={{ color: isActive ? textColor : calendarColor }}
         />
       )}
@@ -312,7 +312,7 @@ const AccountRowContent = ({
       onContextMenu={(e) => onContextMenu(e, 'account', account.id)}
       role="button"
       tabIndex={0}
-      className={`relative w-full flex items-center gap-2 px-4 py-1.5 text-sm transition-colors group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+      className={`relative w-full flex items-center gap-2 px-4 py-1.5 text-sm transition-colors group cursor-pointer outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
         contextMenu?.type === 'account' && contextMenu.id === account.id
           ? 'bg-surface-200 dark:bg-surface-700'
           : !isAnyModalOpen && !isAnyAccountDragging
@@ -322,11 +322,11 @@ const AccountRowContent = ({
       {...dragHandleProps}
     >
       {expandedAccounts.has(account.id) ? (
-        <ChevronDown className="w-4 h-4 text-surface-400 flex-shrink-0" />
+        <ChevronDown className="w-4 h-4 text-surface-400 shrink-0" />
       ) : (
-        <ChevronRight className="w-4 h-4 text-surface-400 flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 text-surface-400 shrink-0" />
       )}
-      <User className="w-4 h-4 text-surface-500 dark:text-surface-400 flex-shrink-0" />
+      <User className="w-4 h-4 text-surface-500 dark:text-surface-400 shrink-0" />
       <span className="flex-1 text-left truncate min-w-0 text-surface-600 dark:text-surface-400 group-hover:pr-2">
         {account.name}
       </span>
@@ -344,7 +344,7 @@ const AccountRowContent = ({
               e.stopPropagation();
               onContextMenu(e, 'account', account.id);
             }}
-            className={`p-1.5 rounded bg-transparent ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-600 dark:hover:text-surface-300' : ''} text-surface-400 transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
+            className={`p-1.5 rounded-sm bg-transparent ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-600 dark:hover:text-surface-300' : ''} text-surface-400 transition-colors shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -360,7 +360,7 @@ const AccountRowContent = ({
               e.stopPropagation();
               onContextMenu(e, 'account', account.id);
             }}
-            className="p-1.5 rounded bg-transparent hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="p-1.5 rounded-sm bg-transparent hover:bg-surface-300 dark:hover:bg-surface-600 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
@@ -425,7 +425,7 @@ const SortDirectionButton = ({ direction, disabled, onToggle }: SortDirectionBut
       type="button"
       onClick={disabled ? undefined : onToggle}
       disabled={disabled}
-      className={`w-full flex rounded-b-md items-center gap-2 px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+      className={`w-full flex rounded-b-md items-center gap-2 px-3 py-1.5 text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
         disabled
           ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
           : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
@@ -541,7 +541,7 @@ export const SidebarAccountsList = ({
           onContextMenu={(e) => onContextMenu(e, 'accounts-section', 'accounts')}
           role="button"
           tabIndex={0}
-          className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
         >
           <div className="flex items-center gap-1.5">
             {accountsSectionCollapsed ? (
@@ -562,7 +562,7 @@ export const SidebarAccountsList = ({
                   e.stopPropagation();
                   onOpenImport?.();
                 }}
-                className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
+                className={`p-1 rounded-sm ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
               >
                 <Import className="w-4 h-4" />
               </button>
@@ -575,7 +575,7 @@ export const SidebarAccountsList = ({
                   e.stopPropagation();
                   setShowSortMenu((v) => !v);
                 }}
-                className={`p-1 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                className={`p-1 rounded transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   showSortMenu
                     ? 'bg-surface-300 dark:bg-surface-600 text-surface-700 dark:text-surface-200'
                     : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''}`
@@ -592,7 +592,7 @@ export const SidebarAccountsList = ({
                   e.stopPropagation();
                   onAddAccount();
                 }}
-                className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
+                className={`p-1 rounded-sm ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -618,7 +618,7 @@ export const SidebarAccountsList = ({
                     type="button"
                     key={option.value}
                     onClick={() => handleAccountSortModeChange(option.value)}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                       accountSortConfig.mode === option.value
                         ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
                         : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
@@ -643,7 +643,7 @@ export const SidebarAccountsList = ({
                     type="button"
                     key={option.value}
                     onClick={() => handleCalendarSortModeChange(option.value)}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                       calendarSortConfig.mode === option.value
                         ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
                         : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'

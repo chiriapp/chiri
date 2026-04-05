@@ -5,7 +5,7 @@ interface DragOverlayProps {
 export const DragOverlay = ({ isUnsupportedFile }: DragOverlayProps) => {
   return (
     <div
-      className={`pointer-events-none fixed inset-0 z-[80] flex items-center justify-center backdrop-blur-sm ${
+      className={`pointer-events-none fixed inset-0 z-80 flex items-center justify-center backdrop-blur-xs ${
         isUnsupportedFile ? 'bg-red-600/10' : 'bg-primary-600/10'
       }`}
     >

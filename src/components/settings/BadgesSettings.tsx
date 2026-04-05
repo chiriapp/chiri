@@ -97,7 +97,7 @@ export const BadgesSettings = () => {
                 type="checkbox"
                 checked={taskBadgeVisibility[badge.key]}
                 onChange={(e) => toggle(badge.key, e.target.checked)}
-                className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none shrink-0"
+                className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0"
               />
             </label>
           </div>

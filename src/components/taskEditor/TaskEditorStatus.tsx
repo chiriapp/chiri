@@ -74,11 +74,11 @@ export const TaskEditorStatus = ({
                 type="button"
                 key={s.value}
                 onClick={() => onStatusChange(s.value)}
-                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500
+                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500
                   ${isActive ? `${s.borderColor} ${s.bgColor}` : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 text-surface-600 dark:text-surface-400'}
                 `}
               >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? s.color : ''}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? s.color : ''}`} />
                 <span className={isActive ? s.color : ''}>{s.label}</span>
               </button>
             );

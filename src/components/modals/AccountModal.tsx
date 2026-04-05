@@ -1,6 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
 import CheckCircle from 'lucide-react/icons/check-circle';
-import ChevronDown from 'lucide-react/icons/chevron-down';
 import Cloud from 'lucide-react/icons/cloud';
 import Info from 'lucide-react/icons/info';
 import Loader2 from 'lucide-react/icons/loader-2';
@@ -24,7 +23,6 @@ import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
-import { isCertError, tauriRequest } from '$lib/tauri-http';
 import type { Account, Calendar, ServerType } from '$types';
 import { generateUUID, isVikunjaServer, pluralize } from '$utils/misc';
 import type { CalDAVConfig } from '$utils/mobileconfig';
@@ -55,8 +53,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const [serverType, setServerType] = useState<ServerType>(
     () => preloadedConfig?.serverType || account?.serverType || 'generic',
   );
-  const [calendarHomeUrl, setCalendarHomeUrl] = useState(() => account?.calendarHomeUrl || '');
-  const [showAdvanced, setShowAdvanced] = useState(() => !!account?.calendarHomeUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testSuccess, setTestSuccess] = useState(false);
@@ -65,9 +61,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const [error, setError] = useState('');
   const [showNextcloudLogin, setShowNextcloudLogin] = useState(false);
   const [showRusticalLogin, setShowRusticalLogin] = useState(false);
-  const [acceptInvalidCerts, setAcceptInvalidCerts] = useState(
-    () => account?.acceptInvalidCerts ?? false,
-  );
   const focusTrapRef = useFocusTrap();
   const nameInputFocusedRef = useRef(false);
 
@@ -75,22 +68,18 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   useModalEscapeKey(onClose);
 
   // Reset test state when credentials change
-  const [prevCredentials, setPrevCredentials] = useState({
-    serverUrl,
-    username,
-    password,
-    calendarHomeUrl,
-  });
+  const [prevCredentials, setPrevCredentials] = useState({ serverUrl, username, password });
   if (
     serverUrl !== prevCredentials.serverUrl ||
     username !== prevCredentials.username ||
-    password !== prevCredentials.password ||
-    calendarHomeUrl !== prevCredentials.calendarHomeUrl
+    password !== prevCredentials.password
   ) {
-    setPrevCredentials({ serverUrl, username, password, calendarHomeUrl });
-    setTestSuccess(false);
-    setTestedConnectionId(null);
-    setTestedCalendars([]);
+    setPrevCredentials({ serverUrl, username, password });
+    if (testSuccess || testedConnectionId) {
+      setTestSuccess(false);
+      setTestedConnectionId(null);
+      setTestedCalendars([]);
+    }
   }
 
   /**
@@ -123,36 +112,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       cancelLabel: 'Cancel',
       destructive: true,
       delayConfirmSeconds: 20,
-    });
-  };
-
-  /**
-   * show warning dialog for untrusted/self-signed server certificates
-   */
-  const showCertTrustDialog = async () => {
-    return await confirm({
-      title: 'Untrusted certificate',
-      message: (
-        <div className="space-y-3">
-          <p>
-            The server's SSL/TLS certificate is not trusted. This could be because it's self-signed
-            or from an unknown certificate authority.
-          </p>
-
-          <p>
-            Connecting to a server with an untrusted certificate could allow attackers to intercept
-            your data if you're on an untrusted network.
-          </p>
-
-          <p className="font-bold text-surface-800 dark:text-surface-200">
-            Only proceed if you trust the server and understand the risks.
-          </p>
-        </div>
-      ),
-
-      confirmLabel: 'Connect anyway',
-      cancelLabel: 'Cancel',
-      destructive: true,
     });
   };
 
@@ -192,57 +151,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
-  /**
-   * Connects to the CalDAV server with automatic cert trust detection.
-   * If the connection fails with a network error and the server is reachable
-   * with cert validation bypassed, prompts the user to trust the certificate.
-   * Returns null if the user declined the cert trust dialog.
-   */
-  const connectWithCertHandling = async (accountId: string, effectivePassword: string) => {
-    const tryConnect = (withInvalidCerts?: boolean) =>
-      CalDAVClient.connect(
-        accountId,
-        serverUrl,
-        username,
-        effectivePassword,
-        serverType,
-        calendarHomeUrl.trim() || undefined,
-        withInvalidCerts,
-      );
-
-    try {
-      return await tryConnect(acceptInvalidCerts || undefined);
-    } catch (err) {
-      const looksLikeNetworkError =
-        isCertError(err) ||
-        (typeof err === 'string' && err.includes('error sending request for url'));
-
-      if (!looksLikeNetworkError) throw err;
-
-      // Probe with cert bypass — any HTTP response means the server is reachable
-      // and the failure was a cert trust issue rather than genuine unreachability.
-      let serverReachable = false;
-      try {
-        await tauriRequest(serverUrl, 'OPTIONS', {
-          username,
-          password: effectivePassword,
-          acceptInvalidCerts: true,
-        });
-        serverReachable = true;
-      } catch {
-        // Also failed with bypass - genuinely unreachable.
-      }
-
-      if (!serverReachable) throw err;
-
-      const proceed = await showCertTrustDialog();
-      if (!proceed) return null;
-
-      setAcceptInvalidCerts(true);
-      return await tryConnect(true);
-    }
-  };
-
   const handleTestConnection = async () => {
     setError('');
     setTestSuccess(false);
@@ -264,11 +172,13 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       const tempId = generateUUID();
       log.debug(`Testing connection to ${serverUrl}...`);
 
-      const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
-      if (!connectionInfo) {
-        setIsTesting(false);
-        return;
-      }
+      const connectionInfo = await CalDAVClient.connect(
+        tempId,
+        serverUrl,
+        username,
+        effectivePassword,
+        serverType,
+      );
 
       // Check if this is a Vikunja server and warn the user
       if (isVikunjaServer(connectionInfo.calendarHome)) {
@@ -302,79 +212,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
-  const handleCreateAccount = async (effectivePassword: string) => {
-    let tempId: string;
-    let calendars: Calendar[];
-
-    // If we already tested the connection successfully, reuse it
-    if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
-      log.debug('Reusing tested connection...');
-      tempId = testedConnectionId;
-      calendars = testedCalendars;
-    } else {
-      tempId = generateUUID();
-
-      log.debug(`Connecting to ${serverUrl}...`);
-      const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
-      if (!connectionInfo) {
-        setIsLoading(false);
-        return;
-      }
-
-      if (isVikunjaServer(connectionInfo.calendarHome)) {
-        const proceed = await showVikunjaWarning();
-        if (!proceed) {
-          CalDAVClient.disconnect(tempId);
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      log.debug(`Fetching calendars...`);
-      calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
-      log.info(`Found ${calendars.length} calendars:`, calendars);
-    }
-
-    createAccountMutation.mutate(
-      {
-        id: tempId, // use the same ID so the caldavService connection maps correctly
-        name,
-        serverUrl,
-        username,
-        password: effectivePassword,
-        serverType,
-        calendarHomeUrl: calendarHomeUrl.trim() || undefined,
-        acceptInvalidCerts: acceptInvalidCerts || undefined,
-      },
-      {
-        onSuccess: async (newAccount) => {
-          try {
-            for (const calendar of calendars) {
-              addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
-            }
-            log.debug('Fetching tasks for all calendars...');
-            for (const calendar of calendars) {
-              await fetchTasksForCalendar(newAccount.id, calendar);
-            }
-            queryClient.invalidateQueries({ queryKey: ['tasks'] });
-            queryClient.invalidateQueries({ queryKey: ['tags'] });
-            onClose();
-          } catch (error) {
-            log.error('Error setting up account:', error);
-            onClose();
-          } finally {
-            setIsLoading(false);
-          }
-        },
-        onError: (error) => {
-          log.error('Error creating account:', error);
-          setError(error instanceof Error ? error.message : 'Failed to create account');
-          setIsLoading(false);
-        },
-      },
-    );
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -384,13 +221,17 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       const effectivePassword = password || account?.password;
 
       if (account) {
+        // update existing account
         if (effectivePassword) {
+          // test connection with new credentials before saving
           log.debug(`Testing connection to ${serverUrl}...`);
-          const result = await connectWithCertHandling(account.id, effectivePassword);
-          if (!result) {
-            setIsLoading(false);
-            return;
-          }
+          await CalDAVClient.connect(
+            account.id,
+            serverUrl,
+            username,
+            effectivePassword,
+            serverType,
+          );
         }
 
         updateAccountMutation.mutate({
@@ -401,17 +242,105 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             username,
             password: effectivePassword || account.password,
             serverType,
-            calendarHomeUrl: calendarHomeUrl.trim() || undefined,
-            acceptInvalidCerts: acceptInvalidCerts || undefined,
           },
         });
-
-        onClose();
-        setIsLoading(false);
       } else {
-        if (!effectivePassword) throw new Error('Password is required');
-        await handleCreateAccount(effectivePassword);
+        // for new accounts, first test connection before adding to store
+        if (!effectivePassword) {
+          throw new Error('Password is required');
+        }
+
+        let tempId: string;
+        let calendars: Calendar[];
+
+        // If we already tested the connection successfully, reuse it
+        if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
+          log.debug('Reusing tested connection...');
+          tempId = testedConnectionId;
+          calendars = testedCalendars;
+        } else {
+          // create a temporary ID to test the connection
+          tempId = generateUUID();
+
+          log.debug(`Connecting to ${serverUrl}...`);
+          const connectionInfo = await CalDAVClient.connect(
+            tempId,
+            serverUrl,
+            username,
+            effectivePassword,
+            serverType,
+          );
+
+          // Check if this is a Vikunja server and warn the user
+          if (isVikunjaServer(connectionInfo.calendarHome)) {
+            const proceed = await showVikunjaWarning();
+
+            if (!proceed) {
+              // User cancelled, disconnect and return
+              CalDAVClient.disconnect(tempId);
+              setIsLoading(false);
+              return;
+            }
+          }
+
+          log.debug(`Fetching calendars...`);
+          calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
+          log.info(`Found ${calendars.length} calendars:`, calendars);
+        }
+
+        // connection successful - now add the account with the same ID we used for connection
+        createAccountMutation.mutate(
+          {
+            id: tempId, // use the same ID so the caldavService connection maps correctly
+            name,
+            serverUrl,
+            username,
+            password: effectivePassword,
+            serverType,
+          },
+          {
+            onSuccess: async (newAccount) => {
+              try {
+                // add the fetched calendars
+                for (const calendar of calendars) {
+                  addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
+                }
+
+                // fetch tasks for each calendar
+                log.debug('Fetching tasks for all calendars...');
+                for (const calendar of calendars) {
+                  await fetchTasksForCalendar(newAccount.id, calendar);
+                }
+
+                // Invalidate task queries to refresh the UI
+                queryClient.invalidateQueries({ queryKey: ['tasks'] });
+                queryClient.invalidateQueries({ queryKey: ['tags'] });
+
+                // Close modal after everything is complete
+                onClose();
+              } catch (error) {
+                log.error('Error setting up account:', error);
+                // Still close the modal, account was created successfully
+                onClose();
+              } finally {
+                setIsLoading(false);
+              }
+            },
+            onError: (error) => {
+              log.error('Error creating account:', error);
+              setError(error instanceof Error ? error.message : 'Failed to create account');
+              setIsLoading(false);
+            },
+          },
+        );
+
+        // Exit early to avoid the onClose() and finally block
+        return;
       }
+
+      // For account updates, close immediately
+      onClose();
+      setIsLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to CalDAV server');
       log.error('Failed to connect:', err);
@@ -430,7 +359,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       )}
 
       {!showNextcloudLogin && !showRusticalLogin && (
-        <ModalBackdrop zIndex="z-[60]">
+        <ModalBackdrop zIndex="z-60">
           <div
             ref={focusTrapRef}
             className="relative bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in"
@@ -442,235 +371,199 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col min-h-0 max-h-[calc(90vh-4rem)]">
-              <div className="p-4 space-y-4 overflow-y-auto flex-1 min-h-0">
-                <div>
-                  <label
-                    htmlFor="account-name"
-                    className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                  >
-                    Account Display Name
-                  </label>
-                  <ComposedInput
-                    id="account-name"
-                    type="text"
-                    ref={(el) => {
-                      if (el && !nameInputFocusedRef.current) {
-                        nameInputFocusedRef.current = true;
-                        setTimeout(() => el.focus(), 100);
-                      }
-                    }}
-                    value={name}
-                    onChange={setName}
-                    placeholder="My CalDAV Account"
-                    required
-                    className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
-                  />
-                </div>
+            <form onSubmit={handleSubmit} className="p-4 space-y-4">
+              <div>
+                <label
+                  htmlFor="account-name"
+                  className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                >
+                  Account Display Name
+                </label>
+                <ComposedInput
+                  id="account-name"
+                  type="text"
+                  ref={(el) => {
+                    if (el && !nameInputFocusedRef.current) {
+                      nameInputFocusedRef.current = true;
+                      setTimeout(() => el.focus(), 100);
+                    }
+                  }}
+                  value={name}
+                  onChange={setName}
+                  placeholder="My CalDAV Account"
+                  required
+                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                />
+              </div>
 
-                <div>
-                  <label
-                    htmlFor="server-type"
-                    className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                  >
-                    Server Type
-                  </label>
-                  <AppSelect
-                    id="server-type"
-                    value={serverType}
-                    onChange={(e) => {
-                      const newType = e.target.value as ServerType;
-                      setServerType(newType);
-                    }}
-                    className="w-full text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
-                  >
-                    {SERVER_TYPE_GROUPS.map((group) => (
-                      <optgroup key={group.label} label={group.label}>
-                        {group.options.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </AppSelect>
-                  <p className="mt-1 text-xs text-surface-500 dark:text-surface-400">
-                    {getServerTypeDescription(serverType)}
+              <div>
+                <label
+                  htmlFor="server-type"
+                  className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                >
+                  Server Type
+                </label>
+                <AppSelect
+                  id="server-type"
+                  value={serverType}
+                  onChange={(e) => {
+                    const newType = e.target.value as ServerType;
+                    setServerType(newType);
+                    if (!account && !preloadedConfig) {
+                      setServerUrl(getPredefinedServerUrl(newType) || '');
+                    }
+                  }}
+                  className="w-full text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                >
+                  {SERVER_TYPE_GROUPS.map((group) => (
+                    <optgroup key={group.label} label={group.label}>
+                      {group.options.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </AppSelect>
+                <p className="mt-1 text-xs text-surface-500 dark:text-surface-400">
+                  {getServerTypeDescription(serverType)}
+                </p>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="server-url"
+                  className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                >
+                  Server URL
+                </label>
+                <ComposedInput
+                  id="server-url"
+                  type="url"
+                  value={serverUrl}
+                  onChange={setServerUrl}
+                  placeholder="https://caldav.example.com"
+                  required
+                  disabled={!!getPredefinedServerUrl(serverType)}
+                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                />
+                {serverType === 'generic' && (
+                  <p className="mt-2 text-xs flex flex-row text-surface-500 dark:text-surface-400">
+                    <Info className="inline w-3.5 h-3.5 mr-1 text-surface-400" />
+                    The app will attempt to auto-discover for base URLs.
                   </p>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="server-url"
-                    className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                  >
-                    Server URL
-                  </label>
-                  <ComposedInput
-                    id="server-url"
-                    type="url"
-                    value={serverUrl}
-                    onChange={setServerUrl}
-                    placeholder="https://caldav.example.com"
-                    required
-                    disabled={!!getPredefinedServerUrl(serverType)}
-                    className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                  />
-                  {serverType === 'generic' && (
-                    <p className="mt-2 text-xs flex flex-row text-surface-500 dark:text-surface-400">
-                      <Info className="inline w-3.5 h-3.5 mr-1 text-surface-400" />
-                      The app will attempt to auto-discover for base URLs.
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="username"
-                    className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                  >
-                    Username
-                  </label>
-                  <ComposedInput
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={setUsername}
-                    placeholder="user@example.com"
-                    required
-                    className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                  >
-                    Password
-                  </label>
-                  <ComposedInput
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={setPassword}
-                    placeholder={account ? '(unchanged)' : 'Enter password'}
-                    required={!account}
-                    className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <button
-                    type="button"
-                    onClick={() => setShowAdvanced((v) => !v)}
-                    className="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
-                  >
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? '' : '-rotate-90'}`}
-                    />
-                    Advanced
-                  </button>
-                  {showAdvanced && (
-                    <div className="mt-3 space-y-3">
-                      <div>
-                        <label
-                          htmlFor="calendar-home-url"
-                          className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                        >
-                          Calendar Home URL
-                        </label>
-                        <ComposedInput
-                          id="calendar-home-url"
-                          type="url"
-                          value={calendarHomeUrl}
-                          onChange={setCalendarHomeUrl}
-                          placeholder="https://caldav.example.com/calendars/user/"
-                          className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
-                        />
-                        <p className="mt-1.5 text-xs flex flex-row text-surface-500 dark:text-surface-400">
-                          <Info className="inline w-3.5 h-3.5 mr-1 shrink-0 text-surface-400" />
-                          Use this if auto-discovery is not possible.
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {error && (
-                  <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-                    {error}
-                  </div>
-                )}
-
-                {testSuccess && (
-                  <div className="p-3 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
-                    <div>
-                      <div className="font-medium">Connection verified!</div>
-                      {testedCalendars.length > 0 && (
-                        <div className="text-xs mt-0.5">
-                          Found {testedCalendars.length}{' '}
-                          {pluralize(testedCalendars.length, 'calendar')}.
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {!account && serverType === 'nextcloud' && (
-                  <div className="pt-3 border-surface-200 dark:border-surface-700">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
-                      <span className="text-xs text-surface-400 dark:text-surface-500">
-                        Quick connect
-                      </span>
-                      <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowNextcloudLogin(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-                    >
-                      <Cloud className="w-4 h-4" />
-                      Use Nextcloud Login Flow
-                    </button>
-                    <p className="mt-2 text-xs text-center text-surface-500 dark:text-surface-400">
-                      Automatically authenticate via browser
-                    </p>
-                  </div>
-                )}
-
-                {!account && serverType === 'rustical' && (
-                  <div className="pt-3 border-surface-200 dark:border-surface-700">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
-                      <span className="text-xs text-surface-400 dark:text-surface-500">
-                        Quick connect
-                      </span>
-                      <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowRusticalLogin(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-                    >
-                      <Cloud className="w-4 h-4" />
-                      Use RustiCal Login Flow
-                    </button>
-                    <p className="mt-2 text-xs text-center text-surface-500 dark:text-surface-400">
-                      Automatically authenticate via browser
-                    </p>
-                  </div>
                 )}
               </div>
 
-              <div className="flex justify-between gap-3 p-4 pt-3 border-t border-surface-200 dark:border-surface-700 shrink-0">
+              <div>
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                >
+                  Username
+                </label>
+                <ComposedInput
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={setUsername}
+                  placeholder="user@example.com"
+                  required
+                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="password"
+                  className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                >
+                  Password
+                </label>
+                <ComposedInput
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={setPassword}
+                  placeholder={account ? '(unchanged)' : 'Enter password'}
+                  required={!account}
+                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                />
+              </div>
+
+              {error && (
+                <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              {testSuccess && (
+                <div className="p-3 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
+                  <div>
+                    <div className="font-medium">Connection verified!</div>
+                    {testedCalendars.length > 0 && (
+                      <div className="text-xs mt-0.5">
+                        Found {testedCalendars.length}{' '}
+                        {pluralize(testedCalendars.length, 'calendar')}.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {!account && serverType === 'nextcloud' && (
+                <div className="pt-3 border-surface-200 dark:border-surface-700">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
+                    <span className="text-xs text-surface-400 dark:text-surface-500">
+                      Quick connect
+                    </span>
+                    <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowNextcloudLogin(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  >
+                    <Cloud className="w-4 h-4" />
+                    Use Nextcloud Login Flow
+                  </button>
+                  <p className="mt-2 text-xs text-center text-surface-500 dark:text-surface-400">
+                    Automatically authenticate via browser
+                  </p>
+                </div>
+              )}
+
+              {!account && serverType === 'rustical' && (
+                <div className="pt-3 border-surface-200 dark:border-surface-700">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
+                    <span className="text-xs text-surface-400 dark:text-surface-500">
+                      Quick connect
+                    </span>
+                    <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowRusticalLogin(true)}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  >
+                    <Cloud className="w-4 h-4" />
+                    Use RustiCal Login Flow
+                  </button>
+                  <p className="mt-2 text-xs text-center text-surface-500 dark:text-surface-400">
+                    Automatically authenticate via browser
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-between gap-3 pt-2">
                 <button
                   type="button"
                   onClick={handleTestConnection}
@@ -682,7 +575,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                     !username.trim() ||
                     (!password.trim() && !account?.password)
                   }
-                  className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 border border-surface-300 dark:border-surface-600 hover:bg-surface-50 dark:hover:bg-surface-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 border border-surface-300 dark:border-surface-600 hover:bg-surface-50 dark:hover:bg-surface-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                 >
                   {isTesting && <Loader2 className="w-4 h-4 animate-spin" />}
                   {testSuccess && (
@@ -694,7 +587,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                    className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   >
                     Cancel
                   </button>
@@ -707,7 +600,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                       !username.trim() ||
                       (!account && !password.trim())
                     }
-                    className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+                    className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
                   >
                     {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                     {account ? 'Save' : testSuccess ? 'Add Account' : 'Add Account'}

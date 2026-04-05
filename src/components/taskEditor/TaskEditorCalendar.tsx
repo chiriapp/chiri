@@ -39,7 +39,7 @@ export const TaskEditorCalendar = ({
             id="task-calendar"
             value={task.calendarId}
             onChange={(e) => onCalendarChange(e.target.value)}
-            className="w-full text-sm border border-transparent bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+            className="w-full text-sm border border-transparent bg-surface-100 dark:bg-surface-800 text-surface-800 dark:text-surface-200 rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
           >
             {accounts.map((account) => (
               <optgroup key={account.id} label={account.name}>

@@ -42,7 +42,7 @@ export const SystemSettings = () => {
             type="checkbox"
             checked={enableSystemTray}
             onChange={(e) => handleSystemTrayChange(e.target.checked)}
-            className="rounded border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none shrink-0"
+            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0"
           />
         </label>
 
@@ -76,7 +76,7 @@ export const SystemSettings = () => {
               <button
                 type="button"
                 onClick={handleRestart}
-                className="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset shrink-0"
+                className="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset shrink-0"
               >
                 Restart now
               </button>

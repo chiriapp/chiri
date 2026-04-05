@@ -167,7 +167,7 @@ export const TimePickerModal = ({
             onMouseDown={() => startHold(incrementHour)}
             onMouseUp={stopHold}
             onMouseLeave={stopHold}
-            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
+            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
             aria-label="Increment hour"
           >
             <ChevronUp className="w-5 h-5" />
@@ -180,7 +180,7 @@ export const TimePickerModal = ({
             onChange={(e) => handleHourInputChange(e.target.value)}
             onBlur={handleHourInputBlur}
             onKeyDown={handleHourKeyDown}
-            className="w-14 text-center text-2xl font-bold text-surface-800 dark:text-surface-200 bg-surface-50 dark:bg-surface-700/50 border border-surface-200 dark:border-surface-600 rounded-lg px-2 py-2 tabular-nums outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+            className="w-14 text-center text-2xl font-bold text-surface-800 dark:text-surface-200 bg-surface-50 dark:bg-surface-700/50 border border-surface-200 dark:border-surface-600 rounded-lg px-2 py-2 tabular-nums outline-hidden focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
             aria-label="Hour"
           />
           <button
@@ -188,7 +188,7 @@ export const TimePickerModal = ({
             onMouseDown={() => startHold(decrementHour)}
             onMouseUp={stopHold}
             onMouseLeave={stopHold}
-            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
+            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
             aria-label="Decrement hour"
           >
             <ChevronDown className="w-5 h-5" />
@@ -207,7 +207,7 @@ export const TimePickerModal = ({
             onMouseDown={() => startHold(incrementMinute)}
             onMouseUp={stopHold}
             onMouseLeave={stopHold}
-            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
+            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
             aria-label="Increment minute"
           >
             <ChevronUp className="w-5 h-5" />
@@ -220,7 +220,7 @@ export const TimePickerModal = ({
             onChange={(e) => handleMinuteInputChange(e.target.value)}
             onBlur={handleMinuteInputBlur}
             onKeyDown={handleMinuteKeyDown}
-            className="w-14 text-center text-2xl font-bold text-surface-800 dark:text-surface-200 bg-surface-50 dark:bg-surface-700/50 border border-surface-200 dark:border-surface-600 rounded-lg px-2 py-2 tabular-nums outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
+            className="w-14 text-center text-2xl font-bold text-surface-800 dark:text-surface-200 bg-surface-50 dark:bg-surface-700/50 border border-surface-200 dark:border-surface-600 rounded-lg px-2 py-2 tabular-nums outline-hidden focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20"
             aria-label="Minute"
           />
           <button
@@ -228,7 +228,7 @@ export const TimePickerModal = ({
             onMouseDown={() => startHold(decrementMinute)}
             onMouseUp={stopHold}
             onMouseLeave={stopHold}
-            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
+            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
             aria-label="Decrement minute"
           >
             <ChevronDown className="w-5 h-5" />
@@ -241,14 +241,14 @@ export const TimePickerModal = ({
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={handleConfirm}
-          className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
         >
           Confirm
         </button>

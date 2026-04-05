@@ -80,7 +80,7 @@ export const UpdateModal = ({
         <div className="flex justify-end gap-2 p-4 border-t border-surface-200 dark:border-surface-700">
           <button
             type="button"
-            className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 border border-surface-200 dark:border-surface-700 rounded-lg transition-colors flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 border border-surface-200 dark:border-surface-700 rounded-lg transition-colors flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             onClick={() => setShowChangelogModal(true)}
           >
             <FileText className="w-4 h-4" />
@@ -90,7 +90,7 @@ export const UpdateModal = ({
             type="button"
             onClick={onDownload}
             disabled={isDownloading}
-            className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
           >
             <Download className="w-4 h-4" />
             {isDownloading ? 'Downloading...' : 'Download & Install'}

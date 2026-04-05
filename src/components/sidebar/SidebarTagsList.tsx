@@ -77,7 +77,7 @@ const TagItemContent = ({
       data-context-menu
       onClick={onSelect}
       onContextMenu={onContextMenu}
-      className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+      className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
         isActive
           ? ''
           : `text-surface-600 dark:text-surface-400 ${
@@ -231,7 +231,7 @@ export const SidebarTagsList = ({
           onKeyDown={(e) => e.key === 'Enter' && onToggleTagsSection()}
           role="button"
           tabIndex={0}
-          className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
         >
           <div className="flex items-center gap-1.5">
             {tagsSectionCollapsed ? (
@@ -252,7 +252,7 @@ export const SidebarTagsList = ({
                   e.stopPropagation();
                   setShowSortMenu((v) => !v);
                 }}
-                className={`p-1 rounded transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                className={`p-1 rounded transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   showSortMenu
                     ? 'bg-surface-300 dark:bg-surface-600 text-surface-700 dark:text-surface-200'
                     : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''}`
@@ -269,7 +269,7 @@ export const SidebarTagsList = ({
                   e.stopPropagation();
                   onAddTag();
                 }}
-                className={`p-1 rounded ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
+                className={`p-1 rounded-sm ${!isAnyModalOpen ? 'hover:bg-surface-300 dark:hover:bg-surface-600 hover:text-surface-700 dark:hover:text-surface-300' : ''} text-surface-500 dark:text-surface-400 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -295,7 +295,7 @@ export const SidebarTagsList = ({
                     type="button"
                     key={option.value}
                     onClick={() => handleSortModeChange(option.value)}
-                    className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                    className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                       tagSortConfig.mode === option.value
                         ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
                         : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
@@ -321,7 +321,7 @@ export const SidebarTagsList = ({
                     type="button"
                     onClick={isDirectionDisabled ? undefined : toggleSortDirection}
                     disabled={isDirectionDisabled}
-                    className={`w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                    className={`w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                       isDirectionDisabled
                         ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
                         : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'

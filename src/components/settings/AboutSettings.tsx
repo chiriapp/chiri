@@ -57,9 +57,9 @@ const LinkRow = ({
     type="button"
     onClick={onClick}
     disabled={loading}
-    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface-100 dark:hover:bg-surface-700/60 transition-colors group outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 disabled:opacity-60 disabled:cursor-not-allowed"
+    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface-100 dark:hover:bg-surface-700/60 transition-colors group outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 disabled:opacity-60 disabled:cursor-not-allowed"
   >
-    <span className="text-surface-400 dark:text-surface-500 flex-shrink-0">{icon}</span>
+    <span className="text-surface-400 dark:text-surface-500 shrink-0">{icon}</span>
     <div className="flex-1 min-w-0">
       <p className="text-sm text-surface-800 dark:text-surface-200">{label}</p>
       {description && (
@@ -67,11 +67,11 @@ const LinkRow = ({
       )}
     </div>
     {loading ? (
-      <Loader2 className="w-3.5 h-3.5 text-surface-400 dark:text-surface-500 animate-spin flex-shrink-0" />
+      <Loader2 className="w-3.5 h-3.5 text-surface-400 dark:text-surface-500 animate-spin shrink-0" />
     ) : variant === 'internal' ? (
-      <ChevronRight className="w-5 h-5 text-surface-400 dark:text-surface-500 group-hover:text-surface-600 dark:group-hover:text-surface-300 transition-colors flex-shrink-0" />
+      <ChevronRight className="w-5 h-5 text-surface-400 dark:text-surface-500 group-hover:text-surface-600 dark:group-hover:text-surface-300 transition-colors shrink-0" />
     ) : (
-      <ExternalLink className="w-4 h-4 text-surface-400 dark:text-surface-500 flex-shrink-0" />
+      <ExternalLink className="w-4 h-4 text-surface-400 dark:text-surface-500 shrink-0" />
     )}
   </button>
 );
@@ -193,7 +193,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
 
         <Section title="Credits">
           <div className="flex items-center gap-3 px-4 py-3">
-            <span className="text-surface-400 dark:text-surface-500 flex-shrink-0">
+            <span className="text-surface-400 dark:text-surface-500 shrink-0">
               <Sparkles className="text-[#2196F2] w-5 h-5" />
             </span>
             <p className="text-sm text-surface-800 dark:text-surface-200">
@@ -201,7 +201,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
               <button
                 type="button"
                 onClick={link('https://github.com/abaker')}
-                className="font-medium hover:underline outline-none focus-visible:underline"
+                className="font-medium hover:underline outline-hidden focus-visible:underline"
               >
                 Alex Baker
               </button>{' '}
@@ -209,7 +209,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
               <button
                 type="button"
                 onClick={link('https://tasks.org')}
-                className="font-medium hover:underline outline-none focus-visible:underline"
+                className="font-medium hover:underline outline-hidden focus-visible:underline"
               >
                 Tasks.org
               </button>
@@ -217,7 +217,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
           </div>
 
           <div className="flex items-center gap-3 px-4 py-3">
-            <span className="text-surface-400 dark:text-surface-500 flex-shrink-0">
+            <span className="text-surface-400 dark:text-surface-500 shrink-0">
               <Heart className="text-[#F5C2E7] w-5 h-5" />
             </span>
             <p className="text-sm text-surface-800 dark:text-surface-200">
@@ -225,7 +225,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
               <button
                 type="button"
                 onClick={link('https://sapphic.moe')}
-                className="font-medium hover:underline outline-none focus-visible:underline"
+                className="font-medium hover:underline outline-hidden focus-visible:underline"
               >
                 {author}
               </button>
@@ -240,7 +240,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
                   key={libName}
                   type="button"
                   onClick={link(url)}
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-600 dark:text-surface-300 rounded-md transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-600 dark:text-surface-300 rounded-md transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
                 >
                   {libName}
                   <ExternalLink className="w-2.5 h-2.5 opacity-50" />
