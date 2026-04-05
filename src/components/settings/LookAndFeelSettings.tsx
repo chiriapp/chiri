@@ -16,7 +16,7 @@ const DENSITY_OPTIONS: { value: TaskListDensity; label: string; icon: React.Reac
 ];
 
 const SWITCHER_CLASS =
-  'flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
+  'flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
 const SWITCHER_ACTIVE =
   'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300';
 const SWITCHER_INACTIVE =
@@ -134,7 +134,7 @@ export const LookAndFeelSettings = () => {
                   key={color.value}
                   onClick={() => setAccentColor(color.value)}
                   title={color.name}
-                  className={`w-8 h-8 rounded-full border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
+                  className={`w-8 h-8 rounded-full border-2 transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
                     accentColor === color.value
                       ? 'border-surface-800 dark:border-white scale-110'
                       : 'border-transparent hover:scale-105'
@@ -155,7 +155,7 @@ export const LookAndFeelSettings = () => {
                   value={accentColor}
                   onChange={setAccentColor}
                   placeholder={FALLBACK_ITEM_COLOR}
-                  className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                  className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
                 />
               </>
             )}
@@ -211,7 +211,7 @@ export const LookAndFeelSettings = () => {
                     type="button"
                     key={preset}
                     onClick={() => setDefaultCalendarColor(preset)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
+                    className={`w-8 h-8 rounded-full border-2 transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
                       defaultCalendarColor === preset
                         ? 'border-surface-800 dark:border-white scale-110'
                         : 'border-transparent hover:scale-105'
@@ -232,7 +232,7 @@ export const LookAndFeelSettings = () => {
                     value={defaultCalendarColor}
                     onChange={setDefaultCalendarColor}
                     placeholder={FALLBACK_ITEM_COLOR}
-                    className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                    className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
                   />
                 </>
               )}
@@ -288,7 +288,7 @@ export const LookAndFeelSettings = () => {
                     type="button"
                     key={preset}
                     onClick={() => setDefaultTagColor(preset)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
+                    className={`w-8 h-8 rounded-full border-2 transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
                       defaultTagColor === preset
                         ? 'border-surface-800 dark:border-white scale-110'
                         : 'border-transparent hover:scale-105'
@@ -309,7 +309,7 @@ export const LookAndFeelSettings = () => {
                     value={defaultTagColor}
                     onChange={setDefaultTagColor}
                     placeholder={FALLBACK_ITEM_COLOR}
-                    className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                    className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
                   />
                 </>
               )}

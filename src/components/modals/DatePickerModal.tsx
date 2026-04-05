@@ -58,7 +58,7 @@ const CATEGORY_PRESETS: {
 ];
 
 const btnClass = (active: boolean) =>
-  `w-full flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+  `w-full flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
     active
       ? 'bg-primary-600 text-primary-contrast'
       : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
@@ -275,7 +275,7 @@ export const DatePickerModal = ({
   const showBorderAboveQuickSelects = !hideTimeControls;
 
   return (
-    <ModalBackdrop zIndex="z-[60]">
+    <ModalBackdrop zIndex="z-60">
       <div
         ref={focusTrapRef}
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-[480px] animate-scale-in relative"
@@ -285,7 +285,7 @@ export const DatePickerModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <X className="w-5 h-5" />
           </button>
@@ -365,7 +365,7 @@ export const DatePickerModal = ({
           </div>
 
           <div className="flex-1 p-4">
-            <div className="mb-3 min-h-[2rem]">
+            <div className="mb-3 min-h-8">
               {selectedDateLabel ? (
                 <div className="flex items-baseline gap-2">
                   <p className="text-sm font-medium text-surface-800 dark:text-surface-200">
@@ -386,7 +386,7 @@ export const DatePickerModal = ({
               <button
                 type="button"
                 onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-                className="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="p-1 rounded-sm hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -396,7 +396,7 @@ export const DatePickerModal = ({
               <button
                 type="button"
                 onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-                className="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="p-1 rounded-sm hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -429,7 +429,7 @@ export const DatePickerModal = ({
                     type="button"
                     onClick={() => handleDayClick(day)}
                     className={`
-                      w-8 h-8 rounded-full text-sm flex items-center justify-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
+                      w-8 h-8 rounded-full text-sm flex items-center justify-center transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
                       ${getDayButtonClass(isLocalSelected, isTodayDate, isCurrentMonth)}
                     `}
                   >
@@ -447,7 +447,7 @@ export const DatePickerModal = ({
               <button
                 type="button"
                 onClick={handleClear}
-                className="px-3 py-2 text-sm font-medium text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="px-3 py-2 text-sm font-medium text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 Clear
               </button>
@@ -457,7 +457,7 @@ export const DatePickerModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               Cancel
             </button>
@@ -465,7 +465,7 @@ export const DatePickerModal = ({
               type="button"
               onClick={handleDone}
               disabled={!localValue && !initialValue}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                 localValue || initialValue
                   ? 'text-primary-contrast bg-primary-600 hover:bg-primary-700'
                   : 'text-surface-400 dark:text-surface-600 bg-surface-200 dark:bg-surface-700 cursor-not-allowed'

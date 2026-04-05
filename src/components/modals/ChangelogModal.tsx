@@ -49,7 +49,7 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
           >
             <X className="w-5 h-5" />
           </button>
@@ -64,8 +64,8 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
                 [&_p]:text-sm [&_p]:text-surface-700 dark:[&_p]:text-surface-300 [&_p]:my-2
                 [&_ul]:list-disc [&_ul]:list-outside [&_ul]:space-y-1 [&_ul]:my-2 [&_ul]:text-surface-700 dark:[&_ul]:text-surface-300 [&_ul]:ml-4
                 [&_strong]:font-semibold
-                [&_a]:text-primary-600 dark:[&_a]:text-primary-400 [&_a]:hover:underline
-                [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:bg-surface-100 dark:[&_code]:bg-surface-800 [&_code]:rounded [&_code]:text-xs [&_code]:font-mono"
+                [&_a]:text-primary-600 dark:[&_a]:text-primary-400 hover:[&_a]:underline
+                [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:bg-surface-100 dark:[&_code]:bg-surface-800 [&_code]:rounded-sm [&_code]:text-xs [&_code]:font-mono"
               // biome-ignore lint/security/noDangerouslySetInnerHtml: Markdown is rendered from trusted changelog content
               dangerouslySetInnerHTML={{ __html: renderedHtml }}
             />
@@ -82,7 +82,7 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
             onClick={() => {
               openUrl(`https://github.com/SapphoSys/chiri/releases/tag/app-v${version}`);
             }}
-            className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <ExternalLink className="w-4 h-4" />
             View on GitHub
@@ -90,7 +90,7 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             Close
           </button>

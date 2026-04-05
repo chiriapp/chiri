@@ -25,13 +25,13 @@ const CalendarOption = ({ cal, onMove, onClose }: CalendarOptionProps) => {
         onMove(cal.id);
         onClose();
       }}
-      className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset hover:bg-surface-100 dark:hover:bg-surface-700"
+      className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset hover:bg-surface-100 dark:hover:bg-surface-700"
     >
       {cal.emoji ? (
         <span className="text-base leading-none">{cal.emoji}</span>
       ) : (
         <CalIcon
-          className="w-4 h-4 flex-shrink-0"
+          className="w-4 h-4 shrink-0"
           style={{ color: cal.color ?? FALLBACK_ITEM_COLOR }}
         />
       )}
@@ -84,7 +84,7 @@ export const MoveToCalendarModal = ({
   }, [otherCalendars, searchQuery]);
 
   return (
-    <ModalBackdrop zIndex="z-[60]">
+    <ModalBackdrop zIndex="z-60">
       <div
         ref={focusTrapRef}
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in relative"
@@ -113,7 +113,7 @@ export const MoveToCalendarModal = ({
                 if (el) setTimeout(() => el.focus(), 100);
               }}
               placeholder="Search calendars..."
-              className="w-full pl-9 pr-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+              className="w-full pl-9 pr-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
             />
           </div>
         </div>
@@ -138,7 +138,7 @@ export const MoveToCalendarModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             Cancel
           </button>

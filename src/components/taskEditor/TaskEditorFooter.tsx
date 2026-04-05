@@ -30,7 +30,7 @@ export const TaskEditorFooter = ({ task, timeFormat }: TaskEditorFooterProps) =>
           <button
             type="button"
             onClick={() => setShowHistory(true)}
-            className="p-2 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="p-2 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             aria-label="View task history"
           >
             <History className="w-5 h-5" />

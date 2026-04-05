@@ -86,7 +86,7 @@ const DefaultReminderPickerModal = ({
     // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop
     // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 animate-fade-in"
+      className="fixed inset-0 z-70 flex items-center justify-center bg-black/50 animate-fade-in"
       onClick={(e) => e.stopPropagation()}
     >
       <div
@@ -100,12 +100,12 @@ const DefaultReminderPickerModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="py-2 max-h-[28rem] overflow-y-auto">
+        <div className="py-2 max-h-112 overflow-y-auto">
           {available.map((opt) => (
             <button
               key={opt.value}
@@ -114,13 +114,13 @@ const DefaultReminderPickerModal = ({
                 onSelect(opt.value);
                 onClose();
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors outline-none focus-visible:bg-surface-50 dark:focus-visible:bg-surface-700 ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors outline-hidden focus-visible:bg-surface-50 dark:focus-visible:bg-surface-700 ${
                 opt.value === editing
                   ? 'bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 font-medium'
                   : 'text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700'
               }`}
             >
-              <BellRing className="w-4 h-4 text-surface-400 flex-shrink-0" />
+              <BellRing className="w-4 h-4 text-surface-400 shrink-0" />
               {opt.label}
             </button>
           ))}
@@ -212,7 +212,7 @@ export const TaskDefaultsSettings = () => {
   const availableTags = tags.filter((t) => !defaultTags.includes(t.id));
 
   const selectClassName =
-    'w-[160px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0';
+    'w-[160px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0';
 
   return (
     <div className="space-y-4">
@@ -260,13 +260,13 @@ export const TaskDefaultsSettings = () => {
                 key={value}
                 type="button"
                 onClick={() => setDefaultStatus(value as TaskStatus)}
-                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
+                className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
                   defaultStatus === value
                     ? activeClass
                     : 'border-surface-200 dark:border-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400'
                 }`}
               >
-                <Icon className="w-4 h-4 flex-shrink-0" />
+                <Icon className="w-4 h-4 shrink-0" />
                 {label}
               </button>
             ))}
@@ -309,7 +309,7 @@ export const TaskDefaultsSettings = () => {
                 type="button"
                 key={p.value}
                 onClick={() => setDefaultPriority(p.value)}
-                className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
+                className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
                   defaultPriority === p.value
                     ? `${p.borderColor} ${p.bgColor}`
                     : 'border-surface-200 dark:border-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400'
@@ -336,7 +336,7 @@ export const TaskDefaultsSettings = () => {
             disabled={
               accounts.length === 0 || !accounts.some((account) => account.calendars.length > 0)
             }
-            className="max-w-[200px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="max-w-[200px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {accounts.length === 0 || !accounts.some((account) => account.calendars.length > 0) ? (
               <option value="">No accounts available</option>
@@ -403,9 +403,9 @@ export const TaskDefaultsSettings = () => {
           <button
             type="button"
             onClick={() => setShowRepeatModal(true)}
-            className="flex items-center gap-2 px-3 py-2 w-full bg-surface-100 dark:bg-surface-700 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="flex items-center gap-2 px-3 py-2 w-full bg-surface-100 dark:bg-surface-700 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
-            <Repeat className="w-4 h-4 text-surface-400 flex-shrink-0" />
+            <Repeat className="w-4 h-4 text-surface-400 shrink-0" />
             <span className="flex-1 text-left text-sm text-surface-700 dark:text-surface-300">
               {defaultRrule
                 ? rruleToText(defaultRrule, defaultRepeatFrom, dateFormat)
@@ -425,7 +425,7 @@ export const TaskDefaultsSettings = () => {
               return (
                 <span
                   key={tag.id}
-                  className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded border text-xs font-medium group"
+                  className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-sm border text-xs font-medium group"
                   style={{
                     borderColor: tag.color,
                     backgroundColor: `${tag.color}15`,
@@ -441,7 +441,7 @@ export const TaskDefaultsSettings = () => {
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag.id)}
-                    className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+                    className="p-0.5 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -451,7 +451,7 @@ export const TaskDefaultsSettings = () => {
             <button
               type="button"
               onClick={() => setShowTagPicker(true)}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded-sm hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Plus className="w-3 h-3" />
               Add tag
@@ -479,9 +479,9 @@ export const TaskDefaultsSettings = () => {
                     handleEditReminder(offset);
                   }
                 }}
-                className="flex items-center gap-2 px-3 py-2 bg-surface-100 dark:bg-surface-700 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors cursor-pointer group outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="flex items-center gap-2 px-3 py-2 bg-surface-100 dark:bg-surface-700 rounded-lg hover:bg-surface-200 dark:hover:bg-surface-600 transition-colors cursor-pointer group outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
-                <BellRing className="w-4 h-4 text-surface-400 flex-shrink-0" />
+                <BellRing className="w-4 h-4 text-surface-400 shrink-0" />
                 <span className="flex-1 text-sm text-surface-700 dark:text-surface-300">
                   {REMINDER_LABELS[offset]}
                 </span>
@@ -491,7 +491,7 @@ export const TaskDefaultsSettings = () => {
                     e.stopPropagation();
                     handleRemoveReminder(offset);
                   }}
-                  className="p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-full invisible group-hover:visible focus-visible:visible outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  className="p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-full invisible group-hover:visible focus-visible:visible outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   title="Remove reminder"
                 >
                   <X className="w-4 h-4" />
@@ -502,7 +502,7 @@ export const TaskDefaultsSettings = () => {
           {availableReminderOptions.length > 0 && (
             <button
               type="button"
-              className={`inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${defaultReminders.length > 0 ? 'mt-3' : ''}`}
+              className={`inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded-sm hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${defaultReminders.length > 0 ? 'mt-3' : ''}`}
               onClick={() => {
                 setEditingReminderOffset(null);
                 setShowReminderPicker(true);

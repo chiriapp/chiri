@@ -51,7 +51,7 @@ export const SidebarCollapsedView = ({
         <button
           type="button"
           onClick={onAllTasks}
-          className={`p-2 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+          className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
             activeCalendarId === null && activeTagId === null
               ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
               : 'text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
@@ -75,7 +75,7 @@ export const SidebarCollapsedView = ({
                 data-context-menu
                 onClick={() => onSelectCalendar(account.id, calendar.id)}
                 onContextMenu={(e) => onContextMenu(e, 'calendar', calendar.id, account.id)}
-                className={`p-2 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   isActive
                     ? 'bg-primary-50 dark:bg-primary-900/30'
                     : contextMenu?.type === 'calendar' && contextMenu.id === calendar.id
@@ -126,7 +126,7 @@ export const SidebarCollapsedView = ({
               data-context-menu
               onClick={() => onSelectTag(tag.id)}
               onContextMenu={(e) => onContextMenu(e, 'tag', tag.id)}
-              className={`p-2 rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+              className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                 isActive
                   ? 'bg-primary-50 dark:bg-primary-900/30'
                   : contextMenu?.type === 'tag' && contextMenu.id === tag.id
@@ -165,7 +165,7 @@ export const SidebarCollapsedView = ({
             <button
               type="button"
               onClick={() => onUpdateClick?.()}
-              className="p-2 mb-1 rounded-lg text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="p-2 mb-1 rounded-lg text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Download className="w-5 h-5 text-primary-600 dark:text-primary-400" />
             </button>
@@ -175,7 +175,7 @@ export const SidebarCollapsedView = ({
           <button
             type="button"
             onClick={() => onOpenSettings?.()}
-            className="p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Settings className="w-5 h-5" />
           </button>

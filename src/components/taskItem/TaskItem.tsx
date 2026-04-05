@@ -143,13 +143,13 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
   const paddingLeft = 12 + depth * 4;
 
   const containerClass = [
-    'group relative flex items-start gap-3 pr-3 rounded-lg border transition-all outline-none',
+    'group relative flex items-start gap-3 pr-3 rounded-lg border transition-all outline-hidden',
     'focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900',
     taskListDensity === 'compact' ? 'py-2' : 'py-3',
     contextMenu && !isOverlay
       ? 'bg-surface-100 dark:bg-surface-700/60'
       : 'bg-white dark:bg-surface-800',
-    isOverlay ? 'shadow-xl' : 'shadow-sm hover:shadow-md',
+    isOverlay ? 'shadow-xl' : 'shadow-xs hover:shadow-md',
     isSelected ? '' : task.priority === 'none' ? 'border-surface-200 dark:border-surface-700' : '',
     task.status === 'completed' || task.status === 'cancelled'
       ? 'opacity-60'
@@ -189,7 +189,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
         data-context-menu
         className={containerClass}
       >
-        <div className="task-checkbox-wrapper flex-shrink-0">
+        <div className="task-checkbox-wrapper shrink-0">
           <TaskItemCheckbox
             status={task.status}
             flashComplete={flashComplete}
@@ -210,7 +210,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                 />
                 <TaskItemBadges {...badgesProps} compact={true} />
               </div>
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 shrink-0">
                 {taskBadgeVisibility.dueDate && <TaskItemDueDateBadge dueDate={task.dueDate} />}
               </div>
             </div>
@@ -223,7 +223,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                   isUnstarted={isUnstarted}
                   className="text-sm font-medium leading-5 truncate flex-1 min-w-0"
                 />
-                <div className="flex items-center gap-1 flex-shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
                   <TaskItemDueDateBadge dueDate={task.dueDate} />
                 </div>
               </div>
@@ -239,7 +239,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
           )}
         </div>
 
-        <ChevronRight className="w-5 h-5 text-surface-300 dark:text-surface-600 group-hover:text-surface-500 dark:group-hover:text-surface-400 transition-colors flex-shrink-0" />
+        <ChevronRight className="w-5 h-5 text-surface-300 dark:text-surface-600 group-hover:text-surface-500 dark:group-hover:text-surface-400 transition-colors shrink-0" />
       </div>
 
       {contextMenu && (

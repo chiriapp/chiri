@@ -32,7 +32,7 @@ export const useGlobalContextMenuClose = (onClose: () => void, isOpen: boolean) 
       if (target.closest('[data-context-menu-content]')) {
         return;
       }
-      // don't close if a modal is open (modals are at z-[60]+)
+      // don't close if a modal is open (modals are at z-60+)
       if (hasOpenModalElements()) {
         return;
       }
