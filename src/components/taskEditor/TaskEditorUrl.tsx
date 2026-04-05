@@ -15,13 +15,13 @@ export const TaskEditorUrl = ({ task }: UrlProps) => {
 
   const urlRef = useRef<HTMLTextAreaElement>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Need to trigger on pendingUrl changes
   useEffect(() => {
     const textarea = urlRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
+    if (!textarea) return;
+    // Skip if DOM value has not reflected the latest state yet.
+    if (textarea.value !== pendingUrl) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
   }, [pendingUrl]);
 
   const handleUrlChange = (value: string, cursorPos?: number | null) => {

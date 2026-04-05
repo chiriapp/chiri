@@ -49,7 +49,6 @@ export const useDebouncedTaskUpdate = <T>(
   };
 
   // cleanup: flush pending changes on unmount
-  // biome-ignore lint/correctness/useExhaustiveDependencies: cleanup only on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -63,7 +62,7 @@ export const useDebouncedTaskUpdate = <T>(
         }
       }
     };
-  }, []);
+  }, [fieldName, taskId, updateTaskMutation.mutate]);
 
   return [pendingValue, updateValue] as const;
 };
