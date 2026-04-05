@@ -26,13 +26,13 @@ export const TaskEditorTitle = ({ task, checkmarkColor }: TaskEditorTitleProps) 
   }, [task.title]);
 
   // Auto-resize title textarea based on content
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Need to trigger on pendingTitle changes
   useEffect(() => {
     const textarea = titleRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = `${textarea.scrollHeight}px`;
-    }
+    if (!textarea) return;
+    // Skip if DOM value has not reflected the latest state yet.
+    if (textarea.value !== pendingTitle) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
   }, [pendingTitle]);
 
   const handleTitleChange = (value: string, cursorPos?: number | null) => {

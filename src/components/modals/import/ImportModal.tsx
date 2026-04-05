@@ -63,14 +63,6 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     }
   }, [isOpen, hasAccounts, selectedAccountId, accounts]);
 
-  // Handle preloaded file
-  // biome-ignore lint/correctness/useExhaustiveDependencies: handleFileContent only changes when hasAccounts changes, which is rare
-  useEffect(() => {
-    if (isOpen && preloadedFile) {
-      handleFileContent(preloadedFile.name, preloadedFile.content);
-    }
-  }, [isOpen, preloadedFile]);
-
   // Handle ESC key - uses handleClose which is defined below
   // Note: useModalEscapeKey is called conditionally via the enabled option
   useModalEscapeKey(
@@ -151,6 +143,13 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     setParsedTasks(tasks.map((t) => ({ ...t, importStatus: 'pending' })));
     // Stay on upload step - let user click Continue to proceed
   }, []);
+
+  // Handle preloaded file
+  useEffect(() => {
+    if (isOpen && preloadedFile) {
+      handleFileContent(preloadedFile.name, preloadedFile.content);
+    }
+  }, [isOpen, preloadedFile, handleFileContent]);
 
   const handleFileSelect = useCallback(
     async (file: File) => {
