@@ -13,12 +13,13 @@ import SortAsc from 'lucide-react/icons/arrow-up-narrow-wide';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Plus from 'lucide-react/icons/plus';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Tooltip } from '$components/Tooltip';
 import { FALLBACK_ITEM_COLOR, TAG_SORT_OPTIONS } from '$constants';
 import { getIconByName } from '$constants/icons';
 import { useReorderTags } from '$hooks/queries/useTags';
 import { useSetTagSortConfig, useTagSortConfig } from '$hooks/queries/useUIState';
+import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { Tag, TagSortConfig, Task } from '$types';
 import { getContrastTextColor } from '$utils/color';
 
@@ -171,15 +172,8 @@ export const SidebarTagsList = ({
     });
   };
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showSortMenu) {
-        setShowSortMenu(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSortMenu]);
+  const closeSortMenu = useCallback(() => setShowSortMenu(false), []);
+  useEscapeKey(closeSortMenu, { enabled: showSortMenu });
 
   const getTagTaskCount = (tagId: string) =>
     tasks.filter((t) => (t.tags || []).includes(tagId) && isActiveTask(t)).length;

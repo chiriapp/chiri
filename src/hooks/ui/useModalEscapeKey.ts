@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef } from 'react';
 import { ConfirmDialogContext } from '$context/confirmDialogContext';
+import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import { hasOpenModalElements } from '$utils/misc';
 
 // track all active modal escape handlers in order of registration
@@ -49,36 +50,28 @@ export const useModalEscapeKey = (
   options?: { isPanel?: boolean; enabled?: boolean },
 ) => {
   const confirmDialogContext = useContext(ConfirmDialogContext);
-  const handlerIdRef = useRef<symbol | null>(null);
-  const isPanelRef = useRef(options?.isPanel ?? false);
-  const onCloseRef = useRef(onClose);
-  const confirmDialogOpenRef = useRef(confirmDialogContext?.isOpen ?? false);
+  const handlerIdRef = useRef<symbol>(Symbol('modal-escape-handler'));
+  const isPanel = options?.isPanel ?? false;
   const enabled = options?.enabled ?? true;
+  const confirmDialogOpen = confirmDialogContext?.isOpen ?? false;
 
-  // Keep onClose ref up to date without re-registering the handler
-  // Keep refs current without re-registering the listener
-  onCloseRef.current = onClose;
-  confirmDialogOpenRef.current = confirmDialogContext?.isOpen ?? false;
-
+  // Keep modal stack registration in sync for topmost-only modal behavior.
   useEffect(() => {
-    // Don't register handler if disabled
-    if (!enabled) {
-      return;
-    }
+    if (!enabled || isPanel) return;
 
-    // create a unique identifier for this handler
-    const handlerId = Symbol('modal-escape-handler');
-    handlerIdRef.current = handlerId;
+    const handlerId = handlerIdRef.current;
+    activeHandlers.add(handlerId);
 
-    // Only add to activeHandlers if not a panel (panels don't participate in the topmost check)
-    if (!isPanelRef.current) {
-      activeHandlers.add(handlerId);
-    }
+    return () => {
+      activeHandlers.delete(handlerId);
+    };
+  }, [enabled, isPanel]);
 
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
+  useEscapeKey(
+    (e) => {
+      const handlerId = handlerIdRef.current;
 
-      if (shouldBlockEscape(confirmDialogOpenRef.current, isPanelRef.current, handlerId)) {
+      if (shouldBlockEscape(confirmDialogOpen, isPanel, handlerId)) {
         return;
       }
 
@@ -91,16 +84,8 @@ export const useModalEscapeKey = (
         document.activeElement.blur();
       }
 
-      onCloseRef.current();
-    };
-
-    window.addEventListener('keydown', handleEsc, { capture: true });
-
-    return () => {
-      if (!isPanelRef.current) {
-        activeHandlers.delete(handlerId);
-      }
-      window.removeEventListener('keydown', handleEsc, { capture: true } as EventListenerOptions);
-    };
-  }, [enabled]); // Re-run when enabled changes
+      onClose();
+    },
+    { enabled, capture: true },
+  );
 };

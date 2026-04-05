@@ -3,6 +3,7 @@ import { Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { FALLBACK_ITEM_COLOR } from '$constants';
 import { CALENDAR_ICONS, getIconByName } from '$constants/icons';
+import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 
 interface IconEmojiPickerProps {
   iconValue: string;
@@ -42,24 +43,12 @@ export const IconEmojiPicker = ({
   }, [isOpen]);
 
   // Handle Escape key to close dropdown (prevent modal from closing)
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        event.stopPropagation();
-        event.preventDefault();
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      // Use capture phase to intercept before modal handlers
-      window.addEventListener('keydown', handleEscape, { capture: true });
-    }
-
-    return () => {
-      window.removeEventListener('keydown', handleEscape, { capture: true });
-    };
-  }, [isOpen]);
+  useEscapeKey(() => setIsOpen(false), {
+    enabled: isOpen,
+    preventDefault: true,
+    stopPropagation: true,
+    capture: true,
+  });
 
   const SelectedIcon = getIconByName(iconValue);
 
