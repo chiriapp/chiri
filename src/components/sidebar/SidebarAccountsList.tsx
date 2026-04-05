@@ -16,7 +16,7 @@ import Import from 'lucide-react/icons/import';
 import MoreVertical from 'lucide-react/icons/more-vertical';
 import Plus from 'lucide-react/icons/plus';
 import User from 'lucide-react/icons/user';
-import { useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Tooltip } from '$components/Tooltip';
 import { ACCOUNT_SORT_OPTIONS, CALENDAR_SORT_OPTIONS, FALLBACK_ITEM_COLOR } from '$constants';
 import { getIconByName } from '$constants/icons';
@@ -27,6 +27,7 @@ import {
   useSetAccountSortConfig,
   useSetCalendarSortConfig,
 } from '$hooks/queries/useUIState';
+import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { Account, AccountSortConfig, Calendar, CalendarSortConfig, Task } from '$types';
 import { getContrastTextColor } from '$utils/color';
 
@@ -465,13 +466,8 @@ export const SidebarAccountsList = ({
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showSortMenu) setShowSortMenu(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showSortMenu]);
+  const closeSortMenu = useCallback(() => setShowSortMenu(false), []);
+  useEscapeKey(closeSortMenu, { enabled: showSortMenu });
 
   const handleAccountSortModeChange = (mode: AccountSortConfig['mode']) => {
     setAccountSortConfigMutation.mutate({ ...accountSortConfig, mode });

@@ -2,7 +2,7 @@ import Calendar from 'lucide-react/icons/calendar';
 import Check from 'lucide-react/icons/check';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Cloud from 'lucide-react/icons/cloud';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { DestinationStepProps } from '$types/import';
 
 interface CalendarOption {
@@ -51,17 +51,13 @@ export const DestinationStep = ({
     calendars: account.calendars,
   }));
 
-  const handleSelect = useCallback(
-    (accountId: string, calendarId: string) => {
-      onSelect(accountId, calendarId);
-      setIsOpen(false);
-    },
-    [onSelect],
-  );
+  const handleSelect = (accountId: string, calendarId: string) => {
+    onSelect(accountId, calendarId);
+    setIsOpen(false);
+  };
 
-  // Update dropdown position when opened
-  useEffect(() => {
-    if (isOpen && buttonRef.current) {
+  const updateDropdownPosition = () => {
+    if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       setDropdownPosition({
         top: rect.bottom + 4,
@@ -69,32 +65,51 @@ export const DestinationStep = ({
         width: rect.width,
       });
     }
-  }, [isOpen]);
+  };
+
+  const openDropdown = () => {
+    updateDropdownPosition();
+    setIsOpen(true);
+  };
+
+  const closeDropdown = () => {
+    setIsOpen(false);
+  };
+
+  const toggleDropdown = () => {
+    if (isOpen) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
       }
     };
 
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      setIsOpen(false);
+      closeDropdown();
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      setIsOpen(!isOpen);
+      toggleDropdown();
     } else if (e.key === 'ArrowDown' && !isOpen) {
       e.preventDefault();
-      setIsOpen(true);
+      openDropdown();
     }
   };
 
@@ -132,7 +147,7 @@ export const DestinationStep = ({
         <button
           ref={buttonRef}
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={toggleDropdown}
           onKeyDown={handleKeyDown}
           className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-left rounded-lg border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 ${
             isOpen

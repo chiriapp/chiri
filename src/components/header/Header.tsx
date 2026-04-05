@@ -4,7 +4,7 @@ import Plus from 'lucide-react/icons/plus';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Search from 'lucide-react/icons/search';
 import SlidersHorizontal from 'lucide-react/icons/sliders-horizontal';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { HeaderSortDirectionButton } from '$components/header/HeaderSortDirectionButton';
 import { HeaderSortOptionButton } from '$components/header/HeaderSortOptionsButton';
@@ -21,6 +21,7 @@ import {
   useSetSortConfig,
   useUIState,
 } from '$hooks/queries/useUIState';
+import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { SortDirection, SortMode } from '$types';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
 
@@ -113,16 +114,8 @@ export const Header = ({
     }
   }, [isSyncing]);
 
-  // handle ESC key to close view menu
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showViewMenu) {
-        setShowViewMenu(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showViewMenu]);
+  const closeViewMenu = useCallback(() => setShowViewMenu(false), []);
+  useEscapeKey(closeViewMenu, { enabled: showViewMenu });
 
   const handleNewTask = () => {
     createTaskMutation.mutate(

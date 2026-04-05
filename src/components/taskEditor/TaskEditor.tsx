@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { ReminderPickerModal } from '$components/modals/ReminderPickerModal';
 import { RepeatModal } from '$components/modals/RepeatModal';
@@ -29,6 +29,7 @@ import {
 } from '$hooks/queries/useTasks';
 import { useSetEditorOpen } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
 import type { Task, TaskStatus } from '$types';
@@ -77,37 +78,29 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   const availableTags = tags.filter((t) => !(task.tags || []).includes(t.id));
 
   // Handle escape key to blur focused inputs
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        const activeElement = document.activeElement as HTMLElement;
+  useEscapeKey(
+    (e) => {
+      const activeElement = document.activeElement as HTMLElement;
 
-        // Don't handle escape if any modal is open (they should handle it first)
-        if (hasOpenModalElements()) {
-          return;
-        }
-
-        // Check if focus is on an input or textarea within the editor
-        if (
-          editorContainerRef.current?.contains(activeElement) &&
-          (activeElement instanceof HTMLInputElement ||
-            activeElement instanceof HTMLTextAreaElement)
-        ) {
-          // Blur the input only; stop immediate propagation so useModalEscapeKey doesn't
-          // also close the editor on this same keypress — a second Escape will close it.
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          activeElement.blur();
-          return;
-        }
+      // Don't handle escape if any modal is open (they should handle it first)
+      if (hasOpenModalElements()) {
+        return;
       }
-    };
 
-    window.addEventListener('keydown', handleEsc, { capture: true });
-    return () => {
-      window.removeEventListener('keydown', handleEsc, { capture: true });
-    };
-  }, []);
+      // Check if focus is on an input or textarea within the editor
+      if (
+        editorContainerRef.current?.contains(activeElement) &&
+        (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)
+      ) {
+        // Blur the input only; stop immediate propagation so useModalEscapeKey doesn't
+        // also close the editor on this same keypress — a second Escape will close it.
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        activeElement.blur();
+      }
+    },
+    { capture: true },
+  );
 
   // mark as panel so it yields to modal dialogs (closes on ESC when no input is focused)
   useModalEscapeKey(() => setEditorOpenMutation.mutate(false), {
