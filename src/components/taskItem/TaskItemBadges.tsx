@@ -78,7 +78,7 @@ export const TaskItemBadges = ({
 
   return (
     <div
-      className={`flex items-center gap-2 ${compact ? 'overflow-hidden flex-shrink-0' : 'mt-2 flex-wrap'}`}
+      className={`flex items-center gap-2 ${compact ? 'overflow-hidden shrink-0' : 'mt-2 flex-wrap'}`}
     >
       {badgeVisibility.startDate && startDateDisplay && (
         <TaskItemStartDateBadge startDateDisplay={startDateDisplay} />

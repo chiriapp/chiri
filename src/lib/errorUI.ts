@@ -132,13 +132,13 @@ This won't delete any data on your CalDAV servers, however local data will be lo
   const confirmBtn = document.createElement('button');
   confirmBtn.id = 'resetConfirmBtn';
   confirmBtn.className =
-    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-primary-contrast hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
+    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-primary-contrast hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
   confirmBtn.textContent = 'Yes, Reset Database';
 
   const cancelBtn = document.createElement('button');
   cancelBtn.id = 'resetCancelBtn';
   cancelBtn.className =
-    'flex-1 rounded-md border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2';
+    'flex-1 rounded-md border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2';
   cancelBtn.textContent = 'Cancel';
 
   confirmButtons.appendChild(confirmBtn);
@@ -198,12 +198,12 @@ This won't delete any data on your CalDAV servers, however local data will be lo
 
   const confirmPrefsBtn = document.createElement('button');
   confirmPrefsBtn.className =
-    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
+    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
   confirmPrefsBtn.textContent = 'Yes, Reset Preferences';
 
   const cancelPrefsBtn = document.createElement('button');
   cancelPrefsBtn.className =
-    'flex-1 rounded-md border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2';
+    'flex-1 rounded-md border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2';
   cancelPrefsBtn.textContent = 'Cancel';
 
   confirmPrefsButtons.appendChild(confirmPrefsBtn);
@@ -260,7 +260,7 @@ const createActionCard = (
   cardDesc.textContent = description;
 
   const button = document.createElement('button');
-  button.className = `rounded-md ${buttonClasses} px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`;
+  button.className = `rounded-md ${buttonClasses} px-4 py-2 text-sm font-medium transition-colors focus:outline-hidden focus:ring-2 focus:ring-offset-2`;
   button.textContent = buttonText;
   button.addEventListener('click', onButtonClick);
 

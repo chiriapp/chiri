@@ -60,7 +60,7 @@ export const SidebarContextMenu = ({
     // biome-ignore lint/a11y/useKeyWithClickEvents: Context menu container uses stopPropagation to prevent backdrop close
     <div
       data-context-menu-content
-      className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 animate-scale-in min-w-[6rem]"
+      className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 animate-scale-in min-w-24"
       style={{ left: contextMenu.x, top: contextMenu.y }}
       onClick={(e: React.MouseEvent) => e.stopPropagation()}
     >
@@ -95,7 +95,7 @@ export const SidebarContextMenu = ({
                   }
                 }}
                 disabled={isAccountSyncing}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   isAccountSyncing
                     ? 'text-surface-400 dark:text-surface-500 cursor-not-allowed'
                     : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
@@ -115,7 +115,7 @@ export const SidebarContextMenu = ({
               onCreateCalendar(contextMenu.id);
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Plus className="w-4 h-4" />
             New Calendar
@@ -132,7 +132,7 @@ export const SidebarContextMenu = ({
               }
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Edit2 className="w-4 h-4" />
             Edit Account
@@ -146,7 +146,7 @@ export const SidebarContextMenu = ({
               onExportAccount(contextMenu.id);
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Share2 className="w-4 h-4" />
             Export Calendars
@@ -160,7 +160,7 @@ export const SidebarContextMenu = ({
               onClose();
               await onDeleteAccount(contextMenu.id);
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-hidden focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
           >
             <Trash2 className="w-4 h-4" />
             Remove
@@ -192,7 +192,7 @@ export const SidebarContextMenu = ({
               });
             }}
             disabled={syncingCalendarId === contextMenu.id}
-            className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+            className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
               syncingCalendarId === contextMenu.id
                 ? 'text-surface-400 dark:text-surface-500 cursor-not-allowed'
                 : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
@@ -214,7 +214,7 @@ export const SidebarContextMenu = ({
               }
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Edit2 className="w-4 h-4" />
             Edit Calendar
@@ -228,7 +228,7 @@ export const SidebarContextMenu = ({
               onExportCalendar(contextMenu.id);
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Share2 className="w-4 h-4" />
             Export Tasks
@@ -244,7 +244,7 @@ export const SidebarContextMenu = ({
                 await onDeleteCalendar(contextMenu.id, contextMenu.accountId);
               }
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-hidden focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
           >
             <Trash2 className="w-4 h-4" />
             Delete
@@ -260,7 +260,7 @@ export const SidebarContextMenu = ({
               onExpandAll();
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-t-md outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-t-md outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <ChevronDown className="w-4 h-4" />
             Expand All
@@ -274,7 +274,7 @@ export const SidebarContextMenu = ({
               onCollapseAll();
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <ChevronRight className="w-4 h-4" />
             Collapse All
@@ -290,7 +290,7 @@ export const SidebarContextMenu = ({
               onEditTag(contextMenu.id);
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Edit2 className="w-4 h-4" />
             Edit Tag
@@ -304,7 +304,7 @@ export const SidebarContextMenu = ({
               onClose();
               await onDeleteTag(contextMenu.id);
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-hidden focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
           >
             <Trash2 className="w-4 h-4" />
             Delete

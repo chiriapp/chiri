@@ -70,7 +70,7 @@ export const TaskEditorTitle = ({ task, checkmarkColor }: TaskEditorTitleProps) 
             titleRef.current.focus();
           }
         }}
-        className="flex items-start gap-3 px-3 py-3 bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg has-[:focus]:border-primary-300 dark:has-[:focus]:border-primary-400 has-[textarea:focus]:bg-white dark:has-[textarea:focus]:bg-primary-900/30 transition-colors cursor-text"
+        className="flex items-start gap-3 px-3 py-3 bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg has-focus:border-primary-300 dark:has-focus:border-primary-400 has-[textarea:focus]:bg-white dark:has-[textarea:focus]:bg-primary-900/30 transition-colors cursor-text"
       >
         <button
           type="button"
@@ -85,7 +85,7 @@ export const TaskEditorTitle = ({ task, checkmarkColor }: TaskEditorTitleProps) 
                   : 'Mark complete'
           }
           className={`
-            flex-shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
+            shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
             ${
               task.status === 'completed'
                 ? 'bg-primary-500 border-primary-500'
@@ -114,7 +114,7 @@ export const TaskEditorTitle = ({ task, checkmarkColor }: TaskEditorTitleProps) 
           onChange={handleTitleChange}
           placeholder="Task title..."
           rows={1}
-          className="flex-1 text-sm font-medium text-surface-700 dark:text-surface-300 bg-transparent border-0 focus:outline-none focus:ring-0 p-0 overflow-hidden resize-none w-full"
+          className="flex-1 text-sm font-medium text-surface-700 dark:text-surface-300 bg-transparent border-0 focus:outline-hidden focus:ring-0 p-0 overflow-hidden resize-none w-full"
         />
       </div>
     </div>

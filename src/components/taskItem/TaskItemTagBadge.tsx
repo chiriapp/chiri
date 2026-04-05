@@ -16,7 +16,7 @@ export const TaskItemTagBadge = ({
         e.stopPropagation();
         onTagClick(tag.id);
       }}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium hover:opacity-80 transition-opacity border outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-xs font-medium hover:opacity-80 transition-opacity border outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
       style={{
         borderColor: tag.color,
         backgroundColor: `${tag.color}15`,

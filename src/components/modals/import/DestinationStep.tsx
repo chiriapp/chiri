@@ -134,7 +134,7 @@ export const DestinationStep = ({
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           onKeyDown={handleKeyDown}
-          className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-left rounded-lg border transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+          className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm text-left rounded-lg border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 ${
             isOpen
               ? 'border-primary-500 ring-2 ring-primary-500/20 bg-white dark:bg-surface-700'
               : 'border-surface-200 dark:border-surface-600 bg-white dark:bg-surface-700 hover:border-surface-300 dark:hover:border-surface-500'
@@ -145,13 +145,13 @@ export const DestinationStep = ({
           {selectedOption ? (
             <div className="flex items-center gap-2 min-w-0">
               <div
-                className="w-3 h-3 rounded-full flex-shrink-0"
+                className="w-3 h-3 rounded-full shrink-0"
                 style={{ backgroundColor: selectedOption.calendarColor || '#3b82f6' }}
               />
               <span className="truncate text-surface-800 dark:text-surface-200">
                 {selectedOption.calendarName}
               </span>
-              <span className="text-xs text-surface-500 dark:text-surface-400 flex-shrink-0">
+              <span className="text-xs text-surface-500 dark:text-surface-400 shrink-0">
                 ({selectedOption.accountName})
               </span>
             </div>
@@ -159,7 +159,7 @@ export const DestinationStep = ({
             <span className="text-surface-500 dark:text-surface-400">Select a calendar...</span>
           )}
           <ChevronDown
-            className={`w-4 h-4 text-surface-400 flex-shrink-0 transition-transform ${
+            className={`w-4 h-4 text-surface-400 shrink-0 transition-transform ${
               isOpen ? 'rotate-180' : ''
             }`}
           />
@@ -170,7 +170,7 @@ export const DestinationStep = ({
           <div
             ref={listRef}
             role="listbox"
-            className="fixed z-[70] py-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg shadow-lg max-h-64 overflow-y-auto animate-fade-in"
+            className="fixed z-70 py-1 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg shadow-lg max-h-64 overflow-y-auto animate-fade-in"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
@@ -195,19 +195,19 @@ export const DestinationStep = ({
                       role="option"
                       aria-selected={isSelected}
                       onClick={() => handleSelect(account.id, cal.id)}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                         isSelected
                           ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                           : 'hover:bg-surface-50 dark:hover:bg-surface-700/50 text-surface-700 dark:text-surface-300'
                       }`}
                     >
                       <div
-                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        className="w-3 h-3 rounded-full shrink-0"
                         style={{ backgroundColor: cal.color || '#3b82f6' }}
                       />
                       <span className="truncate flex-1">{cal.displayName}</span>
                       {isSelected && (
-                        <Check className="w-4 h-4 text-primary-600 dark:text-primary-400 flex-shrink-0" />
+                        <Check className="w-4 h-4 text-primary-600 dark:text-primary-400 shrink-0" />
                       )}
                     </button>
                   );

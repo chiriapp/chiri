@@ -131,7 +131,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
           <button
             type="button"
             onClick={handleAddAccount}
-            className="w-full px-4 py-3 bg-primary-500 hover:bg-primary-600 text-primary-contrast font-medium rounded-lg transition-colors flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+            className="w-full px-4 py-3 bg-primary-500 hover:bg-primary-600 text-primary-contrast font-medium rounded-lg transition-colors flex items-center justify-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
           >
             <User className="w-5 h-5" />
             Add CalDAV Account
@@ -139,7 +139,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
           <button
             type="button"
             onClick={handleNext}
-            className="w-full px-4 py-3 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            className="w-full px-4 py-3 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <ArrowRight className="w-5 h-5" />
             I'll do this later
@@ -149,7 +149,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
         <button
           type="button"
           onClick={handleNext}
-          className="w-full px-4 py-3 bg-primary-500 hover:bg-primary-600 text-primary-contrast font-medium rounded-lg transition-colors flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
+          className="w-full px-4 py-3 bg-primary-500 hover:bg-primary-600 text-primary-contrast font-medium rounded-lg transition-colors flex items-center justify-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
         >
           {isLastStep ? (
             <>
@@ -169,7 +169,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
         <button
           type="button"
           onClick={handleSkip}
-          className="w-full px-4 py-3 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          className="w-full px-4 py-3 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600 text-surface-700 dark:text-surface-300 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
         >
           <SkipForward className="w-5 h-5" />
           Skip onboarding
@@ -216,7 +216,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
               <button
                 type="button"
                 onClick={() => toggleSection('sync')}
-                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <div className="flex items-center gap-2">
                   <RefreshCw className="w-5 h-5 text-surface-600 dark:text-surface-400" />
@@ -240,7 +240,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                       type="checkbox"
                       checked={autoSync}
                       onChange={(e) => setAutoSync(e.target.checked)}
-                      className="w-5 h-5 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                      className="w-5 h-5 rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
                     />
                   </label>
 
@@ -270,7 +270,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                       type="checkbox"
                       checked={syncOnStartup}
                       onChange={(e) => setSyncOnStartup(e.target.checked)}
-                      className="w-5 h-5 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                      className="w-5 h-5 rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
                     />
                   </label>
                 </div>
@@ -281,7 +281,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
               <button
                 type="button"
                 onClick={() => toggleSection('appearance')}
-                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <div className="flex items-center gap-2">
                   <Palette className="w-5 h-5 text-surface-600 dark:text-surface-400" />
@@ -308,7 +308,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                           key={color.value}
                           type="button"
                           onClick={() => setAccentColor(color.value)}
-                          className={`w-8 h-8 rounded-full border-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
+                          className={`w-8 h-8 rounded-full border-2 transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
                             accentColor === color.value
                               ? 'border-surface-800 dark:border-white scale-110'
                               : 'border-transparent hover:scale-105'
@@ -329,7 +329,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                           type="button"
                           key={option.value}
                           onClick={() => setTheme(option.value)}
-                          className={`flex-1 flex justify-center items-center gap-2 py-2 rounded-lg border text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                          className={`flex-1 flex justify-center items-center gap-2 py-2 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                             theme === option.value
                               ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
                               : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400'
@@ -349,7 +349,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
               <button
                 type="button"
                 onClick={() => toggleSection('system')}
-                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <div className="flex items-center gap-2">
                   <Monitor className="w-5 h-5 text-surface-600 dark:text-surface-400" />
@@ -374,14 +374,14 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                         type="checkbox"
                         checked={enableSystemTray}
                         onChange={(e) => setEnableSystemTray(e.target.checked)}
-                        className="w-5 h-5 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                        className="w-5 h-5 rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
                       />
                     </label>
 
                     {isGNOME && enableSystemTray && (
                       <div className="mt-2 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                         <div className="flex gap-2">
-                          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                           <div className="text-xs text-amber-800 dark:text-amber-200">
                             <strong>GNOME Desktop:</strong> Requires{' '}
                             <a
@@ -407,7 +407,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                       type="checkbox"
                       checked={checkForUpdatesAutomatically}
                       onChange={(e) => setCheckForUpdatesAutomatically(e.target.checked)}
-                      className="w-5 h-5 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                      className="w-5 h-5 rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer"
                     />
                   </label>
                 </div>
@@ -418,7 +418,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
               <button
                 type="button"
                 onClick={() => toggleSection('notifications')}
-                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                className="w-full flex items-center justify-between p-4 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <div className="flex items-center gap-2">
                   <Bell className="w-5 h-5 text-surface-600 dark:text-surface-400" />
@@ -454,7 +454,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                       checked={notifications}
                       onChange={(e) => setNotifications(e.target.checked)}
                       disabled={macPermissionPending}
-                      className="w-5 h-5 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed"
+                      className="w-5 h-5 rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed"
                     />
                   </label>
 
@@ -467,7 +467,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                       checked={notifyReminders}
                       onChange={(e) => setNotifyReminders(e.target.checked)}
                       disabled={!notifications}
-                      className="w-5 h-5 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-5 h-5 rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </label>
 

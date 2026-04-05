@@ -18,7 +18,7 @@ export const TaskItemCalendarBadge = ({
         e.stopPropagation();
         onCalendarClick(calendar.id);
       }}
-      className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border hover:opacity-80 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-xs font-medium border hover:opacity-80 transition-opacity outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
       style={{
         borderColor: calendarColor,
         backgroundColor: `${calendarColor}15`,

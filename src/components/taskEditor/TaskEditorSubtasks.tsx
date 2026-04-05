@@ -157,7 +157,7 @@ export const TaskEditorSubtasks = ({
                   {activeDragSubtask ? (
                     <div className="relative">
                       {targetSubtaskIndent !== subtaskOriginalIndentRef.current && (
-                        <div className="absolute -top-6 left-2 px-2 py-0.5 bg-primary-600 text-primary-contrast text-xs rounded shadow whitespace-nowrap">
+                        <div className="absolute -top-6 left-2 px-2 py-0.5 bg-primary-600 text-primary-contrast text-xs rounded-sm shadow-sm whitespace-nowrap">
                           {targetSubtaskIndent > subtaskOriginalIndentRef.current
                             ? `→ Nest in ${truncateName(targetSubtaskParentName || 'parent')}`
                             : targetSubtaskIndent === 1
@@ -190,7 +190,7 @@ export const TaskEditorSubtasks = ({
               childTasks.length > 0 ? 'border-t border-surface-200 dark:border-surface-700' : ''
             }`}
           >
-            <div className="w-4 h-4 rounded border border-dashed border-surface-300 dark:border-surface-600 flex-shrink-0" />
+            <div className="w-4 h-4 rounded-sm border border-dashed border-surface-300 dark:border-surface-600 shrink-0" />
             <input
               // biome-ignore lint/a11y/noAutofocus: intentional — user just clicked "Add subtask"
               autoFocus
@@ -200,14 +200,14 @@ export const TaskEditorSubtasks = ({
               onKeyDown={handleSubtaskKeyDown}
               onBlur={handleSubtaskBlur}
               placeholder="New subtask..."
-              className="flex-1 text-sm bg-transparent outline-none text-surface-700 dark:text-surface-300 placeholder:text-surface-400 dark:placeholder:text-surface-500"
+              className="flex-1 text-sm bg-transparent outline-hidden text-surface-700 dark:text-surface-300 placeholder:text-surface-400 dark:placeholder:text-surface-500"
             />
           </div>
         ) : (
           <button
             type="button"
             onClick={() => setShowAddSubtask(true)}
-            className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-surface-400 dark:text-surface-500 hover:text-surface-600 dark:hover:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
+            className={`flex items-center gap-2 w-full px-3 py-2 text-sm text-surface-400 dark:text-surface-500 hover:text-surface-600 dark:hover:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-800/50 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
               childTasks.length > 0 ? 'border-t border-surface-200 dark:border-surface-700' : ''
             }`}
           >

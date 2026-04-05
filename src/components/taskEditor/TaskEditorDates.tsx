@@ -32,12 +32,12 @@ export const TaskEditorDates = ({
           type="button"
           onClick={onOpenStartDate}
           aria-labelledby="start-date-label"
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
         >
           {task.startDate ? (
-            <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
+            <Calendar className="w-4 h-4 text-surface-400 shrink-0" />
           ) : (
-            <CalendarPlus className="w-4 h-4 text-surface-400 flex-shrink-0" />
+            <CalendarPlus className="w-4 h-4 text-surface-400 shrink-0" />
           )}
           <span
             className={
@@ -64,12 +64,12 @@ export const TaskEditorDates = ({
           type="button"
           onClick={onOpenDueDate}
           aria-labelledby="due-date-label"
-          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
         >
           {task.dueDate ? (
-            <Calendar className="w-4 h-4 text-surface-400 flex-shrink-0" />
+            <Calendar className="w-4 h-4 text-surface-400 shrink-0" />
           ) : (
-            <CalendarPlus className="w-4 h-4 text-surface-400 flex-shrink-0" />
+            <CalendarPlus className="w-4 h-4 text-surface-400 shrink-0" />
           )}
           <span
             className={task.dueDate ? 'text-surface-700 dark:text-surface-300' : 'text-surface-400'}

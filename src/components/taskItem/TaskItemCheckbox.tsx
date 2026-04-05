@@ -29,7 +29,7 @@ export const TaskItemCheckbox = ({
 
   const getClassName = () => {
     const base =
-      'w-5 h-5 rounded border-2 flex items-center justify-center transition-all outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
+      'w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
     if (isCompleted) return `${base} bg-primary-500 border-primary-500`;
     if (isCancelled)
       return `${base} bg-rose-400 border-rose-400 dark:bg-rose-500 dark:border-rose-500`;

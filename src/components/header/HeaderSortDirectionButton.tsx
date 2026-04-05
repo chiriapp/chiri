@@ -11,7 +11,7 @@ export const HeaderSortDirectionButton = ({
   onToggle: () => void;
 }) => {
   const isDisabled = sortConfig.mode === 'manual';
-  const buttonClass = `w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+  const buttonClass = `w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
     isDisabled
       ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
       : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'

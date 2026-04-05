@@ -166,7 +166,7 @@ export const TaskItemContextMenu = ({
   };
 
   const menuItemClass =
-    'w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
+    'w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
 
   return (
     <>
@@ -260,7 +260,7 @@ export const TaskItemContextMenu = ({
             <button
               type="button"
               onClick={handleDelete}
-              className="w-full rounded-b-md flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="w-full rounded-b-md flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Trash2 className="w-4 h-4" />
               Delete
@@ -271,7 +271,7 @@ export const TaskItemContextMenu = ({
             <div
               data-context-menu-content
               role="menu"
-              className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-[60] min-w-[140px] animate-scale-in"
+              className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-60 min-w-[140px] animate-scale-in"
               style={
                 priorityFlyoutPos.useRight
                   ? { right: priorityFlyoutPos.x, top: priorityFlyoutPos.y }
@@ -285,7 +285,7 @@ export const TaskItemContextMenu = ({
                   type="button"
                   key={p.value}
                   onClick={() => handleChangePriority(p.value)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     i === 0
                       ? 'rounded-t-lg border-b border-surface-200 dark:border-surface-700'
                       : i === PRIORITIES.length - 1
@@ -295,7 +295,7 @@ export const TaskItemContextMenu = ({
                 >
                   <span className={`flex-1 text-left ${p.color}`}>{p.label}</span>
                   {task.priority === p.value && (
-                    <Check className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-primary-500 shrink-0" />
                   )}
                 </button>
               ))}
@@ -306,7 +306,7 @@ export const TaskItemContextMenu = ({
             <div
               data-context-menu-content
               role="menu"
-              className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-[60] min-w-[160px] animate-scale-in"
+              className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-60 min-w-[160px] animate-scale-in"
               style={
                 statusFlyoutPos.useRight
                   ? { right: statusFlyoutPos.x, top: statusFlyoutPos.y }
@@ -320,7 +320,7 @@ export const TaskItemContextMenu = ({
                   type="button"
                   key={value}
                   onClick={() => handleChangeStatus(value)}
-                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     i === 0
                       ? 'rounded-t-lg border-b border-surface-200 dark:border-surface-700'
                       : i === STATUS_OPTIONS.length - 1
@@ -328,10 +328,10 @@ export const TaskItemContextMenu = ({
                         : 'border-b border-surface-200 dark:border-surface-700'
                   }`}
                 >
-                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <Icon className="w-4 h-4 shrink-0" />
                   <span className="flex-1 text-left">{label}</span>
                   {task.status === value && (
-                    <Check className="w-3.5 h-3.5 text-primary-500 flex-shrink-0" />
+                    <Check className="w-3.5 h-3.5 text-primary-500 shrink-0" />
                   )}
                 </button>
               ))}
