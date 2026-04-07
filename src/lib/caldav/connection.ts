@@ -33,6 +33,7 @@ const SERVER_CONFIGS: Record<string, ServerConfig> = {
   },
   baikal: {
     principalPath: (username) => `/dav.php/principals/${username}/`,
+    calendarHomePath: (username) => `/dav.php/calendars/${username}/`,
   },
   nextcloud: {
     principalPath: (username) => `/remote.php/dav/principals/users/${username}/`,
@@ -87,6 +88,91 @@ const discoverCalendarHome = async (principalUrl: string, credentials: CalDAVCre
   return match ? match[1] : null;
 };
 
+const PRINCIPAL_QUERY = `<?xml version="1.0" encoding="utf-8"?>
+<d:propfind xmlns:d="DAV:">
+  <d:prop>
+    <d:current-user-principal/>
+  </d:prop>
+</d:propfind>`;
+
+const PRINCIPAL_RE =
+  /<[^:>]*:?current-user-principal[^>]*>\s*<[^:>]*:?href[^>]*>([^<]+)<\/[^:>]*:?href>/i;
+
+/** Resolves the DAV root URL for generic/auto-detect servers, trying .well-known
+ *  first and falling back to common paths if it returns 404. */
+const resolveGenericDavRoot = async (
+  baseUrl: string,
+  credentials: CalDAVCredentials,
+): Promise<{ davRootUrl: string; davRootBody: string | null }> => {
+  const wellKnownUrl = `${baseUrl}/.well-known/caldav`;
+  const wkResponse = await propfind(wellKnownUrl, credentials, PRINCIPAL_QUERY, '0');
+
+  if (wkResponse.status !== 404) {
+    handleCommonHttpErrors(wkResponse, 'CalDAV service');
+    return {
+      davRootUrl: wellKnownUrl,
+      davRootBody: wkResponse.status === 207 ? wkResponse.body : null,
+    };
+  }
+
+  // .well-known not configured — try common SabreDAV/Baikal paths
+  for (const path of ['/dav.php', '/caldav']) {
+    const fbUrl = `${baseUrl}${path}`;
+    const fbResponse = await propfind(fbUrl, credentials, PRINCIPAL_QUERY, '0');
+    if (fbResponse.status !== 404) {
+      handleCommonHttpErrors(fbResponse, 'CalDAV service');
+      return {
+        davRootUrl: fbUrl,
+        davRootBody: fbResponse.status === 207 ? fbResponse.body : null,
+      };
+    }
+  }
+
+  handleCommonHttpErrors(wkResponse, 'CalDAV service'); // throws 404
+  throw new Error('CalDAV service not found at this URL.');
+};
+
+/** Discovers principalUrl + calendarHome for generic/auto-detect server types. */
+const discoverGenericUrls = async (
+  baseUrl: string,
+  credentials: CalDAVCredentials,
+): Promise<{ principalUrl: string; calendarHome: string }> => {
+  const { davRootUrl, davRootBody } = await resolveGenericDavRoot(baseUrl, credentials);
+
+  // Try to extract principal from the response we already have before issuing
+  // another PROPFIND
+  let discoveredPrincipal: string | null =
+    davRootBody ? (davRootBody.match(PRINCIPAL_RE)?.[1] ?? null) : null;
+
+  if (!discoveredPrincipal) {
+    discoveredPrincipal = await discoverPrincipal(davRootUrl, credentials);
+  }
+
+  // Last resort: the multistatus href itself may be the DAV root
+  if (!discoveredPrincipal && davRootBody) {
+    const results = parseMultiStatus(davRootBody);
+    if (results[0]?.href) {
+      const davRoot = results[0].href.startsWith('http')
+        ? results[0].href
+        : new URL(results[0].href, baseUrl).toString();
+      discoveredPrincipal = await discoverPrincipal(davRoot, credentials);
+    }
+  }
+
+  if (!discoveredPrincipal) {
+    throw new Error('Failed to discover CalDAV principal. Server may not support auto-discovery.');
+  }
+
+  const principalUrl = makeAbsoluteUrl(discoveredPrincipal, baseUrl);
+  const discoveredCalendarHome = await discoverCalendarHome(principalUrl, credentials);
+
+  if (!discoveredCalendarHome) {
+    throw new Error('Failed to discover calendar-home-set. Server may not support CalDAV.');
+  }
+
+  return { principalUrl, calendarHome: makeAbsoluteUrl(discoveredCalendarHome, baseUrl) };
+};
+
 export const connect = async (
   accountId: string,
   serverUrl: string,
@@ -125,49 +211,7 @@ export const connect = async (
     case 'fastmail':
     case 'mailbox':
     case 'generic': {
-      const wellKnownUrl = `${baseUrl}/.well-known/caldav`;
-
-      const wellKnownResponse = await propfind(
-        wellKnownUrl,
-        credentials,
-        `<?xml version="1.0" encoding="utf-8"?>
-<d:propfind xmlns:d="DAV:">
-  <d:prop>
-    <d:current-user-principal/>
-  </d:prop>
-</d:propfind>`,
-        '0',
-      );
-
-      handleCommonHttpErrors(wellKnownResponse, 'CalDAV service');
-
-      let discoveredPrincipal = await discoverPrincipal(wellKnownUrl, credentials);
-
-      if (!discoveredPrincipal && wellKnownResponse.status === 207) {
-        const results = parseMultiStatus(wellKnownResponse.body);
-        if (results.length > 0 && results[0].href) {
-          const davRoot = results[0].href.startsWith('http')
-            ? results[0].href
-            : new URL(results[0].href, baseUrl).toString();
-          discoveredPrincipal = await discoverPrincipal(davRoot, credentials);
-        }
-      }
-
-      if (!discoveredPrincipal) {
-        throw new Error(
-          'Failed to discover CalDAV principal. Server may not support auto-discovery.',
-        );
-      }
-
-      principalUrl = makeAbsoluteUrl(discoveredPrincipal, baseUrl);
-
-      const discoveredCalendarHome = await discoverCalendarHome(principalUrl, credentials);
-
-      if (!discoveredCalendarHome) {
-        throw new Error('Failed to discover calendar-home-set. Server may not support CalDAV.');
-      }
-
-      calendarHome = makeAbsoluteUrl(discoveredCalendarHome, baseUrl);
+      ({ principalUrl, calendarHome } = await discoverGenericUrls(baseUrl, credentials));
       break;
     }
     default:
