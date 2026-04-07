@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import CheckCircle from 'lucide-react/icons/check-circle';
+import ChevronDown from 'lucide-react/icons/chevron-down';
 import Cloud from 'lucide-react/icons/cloud';
 import Info from 'lucide-react/icons/info';
 import { useRef, useState } from 'react';
@@ -50,6 +51,8 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const [serverType, setServerType] = useState<ServerType>(
     () => preloadedConfig?.serverType || account?.serverType || 'generic',
   );
+  const [calendarHomeUrl, setCalendarHomeUrl] = useState(() => account?.calendarHomeUrl || '');
+  const [showAdvanced, setShowAdvanced] = useState(() => !!account?.calendarHomeUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testSuccess, setTestSuccess] = useState(false);
@@ -61,13 +64,19 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const nameInputFocusedRef = useRef(false);
 
   // Reset test state when credentials change
-  const [prevCredentials, setPrevCredentials] = useState({ serverUrl, username, password });
+  const [prevCredentials, setPrevCredentials] = useState({
+    serverUrl,
+    username,
+    password,
+    calendarHomeUrl,
+  });
   if (
     serverUrl !== prevCredentials.serverUrl ||
     username !== prevCredentials.username ||
-    password !== prevCredentials.password
+    password !== prevCredentials.password ||
+    calendarHomeUrl !== prevCredentials.calendarHomeUrl
   ) {
-    setPrevCredentials({ serverUrl, username, password });
+    setPrevCredentials({ serverUrl, username, password, calendarHomeUrl });
     if (testSuccess || testedConnectionId) {
       setTestSuccess(false);
       setTestedConnectionId(null);
@@ -171,6 +180,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
         username,
         effectivePassword,
         serverType,
+        calendarHomeUrl.trim() || undefined,
       );
 
       // Check if this is a Vikunja server and warn the user
@@ -224,6 +234,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             username,
             effectivePassword,
             serverType,
+            calendarHomeUrl.trim() || undefined,
           );
         }
 
@@ -235,6 +246,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             username,
             password: effectivePassword || account.password,
             serverType,
+            calendarHomeUrl: calendarHomeUrl.trim() || undefined,
           },
         });
       } else {
@@ -262,6 +274,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             username,
             effectivePassword,
             serverType,
+            calendarHomeUrl.trim() || undefined,
           );
 
           // Check if this is a Vikunja server and warn the user
@@ -290,6 +303,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             username,
             password: effectivePassword,
             serverType,
+            calendarHomeUrl: calendarHomeUrl.trim() || undefined,
           },
           {
             onSuccess: async (newAccount) => {
@@ -516,6 +530,43 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                 required={!account}
                 className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
+            </div>
+
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowAdvanced((v) => !v)}
+                className="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
+              >
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? '' : '-rotate-90'}`}
+                />
+                Advanced
+              </button>
+              {showAdvanced && (
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <label
+                      htmlFor="calendar-home-url"
+                      className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                    >
+                      Calendar Home URL
+                    </label>
+                    <ComposedInput
+                      id="calendar-home-url"
+                      type="url"
+                      value={calendarHomeUrl}
+                      onChange={setCalendarHomeUrl}
+                      placeholder="https://caldav.example.com/calendars/user/"
+                      className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
+                    />
+                    <p className="mt-1.5 text-xs flex flex-row text-surface-500 dark:text-surface-400">
+                      <Info className="inline w-3.5 h-3.5 mr-1 shrink-0 text-surface-400" />
+                      Use this if auto-discovery is not possible.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {error && (
