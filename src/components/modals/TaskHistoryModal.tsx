@@ -18,12 +18,10 @@ import Server from 'lucide-react/icons/server';
 import Sparkles from 'lucide-react/icons/sparkles';
 import Tag from 'lucide-react/icons/tag';
 import Type from 'lucide-react/icons/type';
-import X from 'lucide-react/icons/x';
 import type { ReactNode } from 'react';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { useTaskHistory } from '$hooks/queries/useTaskHistory';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { TaskHistoryEntry } from '$types/database';
 import { formatDate, formatTime } from '$utils/date';
 import { rruleToText } from '$utils/recurrence';
@@ -217,59 +215,36 @@ export const TaskHistoryModal = ({
   taskUid,
   onClose,
 }: TaskHistoryModalProps) => {
-  const focusTrapRef = useFocusTrap(isOpen);
   const { data: history, isLoading } = useTaskHistory(taskUid);
   const { timeFormat } = useSettingsStore();
-
-  useModalEscapeKey(onClose, { enabled: isOpen });
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4 animate-fade-in">
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col animate-scale-in"
-      >
-        <div className="flex items-start justify-between p-4 border-b border-surface-200 dark:border-surface-700 shrink-0">
-          <div>
-            <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100 flex items-center gap-2">
-              <History className="w-5 h-5" />
-              History
-            </h2>
-            <p className="text-sm text-surface-500 dark:text-surface-400 mt-0.5 truncate max-w-xs">
-              {taskTitle}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-            aria-label="Close history"
-          >
-            <X className="w-5 h-5" />
-          </button>
+    <ModalWrapper
+      isOpen={isOpen}
+      onClose={onClose}
+      title="History"
+      description={taskTitle}
+      zIndex="z-60"
+      className="max-w-md max-h-[80vh]"
+    >
+      {isLoading ? (
+        <p className="text-sm text-surface-400 dark:text-surface-500">Loading...</p>
+      ) : !history || history.length === 0 ? (
+        <p className="text-sm text-surface-400 dark:text-surface-500">No history yet.</p>
+      ) : (
+        <div>
+          {history.map((entry, index) => (
+            <HistoryEntry
+              key={entry.id}
+              entry={entry}
+              timeFormat={timeFormat}
+              isLast={index === history.length - 1}
+            />
+          ))}
         </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          {isLoading ? (
-            <p className="text-sm text-surface-400 dark:text-surface-500">Loading…</p>
-          ) : !history || history.length === 0 ? (
-            <p className="text-sm text-surface-400 dark:text-surface-500">No history yet.</p>
-          ) : (
-            <div>
-              {history.map((entry, index) => (
-                <HistoryEntry
-                  key={entry.id}
-                  entry={entry}
-                  timeFormat={timeFormat}
-                  isLast={index === history.length - 1}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+      )}
+    </ModalWrapper>
   );
 };

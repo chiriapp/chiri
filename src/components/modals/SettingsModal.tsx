@@ -16,9 +16,8 @@ import Settings from 'lucide-react/icons/settings';
 import Sliders from 'lucide-react/icons/sliders';
 import SquarePen from 'lucide-react/icons/square-pen';
 import User from 'lucide-react/icons/user';
-import X from 'lucide-react/icons/x';
 import { useState } from 'react';
-import { ModalBackdrop } from '$components/ModalBackdrop';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { AboutSettings } from '$components/settings/AboutSettings';
 import { BadgesSettings } from '$components/settings/BadgesSettings';
 import { BehaviorSettings } from '$components/settings/BehaviorSettings';
@@ -34,8 +33,6 @@ import { SystemSettings } from '$components/settings/SystemSettings';
 import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings';
 import { UpdateSettings } from '$components/settings/UpdateSettings';
 import { useAccounts } from '$hooks/queries/useAccounts';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { SettingsCategory, SettingsSubtab } from '$types';
 
 interface SettingsModalProps {
@@ -60,14 +57,6 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
   });
   const [isChildModalOpen, setIsChildModalOpen] = useState(false);
   const { data: accounts = [] } = useAccounts();
-  const focusTrapRef = useFocusTrap();
-
-  // handle ESC key to close modal - but not if a child modal is open
-  useModalEscapeKey(() => {
-    if (!isChildModalOpen) {
-      onClose();
-    }
-  });
 
   const categories: {
     id: SettingsCategory;
@@ -126,111 +115,101 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
   const currentSubtab = activeSubtabs[activeCategory];
 
   return (
-    <ModalBackdrop>
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-3xl flex flex-col animate-scale-in h-full max-h-[75vh] overflow-hidden relative"
-      >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-          <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Settings</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+    <ModalWrapper
+      isOpen={true}
+      onClose={isChildModalOpen ? () => {} : onClose}
+      title="Settings"
+      className="max-w-3xl max-h-[75vh]"
+      contentPadding={false}
+    >
+      <div className="flex overflow-hidden h-[calc(85vh-12rem)] max-h-[75vh]">
+        <div className="w-56 pr-5 border-r border-surface-200 dark:border-surface-700 p-3 space-y-4 bg-white dark:bg-surface-800 rounded-l-xl overflow-y-auto overscroll-contain">
+          {categories.map((category) => (
+            <div key={category.id} className="space-y-2">
+              <p className="px-2 text-xs font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-400">
+                {category.label}
+              </p>
+              <div className="space-y-1">
+                {category.subtabs.map((tab) => {
+                  const isActiveCategory = activeCategory === category.id;
+                  const isActiveTab = isActiveCategory && activeSubtabs[category.id] === tab.id;
 
-        <div className="flex flex-1 overflow-hidden min-h-0">
-          <div className="w-56 pr-5 border-r border-surface-200 dark:border-surface-700 p-3 space-y-4 bg-white dark:bg-surface-800 rounded-l-xl overflow-y-auto overscroll-contain">
-            {categories.map((category) => (
-              <div key={category.id} className="space-y-2">
-                <p className="px-2 text-xs font-semibold uppercase tracking-wide text-surface-500 dark:text-surface-400">
-                  {category.label}
-                </p>
-                <div className="space-y-1">
-                  {category.subtabs.map((tab) => {
-                    const isActiveCategory = activeCategory === category.id;
-                    const isActiveTab = isActiveCategory && activeSubtabs[category.id] === tab.id;
-
-                    return (
-                      <button
-                        type="button"
-                        key={tab.id}
-                        onClick={() => {
-                          setActiveCategory(category.id);
-                          setActiveSubtabs((prev) => ({
-                            ...prev,
-                            [category.id]: tab.id,
-                          }));
-                        }}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  return (
+                    <button
+                      type="button"
+                      key={tab.id}
+                      onClick={() => {
+                        setActiveCategory(category.id);
+                        setActiveSubtabs((prev) => ({
+                          ...prev,
+                          [category.id]: tab.id,
+                        }));
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                        isActiveTab
+                          ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-400'
+                          : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 border border-transparent'
+                      }`}
+                    >
+                      <span
+                        className={`shrink-0 ${
                           isActiveTab
-                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-400'
-                            : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 border border-transparent'
+                            ? 'text-primary-600 dark:text-primary-300'
+                            : 'text-surface-500 dark:text-surface-400'
                         }`}
                       >
-                        <span
-                          className={`shrink-0 ${
-                            isActiveTab
-                              ? 'text-primary-600 dark:text-primary-300'
-                              : 'text-surface-500 dark:text-surface-400'
-                          }`}
-                        >
-                          {tab.icon}
-                        </span>
-                        <span className="truncate">{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        {tab.icon}
+                      </span>
+                      <span className="truncate">{tab.label}</span>
+                    </button>
+                  );
+                })}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
 
-          <div className="flex-1 p-6 overflow-y-auto overscroll-contain">
-            {activeCategory === 'tasks' && currentSubtab === 'badges' && <BadgesSettings />}
-            {activeCategory === 'tasks' && currentSubtab === 'defaults' && <TaskDefaultsSettings />}
-            {activeCategory === 'tasks' && currentSubtab === 'editor' && <EditorSettings />}
+        <div className="flex-1 p-6 overflow-y-auto overscroll-contain">
+          {activeCategory === 'tasks' && currentSubtab === 'badges' && <BadgesSettings />}
+          {activeCategory === 'tasks' && currentSubtab === 'defaults' && <TaskDefaultsSettings />}
+          {activeCategory === 'tasks' && currentSubtab === 'editor' && <EditorSettings />}
 
-            {activeCategory === 'app' && (
-              <>
-                {currentSubtab === 'behavior' && <BehaviorSettings />}
-                {currentSubtab === 'data' && <DataSettings onClose={onClose} />}
-                {currentSubtab === 'keyboard-shortcuts' && (
-                  <ShortcutsSettings onEditingShortcutChange={setIsChildModalOpen} />
-                )}
-                {currentSubtab === 'look-and-feel' && <LookAndFeelSettings />}
-                {currentSubtab === 'notifications' && <NotificationSettings />}
-                {currentSubtab === 'region-and-time' && <RegionAndTimeSettings />}
-                {currentSubtab === 'system' && <SystemSettings />}
-              </>
-            )}
+          {activeCategory === 'app' && (
+            <>
+              {currentSubtab === 'behavior' && <BehaviorSettings />}
+              {currentSubtab === 'data' && <DataSettings onClose={onClose} />}
+              {currentSubtab === 'keyboard-shortcuts' && (
+                <ShortcutsSettings onEditingShortcutChange={setIsChildModalOpen} />
+              )}
+              {currentSubtab === 'look-and-feel' && <LookAndFeelSettings />}
+              {currentSubtab === 'notifications' && <NotificationSettings />}
+              {currentSubtab === 'region-and-time' && <RegionAndTimeSettings />}
+              {currentSubtab === 'system' && <SystemSettings />}
+            </>
+          )}
 
-            {activeCategory === 'accounts' && (
-              <>
-                {currentSubtab === 'connections' && <ConnectionsSettings accounts={accounts} />}
-                {currentSubtab === 'sync' && <SyncSettings />}
-              </>
-            )}
+          {activeCategory === 'accounts' && (
+            <>
+              {currentSubtab === 'connections' && <ConnectionsSettings accounts={accounts} />}
+              {currentSubtab === 'sync' && <SyncSettings />}
+            </>
+          )}
 
-            {activeCategory === 'misc' && (
-              <>
-                {currentSubtab === 'updates' && <UpdateSettings />}
-                {currentSubtab === 'about' && (
-                  <AboutSettings
-                    onNavigateToUpdates={() => {
-                      setActiveCategory('misc');
-                      setActiveSubtabs((prev) => ({ ...prev, misc: 'updates' }));
-                    }}
-                  />
-                )}
-              </>
-            )}
-          </div>
+          {activeCategory === 'misc' && (
+            <>
+              {currentSubtab === 'updates' && <UpdateSettings />}
+              {currentSubtab === 'about' && (
+                <AboutSettings
+                  onNavigateToUpdates={() => {
+                    setActiveCategory('misc');
+                    setActiveSubtabs((prev) => ({ ...prev, misc: 'updates' }));
+                  }}
+                />
+              )}
+            </>
+          )}
         </div>
       </div>
-    </ModalBackdrop>
+    </ModalWrapper>
   );
 };

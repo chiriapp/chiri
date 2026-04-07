@@ -1,9 +1,7 @@
-import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
-import { ModalBackdrop } from '$components/ModalBackdrop';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 
 interface SubtaskModalProps {
   isOpen: boolean;
@@ -13,10 +11,6 @@ interface SubtaskModalProps {
 
 export const SubtaskModal = ({ isOpen, onClose, onAdd }: SubtaskModalProps) => {
   const [title, setTitle] = useState('');
-  const focusTrapRef = useFocusTrap(isOpen);
-
-  // Handle ESC key to close modal
-  useModalEscapeKey(onClose);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,65 +32,46 @@ export const SubtaskModal = ({ isOpen, onClose, onAdd }: SubtaskModalProps) => {
   if (!isOpen) return null;
 
   return (
-    <ModalBackdrop zIndex="z-60">
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in relative"
-      >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-          <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
+    <ModalWrapper
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Add Subtask"
+      size="sm"
+      zIndex="z-60"
+      footer={
+        <>
+          <ModalButton variant="ghost" onClick={onClose}>
+            Cancel
+          </ModalButton>
+          <ModalButton type="submit" form="subtask-form" disabled={!title.trim()}>
             Add Subtask
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+          </ModalButton>
+        </>
+      }
+    >
+      <form id="subtask-form" onSubmit={handleSubmit}>
+        <div>
+          <label
+            htmlFor="subtask-title"
+            className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
           >
-            <X className="w-5 h-5" />
-          </button>
+            Subtask Title
+          </label>
+          <ComposedInput
+            ref={(el) => {
+              if (el) setTimeout(() => el.focus(), 100);
+            }}
+            id="subtask-title"
+            type="text"
+            value={title}
+            onChange={setTitle}
+            onKeyDown={handleKeyDown}
+            placeholder="Enter subtask name..."
+            required
+            className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+          />
         </div>
-
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div>
-            <label
-              htmlFor="subtask-title"
-              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-            >
-              Subtask Title
-            </label>
-            <ComposedInput
-              ref={(el) => {
-                if (el) setTimeout(() => el.focus(), 100);
-              }}
-              id="subtask-title"
-              type="text"
-              value={title}
-              onChange={setTitle}
-              onKeyDown={handleKeyDown}
-              placeholder="Enter subtask name..."
-              required
-              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={!title.trim()}
-              className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 disabled:bg-surface-300 dark:disabled:bg-surface-600 disabled:cursor-not-allowed rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
-            >
-              Add Subtask
-            </button>
-          </div>
-        </form>
-      </div>
-    </ModalBackdrop>
+      </form>
+    </ModalWrapper>
   );
 };

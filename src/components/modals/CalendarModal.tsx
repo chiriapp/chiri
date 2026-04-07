@@ -1,15 +1,12 @@
-import Loader2 from 'lucide-react/icons/loader-2';
-import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
-import { ModalBackdrop } from '$components/ModalBackdrop';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '$constants';
 import { getIconByName } from '$constants/icons';
 import { useAccounts, useAddCalendar, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import { CalDAVClient } from '$lib/caldav';
 import type { Calendar } from '$types';
 
@@ -35,12 +32,8 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
-  const focusTrapRef = useFocusTrap();
 
   const IconComponent = getIconByName(icon);
-
-  // handle ESC key to close modal
-  useModalEscapeKey(onClose);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,143 +117,128 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   };
 
   return (
-    <ModalBackdrop zIndex="z-60">
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in relative"
-      >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-          <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
-            {calendar ? 'Edit Calendar' : 'New Calendar'}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
+    <ModalWrapper
+      onClose={onClose}
+      title={calendar ? 'Edit Calendar' : 'New Calendar'}
+      size="sm"
+      zIndex="z-60"
+      contentPadding={false}
+      footer={
+        <>
+          <ModalButton variant="ghost" onClick={onClose}>
+            Cancel
+          </ModalButton>
+          <ModalButton
+            type="submit"
+            form="calendar-form"
+            disabled={isLoading || !displayName.trim()}
+            loading={isLoading}
           >
-            <X className="w-5 h-5" />
-          </button>
+            {calendar ? 'Save' : 'Create Calendar'}
+          </ModalButton>
+        </>
+      }
+    >
+      <form id="calendar-form" onSubmit={handleSubmit} className="p-4 space-y-4">
+        <div>
+          <label
+            htmlFor="calendar-name"
+            className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+          >
+            Calendar Name
+          </label>
+          <div className="flex items-center gap-2">
+            <IconEmojiPicker
+              iconValue={icon}
+              emojiValue={emoji}
+              onIconChange={setIcon}
+              onEmojiChange={setEmoji}
+              color={color}
+            />
+            <ComposedInput
+              ref={(el) => {
+                if (el) setTimeout(() => el.focus(), 100);
+              }}
+              id="calendar-name"
+              type="text"
+              value={displayName}
+              onChange={setDisplayName}
+              placeholder="My Calendar"
+              required
+              className="flex-1 px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+            />
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
-          <div>
-            <label
-              htmlFor="calendar-name"
-              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-            >
-              Calendar Name
-            </label>
-            <div className="flex items-center gap-2">
-              <IconEmojiPicker
-                iconValue={icon}
-                emojiValue={emoji}
-                onIconChange={setIcon}
-                onEmojiChange={setEmoji}
-                color={color}
-              />
-              <ComposedInput
-                ref={(el) => {
-                  if (el) setTimeout(() => el.focus(), 100);
-                }}
-                id="calendar-name"
-                type="text"
-                value={displayName}
-                onChange={setDisplayName}
-                placeholder="My Calendar"
-                required
-                className="flex-1 px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-              Color
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {COLOR_PRESETS.map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => setColor(preset)}
-                  className={`
+        <div>
+          <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            Color
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {COLOR_PRESETS.map((preset) => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setColor(preset)}
+                className={`
                     w-8 h-8 rounded-full transition-all
                     ${color === preset ? 'ring-2 ring-offset-2 dark:ring-offset-surface-800 ring-primary-500 scale-110' : 'hover:scale-110'}
                   `}
-                  style={{ backgroundColor: preset }}
-                />
-              ))}
-            </div>
-
-            <div className="mt-3 flex items-center gap-2">
-              <input
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="w-10 h-10 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 flex items-center justify-center hover:border-surface-300 dark:hover:border-surface-500 transition-colors cursor-pointer [&::-webkit-color-swatch-wrapper]:p-2 [&::-webkit-color-swatch]:rounded-full"
+                style={{ backgroundColor: preset }}
               />
-              <ComposedInput
-                type="text"
-                value={color}
-                onChange={setColor}
-                placeholder={FALLBACK_ITEM_COLOR}
-                className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
-              />
-            </div>
+            ))}
           </div>
 
-          <div className="pt-2">
-            <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
-              Preview
-            </p>
-            <span
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-sm text-xs font-medium border"
-              style={{
-                borderColor: color,
-                backgroundColor: `${color}15`,
-                color: color,
-              }}
-            >
-              {emoji ? (
-                <span className="text-sm leading-none">{emoji}</span>
-              ) : (
-                <IconComponent className="w-3.5 h-3.5" />
-              )}
-              {displayName || 'My Calendar'}
-            </span>
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              className="w-10 h-10 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 flex items-center justify-center hover:border-surface-300 dark:hover:border-surface-500 transition-colors cursor-pointer [&::-webkit-color-swatch-wrapper]:p-2 [&::-webkit-color-swatch]:rounded-full"
+            />
+            <ComposedInput
+              type="text"
+              value={color}
+              onChange={setColor}
+              placeholder={FALLBACK_ITEM_COLOR}
+              className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+            />
           </div>
+        </div>
 
-          {warning && (
-            <div className="p-3 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg">
-              {warning}
-            </div>
-          )}
+        <div className="pt-2">
+          <p className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            Preview
+          </p>
+          <span
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-sm text-xs font-medium border"
+            style={{
+              borderColor: color,
+              backgroundColor: `${color}15`,
+              color: color,
+            }}
+          >
+            {emoji ? (
+              <span className="text-sm leading-none">{emoji}</span>
+            ) : (
+              <IconComponent className="w-3.5 h-3.5" />
+            )}
+            {displayName || 'My Calendar'}
+          </span>
+        </div>
 
-          {error && (
-            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading || !displayName.trim()}
-              className="px-4 py-2 text-sm font-medium text-primary-contrast bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
-            >
-              {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {calendar ? 'Save' : 'Create Calendar'}
-            </button>
+        {warning && (
+          <div className="p-3 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+            {warning}
           </div>
-        </form>
-      </div>
-    </ModalBackdrop>
+        )}
+
+        {error && (
+          <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+            {error}
+          </div>
+        )}
+      </form>
+    </ModalWrapper>
   );
 };

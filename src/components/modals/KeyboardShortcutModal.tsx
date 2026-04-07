@@ -1,8 +1,7 @@
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
-import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
-import { ModalBackdrop } from '$components/ModalBackdrop';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { KeyboardShortcut } from '$types';
 import { formatShortcut } from '$utils/keyboard';
@@ -22,7 +21,6 @@ export const KeyboardShortcutModal = ({
 }: KeyboardShortcutModalProps) => {
   const [pendingShortcut, setPendingShortcut] = useState<Partial<KeyboardShortcut> | null>(null);
   const inputRef = useRef<HTMLDivElement>(null);
-  const focusTrapRef = useFocusTrap(isOpen);
 
   // Reset pending shortcut when modal opens with new shortcut
   useEffect(() => {
@@ -94,124 +92,94 @@ export const KeyboardShortcutModal = ({
   if (!isOpen || !shortcut) return null;
 
   return (
-    <ModalBackdrop zIndex="z-60" className="p-4">
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in relative"
-      >
-        <div className="flex items-start justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-          <div>
-            <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
-              Edit Shortcut
-            </h2>
-            <p className="text-sm text-surface-600 dark:text-surface-400 mt-1">
-              {shortcut?.description}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="shrink-0 p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-6 space-y-6">
-          <div className="text-center space-y-4">
-            <p className="text-sm text-surface-600 dark:text-surface-400">
-              Press the key combination you want to use
-            </p>
-
-            <div
-              ref={inputRef}
-              role="application"
-              // biome-ignore lint/a11y/noNoninteractiveTabindex: we need to make this div focusable to capture key events, but it doesn't have typical interactive behavior
-              tabIndex={0}
-              onKeyDown={handleKeyCapture}
-              className="w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-primary-50 dark:focus:bg-primary-900/20 transition-colors cursor-text"
-              aria-label="Press keys to set shortcut"
-            >
-              {displayShortcut ? (
-                <div className="flex items-center">
-                  {formatShortcut(displayShortcut)
-                    .split(' + ')
-                    .map((key, idx, arr) => (
-                      <span key={`key-${key}`} className="flex items-center">
-                        <kbd
-                          className={`px-3 py-2 rounded-lg text-sm font-mono shadow-xs ${
-                            pendingShortcut
-                              ? 'bg-primary-100 dark:bg-primary-900/50 border-2 border-primary-400 dark:border-primary-600 text-primary-700 dark:text-primary-300'
-                              : 'bg-surface-100 dark:bg-surface-700 border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300'
-                          }`}
-                        >
-                          {key}
-                        </kbd>
-                        {idx < arr.length - 1 && (
-                          <span className="text-surface-400 mx-1 text-lg">+</span>
-                        )}
-                      </span>
-                    ))}
-                </div>
-              ) : (
-                <span className="text-surface-400 dark:text-surface-500 text-sm">
-                  Click here and press keys...
-                </span>
-              )}
-            </div>
-
-            {pendingShortcut && (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-              >
-                <RotateCcw className="w-3 h-3" />
-                Reset to original
-              </button>
-            )}
-          </div>
-
-          <div className="text-xs text-surface-500 dark:text-surface-400 text-center space-y-1">
-            <p>
-              Press{' '}
-              <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded-sm text-surface-600 dark:text-surface-400">
-                Enter
-              </kbd>{' '}
-              to save
-            </p>
-            <p>
-              Press{' '}
-              <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded-sm text-surface-600 dark:text-surface-400">
-                Esc
-              </kbd>{' '}
-              to cancel recording
-            </p>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 p-4 border-t border-surface-200 dark:border-surface-700">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
+    <ModalWrapper
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit Shortcut"
+      description={shortcut?.description}
+      zIndex="z-60"
+      preventClose
+      footer={
+        <>
+          <ModalButton variant="secondary" onClick={onClose}>
             Cancel
-          </button>
+          </ModalButton>
+          <ModalButton onClick={handleSave} disabled={!pendingShortcut}>
+            Save
+          </ModalButton>
+        </>
+      }
+    >
+      <div className="text-center space-y-4">
+        <p className="text-sm text-surface-600 dark:text-surface-400">
+          Press the key combination you want to use
+        </p>
+
+        <div
+          ref={inputRef}
+          role="application"
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: we need to make this div focusable to capture key events, but it doesn't have typical interactive behavior
+          tabIndex={0}
+          onKeyDown={handleKeyCapture}
+          className="w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-primary-50 dark:focus:bg-primary-900/20 transition-colors cursor-text"
+          aria-label="Press keys to set shortcut"
+        >
+          {displayShortcut ? (
+            <div className="flex items-center">
+              {formatShortcut(displayShortcut)
+                .split(' + ')
+                .map((key, idx, arr) => (
+                  <span key={`key-${key}`} className="flex items-center">
+                    <kbd
+                      className={`px-3 py-2 rounded-lg text-sm font-mono shadow-xs ${
+                        pendingShortcut
+                          ? 'bg-primary-100 dark:bg-primary-900/50 border-2 border-primary-400 dark:border-primary-600 text-primary-700 dark:text-primary-300'
+                          : 'bg-surface-100 dark:bg-surface-700 border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300'
+                      }`}
+                    >
+                      {key}
+                    </kbd>
+                    {idx < arr.length - 1 && (
+                      <span className="text-surface-400 mx-1 text-lg">+</span>
+                    )}
+                  </span>
+                ))}
+            </div>
+          ) : (
+            <span className="text-surface-400 dark:text-surface-500 text-sm">
+              Click here and press keys...
+            </span>
+          )}
+        </div>
+
+        {pendingShortcut && (
           <button
             type="button"
-            onClick={handleSave}
-            disabled={!pendingShortcut}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset ${
-              pendingShortcut
-                ? 'bg-primary-600 hover:bg-primary-700 text-primary-contrast'
-                : 'bg-surface-300 dark:bg-surface-600 text-white cursor-not-allowed'
-            }`}
+            onClick={handleReset}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
-            Save
+            <RotateCcw className="w-3 h-3" />
+            Reset to original
           </button>
+        )}
+
+        <div className="text-xs text-surface-500 dark:text-surface-400 space-y-1">
+          <p>
+            Press{' '}
+            <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded-sm text-surface-600 dark:text-surface-400">
+              Enter
+            </kbd>{' '}
+            to save
+          </p>
+          <p>
+            Press{' '}
+            <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded-sm text-surface-600 dark:text-surface-400">
+              Esc
+            </kbd>{' '}
+            to cancel recording
+          </p>
         </div>
       </div>
-    </ModalBackdrop>
+    </ModalWrapper>
   );
 };

@@ -20,12 +20,12 @@ import Moon from 'lucide-react/icons/moon';
 import Sun from 'lucide-react/icons/sun';
 import Sunrise from 'lucide-react/icons/sunrise';
 import Sunset from 'lucide-react/icons/sunset';
-import X from 'lucide-react/icons/x';
 import { useState } from 'react';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
 import { DEFAULT_TIME } from '$constants';
 import { settingsStore } from '$context/settingsContext';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { QuickTimePresets } from '$types/settings';
 import {
@@ -84,9 +84,8 @@ export const ReminderPickerModal = ({
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customHour, setCustomHour] = useState(0);
   const [customMinute, setCustomMinute] = useState(0);
-  const focusTrapRef = useFocusTrap();
 
-  useModalEscapeKey(onClose, { enabled: !showCustomModal });
+  useModalEscapeKey(onClose, { enabled: isOpen && !showCustomModal });
   useModalEscapeKey(() => setShowCustomModal(false), { enabled: showCustomModal });
 
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
@@ -201,23 +200,38 @@ export const ReminderPickerModal = ({
         : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
     }`;
 
-  return (
-    <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/50 animate-fade-in">
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-120 animate-scale-in"
+  const clearButton =
+    localValue || initialValue ? (
+      <ModalButton
+        variant="ghost"
+        onClick={handleClear}
+        className="text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
       >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-          <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        Clear
+      </ModalButton>
+    ) : null;
 
+  return (
+    <>
+      <ModalWrapper
+        isOpen={isOpen}
+        onClose={onClose}
+        title={title}
+        className="max-w-120"
+        zIndex="z-70"
+        contentPadding={false}
+        footerLeft={clearButton}
+        footer={
+          <>
+            <ModalButton variant="ghost" onClick={onClose}>
+              Cancel
+            </ModalButton>
+            <ModalButton onClick={handleSave} disabled={!localValue && !initialValue}>
+              {value ? 'Save' : 'Add Reminder'}
+            </ModalButton>
+          </>
+        }
+      >
         <div className="flex">
           <div className="w-44 p-4 flex flex-col gap-2 border-r border-surface-200 dark:border-surface-700">
             <div className="flex flex-col gap-1.5">
@@ -361,42 +375,7 @@ export const ReminderPickerModal = ({
             </div>
           </div>
         </div>
-
-        <div className="flex items-center justify-between p-4 border-t border-surface-200 dark:border-surface-700">
-          <div>
-            {(localValue || initialValue) && (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="px-3 py-2 text-sm font-medium text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={!localValue && !initialValue}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                localValue || initialValue
-                  ? 'text-primary-contrast bg-primary-600 hover:bg-primary-700'
-                  : 'text-surface-400 dark:text-surface-600 bg-surface-200 dark:bg-surface-700 cursor-not-allowed'
-              }`}
-            >
-              {value ? 'Save' : 'Add Reminder'}
-            </button>
-          </div>
-        </div>
-      </div>
+      </ModalWrapper>
 
       <TimePickerModal
         isOpen={showCustomModal}
@@ -406,6 +385,6 @@ export const ReminderPickerModal = ({
         initialMinute={customMinute}
         title="Custom time"
       />
-    </div>
+    </>
   );
 };
