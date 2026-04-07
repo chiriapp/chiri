@@ -1,12 +1,10 @@
 import Download from 'lucide-react/icons/download';
 import FileText from 'lucide-react/icons/file-text';
-import X from 'lucide-react/icons/x';
 import { useState } from 'react';
-import { ModalBackdrop } from '$components/ModalBackdrop';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import type { UpdateInfo } from '$hooks/system/useUpdateChecker';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 
 interface UpdateModalProps {
   updateInfo: UpdateInfo;
@@ -24,30 +22,27 @@ export const UpdateModal = ({
   isDownloading,
   downloadProgress,
 }: UpdateModalProps) => {
-  const focusTrapRef = useFocusTrap();
   const [showChangelogModal, setShowChangelogModal] = useState(false);
-  useModalEscapeKey(onClose);
 
   return (
-    <ModalBackdrop className="p-4">
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in relative"
+    <>
+      <ModalWrapper
+        onClose={onClose}
+        title="Update Available"
+        footer={
+          <>
+            <ModalButton variant="secondary" onClick={() => setShowChangelogModal(true)}>
+              <FileText className="w-4 h-4" />
+              View Changelog
+            </ModalButton>
+            <ModalButton onClick={onDownload} disabled={isDownloading} loading={isDownloading}>
+              <Download className="w-4 h-4" />
+              {isDownloading ? 'Downloading...' : 'Download & Install'}
+            </ModalButton>
+          </>
+        }
       >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-          <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
-            Update Available
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-4 space-y-3">
+        <div className="space-y-3">
           <p className="text-sm text-surface-600 dark:text-surface-400">
             Version {updateInfo.version} is now available
           </p>
@@ -76,27 +71,7 @@ export const UpdateModal = ({
             </div>
           )}
         </div>
-
-        <div className="flex justify-end gap-2 p-4 border-t border-surface-200 dark:border-surface-700">
-          <button
-            type="button"
-            className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 border border-surface-200 dark:border-surface-700 rounded-lg transition-colors flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-            onClick={() => setShowChangelogModal(true)}
-          >
-            <FileText className="w-4 h-4" />
-            View Changelog
-          </button>
-          <button
-            type="button"
-            onClick={onDownload}
-            disabled={isDownloading}
-            className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
-          >
-            <Download className="w-4 h-4" />
-            {isDownloading ? 'Downloading...' : 'Download & Install'}
-          </button>
-        </div>
-      </div>
+      </ModalWrapper>
 
       {showChangelogModal && (
         <ChangelogModal
@@ -105,6 +80,6 @@ export const UpdateModal = ({
           onClose={() => setShowChangelogModal(false)}
         />
       )}
-    </ModalBackdrop>
+    </>
   );
 };

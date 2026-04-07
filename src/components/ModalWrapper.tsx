@@ -11,9 +11,15 @@ interface ModalWrapperProps {
   title?: string;
   description?: string;
   children: ReactNode;
+  /** Footer content - rendered in a flex container with gap-3. Use footerLeft for split layouts. */
   footer?: ReactNode;
+  /** Left side of footer for split layouts (e.g., Clear button). When provided, footer is right-aligned. */
+  footerLeft?: ReactNode;
   size?: 'sm' | 'md' | 'lg';
   preventClose?: boolean;
+  zIndex?: 'z-50' | 'z-60' | 'z-70';
+  contentPadding?: boolean;
+  className?: string;
 }
 
 export const ModalWrapper = ({
@@ -23,8 +29,12 @@ export const ModalWrapper = ({
   description,
   children,
   footer,
+  footerLeft,
   size = 'md',
   preventClose = false,
+  zIndex = 'z-50',
+  contentPadding = true,
+  className,
 }: ModalWrapperProps) => {
   const focusTrapRef = useFocusTrap(isOpen);
 
@@ -34,12 +44,12 @@ export const ModalWrapper = ({
   if (!isOpen) return null;
 
   return (
-    <ModalBackdrop className="p-4 cursor-default">
+    <ModalBackdrop className="p-4 cursor-default" zIndex={zIndex}>
       <div
         ref={focusTrapRef}
         role="dialog"
         aria-modal="true"
-        className={`relative bg-white dark:bg-surface-800 rounded-xl shadow-xl ${MODAL_SIZE_CLASSES[size]} w-full max-h-[90vh] flex flex-col animate-scale-in`}
+        className={`relative bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-scale-in ${className || MODAL_SIZE_CLASSES[size]}`}
       >
         {title && (
           <div className="bg-white dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700 p-4 shrink-0 flex items-center justify-between rounded-t-xl">
@@ -64,13 +74,18 @@ export const ModalWrapper = ({
           </div>
         )}
 
-        <div className={`p-4 space-y-4 overflow-y-auto flex-1 ${!title ? 'rounded-t-xl' : ''}`}>
+        <div
+          className={`${contentPadding ? 'p-4 space-y-4 overflow-y-auto' : 'overflow-hidden'} flex-1 min-h-0 ${!title ? 'rounded-t-xl' : ''}`}
+        >
           {children}
         </div>
 
-        {footer && (
-          <div className="border-t border-surface-200 dark:border-surface-700 p-4 flex gap-3 shrink-0 bg-white dark:bg-surface-800 rounded-b-xl">
-            {footer}
+        {(footer || footerLeft) && (
+          <div
+            className={`border-t border-surface-200 dark:border-surface-700 p-4 flex items-center ${footerLeft ? 'justify-between' : 'justify-end'} gap-3 shrink-0 bg-white dark:bg-surface-800 rounded-b-xl`}
+          >
+            {footerLeft && <div className="flex items-center gap-3">{footerLeft}</div>}
+            {footer && <div className="flex items-center gap-3">{footer}</div>}
           </div>
         )}
       </div>
