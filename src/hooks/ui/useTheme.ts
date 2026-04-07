@@ -1,35 +1,67 @@
 import { useEffect } from 'react';
+import { COLOR_SCHEMES, DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { applyAccentColor, applyTheme } from '$utils/color';
+import {
+  applyAccentColor,
+  applyColorScheme,
+  applySchemeAccentColor,
+  applyTheme,
+  resolveEffectiveTheme,
+} from '$utils/color';
 
 /**
- * hook that applies the theme and accent color, and listens for system preference changes
+ * applies the theme, color scheme surface palette, and accent color, and
+ * listens for system preference changes.
+ *
+ * when the theme mode changes (light ↔ dark), any active scheme flavor that
+ * is incompatible with the new mode is automatically swapped to the first
+ * compatible one.
  */
 export const useTheme = () => {
-  const { theme, accentColor } = useSettingsStore();
+  const { theme, accentColor, colorScheme, colorSchemeFlavor, setColorScheme } = useSettingsStore();
 
-  // apply theme
+  const isDefaultScheme = colorScheme === DEFAULT_COLOR_SCHEME_ID;
+
+  // apply theme; auto-switch flavor when the effective mode changes
   useEffect(() => {
-    // apply theme immediately
     applyTheme(theme);
 
-    // listen for system theme changes if using system theme
+    const scheme = COLOR_SCHEMES.find((s) => s.id === colorScheme);
+    if (scheme && scheme.flavors.length > 0) {
+      const currentFlavor = scheme.flavors.find((f) => f.id === colorSchemeFlavor);
+      const effectiveMode = resolveEffectiveTheme(theme);
+
+      if (currentFlavor && currentFlavor.mode !== effectiveMode) {
+        const compatible = scheme.flavors.find((f) => f.mode === effectiveMode);
+        if (compatible) {
+          // Pass the compatible flavor's defaultAccent as the fallback so that
+          // setColorScheme restores the saved accent (if any) or uses the default.
+          setColorScheme(colorScheme, compatible.id, compatible.defaultAccent);
+        }
+      }
+    }
+
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-      const handleChange = () => {
-        applyTheme('system');
-      };
-
+      const handleChange = () => applyTheme('system');
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
   }, [theme]);
 
-  // apply accent color
+  // apply color scheme surface palette
   useEffect(() => {
-    applyAccentColor(accentColor);
-  }, [accentColor]);
+    applyColorScheme(colorScheme, colorSchemeFlavor);
+  }, [colorScheme, colorSchemeFlavor]);
 
-  return { theme, accentColor };
+  // apply accent color — normalize pastel scheme colors so hue differences are visible
+  useEffect(() => {
+    if (isDefaultScheme) {
+      applyAccentColor(accentColor);
+    } else {
+      applySchemeAccentColor(accentColor);
+    }
+  }, [accentColor, colorScheme]);
+
+  return { theme, accentColor, colorScheme, colorSchemeFlavor };
 };

@@ -82,7 +82,7 @@ export const IconEmojiPicker = ({
               onClick={() => setActiveTab('icon')}
               className={`flex-1 px-4 py-2 text-sm font-medium transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                 activeTab === 'icon'
-                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
+                  ? 'text-primary-500 border-b-2 border-primary-500'
                   : 'text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200'
               }`}
             >
@@ -93,7 +93,7 @@ export const IconEmojiPicker = ({
               onClick={() => setActiveTab('emoji')}
               className={`flex-1 px-4 py-2 text-sm font-medium transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                 activeTab === 'emoji'
-                  ? 'text-primary-600 dark:text-primary-400 border-b-2 border-primary-600 dark:border-primary-400'
+                  ? 'text-primary-500 border-b-2 border-primary-500'
                   : 'text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200'
               }`}
             >

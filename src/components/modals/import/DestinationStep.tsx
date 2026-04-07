@@ -212,7 +212,7 @@ export const DestinationStep = ({
                       onClick={() => handleSelect(account.id, cal.id)}
                       className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                         isSelected
-                          ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                          ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                           : 'hover:bg-surface-50 dark:hover:bg-surface-700/50 text-surface-700 dark:text-surface-300'
                       }`}
                     >
@@ -222,7 +222,7 @@ export const DestinationStep = ({
                       />
                       <span className="truncate flex-1">{cal.displayName}</span>
                       {isSelected && (
-                        <Check className="w-4 h-4 text-primary-600 dark:text-primary-400 shrink-0" />
+                        <Check className="w-4 h-4 text-primary-500 shrink-0" />
                       )}
                     </button>
                   );

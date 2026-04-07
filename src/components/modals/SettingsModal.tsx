@@ -147,17 +147,11 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
                       }}
                       className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                         isActiveTab
-                          ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-400'
-                          : 'text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 border border-transparent'
+                          ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
+                          : 'text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
                       }`}
                     >
-                      <span
-                        className={`shrink-0 ${
-                          isActiveTab
-                            ? 'text-primary-600 dark:text-primary-300'
-                            : 'text-surface-500 dark:text-surface-400'
-                        }`}
-                      >
+                      <span className="shrink-0 text-surface-500 dark:text-surface-400">
                         {tab.icon}
                       </span>
                       <span className="truncate">{tab.label}</span>

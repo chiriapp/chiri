@@ -199,7 +199,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
                   handleValidateAndLogin();
                 }
               }}
-              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
             />
             <p className="mt-1.5 text-xs text-surface-500 dark:text-surface-400">
               Your browser will open for authentication
@@ -229,7 +229,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
 
       {step === 'authenticating' && (
         <div className="py-8 text-center">
-          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-primary-600 dark:text-primary-400" />
+          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-primary-500" />
           <h3 className="mb-1 text-base font-medium text-surface-800 dark:text-surface-200">
             Waiting for authentication...
           </h3>
@@ -241,7 +241,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
 
       {step === 'processing' && (
         <div className="py-8 text-center">
-          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-primary-600 dark:text-primary-400" />
+          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-primary-500" />
           <h3 className="mb-1 text-base font-medium text-surface-800 dark:text-surface-200">
             Setting up your account...
           </h3>

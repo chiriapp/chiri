@@ -81,7 +81,7 @@ export const TaskEditorReminders = ({
             Add reminder
           </button>
         ) : (
-          <div className="flex items-center justify-between gap-2 text-xs text-surface-700 dark:text-surface-200 border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 rounded-md p-2">
+          <div className="flex items-center justify-between gap-2 text-xs text-surface-700 dark:text-surface-300 border border-amber-300 dark:border-amber-700 bg-surface-100 dark:bg-surface-800 rounded-md p-2">
             <span>
               {isMacPlatform()
                 ? 'Grant notification permission to add reminders.'

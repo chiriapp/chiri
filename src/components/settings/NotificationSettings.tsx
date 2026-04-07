@@ -153,7 +153,7 @@ export const NotificationSettings = () => {
                 <button
                   type="button"
                   onClick={() => setQuietHoursStartModalOpen(true)}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
                 >
                   {formatHour(quietHoursStart, use24h)}
                 </button>
@@ -163,7 +163,7 @@ export const NotificationSettings = () => {
                 <button
                   type="button"
                   onClick={() => setQuietHoursEndModalOpen(true)}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
                 >
                   {formatHour(quietHoursEnd, use24h)}
                 </button>
@@ -201,7 +201,7 @@ export const NotificationSettings = () => {
                 <button
                   type="button"
                   onClick={() => setAllDayReminderModalOpen(true)}
-                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
+                  className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg px-3 py-1 outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0 hover:bg-surface-200 dark:hover:bg-surface-600"
                 >
                   {formatHour(defaultAllDayReminderHour, use24h)}
                 </button>

@@ -21,10 +21,10 @@ export const MacNotificationPermissionCard = ({
 
   const permissionBadgeClass =
     permissionStatus === 'granted'
-      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+      ? 'bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 text-green-600 dark:text-green-400'
       : permissionStatus === 'denied'
-        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-        : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400';
+        ? 'bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 text-red-600 dark:text-red-400'
+        : 'bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 text-amber-600 dark:text-amber-400';
 
   const permissionLabel =
     permissionStatus === 'granted'

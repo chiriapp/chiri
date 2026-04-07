@@ -85,9 +85,9 @@ export const FileUploadStep = ({
         onDragLeave={handleDragLeave}
         className={`relative border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 ${
           isDraggingOver
-            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 scale-[1.02]'
+            ? 'border-primary-500 bg-primary-500/10 scale-[1.02]'
             : fileName
-              ? 'border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-900/10'
+              ? 'border-primary-500 bg-primary-500/5'
               : 'border-surface-300 dark:border-surface-600 hover:border-primary-400 dark:hover:border-primary-500 hover:bg-surface-50 dark:hover:bg-surface-700/50'
         }`}
       >
@@ -99,7 +99,7 @@ export const FileUploadStep = ({
         ) : fileName ? (
           <div className="flex items-center justify-center gap-3 pointer-events-none">
             <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-600 rounded-lg shadow-xs">
-              <span className="text-primary-600 dark:text-primary-400">{getFileIcon()}</span>
+              <span className="text-primary-500">{getFileIcon()}</span>
               <span className="text-sm font-medium text-surface-700 dark:text-surface-300 max-w-50 truncate">
                 {fileName}
               </span>
@@ -118,7 +118,7 @@ export const FileUploadStep = ({
             <div
               className={`w-12 h-12 mx-auto mb-3 rounded-full flex items-center justify-center transition-colors pointer-events-none ${
                 isDraggingOver
-                  ? 'bg-primary-100 dark:bg-primary-800/50 text-primary-600 dark:text-primary-400'
+                  ? 'bg-primary-500/15 text-primary-500'
                   : 'bg-surface-100 dark:bg-surface-700 text-surface-400'
               }`}
             >

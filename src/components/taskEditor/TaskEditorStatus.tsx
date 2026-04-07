@@ -37,9 +37,9 @@ export const TaskEditorStatus = ({
                 value: 'needs-action',
                 label: 'Needs Action',
                 icon: RotateCcw,
-                color: 'text-surface-600 dark:text-surface-400',
+                color: 'text-surface-500 dark:text-surface-400',
                 borderColor: 'border-surface-400',
-                bgColor: 'bg-surface-100 dark:bg-surface-800',
+                bgColor: 'bg-surface-200 dark:bg-surface-700',
               },
               {
                 value: 'in-process',
@@ -47,15 +47,15 @@ export const TaskEditorStatus = ({
                 icon: Loader,
                 color: 'text-blue-600 dark:text-blue-400',
                 borderColor: 'border-blue-400',
-                bgColor: 'bg-blue-50 dark:bg-blue-900/30',
+                bgColor: 'bg-surface-200 dark:bg-surface-700',
               },
               {
                 value: 'completed',
                 label: 'Completed',
                 icon: Check,
-                color: 'text-primary-600 dark:text-primary-400',
-                borderColor: 'border-primary-400',
-                bgColor: 'bg-primary-50 dark:bg-primary-900/30',
+                color: 'text-primary-500',
+                borderColor: 'border-primary-500',
+                bgColor: 'bg-surface-200 dark:bg-surface-700',
               },
               {
                 value: 'cancelled',
@@ -63,7 +63,7 @@ export const TaskEditorStatus = ({
                 icon: Ban,
                 color: 'text-rose-600 dark:text-rose-400',
                 borderColor: 'border-rose-400',
-                bgColor: 'bg-rose-50 dark:bg-rose-900/30',
+                bgColor: 'bg-surface-200 dark:bg-surface-700',
               },
             ] as const
           ).map((s) => {
@@ -75,11 +75,11 @@ export const TaskEditorStatus = ({
                 key={s.value}
                 onClick={() => onStatusChange(s.value)}
                 className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500
-                  ${isActive ? `${s.borderColor} ${s.bgColor}` : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 text-surface-600 dark:text-surface-400'}
+                  ${isActive ? `${s.borderColor} ${s.bgColor} text-surface-900 dark:text-surface-100` : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 text-surface-600 dark:text-surface-400'}
                 `}
               >
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? s.color : ''}`} />
-                <span className={isActive ? s.color : ''}>{s.label}</span>
+                <span>{s.label}</span>
               </button>
             );
           })}

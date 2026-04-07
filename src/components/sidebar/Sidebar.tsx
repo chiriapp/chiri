@@ -249,11 +249,11 @@ export const Sidebar = ({
                 }}
                 className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   activeCalendarId === null && activeTagId === null
-                    ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                    ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
                 }`}
               >
-                <Inbox className="w-4 h-4" />
+                <Inbox className="w-4 h-4 shrink-0" />
                 <span className="flex-1 text-left">All Tasks</span>
                 <span className="text-xs">{getTotalActiveTaskCount()}</span>
               </button>

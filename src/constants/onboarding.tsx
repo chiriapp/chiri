@@ -22,8 +22,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: <AppIcon className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center gap-4 py-6">
-        <div className="w-16 h-16 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center">
-          <AppIcon className="w-8 h-8 text-primary-600 dark:text-primary-400 shrink-0" />
+        <div className="w-16 h-16 rounded-2xl bg-primary-500/15 flex items-center justify-center">
+          <AppIcon className="w-8 h-8 text-primary-500 shrink-0" />
         </div>
       </div>
     ),
@@ -63,7 +63,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: <Check className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center py-8">
-        <div className="w-20 h-20 rounded-full bg-linear-to-br from-primary-400 to-primary-600 flex items-center justify-center">
+        <div className="w-20 h-20 rounded-full bg-primary-500 flex items-center justify-center">
           <Check className="w-10 h-10 text-primary-contrast" />
         </div>
       </div>

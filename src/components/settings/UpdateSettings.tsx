@@ -155,7 +155,7 @@ export const UpdateSettings = () => {
       {!isManagedInstallLoading && !isManagedInstall && updateAvailable && (
         <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
           <div className="flex items-start gap-3 p-4">
-            <Download className="w-5 h-5 mt-0.5 shrink-0 text-primary-600 dark:text-primary-400" />
+            <Download className="w-5 h-5 mt-0.5 shrink-0 text-primary-500" />
             <div>
               <p className="text-sm font-semibold text-surface-800 dark:text-surface-200">
                 Update available — {updateAvailable.version}
@@ -180,7 +180,7 @@ export const UpdateSettings = () => {
                 </div>
                 <div className="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-1.5 overflow-hidden">
                   <div
-                    className="bg-primary-600 dark:bg-primary-500 h-full transition-all duration-300"
+                    className="bg-primary-500 h-full transition-all duration-300"
                     style={{ width: `${downloadProgress}%` }}
                   />
                 </div>
@@ -204,7 +204,7 @@ export const UpdateSettings = () => {
               type="button"
               onClick={downloadAndInstall}
               disabled={isDownloading}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-sm font-medium bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed text-primary-contrast rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               {isDownloading ? (
                 <>

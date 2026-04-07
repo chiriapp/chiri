@@ -190,7 +190,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                   index === currentStep
                     ? 'w-8 bg-primary-500'
                     : index < currentStep
-                      ? 'bg-primary-300 dark:bg-primary-700'
+                      ? 'bg-primary-500'
                       : 'bg-surface-300 dark:bg-surface-600'
                 }`}
               />
@@ -331,7 +331,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                           onClick={() => setTheme(option.value)}
                           className={`flex-1 flex justify-center items-center gap-2 py-2 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                             theme === option.value
-                              ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                              ? 'border-surface-300 dark:border-surface-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                               : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400'
                           }`}
                         >

@@ -209,10 +209,10 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
 
                   {testResult && (
                     <div
-                      className={`p-2 rounded-lg text-xs mt-3 ${
+                      className={`p-2 rounded-lg text-xs mt-3 border bg-surface-100 dark:bg-surface-700 border-surface-200 dark:border-surface-600 ${
                         testResult.success
-                          ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                          : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                          ? 'text-green-600 dark:text-green-400'
+                          : 'text-red-600 dark:text-red-400'
                       }`}
                     >
                       {testResult.message}

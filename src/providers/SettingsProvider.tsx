@@ -210,6 +210,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (enabled: boolean) => settingsStore.setAllDayReminderNotificationsEnabled(enabled),
     [],
   );
+  const setColorScheme = useCallback(
+    (schemeId: string, flavorId: string | null, fallbackAccent?: string) =>
+      settingsStore.setColorScheme(schemeId, flavorId, fallbackAccent),
+    [],
+  );
+  const setColorSchemeFlavor = useCallback(
+    (flavorId: string | null) => settingsStore.setColorSchemeFlavor(flavorId),
+    [],
+  );
   const setTaskListDensity = useCallback(
     (density: TaskListDensity) => settingsStore.setTaskListDensity(density),
     [],
@@ -300,6 +309,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setConfirmBeforeQuitAppliedValue,
     setDefaultAllDayReminderHour,
     setAllDayReminderNotificationsEnabled,
+    setColorScheme,
+    setColorSchemeFlavor,
     setTaskListDensity,
     setDefaultTagColor,
     setDefaultCalendarColor,

@@ -13,7 +13,7 @@ interface ModalButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<ButtonVariant, string> = {
   primary:
-    'bg-primary-600 hover:bg-primary-700 text-primary-contrast outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset',
+    'bg-primary-500 hover:bg-primary-600 text-primary-contrast outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset',
   secondary:
     'border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset',
   destructive:

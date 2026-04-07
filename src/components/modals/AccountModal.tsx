@@ -419,7 +419,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                 onChange={setName}
                 placeholder="My CalDAV Account"
                 required
-                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
             </div>
 
@@ -440,7 +440,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                     setServerUrl(getPredefinedServerUrl(newType) || '');
                   }
                 }}
-                className="w-full text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                className="w-full text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               >
                 {SERVER_TYPE_GROUPS.map((group) => (
                   <optgroup key={group.label} label={group.label}>
@@ -472,7 +472,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                 placeholder="https://caldav.example.com"
                 required
                 disabled={!!getPredefinedServerUrl(serverType)}
-                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               />
               {serverType === 'generic' && (
                 <p className="mt-2 text-xs flex flex-row text-surface-500 dark:text-surface-400">
@@ -496,7 +496,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                 onChange={setUsername}
                 placeholder="user@example.com"
                 required
-                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
             </div>
 
@@ -514,7 +514,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                 onChange={setPassword}
                 placeholder={account ? '(unchanged)' : 'Enter password'}
                 required={!account}
-                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
             </div>
 

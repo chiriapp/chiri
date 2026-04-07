@@ -70,7 +70,7 @@ export const TaskEditorTitle = ({ task, checkmarkColor }: TaskEditorTitleProps) 
             titleRef.current.focus();
           }
         }}
-        className="flex items-start gap-3 px-3 py-3 bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg has-focus:border-primary-300 dark:has-focus:border-primary-400 has-[textarea:focus]:bg-white dark:has-[textarea:focus]:bg-primary-900/30 transition-colors cursor-text"
+        className="flex items-start gap-3 px-3 py-3 bg-surface-100 dark:bg-surface-800 border border-transparent rounded-lg has-focus:border-primary-500 has-[textarea:focus]:bg-white dark:has-[textarea:focus]:bg-surface-800 transition-colors cursor-text"
       >
         <button
           type="button"
