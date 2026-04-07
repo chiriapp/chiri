@@ -415,9 +415,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                   onChange={(e) => {
                     const newType = e.target.value as ServerType;
                     setServerType(newType);
-                    if (!account && !preloadedConfig) {
-                      setServerUrl(getPredefinedServerUrl(newType) || '');
-                    }
                   }}
                   className="w-full text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
                 >
