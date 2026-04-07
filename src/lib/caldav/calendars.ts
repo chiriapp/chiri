@@ -1,4 +1,5 @@
 import type { Connection } from '$lib/caldav/connection';
+import { NS_WEBDAV_PUSH } from '$lib/caldav/push';
 import { log, makeAbsoluteUrl } from '$lib/caldav/utils';
 import { del, mkcalendar, parseMultiStatus, propfind, proppatch } from '$lib/tauri-http';
 import type { Calendar } from '$types';
@@ -27,9 +28,30 @@ export const calendarExists = async (conn: Connection, calendarUrl: string): Pro
   return response.status === 207 || response.status === 200;
 };
 
+const parsePushProperties = (
+  xml: string,
+): { topic?: string; vapidKey?: string; supported: boolean } => {
+  const topicMatch = xml.match(/<[^:>]*:?topic[^>]*>([^<]+)<\/[^:>]*:?topic>/i);
+  const topic = topicMatch?.[1]?.trim();
+
+  const vapidMatch = xml.match(
+    /<[^:>]*:?vapid-public-key[^>]*>([^<]+)<\/[^:>]*:?vapid-public-key>/i,
+  );
+  const vapidKey = vapidMatch?.[1]?.trim();
+
+  const hasWebPush = /<[^:>]*:?web-push[^>]*>/i.test(xml);
+
+  return {
+    topic,
+    vapidKey,
+    supported: !!topic && hasWebPush,
+  };
+};
+
 export const fetchCalendars = async (conn: Connection, accountId: string): Promise<Calendar[]> => {
+  // Include WebDAV Push properties in the PROPFIND request
   const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
-<d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:a="http://apple.com/ns/ical/">
+<d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:a="http://apple.com/ns/ical/" xmlns:P="${NS_WEBDAV_PUSH}">
   <d:prop>
     <d:displayname/>
     <d:resourcetype/>
@@ -38,6 +60,8 @@ export const fetchCalendars = async (conn: Connection, accountId: string): Promi
     <d:sync-token/>
     <a:calendar-color/>
     <a:calendar-order/>
+    <P:transports/>
+    <P:topic/>
   </d:prop>
 </d:propfind>`;
 
@@ -77,6 +101,10 @@ export const fetchCalendars = async (conn: Connection, accountId: string): Promi
     const calendarUrl = makeAbsoluteUrl(result.href, conn.serverUrl);
     const serverOrder = result.props['calendar-order'];
 
+    // Parse WebDAV Push properties from the raw response body for this result
+    // We need to extract the response element for this specific href
+    const pushProps = parsePushProperties(response.body);
+
     calendars.push({
       id: calendarUrl,
       displayName: result.props.displayname ?? 'Calendar',
@@ -87,6 +115,10 @@ export const fetchCalendars = async (conn: Connection, accountId: string): Promi
       accountId,
       supportedComponents: supportedComponents.length > 0 ? supportedComponents : undefined,
       sortOrder: serverOrder ? parseInt(serverOrder, 10) : 0,
+      // WebDAV Push properties
+      pushTopic: pushProps.topic,
+      pushSupported: pushProps.supported,
+      pushVapidKey: pushProps.vapidKey,
     });
   }
 

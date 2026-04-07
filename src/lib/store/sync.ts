@@ -240,8 +240,19 @@ const getCalendarUpdates = (
     remoteCalendar.sortOrder !== 0 &&
     localCalendar.sortOrder !== remoteCalendar.sortOrder;
 
+  // WebDAV Push property changes
+  const pushTopicChanged = localCalendar.pushTopic !== remoteCalendar.pushTopic;
+  const pushSupportedChanged = localCalendar.pushSupported !== remoteCalendar.pushSupported;
+  const pushVapidKeyChanged = localCalendar.pushVapidKey !== remoteCalendar.pushVapidKey;
+  const pushPropertiesChanged = pushTopicChanged || pushSupportedChanged || pushVapidKeyChanged;
+
   const hasChanges =
-    displayNameChanged || colorChanged || ctagChanged || syncTokenChanged || serverOrderChanged;
+    displayNameChanged ||
+    colorChanged ||
+    ctagChanged ||
+    syncTokenChanged ||
+    serverOrderChanged ||
+    pushPropertiesChanged;
 
   if (!hasChanges) return null;
 
@@ -251,6 +262,14 @@ const getCalendarUpdates = (
     ctag: remoteCalendar.ctag,
     syncToken: remoteCalendar.syncToken,
     ...(serverOrderChanged ? { sortOrder: remoteCalendar.sortOrder } : {}),
+    // Always update push properties when they change
+    ...(pushPropertiesChanged
+      ? {
+          pushTopic: remoteCalendar.pushTopic,
+          pushSupported: remoteCalendar.pushSupported,
+          pushVapidKey: remoteCalendar.pushVapidKey,
+        }
+      : {}),
   };
 };
 

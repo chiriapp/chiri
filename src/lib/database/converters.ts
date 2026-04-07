@@ -56,6 +56,10 @@ export const rowToCalendar = (row: CalendarRow): Calendar => ({
   accountId: row.account_id,
   supportedComponents: row.supported_components ? JSON.parse(row.supported_components) : undefined,
   sortOrder: row.sort_order ?? 0,
+  // WebDAV Push properties
+  pushTopic: row.push_topic || undefined,
+  pushSupported: row.push_supported === 1,
+  pushVapidKey: row.push_vapid_key || undefined,
 });
 
 export const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account => ({

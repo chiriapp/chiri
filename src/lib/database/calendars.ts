@@ -26,8 +26,8 @@ export const addCalendar = async (
   const url = calendarData.url ?? '';
 
   await conn.execute(
-    `INSERT INTO calendars (id, account_id, display_name, url, ctag, sync_token, color, icon, emoji, supported_components, sort_order)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    `INSERT INTO calendars (id, account_id, display_name, url, ctag, sync_token, color, icon, emoji, supported_components, sort_order, push_topic, push_supported, push_vapid_key)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [
       calendarId,
       accountId,
@@ -40,6 +40,9 @@ export const addCalendar = async (
       calendarData.emoji || null,
       calendarData.supportedComponents ? JSON.stringify(calendarData.supportedComponents) : null,
       sortOrder,
+      calendarData.pushTopic || null,
+      calendarData.pushSupported ? 1 : 0,
+      calendarData.pushVapidKey || null,
     ],
   );
 
@@ -64,8 +67,9 @@ export const updateCalendar = async (
   await conn.execute(
     `UPDATE calendars SET
       display_name = $1, url = $2, ctag = $3, sync_token = $4, color = $5,
-      icon = $6, emoji = $7, supported_components = $8, sort_order = $9
-     WHERE id = $10`,
+      icon = $6, emoji = $7, supported_components = $8, sort_order = $9,
+      push_topic = $10, push_supported = $11, push_vapid_key = $12
+     WHERE id = $13`,
     [
       updated.displayName,
       updated.url,
@@ -76,6 +80,9 @@ export const updateCalendar = async (
       updated.emoji || null,
       updated.supportedComponents ? JSON.stringify(updated.supportedComponents) : null,
       updated.sortOrder ?? 0,
+      updated.pushTopic || null,
+      updated.pushSupported ? 1 : 0,
+      updated.pushVapidKey || null,
       calendarId,
     ],
   );

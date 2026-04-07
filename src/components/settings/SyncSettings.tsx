@@ -1,4 +1,7 @@
+import ChevronDown from 'lucide-react/icons/chevron-down';
+import ChevronRight from 'lucide-react/icons/chevron-right';
 import { Info } from 'lucide-react';
+import { useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
 import { CONNECTIVITY_CHECK_INTERVAL_OPTIONS, SYNC_INTERVAL_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
@@ -20,7 +23,13 @@ export const SyncSettings = () => {
     setConnectivityCheckUrl,
     connectivityCheckInterval,
     setConnectivityCheckInterval,
+    enablePush,
+    setEnablePush,
+    ntfyServerUrl,
+    setNtfyServerUrl,
   } = useSettingsStore();
+
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -101,6 +110,72 @@ export const SyncSettings = () => {
             className="rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
           />
         </label>
+
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
+        <label className="flex items-center justify-between p-4">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              WebDAV Push (experimental)
+            </p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              Real-time sync when server sends push messages
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={enablePush}
+            onChange={(e) => setEnablePush(e.target.checked)}
+            className="rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
+          />
+        </label>
+
+        {enablePush && (
+          <div className="px-4 pb-4">
+            <div className="space-y-4">
+              <div className="rounded-lg border border-yellow-500/30 dark:border-yellow-500/40 bg-yellow-50 dark:bg-yellow-900/10 px-3 py-2 text-xs text-yellow-800 dark:text-yellow-200">
+                Note: Not all CalDAV servers support WebDAV Push. If your server doesn't support it,
+                Chiri will continue to use regular polling.
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                className="flex items-center gap-2 text-xs text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 transition-colors"
+              >
+                {showAdvanced ? (
+                  <ChevronDown className="w-3 h-3" />
+                ) : (
+                  <ChevronRight className="w-3 h-3" />
+                )}
+                Advanced settings
+              </button>
+
+              {showAdvanced && (
+                <div className="pl-4 border-l-2 border-surface-200 dark:border-surface-600 space-y-2">
+                  <label className="block">
+                    <p className="text-sm text-surface-700 dark:text-surface-300 mb-1">
+                      ntfy server URL
+                    </p>
+                    <p className="text-xs text-surface-500 dark:text-surface-400 mb-2">
+                      UnifiedPush distributor endpoint
+                    </p>
+                    <input
+                      type="url"
+                      value={ntfyServerUrl}
+                      onChange={(e) => setNtfyServerUrl(e.target.value)}
+                      placeholder="https://ntfy.sh"
+                      className="w-full px-3 py-2 text-sm border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-500 dark:focus:border-primary-400 transition-colors"
+                    />
+                  </label>
+                  <p className="text-xs text-surface-500 dark:text-surface-400 italic">
+                    Note: Changing the server URL requires restarting the app to take effect.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">

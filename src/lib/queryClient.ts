@@ -32,6 +32,11 @@ export const queryKeys = {
     all: ['tags'] as const,
     byId: (id: string) => ['tags', id] as const,
   },
+  pushSubscriptions: {
+    all: ['pushSubscriptions'] as const,
+    byCalendar: (calendarId: string) => ['pushSubscriptions', 'calendar', calendarId] as const,
+    expiring: (withinHours: number) => ['pushSubscriptions', 'expiring', withinHours] as const,
+  },
   pendingDeletions: ['pendingDeletions'] as const,
   ui: {
     activeCalendar: ['ui', 'activeCalendar'] as const,
