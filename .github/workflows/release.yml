@@ -176,7 +176,7 @@ jobs:
           workspaces: './src-tauri -> target'
 
       - name: install frontend dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install
 
       - name: Load signing secrets from 1Password
         if: matrix.platform != 'windows-11-arm'
