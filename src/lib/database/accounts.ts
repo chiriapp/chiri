@@ -34,14 +34,15 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
     username: accountData.username ?? '',
     password: accountData.password ?? '',
     serverType: accountData.serverType,
+    calendarHomeUrl: accountData.calendarHomeUrl,
     calendars: [],
     isActive: true,
     sortOrder: accountData.sortOrder || maxOrder + 100,
   };
 
   await conn.execute(
-    `INSERT INTO accounts (id, name, server_url, username, password, server_type, last_sync, is_active, sort_order)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    `INSERT INTO accounts (id, name, server_url, username, password, server_type, calendar_home_url, last_sync, is_active, sort_order)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
       account.id,
       account.name,
@@ -49,6 +50,7 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
       account.username,
       account.password,
       account.serverType || null,
+      account.calendarHomeUrl || null,
       account.lastSync ? account.lastSync.toISOString() : null,
       account.isActive ? 1 : 0,
       account.sortOrder,
@@ -74,14 +76,15 @@ export const updateAccount = async (
   const updated: Account = { ...existing, ...updates };
 
   await conn.execute(
-    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, last_sync = $6, is_active = $7, sort_order = $8
-     WHERE id = $9`,
+    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, calendar_home_url = $6, last_sync = $7, is_active = $8, sort_order = $9
+     WHERE id = $10`,
     [
       updated.name,
       updated.serverUrl,
       updated.username,
       updated.password,
       updated.serverType || null,
+      updated.calendarHomeUrl || null,
       updated.lastSync ? updated.lastSync.toISOString() : null,
       updated.isActive ? 1 : 0,
       updated.sortOrder,

@@ -65,6 +65,7 @@ export const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account =>
   username: row.username,
   password: row.password,
   serverType: (row.server_type as ServerType) || undefined,
+  calendarHomeUrl: row.calendar_home_url || undefined,
   calendars: calendars.filter((c) => c.accountId === row.id),
   lastSync: row.last_sync ? new Date(row.last_sync) : undefined,
   isActive: row.is_active === 1,
