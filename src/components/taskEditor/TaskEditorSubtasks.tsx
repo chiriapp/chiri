@@ -157,7 +157,7 @@ export const TaskEditorSubtasks = ({
                   {activeDragSubtask ? (
                     <div className="relative">
                       {targetSubtaskIndent !== subtaskOriginalIndentRef.current && (
-                        <div className="absolute -top-6 left-2 px-2 py-0.5 bg-primary-600 text-primary-contrast text-xs rounded-sm shadow-sm whitespace-nowrap">
+                        <div className="absolute -top-6 left-2 px-2 py-0.5 bg-primary-500 text-primary-contrast text-xs rounded-sm shadow-sm whitespace-nowrap">
                           {targetSubtaskIndent > subtaskOriginalIndentRef.current
                             ? `→ Nest in ${truncateName(targetSubtaskParentName || 'parent')}`
                             : targetSubtaskIndent === 1

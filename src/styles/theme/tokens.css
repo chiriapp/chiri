@@ -14,16 +14,16 @@
   --color-primary-950: rgb(var(--primary-rgb-950, 23 37 84));
   --color-primary-contrast: var(--primary-contrast-color, #ffffff);
 
-  --color-surface-50: #fafafa;
-  --color-surface-100: #f4f4f5;
-  --color-surface-200: #e4e4e7;
-  --color-surface-300: #d4d4d8;
-  --color-surface-400: #a1a1aa;
-  --color-surface-500: #71717a;
-  --color-surface-600: #52525b;
-  --color-surface-700: #3f3f46;
-  --color-surface-800: #27272a;
-  --color-surface-900: #18181b;
+  --color-surface-50: var(--surface-50, #fafafa);
+  --color-surface-100: var(--surface-100, #f4f4f5);
+  --color-surface-200: var(--surface-200, #e4e4e7);
+  --color-surface-300: var(--surface-300, #d4d4d8);
+  --color-surface-400: var(--surface-400, #a1a1aa);
+  --color-surface-500: var(--surface-500, #71717a);
+  --color-surface-600: var(--surface-600, #52525b);
+  --color-surface-700: var(--surface-700, #3f3f46);
+  --color-surface-800: var(--surface-800, #27272a);
+  --color-surface-900: var(--surface-900, #18181b);
 
   --animate-fade-in: fadeIn 0.2s ease-out;
   --animate-slide-up: slideUp 0.2s ease-out;

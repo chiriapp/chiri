@@ -64,7 +64,7 @@ export const UpdateModal = ({
               </div>
               <div className="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-primary-600 dark:bg-primary-500 h-full transition-all duration-300"
+                  className="bg-primary-500 h-full transition-all duration-300"
                   style={{ width: `${downloadProgress}%` }}
                 />
               </div>

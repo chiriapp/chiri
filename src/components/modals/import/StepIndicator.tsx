@@ -44,7 +44,7 @@ export const StepIndicator = ({ currentStep, hasFile, hasDestination }: StepIndi
                 className={`w-10 h-px mx-2 transition-colors ${
                   (index === 1 && (currentStep === 'destination' || currentStep === 'review')) ||
                   (index === 2 && currentStep === 'review')
-                    ? 'bg-primary-400 dark:bg-primary-500'
+                    ? 'bg-primary-500'
                     : 'bg-surface-300 dark:bg-surface-600'
                 }`}
               />
@@ -55,7 +55,7 @@ export const StepIndicator = ({ currentStep, hasFile, hasDestination }: StepIndi
                   status === 'completed'
                     ? 'bg-primary-500 text-white'
                     : status === 'active'
-                      ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 ring-2 ring-primary-500'
+                      ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100 ring-2 ring-primary-500'
                       : 'bg-surface-200 dark:bg-surface-700 text-surface-500 dark:text-surface-400'
                 }`}
               >
@@ -64,7 +64,7 @@ export const StepIndicator = ({ currentStep, hasFile, hasDestination }: StepIndi
               <span
                 className={`text-xs font-medium hidden sm:inline transition-colors ${
                   status === 'active'
-                    ? 'text-primary-700 dark:text-primary-300'
+                    ? 'text-surface-900 dark:text-surface-100'
                     : status === 'completed'
                       ? 'text-surface-700 dark:text-surface-300'
                       : 'text-surface-500 dark:text-surface-400'

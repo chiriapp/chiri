@@ -5,7 +5,6 @@ import { Tooltip } from '$components/Tooltip';
 import { FALLBACK_ITEM_COLOR } from '$constants';
 import { getIconByName } from '$constants/icons';
 import type { Account, Tag } from '$types';
-import { getContrastTextColor } from '$utils/color';
 
 interface SidebarCollapsedViewProps {
   accounts: Account[];
@@ -53,7 +52,7 @@ export const SidebarCollapsedView = ({
           onClick={onAllTasks}
           className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
             activeCalendarId === null && activeTagId === null
-              ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+              ? 'bg-surface-200 dark:bg-surface-700'
               : 'text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
           }`}
         >
@@ -77,35 +76,23 @@ export const SidebarCollapsedView = ({
                 onContextMenu={(e) => onContextMenu(e, 'calendar', calendar.id, account.id)}
                 className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   isActive
-                    ? 'bg-primary-50 dark:bg-primary-900/30'
+                    ? 'bg-surface-200 dark:bg-surface-700'
                     : contextMenu?.type === 'calendar' && contextMenu.id === calendar.id
                       ? 'bg-surface-200 dark:bg-surface-700'
                       : 'hover:bg-surface-200 dark:hover:bg-surface-700'
                 }`}
-                style={
-                  isActive
-                    ? {
-                        backgroundColor: calendarColor,
-                        color: getContrastTextColor(calendarColor),
-                      }
-                    : undefined
-                }
               >
                 {calendar.emoji ? (
                   <span
                     className="text-base leading-none"
-                    style={{
-                      color: isActive ? getContrastTextColor(calendarColor) : calendarColor,
-                    }}
+                    style={{ color: calendarColor }}
                   >
                     {calendar.emoji}
                   </span>
                 ) : (
                   <CalendarIcon
                     className="w-5 h-5"
-                    style={{
-                      color: isActive ? getContrastTextColor(calendarColor) : calendarColor,
-                    }}
+                    style={{ color: calendarColor }}
                   />
                 )}
               </button>
@@ -128,30 +115,23 @@ export const SidebarCollapsedView = ({
               onContextMenu={(e) => onContextMenu(e, 'tag', tag.id)}
               className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                 isActive
-                  ? 'bg-primary-50 dark:bg-primary-900/30'
+                  ? 'bg-surface-200 dark:bg-surface-700'
                   : contextMenu?.type === 'tag' && contextMenu.id === tag.id
                     ? 'bg-surface-200 dark:bg-surface-700'
                     : 'hover:bg-surface-200 dark:hover:bg-surface-700'
               }`}
-              style={
-                isActive
-                  ? { backgroundColor: tag.color, color: getContrastTextColor(tag.color) }
-                  : undefined
-              }
             >
               {tag.emoji ? (
                 <span
                   className="text-base leading-none"
-                  style={{
-                    color: isActive ? getContrastTextColor(tag.color) : tag.color,
-                  }}
+                  style={{ color: tag.color }}
                 >
                   {tag.emoji}
                 </span>
               ) : (
                 <TagIcon
                   className="w-5 h-5"
-                  style={{ color: isActive ? getContrastTextColor(tag.color) : tag.color }}
+                  style={{ color: tag.color }}
                 />
               )}
             </button>
@@ -167,7 +147,7 @@ export const SidebarCollapsedView = ({
               onClick={() => onUpdateClick?.()}
               className="p-2 mb-1 rounded-lg text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
-              <Download className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <Download className="w-5 h-5 text-primary-500" />
             </button>
           </Tooltip>
         )}

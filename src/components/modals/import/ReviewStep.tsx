@@ -50,8 +50,8 @@ export const ReviewStep = ({
       {/* Summary */}
       <div className="flex items-center justify-between p-3 bg-surface-50 dark:bg-surface-700/50 rounded-lg">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/50 flex items-center justify-center">
-            <span className="text-lg font-semibold text-primary-700 dark:text-primary-300">
+          <div className="w-10 h-10 rounded-full bg-surface-200 dark:bg-surface-700 flex items-center justify-center">
+            <span className="text-lg font-semibold text-surface-900 dark:text-surface-100">
               {tasks.length}
             </span>
           </div>

@@ -28,7 +28,7 @@ export const SidebarFooter = ({
           onClick={() => onUpdateClick?.()}
           className="w-full flex items-center gap-2 px-4 py-2 text-sm text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors font-medium outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
         >
-          <Download className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+          <Download className="w-4 h-4 text-primary-500" />
           Update available!
         </button>
       )}

@@ -52,7 +52,7 @@ const getSyncButtonClass = (
   const base =
     'w-9 h-9 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset flex items-center justify-center';
   if (isSyncing) {
-    return `${base} text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 border-primary-400 cursor-not-allowed`;
+    return `${base} text-primary-500 bg-surface-100 dark:bg-surface-800 border-surface-200 dark:border-surface-600 cursor-not-allowed`;
   }
   if (isOffline || disableSync) {
     return `${base} text-surface-300 dark:text-surface-600 border-transparent cursor-not-allowed`;
@@ -176,7 +176,7 @@ export const Header = ({
             placeholder={`Search tasks... (${searchShortcut})`}
             value={searchQuery}
             onChange={(value) => setSearchQueryMutation.mutate(value)}
-            className="w-full pl-9 pr-4 py-2 bg-surface-100 dark:bg-surface-700/60 border border-transparent rounded-lg text-sm text-surface-800 dark:text-surface-200 placeholder:text-surface-400 focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+            className="w-full pl-9 pr-4 py-2 bg-surface-100 dark:bg-surface-700/60 border border-transparent rounded-lg text-sm text-surface-800 dark:text-surface-200 placeholder:text-surface-400 focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
           />
         </div>
 
@@ -273,7 +273,7 @@ export const Header = ({
           <button
             type="button"
             onClick={handleNewTask}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border text-sm transition-colors border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 ${!isAnyModalOpen ? 'hover:bg-primary-100 dark:hover:bg-primary-800' : ''} shadow-xs outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
+            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border border-transparent text-sm transition-colors bg-primary-500 text-primary-contrast ${!isAnyModalOpen ? 'hover:bg-primary-600' : ''} shadow-xs outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
           >
             <Plus className="w-4 h-4" />
             New Task

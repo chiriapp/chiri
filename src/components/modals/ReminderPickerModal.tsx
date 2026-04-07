@@ -196,7 +196,7 @@ export const ReminderPickerModal = ({
   const btnClass = (active: boolean) =>
     `w-full flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
       active
-        ? 'bg-primary-600 text-primary-contrast'
+        ? 'bg-primary-500 text-primary-contrast'
         : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
     }`;
 
@@ -359,9 +359,9 @@ export const ReminderPickerModal = ({
                       w-8 h-8 rounded-full text-sm flex items-center justify-center transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
                       ${
                         isSelected
-                          ? 'bg-primary-600 text-primary-contrast'
+                          ? 'bg-primary-500 text-primary-contrast'
                           : isTodayDate
-                            ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium'
+                            ? 'bg-primary-500/15 text-primary-500 font-medium'
                             : isCurrentMonth
                               ? 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
                               : 'text-surface-400 dark:text-surface-600'

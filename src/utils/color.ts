@@ -1,4 +1,5 @@
 import { COLOR_PRESETS } from '$constants';
+import { COLOR_SCHEMES } from '$constants/colorSchemes';
 import type { Theme } from '$types';
 
 /**
@@ -144,6 +145,87 @@ const hslToRgb = (h: number, s: number, l: number): [number, number, number] => 
   }
 
   return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+};
+
+/**
+ * resolve the effective theme (light or dark), accounting for system preference
+ */
+export const resolveEffectiveTheme = (theme: Theme): 'light' | 'dark' => {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  return theme;
+};
+
+const SURFACE_SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] as const;
+
+/**
+ * like applyAccentColor, but anchors primary-500 to the exact chosen color by using
+ * a 1.0× lightness shift. This means every element using primary-500 shows exactly
+ * the color the user picked from the scheme's palette (e.g. Catppuccin's light pink
+ * #f5c2e7 at L≈86% produces primary-500 at L=86%), with darker/lighter shades
+ * radiating naturally from that anchor point.
+ * Operates directly on parsed RGB — no intermediate string conversion.
+ */
+export const applySchemeAccentColor = (color: string) => {
+  const root = document.documentElement;
+
+  const rgb = parseCssColor(color);
+  if (!rgb) return;
+  const [r, g, b] = rgb;
+
+  const [h, s, origL] = rgbToHsl(r, g, b);
+
+  const lShift = (origL - 50) * 1.0;
+  const cl = (l: number) => Math.max(5, Math.min(97, l + lShift));
+
+  const shades = [
+    { shade: 50, l: cl(97) },
+    { shade: 100, l: cl(94) },
+    { shade: 200, l: cl(86) },
+    { shade: 300, l: cl(76) },
+    { shade: 400, l: cl(64) },
+    { shade: 500, l: cl(50) },
+    { shade: 600, l: cl(42) },
+    { shade: 700, l: cl(35) },
+    { shade: 800, l: cl(28) },
+    { shade: 900, l: cl(22) },
+    { shade: 950, l: cl(14) },
+  ] as const;
+
+  for (const { shade, l } of shades) {
+    const [sr, sg, sb] = hslToRgb(h, s, l);
+    root.style.setProperty(`--primary-rgb-${shade}`, `${sr} ${sg} ${sb}`);
+  }
+
+  root.style.setProperty('--primary-contrast-color', getContrastTextColor(color));
+};
+
+/**
+ * apply a color scheme's surface palette as CSS custom properties.
+ * pass schemeId 'default' (or an unknown id) to clear all overrides.
+ */
+export const applyColorScheme = (schemeId: string, flavorId: string | null) => {
+  const root = document.documentElement;
+
+  const scheme = COLOR_SCHEMES.find((s) => s.id === schemeId);
+
+  if (!scheme || scheme.id === 'default' || scheme.flavors.length === 0) {
+    for (const shade of SURFACE_SHADES) {
+      root.style.removeProperty(`--surface-${shade}`);
+    }
+    return;
+  }
+
+  const flavor = flavorId
+    ? scheme.flavors.find((f) => f.id === flavorId)
+    : scheme.flavors[0];
+
+  if (!flavor) return;
+
+  for (const shade of SURFACE_SHADES) {
+    root.style.setProperty(`--surface-${shade}`, flavor.surfaces[shade]);
+  }
 };
 
 /**

@@ -121,7 +121,7 @@ export const KeyboardShortcutModal = ({
           // biome-ignore lint/a11y/noNoninteractiveTabindex: we need to make this div focusable to capture key events, but it doesn't have typical interactive behavior
           tabIndex={0}
           onKeyDown={handleKeyCapture}
-          className="w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-primary-50 dark:focus:bg-primary-900/20 transition-colors cursor-text"
+          className="w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border-2 border-dashed border-surface-300 dark:border-surface-600 rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-surface-50 dark:focus:bg-surface-900 transition-colors cursor-text"
           aria-label="Press keys to set shortcut"
         >
           {displayShortcut ? (
@@ -133,7 +133,7 @@ export const KeyboardShortcutModal = ({
                     <kbd
                       className={`px-3 py-2 rounded-lg text-sm font-mono shadow-xs ${
                         pendingShortcut
-                          ? 'bg-primary-100 dark:bg-primary-900/50 border-2 border-primary-400 dark:border-primary-600 text-primary-700 dark:text-primary-300'
+                          ? 'bg-surface-200 dark:bg-surface-700 border-2 border-primary-500 text-surface-900 dark:text-surface-100'
                           : 'bg-surface-100 dark:bg-surface-700 border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300'
                       }`}
                     >

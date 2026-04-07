@@ -6,6 +6,7 @@ import {
   DEFAULT_SHORTCUTS,
   DEFAULT_SIDEBAR_WIDTH,
 } from '$constants';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
 import { loggers } from '$lib/logger';
 import type {
   AccentColor,
@@ -26,7 +27,7 @@ import type {
   TaskBadgeVisibility,
   TaskListDensity,
 } from '$types/settings';
-import { applyAccentColor, applyTheme } from '$utils/color';
+import { applyAccentColor, applyColorScheme, applySchemeAccentColor, applyTheme } from '$utils/color';
 
 const log = loggers.settings;
 
@@ -78,6 +79,10 @@ interface SettingsState {
   defaultAllDayReminderHour: number;
   allDayReminderNotificationsEnabled: boolean;
   // Look & Feel
+  colorScheme: string;
+  colorSchemeFlavor: string | null;
+  /** remembers the chosen accent per scheme so switching back restores it */
+  accentColorByScheme: Record<string, string>;
   taskListDensity: TaskListDensity;
   defaultTagColor: string;
   defaultCalendarColor: string;
@@ -145,6 +150,9 @@ interface SettingsActions {
   setConfirmBeforeQuitAppliedValue: (value: boolean) => void;
   setDefaultAllDayReminderHour: (hour: number) => void;
   setAllDayReminderNotificationsEnabled: (enabled: boolean) => void;
+  /** switches scheme+flavor, saves the current accent, and restores the saved one (or fallbackAccent) */
+  setColorScheme: (schemeId: string, flavorId: string | null, fallbackAccent?: string) => void;
+  setColorSchemeFlavor: (flavorId: string | null) => void;
   setTaskListDensity: (density: TaskListDensity) => void;
   setDefaultTagColor: (color: string) => void;
   setDefaultCalendarColor: (color: string) => void;
@@ -211,6 +219,9 @@ const defaultState: SettingsState = {
   confirmBeforeQuitAppliedValue: true,
   defaultAllDayReminderHour: 17,
   allDayReminderNotificationsEnabled: true,
+  colorScheme: DEFAULT_COLOR_SCHEME_ID,
+  colorSchemeFlavor: null,
+  accentColorByScheme: { [DEFAULT_COLOR_SCHEME_ID]: DEFAULT_COLOR },
   taskListDensity: 'comfortable',
   defaultTagColor: 'accent',
   defaultCalendarColor: 'accent',
@@ -316,9 +327,14 @@ const loadResult = loadFromStorage();
 let state: SettingsState = loadResult.state;
 let pendingMigrationSave = loadResult.migrated;
 
-// Apply theme and accent color immediately on module load
+// Apply theme, color scheme, and accent color immediately on module load
 applyTheme(state.theme);
-applyAccentColor(state.accentColor);
+applyColorScheme(state.colorScheme, state.colorSchemeFlavor);
+if (state.colorScheme === DEFAULT_COLOR_SCHEME_ID) {
+  applyAccentColor(state.accentColor);
+} else {
+  applySchemeAccentColor(state.accentColor);
+}
 
 const listeners = new Set<() => void>();
 
@@ -366,7 +382,11 @@ export const settingsStore = {
   setSidebarWidth: (sidebarWidth: number) => setState({ sidebarWidth }),
   setTaskEditorWidth: (taskEditorWidth: number) => setState({ taskEditorWidth }),
   toggleSidebarCollapsed: () => setState({ sidebarCollapsed: !state.sidebarCollapsed }),
-  setAccentColor: (accentColor: AccentColor) => setState({ accentColor }),
+  setAccentColor: (accentColor: AccentColor) =>
+    setState({
+      accentColor,
+      accentColorByScheme: { ...state.accentColorByScheme, [state.colorScheme]: accentColor },
+    }),
   setAutoSync: (autoSync: boolean) => setState({ autoSync }),
   setSyncInterval: (syncInterval: number) => setState({ syncInterval }),
   setSyncOnStartup: (syncOnStartup: boolean) => setState({ syncOnStartup }),
@@ -455,6 +475,19 @@ export const settingsStore = {
     setState({ defaultAllDayReminderHour }),
   setAllDayReminderNotificationsEnabled: (allDayReminderNotificationsEnabled: boolean) =>
     setState({ allDayReminderNotificationsEnabled }),
+  setColorScheme: (colorScheme: string, colorSchemeFlavor: string | null, fallbackAccent?: string) => {
+    // Save the current scheme's accent before switching
+    const savedAccents = { ...state.accentColorByScheme, [state.colorScheme]: state.accentColor };
+    // Restore the target scheme's saved accent, or use the provided fallback
+    const restoredAccent = savedAccents[colorScheme] ?? fallbackAccent;
+    setState({
+      colorScheme,
+      colorSchemeFlavor,
+      accentColorByScheme: savedAccents,
+      ...(restoredAccent !== undefined ? { accentColor: restoredAccent } : {}),
+    });
+  },
+  setColorSchemeFlavor: (colorSchemeFlavor: string | null) => setState({ colorSchemeFlavor }),
   setTaskListDensity: (taskListDensity: TaskListDensity) => setState({ taskListDensity }),
   setDefaultTagColor: (defaultTagColor: string) => setState({ defaultTagColor }),
   setDefaultCalendarColor: (defaultCalendarColor: string) => setState({ defaultCalendarColor }),
@@ -487,6 +520,9 @@ export const settingsStore = {
       const simpleSettings: Array<keyof SettingsState> = [
         'theme',
         'accentColor',
+        'colorScheme',
+        'colorSchemeFlavor',
+        'accentColorByScheme',
         'autoSync',
         'syncInterval',
         'syncOnStartup',

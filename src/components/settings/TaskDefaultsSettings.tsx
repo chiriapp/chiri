@@ -212,7 +212,7 @@ export const TaskDefaultsSettings = () => {
   const availableTags = tags.filter((t) => !defaultTags.includes(t.id));
 
   const selectClassName =
-    'w-[160px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0';
+    'w-[160px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0';
 
   return (
     <div className="space-y-4">
@@ -231,28 +231,28 @@ export const TaskDefaultsSettings = () => {
                   label: 'Needs Action',
                   Icon: RotateCcw,
                   activeClass:
-                    'border-surface-400 bg-surface-100 dark:border-surface-500 dark:bg-surface-700 text-surface-700 dark:text-surface-200',
+                    'border-surface-400 dark:border-surface-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
                 },
                 {
                   value: 'in-process',
                   label: 'In Process',
                   Icon: Loader,
                   activeClass:
-                    'border-blue-400 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+                    'border-blue-400 dark:border-blue-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
                 },
                 {
                   value: 'completed',
                   label: 'Completed',
                   Icon: Check,
                   activeClass:
-                    'border-primary-400 bg-primary-50 dark:border-primary-500 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300',
+                    'border-primary-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
                 },
                 {
                   value: 'cancelled',
                   label: 'Cancelled',
                   Icon: Ban,
                   activeClass:
-                    'border-rose-400 bg-rose-50 dark:border-rose-500 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
+                    'border-rose-400 dark:border-rose-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
                 },
               ] as const
             ).map(({ value, label, Icon, activeClass }) => (
@@ -311,7 +311,7 @@ export const TaskDefaultsSettings = () => {
                 onClick={() => setDefaultPriority(p.value)}
                 className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 ${
                   defaultPriority === p.value
-                    ? `${p.borderColor} ${p.bgColor}`
+                    ? `${p.borderColor} bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100`
                     : 'border-surface-200 dark:border-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400'
                 }`}
               >
@@ -336,7 +336,7 @@ export const TaskDefaultsSettings = () => {
             disabled={
               accounts.length === 0 || !accounts.some((account) => account.calendars.length > 0)
             }
-            className="max-w-50 text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="max-w-50 text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {accounts.length === 0 || !accounts.some((account) => account.calendars.length > 0) ? (
               <option value="">No accounts available</option>

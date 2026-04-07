@@ -29,7 +29,6 @@ import {
 } from '$hooks/queries/useUIState';
 import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { Account, AccountSortConfig, Calendar, CalendarSortConfig, Task } from '$types';
-import { getContrastTextColor } from '$utils/color';
 
 interface SidebarAccountsListProps {
   accounts: Account[];
@@ -64,7 +63,6 @@ interface CalendarItemContentProps {
   isAnyAccountDragging?: boolean;
   isAnyCalendarDragging?: boolean;
   taskCount: number;
-  textColor: string | undefined;
   calendarColor: string;
   isDragging?: boolean;
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
@@ -80,7 +78,6 @@ const CalendarItemContent = ({
   isAnyAccountDragging,
   isAnyCalendarDragging,
   taskCount,
-  textColor,
   calendarColor,
   isDragging,
   dragHandleProps,
@@ -97,7 +94,7 @@ const CalendarItemContent = ({
       onContextMenu={onContextMenu}
       className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
         isActive
-          ? ''
+          ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
           : `text-surface-600 dark:text-surface-400 ${
               isContextMenuOpen
                 ? 'bg-surface-200 dark:bg-surface-700'
@@ -106,20 +103,19 @@ const CalendarItemContent = ({
                   : ''
             }`
       } ${isDragging ? 'opacity-50' : ''} ${isAnyAccountDragging || (isAnyCalendarDragging && !isDragging) ? 'pointer-events-none' : ''}`}
-      style={isActive ? { backgroundColor: calendarColor, color: textColor } : undefined}
       {...dragHandleProps}
     >
       {calendar.emoji ? (
         <span
           className="text-xs leading-none shrink-0"
-          style={{ color: isActive ? textColor : calendarColor }}
+          style={{ color: calendarColor }}
         >
           {calendar.emoji}
         </span>
       ) : (
         <CalendarIcon
           className="w-4 h-4 shrink-0"
-          style={{ color: isActive ? textColor : calendarColor }}
+          style={{ color: calendarColor }}
         />
       )}
       <span className="flex-1 text-left truncate">{calendar.displayName}</span>
@@ -221,7 +217,6 @@ const AccountCalendarList = ({
       isAnyCalendarDragging,
       taskCount: getTaskCount(calendar.id),
       calendarColor,
-      textColor: isActive ? getContrastTextColor(calendarColor) : undefined,
       onSelect: () => onSelectCalendar(account.id, calendar.id),
       onContextMenu: (e: React.MouseEvent) => onContextMenu(e, 'calendar', calendar.id, account.id),
     };
@@ -616,7 +611,7 @@ export const SidebarAccountsList = ({
                     onClick={() => handleAccountSortModeChange(option.value)}
                     className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                       accountSortConfig.mode === option.value
-                        ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
+                        ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                         : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
                     }`}
                   >
@@ -641,7 +636,7 @@ export const SidebarAccountsList = ({
                     onClick={() => handleCalendarSortModeChange(option.value)}
                     className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                       calendarSortConfig.mode === option.value
-                        ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
+                        ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                         : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
                     }`}
                   >

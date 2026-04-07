@@ -32,7 +32,7 @@ export const SidebarHeader = ({
           className={`flex items-center flex-1 px-2 transition-opacity duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0'}`}
         >
           <h1 className="text-lg font-semibold text-surface-900 dark:text-surface-100 flex items-center gap-2 flex-1 min-w-0">
-            <AppIcon className="w-5 h-5 text-primary-600 dark:text-primary-400 shrink-0" />
+            <AppIcon className="w-5 h-5 text-primary-500 shrink-0" />
             <span className="truncate">Chiri</span>
           </h1>
           <Tooltip content="Collapse sidebar" position="bottom">

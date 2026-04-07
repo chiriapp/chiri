@@ -138,22 +138,22 @@ const buildFromUIState = (state: RepeatUIState) => {
 
 const inputCls =
   'h-9 px-3 py-2 text-sm bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg ' +
-  'focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 ' +
-  'focus:bg-white dark:focus:bg-primary-900/30 transition-colors ' +
+  'focus:outline-hidden focus:border-primary-500 ' +
+  'focus:bg-white dark:focus:bg-surface-800 transition-colors ' +
   'text-surface-800 dark:text-surface-200';
 
 const selectCls =
   'h-9 text-sm border border-surface-200 dark:border-surface-600 bg-surface-100 dark:bg-surface-700 ' +
   'text-surface-800 dark:text-surface-200 rounded-lg focus:outline-hidden ' +
-  'focus:border-primary-300 dark:focus:border-primary-400 ' +
-  'focus:bg-white dark:focus:bg-primary-900/30 transition-colors';
+  'focus:border-primary-500 ' +
+  'focus:bg-white dark:focus:bg-surface-800 transition-colors';
 
 const btnBase =
   'flex-1 px-3 py-2 text-sm font-medium rounded-lg border transition-colors ' +
   'outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500';
 
 const btnActive =
-  'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400';
+  'border-surface-300 dark:border-surface-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100';
 
 const btnInactive =
   'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 ' +
@@ -331,7 +331,7 @@ export const RepeatModal = ({
                     }}
                     className={`w-9 h-9 rounded-full text-xs font-medium border transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 ${
                       active
-                        ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+                        ? 'border-surface-300 dark:border-surface-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                         : 'border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-400 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700'
                     }`}
                   >
@@ -396,7 +396,7 @@ export const RepeatModal = ({
                     <button
                       type="button"
                       onClick={() => setShowUntilPicker(true)}
-                      className="w-full flex items-center gap-2 h-9 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                      className="w-full flex items-center gap-2 h-9 px-3 py-2 text-sm text-left bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg hover:border-surface-300 dark:hover:border-surface-500 focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
                     >
                       {untilDate ? (
                         <Calendar className="w-4 h-4 text-surface-400 shrink-0" />

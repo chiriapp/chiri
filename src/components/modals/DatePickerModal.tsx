@@ -59,7 +59,7 @@ const CATEGORY_PRESETS: {
 const btnClass = (active: boolean) =>
   `w-full flex items-center gap-1.5 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
     active
-      ? 'bg-primary-600 text-primary-contrast'
+      ? 'bg-primary-500 text-primary-contrast'
       : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
   }`;
 
@@ -74,9 +74,9 @@ const getDayButtonClass = (
   isTodayDate: boolean,
   isCurrentMonth: boolean,
 ): string => {
-  if (isSelected) return 'bg-primary-600 text-primary-contrast';
+  if (isSelected) return 'bg-primary-500 text-primary-contrast';
   if (isTodayDate)
-    return 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 font-medium';
+    return 'bg-primary-500/15 text-primary-500 font-medium';
   if (isCurrentMonth)
     return 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700';
   return 'text-surface-400 dark:text-surface-600';

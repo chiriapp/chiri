@@ -21,7 +21,6 @@ import { useReorderTags } from '$hooks/queries/useTags';
 import { useSetTagSortConfig, useTagSortConfig } from '$hooks/queries/useUIState';
 import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { Tag, TagSortConfig, Task } from '$types';
-import { getContrastTextColor } from '$utils/color';
 
 interface SidebarTagsListProps {
   tags: Tag[];
@@ -80,7 +79,7 @@ const TagItemContent = ({
       onContextMenu={onContextMenu}
       className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
         isActive
-          ? ''
+          ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
           : `text-surface-600 dark:text-surface-400 ${
               isContextMenuOpen
                 ? 'bg-surface-200 dark:bg-surface-700'
@@ -89,22 +88,19 @@ const TagItemContent = ({
                   : ''
             }`
       } ${isDragging ? 'opacity-50' : ''} ${isAnyTagDragging && !isDragging ? 'pointer-events-none' : ''}`}
-      style={
-        isActive ? { backgroundColor: tagColor, color: getContrastTextColor(tagColor) } : undefined
-      }
       {...dragHandleProps}
     >
       {tag.emoji ? (
         <span
           className="text-xs leading-none"
-          style={{ color: isActive ? getContrastTextColor(tagColor) : tagColor }}
+          style={{ color: tagColor }}
         >
           {tag.emoji}
         </span>
       ) : (
         <TagIcon
           className="w-3.5 h-3.5"
-          style={{ color: isActive ? getContrastTextColor(tagColor) : tagColor }}
+          style={{ color: tagColor }}
         />
       )}
       <span className="flex-1 text-left truncate">{tag.name}</span>
@@ -291,7 +287,7 @@ export const SidebarTagsList = ({
                     onClick={() => handleSortModeChange(option.value)}
                     className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                       tagSortConfig.mode === option.value
-                        ? 'text-primary-600 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30'
+                        ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                         : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
                     }`}
                   >
