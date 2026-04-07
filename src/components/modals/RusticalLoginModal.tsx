@@ -1,14 +1,11 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import Cloud from 'lucide-react/icons/cloud';
 import Loader2 from 'lucide-react/icons/loader-2';
-import X from 'lucide-react/icons/x';
 import { useEffect, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
-import { ModalBackdrop } from '$components/ModalBackdrop';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
 import {
@@ -37,11 +34,6 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
   const { syncAll } = useSyncQuery();
-
-  const focusTrapRef = useFocusTrap();
-
-  // Disable escape key when processing to prevent accidental dismissal
-  useModalEscapeKey(onClose, { enabled: !isProcessing });
 
   // Cancel any active polling when modal unmounts
   useEffect(() => {
@@ -167,118 +159,86 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
   const isLoading = isValidating || isLoggingIn || isProcessing;
 
   return (
-    <ModalBackdrop zIndex="z-70">
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-md animate-scale-in relative"
-      >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-              <Cloud className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
-                Connect to RustiCal
-              </h2>
-              <p className="text-xs text-surface-500 dark:text-surface-400">
-                Authenticate via browser
-              </p>
-            </div>
+    <ModalWrapper
+      onClose={onClose}
+      title="Connect to RustiCal"
+      description="Authenticate via browser"
+      zIndex="z-70"
+      preventClose={isProcessing}
+    >
+      {step === 'input' && (
+        <div className="space-y-4">
+          <div>
+            <label
+              htmlFor="rustical-server-url"
+              className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+            >
+              RustiCal Server URL
+            </label>
+            <ComposedInput
+              ref={(el) => {
+                if (el) setTimeout(() => el.focus(), 100);
+              }}
+              id="rustical-server-url"
+              type="url"
+              value={serverUrl}
+              onChange={setServerUrl}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !isLoading && serverUrl.trim()) {
+                  handleValidateAndLogin();
+                }
+              }}
+              placeholder="https://rust.example.com"
+              disabled={isLoading}
+              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-purple-300 dark:focus:border-purple-400 focus:bg-white dark:focus:bg-purple-900/30 transition-colors"
+            />
+            <p className="mt-1.5 text-xs text-surface-500 dark:text-surface-400">
+              Your browser will open for authentication
+            </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isProcessing}
-            className="p-1 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5 text-surface-600 dark:text-surface-400" />
-          </button>
-        </div>
 
-        <div className="p-4 space-y-4">
-          {step === 'input' && (
-            <>
-              <div>
-                <label
-                  htmlFor="rustical-server-url"
-                  className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                >
-                  RustiCal Server URL
-                </label>
-                <ComposedInput
-                  ref={(el) => {
-                    if (el) setTimeout(() => el.focus(), 100);
-                  }}
-                  id="rustical-server-url"
-                  type="url"
-                  value={serverUrl}
-                  onChange={setServerUrl}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !isLoading && serverUrl.trim()) {
-                      handleValidateAndLogin();
-                    }
-                  }}
-                  placeholder="https://rust.example.com"
-                  disabled={isLoading}
-                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-purple-300 dark:focus:border-purple-400 focus:bg-white dark:focus:bg-purple-900/30 transition-colors"
-                />
-                <p className="mt-1.5 text-xs text-surface-500 dark:text-surface-400">
-                  Your browser will open for authentication
-                </p>
-              </div>
-
-              {error && (
-                <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-inset"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleValidateAndLogin}
-                  disabled={isLoading || !serverUrl.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-600 dark:hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 outline-hidden focus-visible:ring-2 focus-visible:ring-purple-700 focus-visible:ring-inset"
-                >
-                  {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Connect
-                </button>
-              </div>
-            </>
-          )}
-
-          {step === 'authenticating' && (
-            <div className="py-8 text-center">
-              <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-purple-600 dark:text-purple-400" />
-              <h3 className="mb-1 text-base font-medium text-surface-800 dark:text-surface-200">
-                Waiting for authentication...
-              </h3>
-              <p className="text-sm text-surface-500 dark:text-surface-400">
-                Complete the login in your browser
-              </p>
+          {error && (
+            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+              {error}
             </div>
           )}
 
-          {step === 'processing' && (
-            <div className="py-8 text-center">
-              <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-purple-600 dark:text-purple-400" />
-              <h3 className="mb-1 text-base font-medium text-surface-800 dark:text-surface-200">
-                Setting up your account...
-              </h3>
-              <p className="text-sm text-surface-500 dark:text-surface-400">Importing calendars</p>
-            </div>
-          )}
+          <div className="flex justify-end gap-3">
+            <ModalButton variant="secondary" onClick={onClose}>
+              Cancel
+            </ModalButton>
+            <ModalButton
+              onClick={handleValidateAndLogin}
+              disabled={isLoading || !serverUrl.trim()}
+              loading={isLoading}
+            >
+              Connect
+            </ModalButton>
+          </div>
         </div>
-      </div>
-    </ModalBackdrop>
+      )}
+
+      {step === 'authenticating' && (
+        <div className="py-8 text-center">
+          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-purple-600 dark:text-purple-400" />
+          <h3 className="mb-1 text-base font-medium text-surface-800 dark:text-surface-200">
+            Waiting for authentication...
+          </h3>
+          <p className="text-sm text-surface-500 dark:text-surface-400">
+            Complete the login in your browser
+          </p>
+        </div>
+      )}
+
+      {step === 'processing' && (
+        <div className="py-8 text-center">
+          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-purple-600 dark:text-purple-400" />
+          <h3 className="mb-1 text-base font-medium text-surface-800 dark:text-surface-200">
+            Setting up your account...
+          </h3>
+          <p className="text-sm text-surface-500 dark:text-surface-400">Importing calendars</p>
+        </div>
+      )}
+    </ModalWrapper>
   );
 };
