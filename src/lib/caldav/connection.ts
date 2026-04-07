@@ -141,8 +141,9 @@ const discoverGenericUrls = async (
 
   // Try to extract principal from the response we already have before issuing
   // another PROPFIND
-  let discoveredPrincipal: string | null =
-    davRootBody ? (davRootBody.match(PRINCIPAL_RE)?.[1] ?? null) : null;
+  let discoveredPrincipal: string | null = davRootBody
+    ? (davRootBody.match(PRINCIPAL_RE)?.[1] ?? null)
+    : null;
 
   if (!discoveredPrincipal) {
     discoveredPrincipal = await discoverPrincipal(davRootUrl, credentials);
@@ -179,6 +180,7 @@ export const connect = async (
   username: string,
   password: string,
   serverType: ServerType = 'generic',
+  calendarHomeUrl?: string,
 ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> => {
   const credentials: CalDAVCredentials = { username, password };
 
@@ -196,26 +198,32 @@ export const connect = async (
   let principalUrl: string;
   let calendarHome: string;
 
-  switch (serverType) {
-    case 'rustical':
-    case 'radicale':
-    case 'baikal':
-    case 'nextcloud': {
-      const config = SERVER_CONFIGS[serverType];
-      principalUrl = `${baseUrl}${config.principalPath(username)}`;
-      calendarHome = config.calendarHomePath
-        ? `${baseUrl}${config.calendarHomePath(username)}`
-        : principalUrl;
-      break;
+  // If a direct calendar home URL is provided, skip autodiscovery entirely
+  if (calendarHomeUrl) {
+    calendarHome = `${calendarHomeUrl.replace(/\/$/, '')}/`;
+    principalUrl = calendarHome;
+  } else {
+    switch (serverType) {
+      case 'rustical':
+      case 'radicale':
+      case 'baikal':
+      case 'nextcloud': {
+        const config = SERVER_CONFIGS[serverType];
+        principalUrl = `${baseUrl}${config.principalPath(username)}`;
+        calendarHome = config.calendarHomePath
+          ? `${baseUrl}${config.calendarHomePath(username)}`
+          : principalUrl;
+        break;
+      }
+      case 'fastmail':
+      case 'mailbox':
+      case 'generic': {
+        ({ principalUrl, calendarHome } = await discoverGenericUrls(baseUrl, credentials));
+        break;
+      }
+      default:
+        throw new Error(`Unknown server type: ${serverType}`);
     }
-    case 'fastmail':
-    case 'mailbox':
-    case 'generic': {
-      ({ principalUrl, calendarHome } = await discoverGenericUrls(baseUrl, credentials));
-      break;
-    }
-    default:
-      throw new Error(`Unknown server type: ${serverType}`);
   }
 
   const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
@@ -263,6 +271,7 @@ export const reconnect = async (account: Account): Promise<void> => {
     account.username,
     account.password,
     account.serverType ?? 'generic',
+    account.calendarHomeUrl,
   );
 };
 

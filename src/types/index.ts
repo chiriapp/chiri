@@ -153,6 +153,7 @@ export interface Account {
   username: string;
   password: string;
   serverType?: ServerType;
+  calendarHomeUrl?: string;
   calendars: Calendar[];
   lastSync?: Date;
   isActive: boolean;
