@@ -12,7 +12,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 tauri = { version = "2", default-features = false, features = ["tray-icon", "image-png"] }
-tauri-plugin-http = { version = "2", default-features = false, features = ["native-tls"] }
+tauri-plugin-http = { version = "2", default-features = false, features = ["cookies", "charset", "http2"] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-notification = "2"
@@ -33,12 +33,17 @@ dirs = "5.0"
 user-notify = "0.4.1"
 tokio = { version = "1", features = ["sync"] }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+tauri-plugin-http = { version = "2", default-features = false, features = ["native-tls"] }
+
 [target.'cfg(target_os = "macos")'.dependencies]
+tauri-plugin-http = { version = "2", default-features = false, features = ["native-tls", "macos-system-configuration"] }
 objc2 = "0.5"
 objc2-foundation = { version = "0.2", features = ["NSProcessInfo", "NSString"] }
 objc2-app-kit = { version = "0.2", features = ["NSApplication", "NSMenu", "NSMenuItem", "NSResponder"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+tauri-plugin-http = { version = "2", default-features = false, features = ["rustls-tls-native-roots"] }
 gtk = "0.18"
 
 [features]
