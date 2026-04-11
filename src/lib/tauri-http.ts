@@ -30,6 +30,21 @@ export interface CalDAVCredentials {
   bearerToken?: string;
 }
 
+/**
+ * Extracts a human-readable message from an unknown caught value.
+ * The Tauri HTTP plugin throws plain strings for network errors, not Error objects.
+ */
+export const getErrorMessage = (error: unknown): string => {
+  const raw =
+    error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+
+  if (raw.includes('error sending request for url')) {
+    return 'Server unreachable';
+  }
+
+  return raw;
+};
+
 export const tauriRequest = async (
   url: string,
   method: string,

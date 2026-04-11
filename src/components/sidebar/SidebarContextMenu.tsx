@@ -8,6 +8,7 @@ import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { MENU_EVENTS } from '$constants/menu';
 import { toastManager } from '$hooks/ui/useToast';
+import { getErrorMessage } from '$lib/tauri-http';
 import type { Account } from '$types';
 
 interface ContextMenuState {
@@ -78,7 +79,7 @@ export const SidebarContextMenu = ({
                     for (const calendar of account.calendars) {
                       syncCalendar(calendar.id).catch((error) => {
                         const errorMessage =
-                          error instanceof Error ? error.message : 'Unknown error';
+                          getErrorMessage(error);
                         toastManager.error(
                           `Calendar sync failed: ${calendar.displayName || 'Unknown'}`,
                           errorMessage,
@@ -177,7 +178,7 @@ export const SidebarContextMenu = ({
               const account = accounts.find((a) => a.id === contextMenu.accountId);
               const calendar = account?.calendars.find((c) => c.id === contextMenu.id);
               syncCalendar(contextMenu.id).catch((error) => {
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                const errorMessage = getErrorMessage(error);
                 toastManager.error(
                   `Calendar sync failed: ${calendar?.displayName || 'Unknown'}`,
                   errorMessage,

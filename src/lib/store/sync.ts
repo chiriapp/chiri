@@ -12,6 +12,7 @@ import { addCalendar, updateCalendar } from '$lib/store/calendars';
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
 import { createTask, deleteTask, getTasksByCalendar, updateTask } from '$lib/store/tasks';
 import { getUIState, setAllTasksView } from '$lib/store/ui';
+import { getErrorMessage } from '$lib/tauri-http';
 import type { Calendar, Task } from '$types';
 import { generateTagColor } from '$utils/color';
 
@@ -148,7 +149,7 @@ export const reconnectAccounts = async () => {
         await CalDAVClient.reconnect(account);
         syncLog.info(`Reconnected to account: ${account.name}`);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage = getErrorMessage(error);
         syncLog.error(`Failed to reconnect account ${account.name}:`, error);
         toastManager.error(
           `Account sync failed: ${account.name}`,
@@ -299,7 +300,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
     remoteCalendars = await client.fetchCalendars();
   } catch (error) {
     syncLog.error(`Failed to fetch calendars for ${account.name}:`, error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage = getErrorMessage(error);
     toastManager.error(
       'Calendar Sync Error',
       `${account.name}: ${errorMessage}`,
@@ -461,7 +462,7 @@ export const performFullSync = async (
     try {
       await syncCalendarsForAccount(account.id, queryClient);
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = getErrorMessage(error);
       syncLog.error(`Failed to sync calendars for ${account.name}:`, error);
       toastManager.error(
         `Account sync failed: ${account.name}`,
@@ -486,7 +487,7 @@ export const performFullSync = async (
       try {
         await syncCalendarTasks(calendar.id, queryClient, setSyncingCalendarId);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        const errorMessage = getErrorMessage(error);
         syncLog.error(`Failed to sync calendar ${calendar.displayName}:`, error);
         toastManager.error(
           `Calendar sync failed: ${calendar.displayName}`,
