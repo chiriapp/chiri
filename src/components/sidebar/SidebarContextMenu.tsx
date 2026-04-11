@@ -7,6 +7,7 @@ import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { MENU_EVENTS } from '$constants/menu';
+import type { SyncTrigger } from '$hooks/queries/useSync';
 import { toastManager } from '$hooks/ui/useToast';
 import { getErrorMessage } from '$lib/tauri-http';
 import type { Account } from '$types';
@@ -23,7 +24,7 @@ interface SidebarContextMenuProps {
   contextMenu: ContextMenuState;
   accounts: Account[];
   syncingCalendarId: string | null;
-  syncCalendar: (calendarId: string, trigger?: { source: string; reason?: string; where?: string }) => Promise<void>;
+  syncCalendar: (calendarId: string, trigger?: SyncTrigger) => Promise<void>;
   onClose: () => void;
   onEditAccount: (account: Account) => void;
   onEditCalendar: (calendarId: string, accountId: string) => void;
@@ -82,8 +83,7 @@ export const SidebarContextMenu = ({
                         reason: 'user clicked sync on account in sidebar',
                         where: 'SidebarContextMenu',
                       }).catch((error) => {
-                        const errorMessage =
-                          getErrorMessage(error);
+                        const errorMessage = getErrorMessage(error);
                         toastManager.error(
                           `Calendar sync failed: ${calendar.displayName || 'Unknown'}`,
                           errorMessage,

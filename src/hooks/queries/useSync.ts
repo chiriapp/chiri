@@ -22,7 +22,7 @@ import type { Task } from '$types';
 
 const log = loggers.sync;
 
-type SyncTrigger =
+export type SyncTrigger =
   | string
   | {
       source: string;
