@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { buildDigestAuth, parseDigestChallenge } from '$lib/digest-auth';
 import { loggers } from '$lib/logger';
@@ -28,7 +29,27 @@ export interface CalDAVCredentials {
 
   /** OAuth Bearer token - if provided, uses Bearer auth instead of Basic */
   bearerToken?: string;
+
+  /** If true, TLS certificate validation is skipped (self-signed / private CA). */
+  acceptInvalidCerts?: boolean;
 }
+
+/**
+ * Returns true if the error looks like a TLS certificate validation failure.
+ * Covers native-tls (macOS/Windows) and rustls (Linux) error messages.
+ */
+export const isCertError = (error: unknown): boolean => {
+  const raw = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+  const lower = raw.toLowerCase();
+  return (
+    lower.includes('certificate') ||
+    lower.includes('unknownissuer') ||
+    lower.includes('invalidcertificate') ||
+    lower.includes('self signed') ||
+    lower.includes('self-signed') ||
+    lower.includes('cert')
+  );
+};
 
 /**
  * Extracts a human-readable message from an unknown caught value.
@@ -37,6 +58,10 @@ export interface CalDAVCredentials {
 export const getErrorMessage = (error: unknown): string => {
   const raw =
     error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+
+  if (isCertError(raw)) {
+    return 'Server certificate could not be verified (self-signed or untrusted CA)';
+  }
 
   if (raw.includes('error sending request for url')) {
     return 'Server unreachable';
@@ -76,18 +101,37 @@ export const tauriRequest = async (
     ...(authHeader ? { Authorization: authHeader } : {}),
   };
 
-  const response = await tauriFetch(url, {
-    method: method,
-    headers: requestHeaders,
-    body: body,
-    maxRedirections: 0,
-  });
+  // For accounts with untrusted certs, route through the Rust command which
+  // supports per-request certificate validation bypass.
+  let response: HttpResponse;
+  if (credentials.acceptInvalidCerts) {
+    response = await invoke<HttpResponse>('caldav_request', {
+      url,
+      method,
+      headers: requestHeaders,
+      body: body ?? null,
+      acceptInvalidCerts: true,
+    });
+  } else {
+    const rawResponse = await tauriFetch(url, {
+      method: method,
+      headers: requestHeaders,
+      body: body,
+      maxRedirections: 0,
+    });
+    const responseBody = await rawResponse.text();
+    const headersObj: Record<string, string> = {};
+    rawResponse.headers.forEach((value, key) => {
+      headersObj[key] = value;
+    });
+    response = { status: rawResponse.status, headers: headersObj, body: responseBody };
+  }
 
   if (!silent) log.debug(`Response: ${response.status}`);
 
   // handle redirects manually for CalDAV
   if ([301, 302, 307, 308].includes(response.status)) {
-    const location = response.headers.get('location') ?? response.headers.get('Location');
+    const location = response.headers.location ?? response.headers.Location;
     if (location) {
       if (!silent) log.debug(`Following redirect to: ${location}`);
       // resolve relative URLs
@@ -99,7 +143,7 @@ export const tauriRequest = async (
   // Retry once with Digest auth if the server requires it
   if (response.status === 401 && !_retried) {
     const wwwAuth =
-      response.headers.get('www-authenticate') ?? response.headers.get('WWW-Authenticate') ?? '';
+      response.headers['www-authenticate'] ?? response.headers['WWW-Authenticate'] ?? '';
     if (wwwAuth.toLowerCase().includes('digest ')) {
       const challenge = parseDigestChallenge(wwwAuth);
       if (challenge) {
@@ -124,20 +168,7 @@ export const tauriRequest = async (
     }
   }
 
-  // convert response text
-  const responseBody = await response.text();
-
-  // convert Headers to plain object
-  const headersObj: Record<string, string> = {};
-  response.headers.forEach((value, key) => {
-    headersObj[key] = value;
-  });
-
-  return {
-    status: response.status,
-    headers: headersObj,
-    body: responseBody,
-  };
+  return response;
 };
 
 /**

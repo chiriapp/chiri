@@ -160,6 +160,7 @@ export interface Account {
   lastSync?: Date;
   isActive: boolean;
   sortOrder: number;
+  acceptInvalidCerts?: boolean;
 }
 
 export interface SortConfig {

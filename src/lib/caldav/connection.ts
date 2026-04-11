@@ -181,8 +181,9 @@ export const connect = async (
   password: string,
   serverType: ServerType = 'generic',
   calendarHomeUrl?: string,
+  acceptInvalidCerts?: boolean,
 ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> => {
-  const credentials: CalDAVCredentials = { username, password };
+  const credentials: CalDAVCredentials = { username, password, acceptInvalidCerts };
 
   let baseUrl = serverUrl.replace(/\/$/, '');
 
@@ -272,6 +273,7 @@ export const reconnect = async (account: Account): Promise<void> => {
     account.password,
     account.serverType ?? 'generic',
     account.calendarHomeUrl,
+    account.acceptInvalidCerts,
   );
 };
 

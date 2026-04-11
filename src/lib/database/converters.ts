@@ -70,6 +70,7 @@ export const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account =>
   lastSync: row.last_sync ? new Date(row.last_sync) : undefined,
   isActive: row.is_active === 1,
   sortOrder: row.sort_order ?? 0,
+  acceptInvalidCerts: row.accept_invalid_certs === 1 ? true : undefined,
 });
 
 export const rowToTag = (row: TagRow): Tag => ({

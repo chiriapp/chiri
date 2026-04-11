@@ -5,6 +5,7 @@
 
 mod app_nap;
 mod data_migration;
+mod http_client;
 mod install_type;
 mod logging;
 mod macos_menu;
@@ -87,7 +88,8 @@ fn main() {
             macos_menu::apply_macos_menu_fixes,
             force_quit,
             install_type::should_disable_updates,
-            install_type::get_install_type
+            install_type::get_install_type,
+            http_client::caldav_request
         ])
         .setup(|_app| {
             // Disable App Nap after logging has been initialized so App Nap

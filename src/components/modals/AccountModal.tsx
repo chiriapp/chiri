@@ -24,6 +24,7 @@ import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
+import { isCertError, tauriRequest } from '$lib/tauri-http';
 import type { Account, Calendar, ServerType } from '$types';
 import { generateUUID, isVikunjaServer, pluralize } from '$utils/misc';
 import type { CalDAVConfig } from '$utils/mobileconfig';
@@ -64,6 +65,9 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const [error, setError] = useState('');
   const [showNextcloudLogin, setShowNextcloudLogin] = useState(false);
   const [showRusticalLogin, setShowRusticalLogin] = useState(false);
+  const [acceptInvalidCerts, setAcceptInvalidCerts] = useState(
+    () => account?.acceptInvalidCerts ?? false,
+  );
   const focusTrapRef = useFocusTrap();
   const nameInputFocusedRef = useRef(false);
 
@@ -84,11 +88,9 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     calendarHomeUrl !== prevCredentials.calendarHomeUrl
   ) {
     setPrevCredentials({ serverUrl, username, password, calendarHomeUrl });
-    if (testSuccess || testedConnectionId) {
-      setTestSuccess(false);
-      setTestedConnectionId(null);
-      setTestedCalendars([]);
-    }
+    setTestSuccess(false);
+    setTestedConnectionId(null);
+    setTestedCalendars([]);
   }
 
   /**
@@ -121,6 +123,36 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       cancelLabel: 'Cancel',
       destructive: true,
       delayConfirmSeconds: 20,
+    });
+  };
+
+  /**
+   * show warning dialog for untrusted/self-signed server certificates
+   */
+  const showCertTrustDialog = async () => {
+    return await confirm({
+      title: 'Untrusted certificate',
+      message: (
+        <div className="space-y-3">
+          <p>
+            The server's SSL/TLS certificate is not trusted. This could be because it's self-signed
+            or from an unknown certificate authority.
+          </p>
+
+          <p>
+            Connecting to a server with an untrusted certificate could allow attackers to intercept
+            your data if you're on an untrusted network.
+          </p>
+
+          <p className="font-bold text-surface-800 dark:text-surface-200">
+            Only proceed if you trust the server and understand the risks.
+          </p>
+        </div>
+      ),
+
+      confirmLabel: 'Connect anyway',
+      cancelLabel: 'Cancel',
+      destructive: true,
     });
   };
 
@@ -160,6 +192,57 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
+  /**
+   * Connects to the CalDAV server with automatic cert trust detection.
+   * If the connection fails with a network error and the server is reachable
+   * with cert validation bypassed, prompts the user to trust the certificate.
+   * Returns null if the user declined the cert trust dialog.
+   */
+  const connectWithCertHandling = async (accountId: string, effectivePassword: string) => {
+    const tryConnect = (withInvalidCerts?: boolean) =>
+      CalDAVClient.connect(
+        accountId,
+        serverUrl,
+        username,
+        effectivePassword,
+        serverType,
+        calendarHomeUrl.trim() || undefined,
+        withInvalidCerts,
+      );
+
+    try {
+      return await tryConnect(acceptInvalidCerts || undefined);
+    } catch (err) {
+      const looksLikeNetworkError =
+        isCertError(err) ||
+        (typeof err === 'string' && err.includes('error sending request for url'));
+
+      if (!looksLikeNetworkError) throw err;
+
+      // Probe with cert bypass — any HTTP response means the server is reachable
+      // and the failure was a cert trust issue rather than genuine unreachability.
+      let serverReachable = false;
+      try {
+        await tauriRequest(serverUrl, 'OPTIONS', {
+          username,
+          password: effectivePassword,
+          acceptInvalidCerts: true,
+        });
+        serverReachable = true;
+      } catch {
+        // Also failed with bypass - genuinely unreachable.
+      }
+
+      if (!serverReachable) throw err;
+
+      const proceed = await showCertTrustDialog();
+      if (!proceed) return null;
+
+      setAcceptInvalidCerts(true);
+      return await tryConnect(true);
+    }
+  };
+
   const handleTestConnection = async () => {
     setError('');
     setTestSuccess(false);
@@ -181,14 +264,11 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       const tempId = generateUUID();
       log.debug(`Testing connection to ${serverUrl}...`);
 
-      const connectionInfo = await CalDAVClient.connect(
-        tempId,
-        serverUrl,
-        username,
-        effectivePassword,
-        serverType,
-        calendarHomeUrl.trim() || undefined,
-      );
+      const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
+      if (!connectionInfo) {
+        setIsTesting(false);
+        return;
+      }
 
       // Check if this is a Vikunja server and warn the user
       if (isVikunjaServer(connectionInfo.calendarHome)) {
@@ -222,6 +302,79 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
+  const handleCreateAccount = async (effectivePassword: string) => {
+    let tempId: string;
+    let calendars: Calendar[];
+
+    // If we already tested the connection successfully, reuse it
+    if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
+      log.debug('Reusing tested connection...');
+      tempId = testedConnectionId;
+      calendars = testedCalendars;
+    } else {
+      tempId = generateUUID();
+
+      log.debug(`Connecting to ${serverUrl}...`);
+      const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
+      if (!connectionInfo) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (isVikunjaServer(connectionInfo.calendarHome)) {
+        const proceed = await showVikunjaWarning();
+        if (!proceed) {
+          CalDAVClient.disconnect(tempId);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      log.debug(`Fetching calendars...`);
+      calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
+      log.info(`Found ${calendars.length} calendars:`, calendars);
+    }
+
+    createAccountMutation.mutate(
+      {
+        id: tempId, // use the same ID so the caldavService connection maps correctly
+        name,
+        serverUrl,
+        username,
+        password: effectivePassword,
+        serverType,
+        calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+        acceptInvalidCerts: acceptInvalidCerts || undefined,
+      },
+      {
+        onSuccess: async (newAccount) => {
+          try {
+            for (const calendar of calendars) {
+              addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
+            }
+            log.debug('Fetching tasks for all calendars...');
+            for (const calendar of calendars) {
+              await fetchTasksForCalendar(newAccount.id, calendar);
+            }
+            queryClient.invalidateQueries({ queryKey: ['tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['tags'] });
+            onClose();
+          } catch (error) {
+            log.error('Error setting up account:', error);
+            onClose();
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        onError: (error) => {
+          log.error('Error creating account:', error);
+          setError(error instanceof Error ? error.message : 'Failed to create account');
+          setIsLoading(false);
+        },
+      },
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -231,18 +384,13 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       const effectivePassword = password || account?.password;
 
       if (account) {
-        // update existing account
         if (effectivePassword) {
-          // test connection with new credentials before saving
           log.debug(`Testing connection to ${serverUrl}...`);
-          await CalDAVClient.connect(
-            account.id,
-            serverUrl,
-            username,
-            effectivePassword,
-            serverType,
-            calendarHomeUrl.trim() || undefined,
-          );
+          const result = await connectWithCertHandling(account.id, effectivePassword);
+          if (!result) {
+            setIsLoading(false);
+            return;
+          }
         }
 
         updateAccountMutation.mutate({
@@ -254,107 +402,16 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             password: effectivePassword || account.password,
             serverType,
             calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+            acceptInvalidCerts: acceptInvalidCerts || undefined,
           },
         });
+
+        onClose();
+        setIsLoading(false);
       } else {
-        // for new accounts, first test connection before adding to store
-        if (!effectivePassword) {
-          throw new Error('Password is required');
-        }
-
-        let tempId: string;
-        let calendars: Calendar[];
-
-        // If we already tested the connection successfully, reuse it
-        if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
-          log.debug('Reusing tested connection...');
-          tempId = testedConnectionId;
-          calendars = testedCalendars;
-        } else {
-          // create a temporary ID to test the connection
-          tempId = generateUUID();
-
-          log.debug(`Connecting to ${serverUrl}...`);
-          const connectionInfo = await CalDAVClient.connect(
-            tempId,
-            serverUrl,
-            username,
-            effectivePassword,
-            serverType,
-            calendarHomeUrl.trim() || undefined,
-          );
-
-          // Check if this is a Vikunja server and warn the user
-          if (isVikunjaServer(connectionInfo.calendarHome)) {
-            const proceed = await showVikunjaWarning();
-
-            if (!proceed) {
-              // User cancelled, disconnect and return
-              CalDAVClient.disconnect(tempId);
-              setIsLoading(false);
-              return;
-            }
-          }
-
-          log.debug(`Fetching calendars...`);
-          calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
-          log.info(`Found ${calendars.length} calendars:`, calendars);
-        }
-
-        // connection successful - now add the account with the same ID we used for connection
-        createAccountMutation.mutate(
-          {
-            id: tempId, // use the same ID so the caldavService connection maps correctly
-            name,
-            serverUrl,
-            username,
-            password: effectivePassword,
-            serverType,
-            calendarHomeUrl: calendarHomeUrl.trim() || undefined,
-          },
-          {
-            onSuccess: async (newAccount) => {
-              try {
-                // add the fetched calendars
-                for (const calendar of calendars) {
-                  addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
-                }
-
-                // fetch tasks for each calendar
-                log.debug('Fetching tasks for all calendars...');
-                for (const calendar of calendars) {
-                  await fetchTasksForCalendar(newAccount.id, calendar);
-                }
-
-                // Invalidate task queries to refresh the UI
-                queryClient.invalidateQueries({ queryKey: ['tasks'] });
-                queryClient.invalidateQueries({ queryKey: ['tags'] });
-
-                // Close modal after everything is complete
-                onClose();
-              } catch (error) {
-                log.error('Error setting up account:', error);
-                // Still close the modal, account was created successfully
-                onClose();
-              } finally {
-                setIsLoading(false);
-              }
-            },
-            onError: (error) => {
-              log.error('Error creating account:', error);
-              setError(error instanceof Error ? error.message : 'Failed to create account');
-              setIsLoading(false);
-            },
-          },
-        );
-
-        // Exit early to avoid the onClose() and finally block
-        return;
+        if (!effectivePassword) throw new Error('Password is required');
+        await handleCreateAccount(effectivePassword);
       }
-
-      // For account updates, close immediately
-      onClose();
-      setIsLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to CalDAV server');
       log.error('Failed to connect:', err);
