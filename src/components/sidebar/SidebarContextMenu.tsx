@@ -23,7 +23,7 @@ interface SidebarContextMenuProps {
   contextMenu: ContextMenuState;
   accounts: Account[];
   syncingCalendarId: string | null;
-  syncCalendar: (calendarId: string) => Promise<void>;
+  syncCalendar: (calendarId: string, trigger?: { source: string; reason?: string; where?: string }) => Promise<void>;
   onClose: () => void;
   onEditAccount: (account: Account) => void;
   onEditCalendar: (calendarId: string, accountId: string) => void;
@@ -77,7 +77,11 @@ export const SidebarContextMenu = ({
                   onClose();
                   if (account) {
                     for (const calendar of account.calendars) {
-                      syncCalendar(calendar.id).catch((error) => {
+                      syncCalendar(calendar.id, {
+                        source: 'sidebar-account-sync',
+                        reason: 'user clicked sync on account in sidebar',
+                        where: 'SidebarContextMenu',
+                      }).catch((error) => {
                         const errorMessage =
                           getErrorMessage(error);
                         toastManager.error(
@@ -177,7 +181,11 @@ export const SidebarContextMenu = ({
               onClose();
               const account = accounts.find((a) => a.id === contextMenu.accountId);
               const calendar = account?.calendars.find((c) => c.id === contextMenu.id);
-              syncCalendar(contextMenu.id).catch((error) => {
+              syncCalendar(contextMenu.id, {
+                source: 'sidebar-calendar-sync',
+                reason: 'user clicked sync on calendar in sidebar',
+                where: 'SidebarContextMenu',
+              }).catch((error) => {
                 const errorMessage = getErrorMessage(error);
                 toastManager.error(
                   `Calendar sync failed: ${calendar?.displayName || 'Unknown'}`,
