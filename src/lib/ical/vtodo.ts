@@ -34,7 +34,10 @@ export const fromAppleEpoch = (appleSeconds: number) => {
  * these are placeholder descriptions that apps like Tasks.org and Mozilla Thunderbird
  * insert when no description is provided
  */
+const DEFAULT_VALARM_DESCRIPTION = 'Default Chiri description';
+
 const DEFAULT_CALDAV_DESCRIPTIONS = [
+  DEFAULT_VALARM_DESCRIPTION,
   'Default Tasks.org description',
   'Default Mozilla Description',
 ];
@@ -158,6 +161,8 @@ export interface ParsedVAlarm {
   action?: string;
   trigger?: Date;
   description?: string;
+  relativeOffset?: number; // milliseconds; present when trigger was a relative duration
+  relatedTo?: 'start' | 'end'; // RELATED=START or RELATED=END (defaults to START per RFC 5545)
 }
 
 export interface ParsedVTodo {
@@ -186,6 +191,51 @@ export interface ParsedVTodo {
 }
 
 /**
+ * Parse an RFC 5545 duration string into milliseconds.
+ * Format: [+/-]P[nW] | [+/-]P[nD][T[nH][nM][nS]]
+ * Examples: -PT15M, PT1H, P1D, P1DT2H30M
+ */
+const parseICalDuration = (value: string): number | null => {
+  const match = value.match(
+    /^([+-])?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/,
+  );
+  if (!match) return null;
+  const sign = match[1] === '-' ? -1 : 1;
+  const weeks = parseInt(match[2] ?? '0', 10);
+  const days = parseInt(match[3] ?? '0', 10);
+  const hours = parseInt(match[4] ?? '0', 10);
+  const minutes = parseInt(match[5] ?? '0', 10);
+  const seconds = parseInt(match[6] ?? '0', 10);
+  const totalSeconds =
+    weeks * 7 * 24 * 3600 + days * 24 * 3600 + hours * 3600 + minutes * 60 + seconds;
+  return sign * totalSeconds * 1000;
+};
+
+/**
+ * Format millisecond offset as an RFC 5545 duration string.
+ * Examples: -900000 → "-PT15M", 3600000 → "PT1H"
+ */
+const formatICalDuration = (offsetMs: number): string => {
+  const sign = offsetMs < 0 ? '-' : '';
+  const totalSeconds = Math.floor(Math.abs(offsetMs) / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const remSeconds = totalSeconds % 86400;
+  const hours = Math.floor(remSeconds / 3600);
+  const minutes = Math.floor((remSeconds % 3600) / 60);
+  const seconds = remSeconds % 60;
+
+  let result = `${sign}P`;
+  if (days > 0) result += `${days}D`;
+  const timePart =
+    (hours > 0 ? `${hours}H` : '') +
+    (minutes > 0 ? `${minutes}M` : '') +
+    (seconds > 0 ? `${seconds}S` : '');
+  if (timePart) result += `T${timePart}`;
+  if (result === `${sign}P`) result += 'T0S'; // zero duration edge case
+  return result;
+};
+
+/**
  * Parse VALARM content into structured data
  */
 const parseVAlarm = (valarmContent: string): ParsedVAlarm => {
@@ -208,14 +258,20 @@ const parseVAlarm = (valarmContent: string): ParsedVAlarm => {
         result.description = unescapeICalText(prop.value);
         break;
       case 'TRIGGER':
-        // Support both VALUE=DATE-TIME and relative triggers
         if (prop.params.VALUE === 'DATE-TIME') {
           result.trigger = parseICalDate(prop.value);
-        } else if (prop.value.startsWith('P') || prop.value.startsWith('-P')) {
-          // Relative trigger (e.g., -PT15M = 15 minutes before)
-          // For now, we skip relative triggers since we use absolute times
+        } else if (
+          prop.value.startsWith('P') ||
+          prop.value.startsWith('-P') ||
+          prop.value.startsWith('+P')
+        ) {
+          // Relative duration trigger (e.g. -PT15M, PT1H, RELATED=END:-PT15M)
+          const offsetMs = parseICalDuration(prop.value);
+          if (offsetMs !== null) {
+            result.relativeOffset = offsetMs;
+            result.relatedTo = prop.params.RELATED?.toUpperCase() === 'END' ? 'end' : 'start';
+          }
         } else {
-          // Try parsing as absolute time
           result.trigger = parseICalDate(prop.value);
         }
         break;
@@ -263,11 +319,9 @@ export const parseVTodo = (vtodoContent: string): ParsedVTodo => {
   const result: ParsedVTodo = {};
   const lines = unfoldLines(vtodoContent).split('\n');
 
-  // Extract and parse VALARMs first
+  // Extract and parse VALARMs first (relative ones resolved after dates are parsed below)
   const alarmContents = extractVAlarms(vtodoContent);
-  if (alarmContents.length > 0) {
-    result.alarms = alarmContents.map(parseVAlarm).filter((a) => a.trigger);
-  }
+  const rawAlarms = alarmContents.map(parseVAlarm);
 
   for (const line of lines) {
     if (!line.trim() || line.startsWith('BEGIN:') || line.startsWith('END:')) {
@@ -357,6 +411,23 @@ export const parseVTodo = (vtodoContent: string): ParsedVTodo => {
     }
   }
 
+  // Resolve relative alarms now that we have due/dtstart
+  if (rawAlarms.length > 0) {
+    const resolved = rawAlarms
+      .map((alarm) => {
+        if (alarm.trigger) return alarm; // already absolute
+        if (alarm.relativeOffset === undefined) return null; // no trigger at all
+        const ref = alarm.relatedTo === 'end' ? result.due : (result.dtstart ?? result.due);
+        if (!ref) return null; // can't resolve without a reference date
+        return {
+          ...alarm,
+          trigger: new Date(ref.getTime() + alarm.relativeOffset),
+        };
+      })
+      .filter((a): a is ParsedVAlarm & { trigger: Date } => a !== null);
+    if (resolved.length > 0) result.alarms = resolved;
+  }
+
   return result;
 };
 
@@ -412,7 +483,15 @@ const generateVAlarm = (reminder: Reminder) => {
 
   lines.push('BEGIN:VALARM');
   lines.push('ACTION:DISPLAY');
-  lines.push(`TRIGGER;VALUE=DATE-TIME:${formatICalDate(new Date(reminder.trigger))}`);
+  lines.push(`DESCRIPTION:${DEFAULT_VALARM_DESCRIPTION}`); // required by RFC 5545 §3.6.6 for ACTION:DISPLAY
+
+  if (reminder.relativeOffset !== undefined) {
+    const related = reminder.relatedTo === 'end' ? 'END' : 'START';
+    lines.push(`TRIGGER;RELATED=${related}:${formatICalDuration(reminder.relativeOffset)}`);
+  } else {
+    lines.push(`TRIGGER;VALUE=DATE-TIME:${formatICalDate(new Date(reminder.trigger))}`);
+  }
+
   lines.push('END:VALARM');
 
   return lines.join('\r\n');
@@ -570,6 +649,8 @@ export const parsedVTodoToTask = (
       .map((a) => ({
         id: generateUUID(),
         trigger: a.trigger!,
+        relativeOffset: a.relativeOffset,
+        relatedTo: a.relatedTo,
       }));
   }
 
