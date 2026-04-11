@@ -110,7 +110,11 @@ const App = () => {
 
   const handleMenuSyncCalendar = useCallback(
     (calendarId: string) => {
-      syncCalendar(calendarId);
+      syncCalendar(calendarId, {
+        source: 'app-menu',
+        reason: 'user selected sync calendar from app menu',
+        where: 'useMenuEvents MENU_EVENTS.SYNC_CALENDAR',
+      });
     },
     [syncCalendar],
   );
