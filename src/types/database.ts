@@ -42,7 +42,6 @@ export interface AccountRow {
   last_sync: string | null;
   is_active: number;
   sort_order: number | null;
-  accept_invalid_certs: number | null;
 }
 
 export interface CalendarRow {

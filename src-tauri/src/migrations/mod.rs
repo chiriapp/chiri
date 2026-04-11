@@ -14,7 +14,6 @@ mod v013_account_sort_order;
 mod v014_account_sort_config;
 mod v015_recurrence_fields;
 mod v016_account_calendar_home_url;
-mod v017_trusted_cert;
 
 use tauri_plugin_sql::Migration;
 
@@ -34,7 +33,6 @@ pub use v013_account_sort_order::migration as migration_v013;
 pub use v014_account_sort_config::migration as migration_v014;
 pub use v015_recurrence_fields::migration as migration_v015;
 pub use v016_account_calendar_home_url::migration as migration_v016;
-pub use v017_trusted_cert::migration as migration_v017;
 
 /// Returns all database migrations for the application
 pub fn get_migrations() -> Vec<Migration> {
@@ -55,6 +53,5 @@ pub fn get_migrations() -> Vec<Migration> {
         migration_v014(),
         migration_v015(),
         migration_v016(),
-        migration_v017(),
     ]
 }

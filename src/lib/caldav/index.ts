@@ -26,17 +26,8 @@ export class CalDAVClient {
     password: string,
     serverType: ServerType = 'generic',
     calendarHomeUrl?: string,
-    acceptInvalidCerts?: boolean,
   ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> {
-    return connectionOps.connect(
-      accountId,
-      serverUrl,
-      username,
-      password,
-      serverType,
-      calendarHomeUrl,
-      acceptInvalidCerts,
-    );
+    return connectionOps.connect(accountId, serverUrl, username, password, serverType, calendarHomeUrl);
   }
 
   static disconnect(accountId: string): void {
