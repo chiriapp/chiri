@@ -1,7 +1,20 @@
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
+import { buildDigestAuth, parseDigestChallenge } from '$lib/digest-auth';
 import { loggers } from '$lib/logger';
 
 const log = loggers.http;
+
+// Tracks which server hosts require Digest auth so we can skip the wasted
+// Basic-auth attempt on the first round-trip. Cleared on app restart (intentionally).
+const digestHosts = new Set<string>();
+
+const getHostname = (url: string) => {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+};
 
 export interface HttpResponse {
   status: number;
@@ -23,37 +36,76 @@ export const tauriRequest = async (
   credentials: CalDAVCredentials,
   body?: string,
   headers?: Record<string, string>,
+  _retried = false,
 ): Promise<HttpResponse> => {
-  log.debug(`${method} ${url}`);
+  // For known Digest-only hosts, skip sending wrong Basic auth upfront.
+  // We'll still do 2 round-trips (need server's nonce), but won't waste one
+  // on a credential that's guaranteed to be rejected.
+  const skipBasic = !credentials.bearerToken && digestHosts.has(getHostname(url));
 
-  // use bearer token if provided, otherwise fall back to Basic auth
+  // Suppress logs for the nonce-fetch leg of a known Digest handshake. Logs fire on the authenticated retry.
+  const silent = skipBasic && !_retried;
+
+  if (!silent) log.debug(`${method} ${url}`);
+
   const authHeader = credentials.bearerToken
     ? `Bearer ${credentials.bearerToken}`
-    : `Basic ${btoa(`${credentials.username}:${credentials.password}`)}`;
+    : skipBasic
+      ? undefined
+      : `Basic ${btoa(`${credentials.username}:${credentials.password}`)}`;
 
   const requestHeaders: Record<string, string> = {
-    Authorization: authHeader,
     'User-Agent': 'Chiri',
     'Content-Type': 'application/xml; charset=utf-8',
     ...headers,
+    ...(authHeader ? { Authorization: authHeader } : {}),
   };
 
   const response = await tauriFetch(url, {
     method: method,
     headers: requestHeaders,
     body: body,
+    maxRedirections: 0,
   });
 
-  log.debug(`Response: ${response.status}`);
+  if (!silent) log.debug(`Response: ${response.status}`);
 
   // handle redirects manually for CalDAV
   if ([301, 302, 307, 308].includes(response.status)) {
     const location = response.headers.get('location') ?? response.headers.get('Location');
     if (location) {
-      log.debug(`Following redirect to: ${location}`);
+      if (!silent) log.debug(`Following redirect to: ${location}`);
       // resolve relative URLs
       const redirectUrl = new URL(location, url).toString();
       return tauriRequest(redirectUrl, method, credentials, body, headers);
+    }
+  }
+
+  // Retry once with Digest auth if the server requires it
+  if (response.status === 401 && !_retried) {
+    const wwwAuth =
+      response.headers.get('www-authenticate') ?? response.headers.get('WWW-Authenticate') ?? '';
+    if (wwwAuth.toLowerCase().includes('digest ')) {
+      const challenge = parseDigestChallenge(wwwAuth);
+      if (challenge) {
+        const digestHeader = buildDigestAuth(
+          method,
+          url,
+          credentials.username,
+          credentials.password,
+          challenge,
+        );
+        if (!silent) log.debug(`Retrying with Digest auth (realm: ${challenge.realm})`);
+        digestHosts.add(getHostname(url));
+        return tauriRequest(
+          url,
+          method,
+          credentials,
+          body,
+          { ...headers, Authorization: digestHeader },
+          true,
+        );
+      }
     }
   }
 
