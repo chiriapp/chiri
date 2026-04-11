@@ -141,8 +141,9 @@ export const clearPendingDeletion = (uid: string) => {
   });
 };
 
-export const reconnectAccounts = async () => {
+export const reconnectAccounts = async (): Promise<Set<string>> => {
   const accounts = getAllAccounts();
+  const failedAccountIds = new Set<string>();
   for (const account of accounts) {
     if (!CalDAVClient.isConnected(account.id)) {
       try {
@@ -151,6 +152,7 @@ export const reconnectAccounts = async () => {
       } catch (error) {
         const errorMessage = getErrorMessage(error);
         syncLog.error(`Failed to reconnect account ${account.name}:`, error);
+        failedAccountIds.add(account.id);
         toastManager.error(
           `Account sync failed: ${account.name}`,
           errorMessage,
@@ -165,6 +167,7 @@ export const reconnectAccounts = async () => {
       }
     }
   }
+  return failedAccountIds;
 };
 
 export const ensureTagExists = (tagName: string) => {
@@ -452,18 +455,20 @@ export const performFullSync = async (
   queryClient: QueryClient,
   setSyncingCalendarId: (id: string | null) => void,
 ) => {
-  await reconnectAccounts();
+  const failedAccountIds = await reconnectAccounts();
 
   // get fresh accounts from data layer
   let freshAccounts = getAllAccounts();
 
   // sync calendars for each account (add/remove/update calendars)
   for (const account of freshAccounts) {
+    if (failedAccountIds.has(account.id)) continue;
     try {
       await syncCalendarsForAccount(account.id, queryClient);
     } catch (error) {
       const errorMessage = getErrorMessage(error);
       syncLog.error(`Failed to sync calendars for ${account.name}:`, error);
+      failedAccountIds.add(account.id);
       toastManager.error(
         `Account sync failed: ${account.name}`,
         errorMessage,
@@ -483,6 +488,7 @@ export const performFullSync = async (
 
   // sync tasks for each calendar
   for (const account of freshAccounts) {
+    if (failedAccountIds.has(account.id)) continue;
     for (const calendar of account.calendars) {
       try {
         await syncCalendarTasks(calendar.id, queryClient, setSyncingCalendarId);
