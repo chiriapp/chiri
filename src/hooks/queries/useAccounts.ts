@@ -67,7 +67,7 @@ export const useCreateAccount = () => {
 
   return useMutation({
     mutationFn: (accountInput: Partial<Account>) => {
-      return Promise.resolve(createAccount(accountInput));
+      return createAccount(accountInput);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });

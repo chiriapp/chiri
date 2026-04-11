@@ -15,7 +15,7 @@ export const getAccountById = (id: string) => {
   return dataStore.load().accounts.find((a) => a.id === id);
 };
 
-export const createAccount = (accountData: Partial<Account>) => {
+export const createAccount = async (accountData: Partial<Account>) => {
   const data = dataStore.load();
 
   const serverUrl = accountData.serverUrl ?? '';
@@ -42,7 +42,7 @@ export const createAccount = (accountData: Partial<Account>) => {
     sortOrder: accountData.sortOrder || maxExistingOrder + 100,
   } satisfies Account;
 
-  db.createAccount(account).catch((e) => log.error('Failed to persist account:', e));
+  await db.createAccount(account).catch((e) => log.error('Failed to persist account:', e));
 
   dataStore.save({
     ...data,
