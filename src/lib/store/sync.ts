@@ -7,7 +7,7 @@ import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
-import { getAllAccounts } from '$lib/store/accounts';
+import { getAccountById, getAllAccounts } from '$lib/store/accounts';
 import { addCalendar, updateCalendar } from '$lib/store/calendars';
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
 import { createTask, deleteTask, getTasksByCalendar, updateTask } from '$lib/store/tasks';
@@ -462,6 +462,7 @@ export const performFullSync = async (
 
   // sync calendars for each account (add/remove/update calendars)
   for (const account of freshAccounts) {
+    if (!getAccountById(account.id)) continue;
     if (failedAccountIds.has(account.id)) continue;
     try {
       await syncCalendarsForAccount(account.id, queryClient);
@@ -488,6 +489,7 @@ export const performFullSync = async (
 
   // sync tasks for each calendar
   for (const account of freshAccounts) {
+    if (!getAccountById(account.id)) continue;
     if (failedAccountIds.has(account.id)) continue;
     for (const calendar of account.calendars) {
       try {
