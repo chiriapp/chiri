@@ -8,7 +8,7 @@ typedef void (*PermissionRequestCallback)(bool, const char *);
 
 void check_notification_permission_ffi(PermissionStatusCallback callback) {
     // Check if we have a valid bundle identifier first.
-    // In development mode (running from Cargo/Terminal without an App bundle), this will be nil.
+    // In development mode, Tauri assumes Terminal.app... 😭
     // UNUserNotificationCenter crashes if accessed without a bundle identifier.
     NSString *bundleId = [[NSBundle mainBundle] bundleIdentifier];
     if (!bundleId || [bundleId length] == 0) {

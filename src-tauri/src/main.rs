@@ -10,7 +10,6 @@ mod install_type;
 mod logging;
 mod macos_menu;
 mod migrations;
-mod notification_manager;
 mod notifications;
 mod plist_utils;
 mod tray;
@@ -81,10 +80,10 @@ fn main() {
             tray::is_gnome_desktop,
             plist_utils::convert_plist_to_xml,
             plist_utils::read_file_bytes,
-            notifications::check_notification_permission,
-            notifications::request_notification_permission,
-            notification_manager::send_notification_with_actions,
-            notification_manager::send_simple_notification,
+            notifications::permissions::check_notification_permission,
+            notifications::permissions::request_notification_permission,
+            notifications::manager::send_notification_with_actions,
+            notifications::manager::send_simple_notification,
             macos_menu::apply_macos_menu_fixes,
             force_quit,
             install_type::should_disable_updates,
@@ -113,9 +112,34 @@ fn main() {
             {
                 let bundle_id = _app.config().identifier.clone();
                 let notification_manager =
-                    notification_manager::NotificationManagerState::new(bundle_id);
+                    notifications::NotificationManagerState::new(bundle_id);
                 notification_manager.register_categories_and_handler(_app.handle().clone());
                 _app.manage(notification_manager);
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                let bundle_id = _app.config().identifier.clone();
+                let notification_manager =
+                    notifications::NotificationManagerState::new(bundle_id.clone());
+                _app.manage(notification_manager);
+            }
+
+            // Register with the Windows notification platform so toasts show the correct
+            // app name and icon. The icon is embedded in the binary at compile time and
+            // written to %LOCALAPPDATA%\Chiri\ so the path is always valid.
+            #[cfg(target_os = "windows")]
+            {
+                let bundle_id = _app.config().identifier.clone();
+                let display_name = _app.package_info().name.clone();
+                let icon_path = notifications::ensure_notification_icon();
+                match winrt_toast_reborn::register(
+                    &bundle_id,
+                    &display_name,
+                    icon_path.as_deref(),
+                ) {
+                    Ok(()) => log::info!("[Notifications] Windows notification platform registration succeeded with AUM ID {bundle_id:?}"),
+                    Err(e) => log::info!("[Notifications] Windows notification platform registration failed for AUM ID {bundle_id:?}: {e:?}"),
+                }
             }
 
             // tray will be initialized from frontend after reading settings
