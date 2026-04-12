@@ -34,6 +34,13 @@ fn force_quit() {
 
 #[cfg_attr(feature = "cef", tauri::cef_entry_point)]
 fn main() {
+    // On Linux, WebKitGTK 2.42+ allocates DMA-BUF buffers via GBM, which is broken
+    // on NVIDIA proprietary drivers under Wayland and causes an immediate crash ("Error 71: Protocol error").
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+
     // Initialize default crypto provider for rustls (required for reqwest in CEF)
     #[cfg(feature = "cef")]
     {
