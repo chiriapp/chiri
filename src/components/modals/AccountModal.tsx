@@ -451,7 +451,10 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                   const newType = e.target.value as ServerType;
                   setServerType(newType);
                   if (!account && !preloadedConfig) {
-                    setServerUrl(getPredefinedServerUrl(newType) || '');
+                    const predefined = getPredefinedServerUrl(newType);
+                    if (predefined || getPredefinedServerUrl(serverType)) {
+                      setServerUrl(predefined || '');
+                    }
                   }
                 }}
                 className="w-full text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
