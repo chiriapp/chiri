@@ -215,14 +215,14 @@ Chiri is licensed under the [<span aria-hidden="true">&nearr;</span> zlib/libpng
 [header-repo-issues-link]: https://github.com/SapphoSys/chiri/issues
 [header-screenshot]: https://raw.githubusercontent.com/SapphoSys/chiri/refs/heads/master/.github/assets/screenshot.png
 
-[release-windows-msi-x64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri_0.8.0_x64_en-US.msi
-[release-windows-msi-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri_0.8.0_arm64_en-US.msi
-[release-macos-dmg-applesilicon]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri_0.8.0_aarch64.dmg
-[release-macos-dmg-intel]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri_0.8.0_x64.dmg
-[release-linux-deb-x86_64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri_0.8.0_amd64.deb
-[release-linux-deb-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri_0.8.0_arm64.deb
-[release-linux-rpm-x86_64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri-0.8.0-1.x86_64.rpm
-[release-linux-rpm-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.0/chiri-0.8.0-1.aarch64.rpm
+[release-windows-msi-x64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_x64_en-US.msi
+[release-windows-msi-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_arm64_en-US.msi
+[release-macos-dmg-applesilicon]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_aarch64.dmg
+[release-macos-dmg-intel]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_x64.dmg
+[release-linux-deb-x86_64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_amd64.deb
+[release-linux-deb-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_arm64.deb
+[release-linux-rpm-x86_64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri-0.8.1-1.x86_64.rpm
+[release-linux-rpm-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri-0.8.1-1.aarch64.rpm
 
 [repo-license]: https://github.com/SapphoSys/chiri/blob/master/LICENSE
 [repo-releases]: https://github.com/SapphoSys/chiri/releases
