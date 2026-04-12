@@ -66,6 +66,7 @@ if stdenvNoCC.isDarwin then
     installPhase = ''
       runHook preInstall
 
+      chmod -R +w "Chiri.app"
       mkdir -p $out/Applications
       cp -r "Chiri.app" $out/Applications/
 
