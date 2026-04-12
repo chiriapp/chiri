@@ -30,7 +30,7 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "chiri";
-  version = "0.8.0";
+  version = "0.8.1";
 
   # Currently unused now that we have package-bin.nix. Keeping it here anyway
   src =
@@ -47,7 +47,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
       };
 
   # cargo dependencies hash - update when Cargo.lock changes
-  cargoHash = "sha256-ES+ESrQpIv6y/bub+4NgGhd0n5+msnMZET9tE2aNgAI=";
+  cargoHash = "sha256-TLYiCdkF/uX3uIVwplI7L1b7Ta5LTRdKqFlmnvCxFFc=";
 
   # pnpm dependencies for the frontend
   pnpmDeps = fetchPnpmDeps {
