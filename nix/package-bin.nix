@@ -123,9 +123,8 @@ else
       mkdir -p $out
       cp -r usr/* $out/
 
-      # Ensure the binary is in bin/
-      if [ -f "$out/bin/chiri" ]; then
-        chmod +x $out/bin/chiri
+      if [ -f "$out/bin/Chiri" ]; then
+        chmod +x $out/bin/Chiri
       fi
 
       # Copy desktop file and icons if present
@@ -138,7 +137,7 @@ else
 
     # Wrap to set required environment variables
     postFixup = ''
-      wrapProgram $out/bin/chiri \
+      wrapProgram $out/bin/Chiri \
         --set GIO_EXTRA_MODULES "${glib-networking}/lib/gio/modules" \
         --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ libayatana-appindicator ]}"
     '';
@@ -148,7 +147,7 @@ else
       homepage = "https://github.com/SapphoSys/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
-      mainProgram = "chiri";
+      mainProgram = "Chiri";
       platforms = [
         "x86_64-linux"
         "aarch64-linux"

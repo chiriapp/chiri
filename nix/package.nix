@@ -132,7 +132,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     changelog = "https://github.com/SapphoSys/chiri/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.zlib;
     maintainers = with lib.maintainers; [ SapphoSys ];
-    mainProgram = "chiri";
+    mainProgram = "Chiri";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 })
