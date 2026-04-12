@@ -3,11 +3,13 @@ import { TaskItemCollapseButton } from '$components/taskItem/TaskItemCollapseBut
 import { TaskItemHiddenSubtasksBadge } from '$components/taskItem/TaskItemHiddenSubtasksBadge';
 import { TaskItemInProgressBadge } from '$components/taskItem/TaskItemInProgressBadge';
 import { TaskItemRepeatBadge } from '$components/taskItem/TaskItemRepeatBadge';
+import { TaskItemSnoozedBadge } from '$components/taskItem/TaskItemSnoozedBadge';
 import { TaskItemStartDateBadge } from '$components/taskItem/TaskItemStartDateBadge';
 import { TaskItemSubtaskProgressBadge } from '$components/taskItem/TaskItemSubtaskProgressBadge';
 import { TaskItemTagBadge } from '$components/taskItem/TaskItemTagBadge';
 import { TaskItemURLBadge } from '$components/taskItem/TaskItemURLBadge';
 import { FALLBACK_ITEM_COLOR } from '$constants';
+import { useSnoozedUntil } from '$hooks/store/useSnoozedTasksStore';
 import { getAllTags } from '$lib/store/tags';
 import { countChildren, getChildTasks } from '$lib/store/tasks';
 import type { Account, Tag, Task } from '$types';
@@ -58,6 +60,8 @@ export const TaskItemBadges = ({
   const calendar = allCalendars.find((c) => c.id === task.calendarId);
   const calendarColor = calendar?.color ?? FALLBACK_ITEM_COLOR;
   const showCalendar = activeCalendarId === null && calendar;
+  const snoozeUntil = useSnoozedUntil(task.id);
+  const isSnoozed = !!snoozeUntil && snoozeUntil > Date.now();
   const isUnstarted = task.startDate && new Date(task.startDate) > new Date();
   const startDateDisplay = isUnstarted && task.startDate ? formatStartDate(task.startDate) : null;
   const taskTags = (task.tags || [])
@@ -65,6 +69,7 @@ export const TaskItemBadges = ({
     .filter((tag): tag is Tag => !!tag);
 
   const hasAnyVisibleBadge =
+    isSnoozed ||
     (badgeVisibility.startDate && startDateDisplay) ||
     (badgeVisibility.tags && taskTags.length > 0) ||
     (badgeVisibility.calendar && showCalendar) ||
@@ -80,6 +85,8 @@ export const TaskItemBadges = ({
     <div
       className={`flex items-center gap-2 ${compact ? 'overflow-hidden flex-shrink-0' : 'mt-2 flex-wrap'}`}
     >
+      {isSnoozed && <TaskItemSnoozedBadge taskId={task.id} />}
+
       {badgeVisibility.startDate && startDateDisplay && (
         <TaskItemStartDateBadge startDateDisplay={startDateDisplay} />
       )}
