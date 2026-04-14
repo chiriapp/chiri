@@ -185,6 +185,8 @@ export const connect = async (
   password: string,
   serverType: ServerType = 'generic',
   calendarHomeUrl?: string,
+  principalUrlOverride?: string,
+  acceptInvalidCerts?: boolean,
 ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> => {
   const credentials: CalDAVCredentials = { username, password };
 
@@ -206,6 +208,14 @@ export const connect = async (
   if (calendarHomeUrl) {
     calendarHome = `${calendarHomeUrl.replace(/\/$/, '')}/`;
     principalUrl = calendarHome;
+  } else if (principalUrlOverride) {
+    // Principal URL provided — derive calendar home from it
+    principalUrl = makeAbsoluteUrl(principalUrlOverride, baseUrl);
+    const discoveredCalendarHome = await discoverCalendarHome(principalUrl, credentials);
+    if (!discoveredCalendarHome) {
+      throw new Error('Failed to discover calendar-home-set from the provided Principal URL.');
+    }
+    calendarHome = makeAbsoluteUrl(discoveredCalendarHome, baseUrl);
   } else {
     switch (serverType) {
       case 'rustical':
@@ -277,6 +287,8 @@ export const reconnect = async (account: Account): Promise<void> => {
     account.password,
     account.serverType ?? 'generic',
     account.calendarHomeUrl,
+    account.principalUrl,
+    account.acceptInvalidCerts,
   );
 };
 

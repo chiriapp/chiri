@@ -52,7 +52,10 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     () => preloadedConfig?.serverType || account?.serverType || 'generic',
   );
   const [calendarHomeUrl, setCalendarHomeUrl] = useState(() => account?.calendarHomeUrl || '');
-  const [showAdvanced, setShowAdvanced] = useState(() => !!account?.calendarHomeUrl);
+  const [principalUrl, setPrincipalUrl] = useState(() => account?.principalUrl || '');
+  const [showAdvanced, setShowAdvanced] = useState(
+    () => !!account?.calendarHomeUrl || !!account?.principalUrl,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testSuccess, setTestSuccess] = useState(false);
@@ -69,19 +72,19 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     username,
     password,
     calendarHomeUrl,
+    principalUrl,
   });
   if (
     serverUrl !== prevCredentials.serverUrl ||
     username !== prevCredentials.username ||
     password !== prevCredentials.password ||
-    calendarHomeUrl !== prevCredentials.calendarHomeUrl
+    calendarHomeUrl !== prevCredentials.calendarHomeUrl ||
+    principalUrl !== prevCredentials.principalUrl
   ) {
-    setPrevCredentials({ serverUrl, username, password, calendarHomeUrl });
-    if (testSuccess || testedConnectionId) {
-      setTestSuccess(false);
-      setTestedConnectionId(null);
-      setTestedCalendars([]);
-    }
+    setPrevCredentials({ serverUrl, username, password, calendarHomeUrl, principalUrl });
+    setTestSuccess(false);
+    setTestedConnectionId(null);
+    setTestedCalendars([]);
   }
 
   /**
@@ -153,6 +156,59 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
+  /**
+   * Connects to the CalDAV server with automatic cert trust detection.
+   * If the connection fails with a network error and the server is reachable
+   * with cert validation bypassed, prompts the user to trust the certificate.
+   * Returns null if the user declined the cert trust dialog.
+   */
+  const connectWithCertHandling = async (accountId: string, effectivePassword: string) => {
+    const tryConnect = (withInvalidCerts?: boolean) =>
+      CalDAVClient.connect(
+        accountId,
+        serverUrl,
+        username,
+        effectivePassword,
+        serverType,
+        calendarHomeUrl.trim() || undefined,
+        principalUrl.trim() || undefined,
+        withInvalidCerts,
+      );
+
+    try {
+      return await tryConnect(acceptInvalidCerts || undefined);
+    } catch (err) {
+      const looksLikeNetworkError =
+        isCertError(err) ||
+        (typeof err === 'string' && err.includes('error sending request for url'));
+
+      if (!looksLikeNetworkError) throw err;
+
+      // Probe with cert bypass — any HTTP response means the server is reachable
+      // and the failure was a cert trust issue rather than genuine unreachability.
+      let serverReachable = false;
+      try {
+        await tauriRequest(serverUrl, 'OPTIONS', {
+          username,
+          password: effectivePassword,
+          acceptInvalidCerts: true,
+        });
+        serverReachable = true;
+      } catch {
+        // Also failed with bypass - genuinely unreachable.
+      }
+
+      if (!serverReachable) throw err;
+
+      const proceed = await showCertTrustDialog();
+      if (!proceed) return null;
+
+      setAcceptInvalidCerts(true);
+      return await tryConnect(true);
+    }
+  };
+
+
   const handleTestConnection = async () => {
     setError('');
     setTestSuccess(false);
@@ -215,6 +271,81 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
+  const handleCreateAccount = async (effectivePassword: string) => {
+    let tempId: string;
+    let calendars: Calendar[];
+
+    // If we already tested the connection successfully, reuse it
+    if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
+      log.debug('Reusing tested connection...');
+      tempId = testedConnectionId;
+      calendars = testedCalendars;
+    } else {
+      tempId = generateUUID();
+
+      log.debug(`Connecting to ${serverUrl}...`);
+      const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
+      if (!connectionInfo) {
+        setIsLoading(false);
+        return;
+      }
+
+      if (isVikunjaServer(connectionInfo.calendarHome)) {
+        const proceed = await showVikunjaWarning();
+        if (!proceed) {
+          CalDAVClient.disconnect(tempId);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      log.debug(`Fetching calendars...`);
+      calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
+      log.info(`Found ${calendars.length} calendars:`, calendars);
+    }
+
+    createAccountMutation.mutate(
+      {
+        id: tempId, // use the same ID so the caldavService connection maps correctly
+        name,
+        serverUrl,
+        username,
+        password: effectivePassword,
+        serverType,
+        calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+        principalUrl: principalUrl.trim() || undefined,
+        acceptInvalidCerts: acceptInvalidCerts || undefined,
+      },
+      {
+        onSuccess: async (newAccount) => {
+          try {
+            for (const calendar of calendars) {
+              addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
+            }
+            log.debug('Fetching tasks for all calendars...');
+            for (const calendar of calendars) {
+              await fetchTasksForCalendar(newAccount.id, calendar);
+            }
+            queryClient.invalidateQueries({ queryKey: ['tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['tags'] });
+            onClose();
+          } catch (error) {
+            log.error('Error setting up account:', error);
+            onClose();
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        onError: (error) => {
+          log.error('Error creating account:', error);
+          setError(error instanceof Error ? error.message : 'Failed to create account');
+          setIsLoading(false);
+        },
+      },
+    );
+  };
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -247,6 +378,8 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             password: effectivePassword || account.password,
             serverType,
             calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+            principalUrl: principalUrl.trim() || undefined,
+            acceptInvalidCerts: acceptInvalidCerts || undefined,
           },
         });
       } else {
@@ -474,30 +607,31 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               </p>
             </div>
 
-            <div>
-              <label
-                htmlFor="server-url"
-                className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-              >
-                Server URL
-              </label>
-              <ComposedInput
-                id="server-url"
-                type="url"
-                value={serverUrl}
-                onChange={setServerUrl}
-                placeholder="https://caldav.example.com"
-                required
-                disabled={!!getPredefinedServerUrl(serverType)}
-                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-              />
-              {serverType === 'generic' && (
-                <p className="mt-2 text-xs flex flex-row text-surface-500 dark:text-surface-400">
-                  <Info className="inline w-3.5 h-3.5 mr-1 text-surface-400" />
-                  The app will attempt to auto-discover for base URLs.
-                </p>
-              )}
-            </div>
+            {!getPredefinedServerUrl(serverType) && (
+              <div>
+                <label
+                  htmlFor="server-url"
+                  className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                >
+                  Server URL
+                </label>
+                <ComposedInput
+                  id="server-url"
+                  type="url"
+                  value={serverUrl}
+                  onChange={setServerUrl}
+                  placeholder="https://caldav.example.com"
+                  required
+                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
+                />
+                {serverType === 'generic' && (
+                  <p className="mt-2 text-xs flex flex-row text-surface-500 dark:text-surface-400">
+                    <Info className="inline w-3.5 h-3.5 mr-1 text-surface-400" />
+                    The app will attempt to auto-discover for base URLs.
+                  </p>
+                )}
+              </div>
+            )}
 
             <div>
               <label
@@ -535,42 +669,64 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               />
             </div>
 
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowAdvanced((v) => !v)}
-                className="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
-              >
-                <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? '' : '-rotate-90'}`}
-                />
-                Advanced
-              </button>
-              {showAdvanced && (
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <label
-                      htmlFor="calendar-home-url"
-                      className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                    >
-                      Calendar Home URL
-                    </label>
-                    <ComposedInput
-                      id="calendar-home-url"
-                      type="url"
-                      value={calendarHomeUrl}
-                      onChange={setCalendarHomeUrl}
-                      placeholder="https://caldav.example.com/calendars/user/"
-                      className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-                    />
-                    <p className="mt-1.5 text-xs flex flex-row text-surface-500 dark:text-surface-400">
-                      <Info className="inline w-3.5 h-3.5 mr-1 shrink-0 text-surface-400" />
-                      Use this if auto-discovery is not possible.
-                    </p>
+            {!getPredefinedServerUrl(serverType) && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdvanced((v) => !v)}
+                  className="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
+                >
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? '' : '-rotate-90'}`}
+                  />
+                  Advanced
+                </button>
+                {showAdvanced && (
+                  <div className="mt-3 space-y-3">
+                    <div>
+                      <label
+                        htmlFor="principal-url"
+                        className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                      >
+                        Principal URL
+                      </label>
+                      <ComposedInput
+                        id="principal-url"
+                        type="url"
+                        value={principalUrl}
+                        onChange={setPrincipalUrl}
+                        placeholder="https://caldav.example.com/principals/user/"
+                        className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
+                      />
+                      <p className="mt-1.5 text-xs flex flex-row text-surface-500 dark:text-surface-400">
+                        <Info className="inline w-3.5 h-3.5 mr-1 shrink-0 text-surface-400" />
+                        Override the auto-discovered principal URL.
+                      </p>
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="calendar-home-url"
+                        className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
+                      >
+                        Calendar Home URL
+                      </label>
+                      <ComposedInput
+                        id="calendar-home-url"
+                        type="url"
+                        value={calendarHomeUrl}
+                        onChange={setCalendarHomeUrl}
+                        placeholder="https://caldav.example.com/calendars/user/"
+                        className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
+                      />
+                      <p className="mt-1.5 text-xs flex flex-row text-surface-500 dark:text-surface-400">
+                        <Info className="inline w-3.5 h-3.5 mr-1 shrink-0 text-surface-400" />
+                        Skip auto-discovery entirely and use this URL directly.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {error && (
               <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">

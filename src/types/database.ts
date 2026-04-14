@@ -39,6 +39,7 @@ export interface AccountRow {
   password: string;
   server_type: string | null;
   calendar_home_url: string | null;
+  principal_url: string | null;
   last_sync: string | null;
   is_active: number;
   sort_order: number | null;
