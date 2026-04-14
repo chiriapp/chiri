@@ -146,6 +146,7 @@ export type ServerType =
   | 'nextcloud'
   | 'mailbox'
   | 'fastmail'
+  | 'fruux'
   | 'generic';
 
 export interface Account {

@@ -39,6 +39,10 @@ const SERVER_CONFIGS: Record<string, ServerConfig> = {
     principalPath: (username) => `/remote.php/dav/principals/users/${username}/`,
     calendarHomePath: (username) => `/remote.php/dav/calendars/${username}/`,
   },
+  fruux: {
+    principalPath: (username) => `/principals/uid/${username}/`,
+    calendarHomePath: (username) => `/calendars/${username}/`,
+  },
 };
 
 export const handleCommonHttpErrors = (response: { status: number }, context = 'CalDAV') => {
@@ -207,7 +211,8 @@ export const connect = async (
       case 'rustical':
       case 'radicale':
       case 'baikal':
-      case 'nextcloud': {
+      case 'nextcloud':
+      case 'fruux': {
         const config = SERVER_CONFIGS[serverType];
         principalUrl = `${baseUrl}${config.principalPath(username)}`;
         calendarHome = config.calendarHomePath

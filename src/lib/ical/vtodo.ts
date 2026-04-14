@@ -37,6 +37,7 @@ export const fromAppleEpoch = (appleSeconds: number) => {
 const DEFAULT_CALDAV_DESCRIPTIONS = [
   'Default Tasks.org description',
   'Default Mozilla Description',
+  'Event reminder', // Fruux (when setting due date)
 ];
 
 /**
