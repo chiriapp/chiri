@@ -254,5 +254,6 @@ export const loggers = {
   taskList: createLogger('TaskList', '#14b8a6'),
   toastManager: createLogger('ToastManager', '#ef4444'),
   ui: createLogger('UI', '#14b8a6'),
+  connectivity: createLogger('Connectivity', '#06b6d4'),
   updater: createLogger('Updater', '#10b981'),
 } as const;

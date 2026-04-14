@@ -1,6 +1,7 @@
 import { AppSelect } from '$components/AppSelect';
-import { SYNC_INTERVAL_OPTIONS } from '$constants/settings';
+import { CONNECTIVITY_CHECK_INTERVAL_OPTIONS, SYNC_INTERVAL_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { DEFAULT_CONNECTIVITY_CHECK_URL } from '$hooks/system/useOffline';
 
 export const SyncSettings = () => {
   const {
@@ -12,6 +13,10 @@ export const SyncSettings = () => {
     setSyncOnStartup,
     syncOnReconnect,
     setSyncOnReconnect,
+    connectivityCheckUrl,
+    setConnectivityCheckUrl,
+    connectivityCheckInterval,
+    setConnectivityCheckInterval,
   } = useSettingsStore();
 
   return (
@@ -93,6 +98,50 @@ export const SyncSettings = () => {
             className="rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
           />
         </label>
+      </div>
+
+      <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
+        Connectivity
+      </h3>
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
+        <div className="flex items-center justify-between p-4">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">Check interval</p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              How often to probe for network connectivity
+            </p>
+          </div>
+          <AppSelect
+            id="connectivity-check-interval"
+            value={connectivityCheckInterval.toString()}
+            onChange={(e) => setConnectivityCheckInterval(Number(e.target.value))}
+            className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+          >
+            {CONNECTIVITY_CHECK_INTERVAL_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </AppSelect>
+        </div>
+
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
+        <div className="p-4 space-y-2">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">Check URL</p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              Fallback endpoint used to verify network access when CalDAV servers are unreachable
+            </p>
+          </div>
+          <input
+            type="url"
+            value={connectivityCheckUrl}
+            onChange={(e) => setConnectivityCheckUrl(e.target.value)}
+            placeholder={DEFAULT_CONNECTIVITY_CHECK_URL}
+            className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+          />
+        </div>
       </div>
     </div>
   );
