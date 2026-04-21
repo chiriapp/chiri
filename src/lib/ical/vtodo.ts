@@ -15,6 +15,8 @@ import { generateUUID } from '$utils/misc';
 
 const log = loggers.iCal;
 
+type ParsedProperty = NonNullable<ReturnType<typeof parseProperty>>;
+
 // Apple epoch: January 1, 2001 00:00:00 GMT in milliseconds since Unix epoch
 // Used for X-APPLE-SORT-ORDER which stores seconds since Apple epoch
 export const APPLE_EPOCH = 978307200000;
@@ -34,9 +36,12 @@ export const fromAppleEpoch = (appleSeconds: number) => {
  * these are placeholder descriptions that apps like Tasks.org and Mozilla Thunderbird
  * insert when no description is provided
  */
+const DEFAULT_VALARM_DESCRIPTION = 'Default Chiri description';
+
 const DEFAULT_CALDAV_DESCRIPTIONS = [
-  'Default Tasks.org description',
-  'Default Mozilla Description',
+  DEFAULT_VALARM_DESCRIPTION,
+  'Default Tasks.org description', // Tasks.org
+  'Default Mozilla Description', // Mozilla Thunderbird
   'Event reminder', // Fruux (when setting due date)
 ];
 
@@ -59,6 +64,46 @@ export const filterCalDavDescription = (description: string | undefined | null) 
   if (!description) return '';
   if (isDefaultCalDavDescription(description)) return '';
   return description;
+};
+
+const parseICalDuration = (value: string): number | null => {
+  const match = value.match(
+    /^([+-])?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/,
+  );
+  if (!match) return null;
+  const sign = match[1] === '-' ? -1 : 1;
+  const weeks = parseInt(match[2] ?? '0', 10);
+  const days = parseInt(match[3] ?? '0', 10);
+  const hours = parseInt(match[4] ?? '0', 10);
+  const minutes = parseInt(match[5] ?? '0', 10);
+  const seconds = parseInt(match[6] ?? '0', 10);
+  const totalSeconds =
+    weeks * 7 * 24 * 3600 + days * 24 * 3600 + hours * 3600 + minutes * 60 + seconds;
+  return sign * totalSeconds * 1000;
+};
+
+/**
+ * Format millisecond offset as an RFC 5545 duration string.
+ * Examples: -900000 → "-PT15M", 3600000 → "PT1H"
+ */
+const formatICalDuration = (offsetMs: number): string => {
+  const sign = offsetMs < 0 ? '-' : '';
+  const totalSeconds = Math.floor(Math.abs(offsetMs) / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const remSeconds = totalSeconds % 86400;
+  const hours = Math.floor(remSeconds / 3600);
+  const minutes = Math.floor((remSeconds % 3600) / 60);
+  const seconds = remSeconds % 60;
+
+  let result = `${sign}P`;
+  if (days > 0) result += `${days}D`;
+  const timePart =
+    (hours > 0 ? `${hours}H` : '') +
+    (minutes > 0 ? `${minutes}M` : '') +
+    (seconds > 0 ? `${seconds}S` : '');
+  if (timePart) result += `T${timePart}`;
+  if (result === `${sign}P`) result += 'T0S'; // zero duration edge case
+  return result;
 };
 
 // Status mapping: iCalendar VTODO STATUS ↔ TaskStatus
@@ -159,6 +204,10 @@ export interface ParsedVAlarm {
   action?: string;
   trigger?: Date;
   description?: string;
+  relativeOffset?: number; // milliseconds; present when trigger was a relative duration
+  relatedTo?: 'start' | 'end'; // RELATED=START or RELATED=END (defaults to START per RFC 5545)
+  repeat?: number; // RFC 5545 REPEAT count (additional repetitions)
+  duration?: number; // RFC 5545 DURATION between repetitions (milliseconds)
 }
 
 export interface ParsedVTodo {
@@ -209,17 +258,37 @@ const parseVAlarm = (valarmContent: string): ParsedVAlarm => {
         result.description = unescapeICalText(prop.value);
         break;
       case 'TRIGGER':
-        // Support both VALUE=DATE-TIME and relative triggers
         if (prop.params.VALUE === 'DATE-TIME') {
           result.trigger = parseICalDate(prop.value);
-        } else if (prop.value.startsWith('P') || prop.value.startsWith('-P')) {
-          // Relative trigger (e.g., -PT15M = 15 minutes before)
-          // For now, we skip relative triggers since we use absolute times
+        } else if (
+          prop.value.startsWith('P') ||
+          prop.value.startsWith('-P') ||
+          prop.value.startsWith('+P')
+        ) {
+          // Relative duration trigger (e.g. -PT15M, PT1H, RELATED=END:-PT15M)
+          const offsetMs = parseICalDuration(prop.value);
+          if (offsetMs !== null) {
+            result.relativeOffset = offsetMs;
+            result.relatedTo = prop.params.RELATED?.toUpperCase() === 'END' ? 'end' : 'start';
+          }
         } else {
-          // Try parsing as absolute time
           result.trigger = parseICalDate(prop.value);
         }
         break;
+      case 'REPEAT': {
+        const repeatCount = parseInt(prop.value, 10);
+        if (!Number.isNaN(repeatCount) && repeatCount > 0) {
+          result.repeat = repeatCount;
+        }
+        break;
+      }
+      case 'DURATION': {
+        const durationMs = parseICalDuration(prop.value);
+        if (durationMs !== null) {
+          result.duration = durationMs;
+        }
+        break;
+      }
     }
   }
 
@@ -257,6 +326,82 @@ const extractVAlarms = (vtodoContent: string) => {
   return alarms;
 };
 
+const applyVTodoProp = (result: ParsedVTodo, prop: ParsedProperty) => {
+  switch (prop.name) {
+    case 'UID':
+      result.uid = prop.value;
+      break;
+    case 'SUMMARY':
+      result.summary = unescapeICalText(prop.value);
+      break;
+    case 'DESCRIPTION':
+      result.description = unescapeICalText(prop.value);
+      break;
+    case 'STATUS':
+      result.status = prop.value.toUpperCase();
+      break;
+    case 'PERCENT-COMPLETE': {
+      const pct = parseInt(prop.value, 10);
+      if (!Number.isNaN(pct) && pct >= 0 && pct <= 100) {
+        result.percentComplete = pct;
+      }
+      break;
+    }
+    case 'PRIORITY':
+      result.priority = parseInt(prop.value, 10) || 0;
+      break;
+    case 'CATEGORIES':
+      result.categories = prop.value.split(',').map((c) => unescapeICalText(c.trim()));
+      break;
+    case 'X-TASKS-TAG-COLOR': {
+      const parsedTagColor = parseTagColorValue(prop.value);
+      if (parsedTagColor) {
+        if (!result.tagColorsByName) {
+          result.tagColorsByName = {};
+        }
+        result.tagColorsByName[parsedTagColor.tagName.toLowerCase()] = parsedTagColor.color;
+      }
+      break;
+    }
+    case 'DTSTART':
+      result.dtstart = parseICalDate(prop.value);
+      result.dtstartAllDay = prop.params.VALUE === 'DATE';
+      break;
+    case 'DUE':
+      result.due = parseICalDate(prop.value);
+      result.dueAllDay = prop.params.VALUE === 'DATE';
+      break;
+    case 'COMPLETED':
+      result.completed = parseICalDate(prop.value);
+      break;
+    case 'CREATED':
+      result.created = parseICalDate(prop.value);
+      break;
+    case 'LAST-MODIFIED':
+      result.lastModified = parseICalDate(prop.value);
+      break;
+    case 'X-APPLE-SORT-ORDER':
+      result.sortOrder = parseInt(prop.value, 10);
+      break;
+    case 'RELATED-TO': {
+      const relType = prop.params.RELTYPE;
+      if (!relType || relType.toUpperCase() === 'PARENT') {
+        result.parentUid = prop.value;
+      }
+      break;
+    }
+    case 'URL':
+      result.url = prop.value;
+      break;
+    case 'RRULE':
+      result.rrule = prop.value.replace(/^RRULE:/i, '');
+      break;
+    case 'RECURRENCE-ID':
+      result.recurrenceId = parseICalDate(prop.value);
+      break;
+  }
+};
+
 /**
  * Parse VTODO content into structured data
  */
@@ -270,92 +415,28 @@ export const parseVTodo = (vtodoContent: string): ParsedVTodo => {
     result.alarms = alarmContents.map(parseVAlarm).filter((a) => a.trigger);
   }
 
+  let inSubComponent = false;
+
   for (const line of lines) {
-    if (!line.trim() || line.startsWith('BEGIN:') || line.startsWith('END:')) {
+    if (!line.trim()) continue;
+
+    const trimmedUpper = line.trim().toUpperCase();
+
+    // Track nested components (VALARM, etc.) so their properties don't leak into VTODO
+    if (trimmedUpper.startsWith('BEGIN:') && trimmedUpper !== 'BEGIN:VTODO') {
+      inSubComponent = true;
+      continue;
+    }
+    if (trimmedUpper.startsWith('END:') && trimmedUpper !== 'END:VTODO') {
+      inSubComponent = false;
+      continue;
+    }
+    if (inSubComponent || trimmedUpper.startsWith('BEGIN:') || trimmedUpper.startsWith('END:')) {
       continue;
     }
 
     const prop = parseProperty(line);
-    if (!prop) continue;
-
-    switch (prop.name) {
-      case 'UID':
-        result.uid = prop.value;
-        break;
-      case 'SUMMARY':
-        result.summary = unescapeICalText(prop.value);
-        break;
-      case 'DESCRIPTION':
-        result.description = unescapeICalText(prop.value);
-        break;
-      case 'STATUS':
-        result.status = prop.value.toUpperCase();
-        break;
-      case 'PERCENT-COMPLETE': {
-        const pct = parseInt(prop.value, 10);
-        if (!Number.isNaN(pct) && pct >= 0 && pct <= 100) {
-          result.percentComplete = pct;
-        }
-        break;
-      }
-      case 'PRIORITY':
-        result.priority = parseInt(prop.value, 10) || 0;
-        break;
-      case 'CATEGORIES':
-        // Categories can be comma-separated
-        result.categories = prop.value.split(',').map((c) => unescapeICalText(c.trim()));
-        break;
-      case 'X-TASKS-TAG-COLOR': {
-        const parsedTagColor = parseTagColorValue(prop.value);
-        if (parsedTagColor) {
-          if (!result.tagColorsByName) {
-            result.tagColorsByName = {};
-          }
-          result.tagColorsByName[parsedTagColor.tagName.toLowerCase()] = parsedTagColor.color;
-        }
-        break;
-      }
-      case 'DTSTART':
-        result.dtstart = parseICalDate(prop.value);
-        // Check if it's an all-day date (VALUE=DATE parameter)
-        result.dtstartAllDay = prop.params.VALUE === 'DATE';
-        break;
-      case 'DUE':
-        result.due = parseICalDate(prop.value);
-        // Check if it's an all-day date (VALUE=DATE parameter)
-        result.dueAllDay = prop.params.VALUE === 'DATE';
-        break;
-      case 'COMPLETED':
-        result.completed = parseICalDate(prop.value);
-        break;
-      case 'CREATED':
-        result.created = parseICalDate(prop.value);
-        break;
-      case 'LAST-MODIFIED':
-        result.lastModified = parseICalDate(prop.value);
-        break;
-      case 'X-APPLE-SORT-ORDER':
-        result.sortOrder = parseInt(prop.value, 10);
-        break;
-      case 'RELATED-TO': {
-        // Only use PARENT relationship
-        const relType = prop.params.RELTYPE;
-        if (!relType || relType.toUpperCase() === 'PARENT') {
-          result.parentUid = prop.value;
-        }
-        break;
-      }
-      case 'URL':
-        result.url = prop.value;
-        break;
-      case 'RRULE':
-        // Strip leading "RRULE:" prefix if present (some servers include it in the value)
-        result.rrule = prop.value.replace(/^RRULE:/i, '');
-        break;
-      case 'RECURRENCE-ID':
-        result.recurrenceId = parseICalDate(prop.value);
-        break;
-    }
+    if (prop) applyVTodoProp(result, prop);
   }
 
   return result;
@@ -413,7 +494,20 @@ const generateVAlarm = (reminder: Reminder) => {
 
   lines.push('BEGIN:VALARM');
   lines.push('ACTION:DISPLAY');
-  lines.push(`TRIGGER;VALUE=DATE-TIME:${formatICalDate(new Date(reminder.trigger))}`);
+  lines.push(`DESCRIPTION:${DEFAULT_VALARM_DESCRIPTION}`); // required by RFC 5545 §3.6.6 for ACTION:DISPLAY
+
+  if (reminder.relativeOffset !== undefined) {
+    const related = reminder.relatedTo === 'end' ? 'END' : 'START';
+    lines.push(`TRIGGER;RELATED=${related}:${formatICalDuration(reminder.relativeOffset)}`);
+  } else {
+    lines.push(`TRIGGER;VALUE=DATE-TIME:${formatICalDate(new Date(reminder.trigger))}`);
+  }
+
+  if (reminder.repeat !== undefined && reminder.duration !== undefined) {
+    lines.push(`REPEAT:${reminder.repeat}`);
+    lines.push(`DURATION:${formatICalDuration(reminder.duration)}`);
+  }
+
   lines.push('END:VALARM');
 
   return lines.join('\r\n');
@@ -571,6 +665,10 @@ export const parsedVTodoToTask = (
       .map((a) => ({
         id: generateUUID(),
         trigger: a.trigger!,
+        relativeOffset: a.relativeOffset,
+        relatedTo: a.relatedTo,
+        repeat: a.repeat,
+        duration: a.duration,
       }));
   }
 

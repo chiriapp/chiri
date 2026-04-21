@@ -61,7 +61,11 @@ export type SortDirection = 'asc' | 'desc';
 
 export interface Reminder {
   id: string;
-  trigger: Date; // absolute date/time when the reminder should fire
+  trigger: Date; // absolute date/time when the reminder fires (resolved from relative if needed)
+  relativeOffset?: number; // milliseconds; if set, this was a relative trigger and should round-trip as one
+  relatedTo?: 'start' | 'end'; // which date the offset is relative to (RELATED=START/END)
+  repeat?: number; // RFC 5545 REPEAT: number of additional repetitions after the initial trigger
+  duration?: number; // RFC 5545 DURATION (ms): delay between repetitions; required when repeat is set
 }
 
 export interface Task {
