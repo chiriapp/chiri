@@ -35,6 +35,16 @@ export const isMacPlatform = () => {
 };
 
 /**
+ * Detect if running on Linux platform
+ */
+export const isLinuxPlatform = () => {
+  if (typeof navigator === 'undefined') {
+    return false;
+  }
+  return /Linux/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent);
+};
+
+/**
  * Check if in-app updates should be disabled.
  * Returns true for installations managed by external package managers.
  */

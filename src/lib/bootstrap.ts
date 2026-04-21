@@ -9,7 +9,7 @@ import { createBootstrapErrorUI } from '$lib/errorUI';
 import { initLogger, loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import { initAppMenu } from '$utils/menu';
-import { isCEF } from '$utils/platform';
+import { isCEF, isLinuxPlatform } from '$utils/platform';
 
 const log = loggers.bootstrap;
 
@@ -38,6 +38,17 @@ export const initializeApp = async () => {
     settingsStore.setSystemTrayAppliedValue(enableSystemTray);
   } catch (error) {
     log.error('Failed to initialize system tray:', error);
+  }
+
+  // Apply window decorations override. 'auto' leaves the startup-time
+  // per-DE decision in place; explicit 'on'/'off' overrides it.
+  const decorationsMode = settingsStore.getState().windowDecorationsMode;
+  if (decorationsMode !== 'auto' && isLinuxPlatform()) {
+    try {
+      await invoke('set_window_decorations', { enabled: decorationsMode === 'on' });
+    } catch (error) {
+      log.error('Failed to apply window decorations override:', error);
+    }
   }
 
   log.debug('Getting UI state...');
