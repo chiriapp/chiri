@@ -1,6 +1,6 @@
 import Inbox from 'lucide-react/icons/inbox';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AccountModal } from '$components/modals/AccountModal';
+import { AccountModal } from '$components/modals/account/AccountModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { TagModal } from '$components/modals/TagModal';
@@ -226,7 +226,7 @@ export const Sidebar = ({
           <div
             ref={resizeHandleRef}
             onMouseDown={handleResizeStart}
-            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary-400 dark:hover:bg-primary-600 transition-colors z-10"
+            className={`absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors z-10 ${isResizing ? 'bg-primary-400 dark:bg-primary-600' : 'hover:bg-primary-400 dark:hover:bg-primary-600'}`}
           />
         )}
 
