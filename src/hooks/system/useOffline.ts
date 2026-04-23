@@ -128,18 +128,15 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
     // These may not fire reliably in Tauri/WKWebView, but use as fast paths when they do
     const handleOnline = () => runCheck();
     const handleOffline = () => setOffline();
-    const handleFocus = () => runCheck();
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    window.addEventListener('focus', handleFocus);
 
     return () => {
       abortControllerRef.current?.abort();
       if (checkIntervalRef.current) clearInterval(checkIntervalRef.current);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      window.removeEventListener('focus', handleFocus);
     };
   }, [runCheck, setOffline, connectivityCheckInterval]);
 
