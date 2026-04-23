@@ -60,7 +60,9 @@ export const SidebarCollapsedView = ({
         </button>
       </Tooltip>
 
-      <div className="w-6 h-px bg-surface-200 dark:bg-surface-700 my-1" />
+      {accounts.some((account) => account.calendars.length > 0) && (
+        <div className="w-6 h-px bg-surface-200 dark:bg-surface-700 my-1" />
+      )}
 
       {accounts.flatMap((account) =>
         account.calendars.map((calendar) => {
