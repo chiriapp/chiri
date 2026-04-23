@@ -130,6 +130,11 @@ export const useSyncQuery = () => {
         return;
       }
 
+      if (getAllAccounts().length === 0) {
+        log.info('Skipping sync - no accounts configured', { requestedBy: syncTrigger });
+        return;
+      }
+
       const runId = ++syncRunCounter;
       syncRunInProgress = true;
       activeSyncRun = { id: runId, source: syncTrigger.source };
