@@ -3,17 +3,16 @@
     windows_subsystem = "windows"
 )]
 
-mod app_nap;
 mod data_migration;
 mod install_type;
+mod linux;
 mod logging;
-mod macos_menu;
+mod macos;
 mod migrations;
 mod notification_manager;
 mod notifications;
-mod plist_utils;
+mod plist;
 mod tray;
-mod window_decorations;
 mod window_events;
 
 #[cfg(target_os = "macos")]
@@ -28,7 +27,6 @@ use tauri_plugin_sql::Builder;
 /// Exits the process directly via the OS, bypassing Tauri's RunEvent::ExitRequested.
 /// Must be used instead of tauri-plugin-process's exit(), which calls AppHandle::exit()
 /// and re-triggers ExitRequested, causing an infinite prevent/exit loop.
-
 #[tauri::command]
 fn force_quit() {
     std::process::exit(0);
@@ -75,24 +73,25 @@ fn main() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
-            tray::update_tray_sync_time,
-            tray::update_tray_sync_enabled,
-            tray::set_tray_visible,
+            force_quit,
+            http_client::caldav_request,
+            install_type::get_install_type,
+            install_type::should_disable_updates,
+            linux::desktop::is_gnome_desktop,
+            linux::fs::read_file_bytes,
+            linux::window_decorations::set_window_decorations,
+            macos::menu::apply_macos_menu_fixes,
+            notifications::manager::send_notification_with_actions,
+            notifications::manager::send_simple_notification,
+            notifications::permissions::check_notification_permission,
+            notifications::permissions::request_notification_permission,
+            plist::convert_plist_to_xml,
             tray::get_tray_enabled,
             tray::initialize_tray,
-            tray::is_gnome_desktop,
-            plist_utils::convert_plist_to_xml,
-            plist_utils::read_file_bytes,
-            notifications::check_notification_permission,
-            notifications::request_notification_permission,
-            notification_manager::send_notification_with_actions,
-            notification_manager::send_simple_notification,
-            macos_menu::apply_macos_menu_fixes,
-            force_quit,
-            install_type::should_disable_updates,
-            install_type::get_install_type,
-            http_client::caldav_request,
-            window_decorations::set_window_decorations
+            tray::set_tray_visible,
+            tray::update_tray_sync_enabled,
+            tray::update_tray_sync_time,
+
         ])
         .setup(|_app| {
             // Register deep link URL scheme handler (macOS uses Info.plist; Windows/Linux
@@ -104,7 +103,7 @@ fn main() {
             // messages follow the same format as the rest of the app logs.
             #[cfg(target_os = "macos")]
             {
-                app_nap::disable_app_nap();
+                macos::app_nap::disable_app_nap();
             }
 
             // Migrate data from old caldav-tasks app
@@ -113,7 +112,7 @@ fn main() {
             // Configure titlebar BEFORE window is shown (must happen before realization)
             #[cfg(target_os = "linux")]
             if let Some(window) = _app.get_webview_window("main") {
-                window_decorations::configure_titlebar_for_de(&window);
+                linux::window_decorations::configure_titlebar_for_de(&window);
             }
 
             // Initialize notification manager with actions
