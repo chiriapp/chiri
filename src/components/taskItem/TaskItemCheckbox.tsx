@@ -39,7 +39,7 @@ export const TaskItemCheckbox = ({
   };
 
   return (
-    <button type="button" onClick={onClick} title={getTitle()} className={getClassName()}>
+    <button type="button" onClick={onClick} aria-label={getTitle()} className={getClassName()}>
       {isCompleted && (
         <Check className="w-4 h-4" style={{ color: checkmarkColor }} strokeWidth={3} />
       )}
