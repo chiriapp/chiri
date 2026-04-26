@@ -118,6 +118,11 @@ export const SERVER_TYPE_GROUPS: ServerTypeGroup[] = [
         label: 'RustiCal',
         description: 'Uses /caldav/principal/{username}/ path structure',
       },
+      {
+        value: 'vikunja',
+        label: 'Vikunja',
+        description: 'Uses /dav/principals/{username}/ and /dav/projects/ path structure',
+      },
     ],
   },
 ];

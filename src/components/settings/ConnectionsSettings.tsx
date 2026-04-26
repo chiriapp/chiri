@@ -23,7 +23,7 @@ interface ConnectionsSettingsProps {
 
 export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
   const deleteAccountMutation = useDeleteAccount();
-  const { confirm } = useConfirmDialog();
+  const { confirm, close } = useConfirmDialog();
   const { confirmBeforeDeleteAccount } = useSettingsStore();
   const { hasConnection } = useConnectionStore();
   const { data: tasks = [] } = useTasks();
@@ -57,6 +57,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
       }
     }
     deleteAccountMutation.mutate(account.id);
+    close();
   };
 
   const handleEditAccount = (accountId: string) => {

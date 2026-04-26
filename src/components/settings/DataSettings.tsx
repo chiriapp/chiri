@@ -16,7 +16,7 @@ interface DataSettingsProps {
 
 export const DataSettings = ({ onClose }: DataSettingsProps) => {
   const { exportSettings, importSettings, resetSettings } = useSettingsStore();
-  const { confirm } = useConfirmDialog();
+  const { confirm, close } = useConfirmDialog();
 
   const handleResetPreferences = async () => {
     const confirmed = await confirm({
@@ -31,6 +31,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
       destructive: true,
     });
 
+    close();
     if (confirmed) {
       // Close the task editor if open
       setEditorOpen(false);
@@ -60,6 +61,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
       delayConfirmSeconds: 5,
     });
 
+    close();
     if (confirmed) await deleteDatabase();
   };
 

@@ -1,0 +1,38 @@
+name: Feature Request
+description: Request a new feature for Chiri.
+title: "FR: "
+labels: ["feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Got an idea for something new? Describe it below!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the workflow or pain point this would address.
+      placeholder: "e.g. I often want to see all tasks due this week at a glance, but currently I have to scroll through each calendar separately."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Describe the feature
+      description: What would you like Chiri to do? Feel free to include mockups, sketches, or references to other apps.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you found any workarounds, or other tools that handle this well?
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that might be helpful — links, related issues, CalDAV specs, etc.
