@@ -18,6 +18,7 @@ import type {
   QuickTimePresets,
   TaskBadgeVisibility,
   TaskListDensity,
+  WindowDecorationsMode,
 } from '$types/settings';
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
@@ -260,6 +261,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (interval: number) => settingsStore.setConnectivityCheckInterval(interval),
     [],
   );
+  const setWindowDecorationsMode = useCallback(
+    (mode: WindowDecorationsMode) => settingsStore.setWindowDecorationsMode(mode),
+    [],
+  );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
   const resetSettings = useCallback(() => settingsStore.resetSettings(), []);
@@ -330,6 +335,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setQuickTimePresets,
     setConnectivityCheckUrl,
     setConnectivityCheckInterval,
+    setWindowDecorationsMode,
     exportSettings,
     importSettings,
     resetSettings,

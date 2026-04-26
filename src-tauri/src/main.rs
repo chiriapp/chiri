@@ -21,6 +21,8 @@ use tauri::Emitter;
 use tauri::Manager;
 #[cfg(target_os = "macos")]
 use tauri::RunEvent;
+#[cfg(any(windows, target_os = "linux"))]
+use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_sql::Builder;
 
 /// Exits the process directly via the OS, bypassing Tauri's RunEvent::ExitRequested.
@@ -43,6 +45,7 @@ fn main() {
     let db_migrations = migrations::get_migrations();
 
     let builder = tauri::Builder::default()
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // When a second instance is launched, focus the existing window
             if let Some(window) = app.get_webview_window("main") {
@@ -87,9 +90,16 @@ fn main() {
             macos_menu::apply_macos_menu_fixes,
             force_quit,
             install_type::should_disable_updates,
-            install_type::get_install_type
+            install_type::get_install_type,
+            http_client::caldav_request,
+            window_decorations::set_window_decorations
         ])
         .setup(|_app| {
+            // Register deep link URL scheme handler (macOS uses Info.plist; Windows/Linux
+            // need explicit runtime registration so the OS knows which binary to call).
+            #[cfg(any(windows, target_os = "linux"))]
+            _app.deep_link().register_all()?;
+
             // Disable App Nap after logging has been initialized so App Nap
             // messages follow the same format as the rest of the app logs.
             #[cfg(target_os = "macos")]

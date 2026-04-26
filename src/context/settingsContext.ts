@@ -26,6 +26,7 @@ import type {
   QuickTimePresets,
   TaskBadgeVisibility,
   TaskListDensity,
+  WindowDecorationsMode,
 } from '$types/settings';
 import { applyAccentColor, applyColorScheme, applySchemeAccentColor, applyTheme } from '$utils/color';
 
@@ -99,6 +100,8 @@ interface SettingsState {
   // Connectivity
   connectivityCheckUrl: string;
   connectivityCheckInterval: number;
+  // Window decorations (Linux)
+  windowDecorationsMode: WindowDecorationsMode;
 }
 
 interface SettingsActions {
@@ -167,6 +170,7 @@ interface SettingsActions {
   setQuickTimePresets: (presets: QuickTimePresets) => void;
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;
+  setWindowDecorationsMode: (mode: WindowDecorationsMode) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;
   resetSettings: () => void;
@@ -258,6 +262,7 @@ const defaultState: SettingsState = {
   quickTimePresets: { morning: 540, afternoon: 720, evening: 1020, night: 1260 },
   connectivityCheckUrl: '',
   connectivityCheckInterval: 30,
+  windowDecorationsMode: 'auto',
 };
 
 /**
@@ -509,6 +514,8 @@ export const settingsStore = {
   setConnectivityCheckUrl: (connectivityCheckUrl: string) => setState({ connectivityCheckUrl }),
   setConnectivityCheckInterval: (connectivityCheckInterval: number) =>
     setState({ connectivityCheckInterval }),
+  setWindowDecorationsMode: (windowDecorationsMode: WindowDecorationsMode) =>
+    setState({ windowDecorationsMode }),
 
   exportSettings: () => {
     const exportData = {
@@ -584,6 +591,7 @@ export const settingsStore = {
         'quietHoursEnd',
         'connectivityCheckUrl',
         'connectivityCheckInterval',
+        'windowDecorationsMode',
       ];
 
       // Build new state with simple settings

@@ -2,6 +2,8 @@ import type { ServerType } from '$types';
 
 export type TaskListDensity = 'comfortable' | 'compact';
 
+export type WindowDecorationsMode = 'auto' | 'on' | 'off';
+
 export interface EditorFieldVisibility {
   status: boolean;
   description: boolean;
