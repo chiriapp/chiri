@@ -4,12 +4,12 @@ use std::path::Path;
 /// Represents the detected installation method
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InstallType {
-    /// Installed via Nix package manager
-    Nix,
     /// Installed from AUR (Arch User Repository)
     Aur,
     /// Installed via Flatpak
     Flatpak,
+    /// Installed via Nix package manager
+    Nix,
     /// Standard installation (AppImage, .deb, .rpm, .dmg, .exe, etc.)
     Standard,
 }
@@ -19,13 +19,19 @@ impl InstallType {
     pub fn has_external_updates(self) -> bool {
         matches!(
             self,
-            InstallType::Nix | InstallType::Aur | InstallType::Flatpak
+            InstallType::Aur | InstallType::Flatpak | InstallType::Nix
         )
     }
 }
 
 /// Detect the installation type based on environment and binary location
 pub fn detect_install_type() -> InstallType {
+    // Check for AUR installation marker
+    // AUR package creates a marker file during installation
+    if Path::new("/usr/share/chiri/.aur-install").exists() {
+        return InstallType::Aur;
+    }
+
     // Check for Flatpak (FLATPAK_ID environment variable is set by Flatpak runtime)
     if env::var("FLATPAK_ID").is_ok() {
         return InstallType::Flatpak;
@@ -38,12 +44,6 @@ pub fn detect_install_type() -> InstallType {
                 return InstallType::Nix;
             }
         }
-    }
-
-    // Check for AUR installation marker
-    // AUR package creates a marker file during installation
-    if Path::new("/usr/share/chiri/.aur-install").exists() {
-        return InstallType::Aur;
     }
 
     InstallType::Standard
@@ -61,9 +61,9 @@ pub fn should_disable_updates() -> bool {
 pub fn get_install_type() -> String {
     let install_type = detect_install_type();
     match install_type {
-        InstallType::Nix => "nix".to_string(),
         InstallType::Aur => "aur".to_string(),
         InstallType::Flatpak => "flatpak".to_string(),
+        InstallType::Nix => "nix".to_string(),
         InstallType::Standard => "standard".to_string(),
     }
 }
