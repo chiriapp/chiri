@@ -211,7 +211,7 @@ export const connect = async (
   principalUrlOverride?: string,
   acceptInvalidCerts?: boolean,
 ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> => {
-  const credentials: CalDAVCredentials = { username, password };
+  const credentials: CalDAVCredentials = { username, password, acceptInvalidCerts };
 
   let baseUrl = serverUrl.replace(/\/$/, '');
 
