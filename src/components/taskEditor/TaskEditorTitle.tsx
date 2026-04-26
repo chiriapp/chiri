@@ -75,7 +75,7 @@ export const TaskEditorTitle = ({ task, checkmarkColor }: TaskEditorTitleProps) 
         <button
           type="button"
           onClick={handleCheckboxClick}
-          title={
+          aria-label={
             task.status === 'cancelled'
               ? 'Cancelled'
               : task.status === 'in-process'
