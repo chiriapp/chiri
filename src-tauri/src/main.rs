@@ -4,6 +4,7 @@
 )]
 
 mod data_migration;
+mod http_client;
 mod install_type;
 mod linux;
 mod logging;
@@ -90,7 +91,6 @@ fn main() {
             tray::set_tray_visible,
             tray::update_tray_sync_enabled,
             tray::update_tray_sync_time,
-
         ])
         .setup(|_app| {
             // Register deep link URL scheme handler (macOS uses Info.plist; Windows/Linux
