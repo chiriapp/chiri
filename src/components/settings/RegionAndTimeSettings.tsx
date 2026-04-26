@@ -83,8 +83,8 @@ export const RegionAndTimeSettings = () => {
             onChange={(e) => setTimeFormat(e.target.value as TimeFormat)}
             className={selectClassName}
           >
-            <option value="12">12-hour</option>
-            <option value="24">24-hour</option>
+            <option value="12">12-hour time</option>
+            <option value="24">24-hour time</option>
           </AppSelect>
         </div>
 

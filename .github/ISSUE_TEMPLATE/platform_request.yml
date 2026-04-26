@@ -1,0 +1,50 @@
+name: Platform / Distribution Request
+description: Request support for a new platform or distribution format.
+title: "PR: "
+labels: ["platform request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Want Chiri on a platform or in a format it doesn't currently support? Let us know!
+
+        Current distributions: Windows (x64/ARM MSI), macOS (Intel/Apple Silicon DMG), Linux (deb/rpm x86_64/ARM64), AUR, Nix flake.
+
+  - type: input
+    id: target
+    attributes:
+      label: Target platform or format
+      placeholder: "e.g. Flatpak, AppImage, Windows portable (zip), Homebrew cask, NixOS module"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - macOS
+        - Linux
+        - Cross-platform
+    validations:
+      required: true
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Why do you need this?
+      description: Describe the environment or workflow where the existing packages don't work for you.
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Links to the platform's packaging docs, existing Tauri support, or similar apps that already ship this format.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context

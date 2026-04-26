@@ -154,7 +154,8 @@ export type ServerType =
   | 'baikal'
   | 'nextcloud'
   | 'radicale'
-  | 'rustical';
+  | 'rustical'
+  | 'vikunja';
 
 export interface Account {
   id: string;

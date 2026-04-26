@@ -1,3 +1,4 @@
+import { Info } from 'lucide-react';
 import { AppSelect } from '$components/AppSelect';
 import { CONNECTIVITY_CHECK_INTERVAL_OPTIONS, SYNC_INTERVAL_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
@@ -13,6 +14,8 @@ export const SyncSettings = () => {
     setSyncOnStartup,
     syncOnReconnect,
     setSyncOnReconnect,
+    connectivityCheckEnabled,
+    setConnectivityCheckEnabled,
     connectivityCheckUrl,
     setConnectivityCheckUrl,
     connectivityCheckInterval,
@@ -104,44 +107,79 @@ export const SyncSettings = () => {
         Connectivity
       </h3>
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
-        <div className="flex items-center justify-between p-4">
+        <label className="flex items-center justify-between p-4">
           <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">Check interval</p>
-            <p className="text-xs text-surface-500 dark:text-surface-400">
-              How often to probe for network connectivity
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              External connectivity check
             </p>
-          </div>
-          <AppSelect
-            id="connectivity-check-interval"
-            value={connectivityCheckInterval.toString()}
-            onChange={(e) => setConnectivityCheckInterval(Number(e.target.value))}
-            className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
-          >
-            {CONNECTIVITY_CHECK_INTERVAL_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </AppSelect>
-        </div>
-
-        <div className="border-t border-surface-200 dark:border-surface-700" />
-
-        <div className="p-4 space-y-2">
-          <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">Check URL</p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              Fallback endpoint used to verify network access when CalDAV servers are unreachable
+              Probe an external URL to confirm network access when CalDAV servers are unreachable.
+              It's recommended to keep this enabled.
             </p>
           </div>
           <input
-            type="url"
-            value={connectivityCheckUrl}
-            onChange={(e) => setConnectivityCheckUrl(e.target.value)}
-            placeholder={DEFAULT_CONNECTIVITY_CHECK_URL}
-            className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+            type="checkbox"
+            checked={connectivityCheckEnabled}
+            onChange={(e) => setConnectivityCheckEnabled(e.target.checked)}
+            className="shrink-0 rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
           />
-        </div>
+        </label>
+
+        {!connectivityCheckEnabled && (
+          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+            <Info className="mt-px size-3.5 shrink-0" />
+            <span>
+              Disabling this may cause the app to incorrectly report offline status when your CalDAV
+              servers are temporarily unreachable.
+            </span>
+          </div>
+        )}
+
+        {connectivityCheckEnabled && (
+          <>
+            <div className="border-t border-surface-200 dark:border-surface-700" />
+
+            <div className="flex items-center justify-between p-4">
+              <div>
+                <p className="text-sm text-surface-700 dark:text-surface-300">Check interval</p>
+                <p className="text-xs text-surface-500 dark:text-surface-400">
+                  How often to probe for connectivity
+                </p>
+              </div>
+              <AppSelect
+                id="connectivity-check-interval"
+                value={connectivityCheckInterval.toString()}
+                onChange={(e) => setConnectivityCheckInterval(Number(e.target.value))}
+                className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+              >
+                {CONNECTIVITY_CHECK_INTERVAL_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </AppSelect>
+            </div>
+
+            <div className="border-t border-surface-200 dark:border-surface-700" />
+
+            <div className="p-4 space-y-2">
+              <div>
+                <p className="text-sm text-surface-700 dark:text-surface-300">Check URL</p>
+                <p className="text-xs text-surface-500 dark:text-surface-400">
+                  Fallback endpoint used to verify network access when CalDAV servers are
+                  unreachable
+                </p>
+              </div>
+              <input
+                type="url"
+                value={connectivityCheckUrl}
+                onChange={(e) => setConnectivityCheckUrl(e.target.value)}
+                placeholder={DEFAULT_CONNECTIVITY_CHECK_URL}
+                className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

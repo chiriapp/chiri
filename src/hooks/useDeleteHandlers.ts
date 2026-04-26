@@ -20,7 +20,7 @@ const log = loggers.deleteHandlers;
  */
 export const useDeleteHandlers = () => {
   const queryClient = useQueryClient();
-  const { confirm, setLoading, close } = useConfirmDialog();
+  const { confirm, setLoading, setError, close } = useConfirmDialog();
   const { confirmBeforeDeleteAccount, confirmBeforeDeleteCalendar, confirmBeforeDeleteTag } =
     useSettingsStore();
 
@@ -79,13 +79,33 @@ export const useDeleteHandlers = () => {
     const account = accounts.find((a) => a.id === accountId);
     const calendar = account?.calendars.find((c) => c.id === calendarId);
 
-    if (confirmBeforeDeleteCalendar) {
+    const isVikunja =
+      account?.serverType === 'vikunja' || calendar?.url.includes('/dav/projects/');
+    const projectId = calendar?.url.match(/\/dav\/projects\/(\d+)/)?.[1];
+    const vikunjaDeleteUrl =
+      isVikunja && projectId
+        ? `${account?.serverUrl.replace(/\/$/, '')}/projects/${projectId}/settings/delete`
+        : undefined;
+
+    if (isVikunja || confirmBeforeDeleteCalendar) {
       const confirmed = await confirm({
         title: 'Delete calendar',
         subtitle: calendar?.displayName,
-        message: 'Are you sure? This calendar and all its tasks will be deleted from the server.',
+        message: isVikunja
+          ? undefined
+          : 'Are you sure? This calendar and all its tasks will be deleted from the server.',
         confirmLabel: 'Delete',
         destructive: true,
+        notice: isVikunja
+          ? {
+              message: "Vikunja doesn't support deleting projects via CalDAV.",
+              link: vikunjaDeleteUrl
+                ? { label: 'Delete it in Vikunja', href: vikunjaDeleteUrl }
+                : undefined,
+              suffix: ', then sync.',
+            }
+          : undefined,
+        disableConfirm: isVikunja,
       });
       if (!confirmed) return;
     }
@@ -113,10 +133,13 @@ export const useDeleteHandlers = () => {
       queryClient.invalidateQueries({ queryKey: ['uiState'] });
     } catch (error) {
       log.error('Failed to delete calendar:', error);
-    } finally {
-      // Close the dialog after deletion completes
-      close();
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred.';
+      setLoading(false);
+      setError(message);
+      return;
     }
+
+    close();
   };
 
   return {

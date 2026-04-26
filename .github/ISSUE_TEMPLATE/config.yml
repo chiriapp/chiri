@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions
+    url: https://github.com/SapphoSys/chiri/discussions
+    about: Got a question or want to chat about Chiri? Head over to Discussions!

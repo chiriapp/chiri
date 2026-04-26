@@ -58,6 +58,10 @@ export class CalDAVClient {
     return calendarOps.fetchCalendars(this.conn, this.accountId);
   }
 
+  async calendarExists(calendarUrl: string): Promise<boolean> {
+    return calendarOps.calendarExists(this.conn, calendarUrl);
+  }
+
   async createCalendar(displayName: string, color?: string): Promise<Calendar> {
     return calendarOps.createCalendar(this.conn, this.accountId, displayName, color);
   }

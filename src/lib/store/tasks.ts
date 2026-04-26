@@ -388,6 +388,39 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
   });
 };
 
+/**
+ * Remove a task from local storage only, without queuing a server-side DELETE.
+ * Use this when the server has already removed the task (e.g. detected during sync)
+ * so we don't mistakenly send a DELETE request for a resource that's gone or repurposed.
+ */
+export const removeLocalTask = (id: string) => {
+  const data = dataStore.load();
+  const task = data.tasks.find((t) => t.id === id);
+  if (!task) return;
+
+  db.deleteTask(id, true).catch((e) => log.error('Failed to persist local task removal:', e));
+
+  const getAllDescendantIds = (parentUid: string): string[] => {
+    const children = data.tasks.filter((t) => t.parentUid === parentUid);
+    const childIds = children.map((c) => c.id);
+    const descendantIds = children.flatMap((c) => getAllDescendantIds(c.uid));
+    return [...childIds, ...descendantIds];
+  };
+
+  const tasksToRemove = [id, ...getAllDescendantIds(task.uid)];
+
+  dataStore.save({
+    ...data,
+    tasks: data.tasks.filter((t) => !tasksToRemove.includes(t.id)),
+    ui: {
+      ...data.ui,
+      selectedTaskId: tasksToRemove.includes(data.ui.selectedTaskId ?? '')
+        ? null
+        : data.ui.selectedTaskId,
+    },
+  });
+};
+
 // Task toggles
 export const toggleTaskComplete = (id: string) => {
   const data = dataStore.load();

@@ -8,9 +8,9 @@ import { loggers } from '$lib/logger';
 import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
 import { getAccountById, getAllAccounts } from '$lib/store/accounts';
-import { addCalendar, updateCalendar } from '$lib/store/calendars';
+import { addCalendar, deleteCalendar, updateCalendar } from '$lib/store/calendars';
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
-import { createTask, deleteTask, getTasksByCalendar, updateTask } from '$lib/store/tasks';
+import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$lib/store/tasks';
 import { getUIState, setAllTasksView } from '$lib/store/ui';
 import { getErrorMessage } from '$lib/tauri-http';
 import type { Calendar, Task } from '$types';
@@ -276,11 +276,15 @@ const removeDeletedCalendars = (
     }
 
     const tasks = getTasksByCalendar(localCalendar.id);
-    syncLog.warn(`Deleting ${tasks.length} tasks from calendar "${localCalendar.displayName}"`);
+    syncLog.warn(
+      `Removing ${tasks.length} tasks from calendar "${localCalendar.displayName}" locally`,
+    );
 
     for (const task of tasks) {
-      deleteTask(task.id);
+      removeLocalTask(task.id);
     }
+
+    deleteCalendar(localCalendar.accountId, localCalendar.id);
   }
 
   return needsRedirectToAllTasks;
@@ -315,7 +319,41 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
   syncLog.info(`Found ${remoteCalendars.length} calendars on server for ${account.name}`);
 
   const localCalendars = account.calendars;
-  const remoteCalendarIds = new Set(remoteCalendars.map((c) => c.id));
+
+  // Guard against the server returning 0 calendars when we have local ones.
+  // Some servers (e.g. Vikunja) occasionally return only the collection itself
+  // in a PROPFIND response, making fetchCalendars return []. Treating that as
+  // "all calendars deleted" would cause irreversible data loss.
+  if (remoteCalendars.length === 0 && localCalendars.length > 0) {
+    syncLog.warn(
+      `Server returned 0 calendars for ${account.name} but ${localCalendars.length} exist locally. Skipping calendar sync to prevent potential data loss.`,
+    );
+    return;
+  }
+
+  // Build the set of confirmed-existing calendar IDs. Start with what the
+  // server listing returned, then verify any "missing" local calendars via a
+  // direct PROPFIND before treating them as deleted. Unreliable servers (e.g.
+  // Vikunja) sometimes return an incomplete listing; the extra PROPFIND lets
+  // us distinguish a real deletion from a transient omission.
+  const confirmedExistingIds = new Set(remoteCalendars.map((c) => c.id));
+  const potentiallyDeleted = localCalendars.filter((c) => !confirmedExistingIds.has(c.id));
+
+  for (const calendar of potentiallyDeleted) {
+    try {
+      const exists = await client.calendarExists(calendar.url);
+      if (exists) {
+        syncLog.warn(
+          `Calendar "${calendar.displayName}" was absent from server listing but still exists via direct PROPFIND. Server listing may be incomplete. Skipping removal.`,
+        );
+        confirmedExistingIds.add(calendar.id);
+      }
+    } catch {
+      // Verification failed — assume it's gone and let removal proceed below.
+    }
+  }
+
+  const remoteCalendarIds = confirmedExistingIds;
   const calendarSortMode = getUIState().calendarSortConfig.mode;
 
   // Build updated calendar list
@@ -435,9 +473,12 @@ export const syncCalendarTasks = async (
     }
 
     // STEP 4: Find tasks deleted on server (in local but not in remote)
+    // Use removeLocalTask (not deleteTask) so we don't queue a server-side DELETE —
+    // the server already removed the resource, and queuing a DELETE could accidentally
+    // destroy a resource that was repurposed (e.g. fruux reassigns the UID on the same href).
     for (const localTask of updatedLocalTasks) {
       if (localTask.synced && !remoteUids.has(localTask.uid)) {
-        deleteTask(localTask.id);
+        removeLocalTask(localTask.id);
       }
     }
 

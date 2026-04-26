@@ -61,7 +61,7 @@ export const useMenuHandlers = (
   const { confirmAndDelete } = useConfirmTaskDelete();
   const deleteAccountMutation = useDeleteAccount();
   const deleteCalendarMutation = useDeleteCalendar();
-  const { confirm } = useConfirmDialog();
+  const { confirm, close } = useConfirmDialog();
 
   // Separate refs for each callback to avoid object reference changes
   const onNewTaskRef = useRef<(() => void) | null>(null);
@@ -277,11 +277,12 @@ export const useMenuHandlers = (
         message: `Are you sure you want to remove "${name}"? All associated calendars and tasks will be deleted.`,
         confirmLabel: 'Remove',
       });
+      close();
       if (confirmed) {
         deleteAccountMutation.mutate(accountId);
       }
     },
-    [accounts, confirm, deleteAccountMutation],
+    [accounts, close, confirm, deleteAccountMutation],
   );
 
   const handleSyncCalendar = useCallback(
@@ -312,11 +313,12 @@ export const useMenuHandlers = (
         confirmLabel: 'Delete',
         destructive: true,
       });
+      close();
       if (confirmed) {
         deleteCalendarMutation.mutate({ accountId, calendarId });
       }
     },
-    [accounts, confirm, deleteCalendarMutation],
+    [accounts, close, confirm, deleteCalendarMutation],
   );
 
   // Update refs with latest callbacks

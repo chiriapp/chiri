@@ -8,6 +8,9 @@ use tauri::{
 
 use log::{debug, error};
 
+#[cfg(target_os = "macos")]
+use crate::macos::quit::is_keyboard_shortcut;
+
 // Runtime type alias - switches between Wry and Cef based on feature flag
 #[cfg(not(feature = "cef"))]
 type AppRuntime = tauri::Wry;
@@ -139,7 +142,7 @@ fn initialize_tray_impl(
     *SYNC_ITEM.lock().expect("Failed to lock SYNC_ITEM") = Some(sync_item.clone());
 
     let separator_item2 = PredefinedMenuItem::separator(&app_handle).map_err(|e| e.to_string())?;
-    let quit_item = MenuItem::with_id(&app_handle, "quit", "Quit", true, None::<&str>)
+    let quit_item = MenuItem::with_id(&app_handle, "tray-quit", "Quit", true, None::<&str>)
         .map_err(|e| e.to_string())?;
 
     let menu = Menu::with_items(
@@ -203,15 +206,26 @@ fn initialize_tray_impl(
                 }
             }
             "quit" => {
-                #[cfg(all(target_os = "macos", feature = "cef"))]
+                // App menu "Quit Chiri" — mirrors Chrome/Edge behaviour:
+                // • Cmd+Q from idle (KeyDown event)  → confirm-quit banner
+                // • Direct click OR Cmd+Q while submenu open → exit immediately
+                #[cfg(target_os = "macos")]
                 {
-                    let _ = app.emit("app:quit-requested", ());
+                    if is_keyboard_shortcut() {
+                        #[cfg(feature = "cef")]
+                        let _ = app.emit("app:quit-requested", ());
+                        #[cfg(not(feature = "cef"))]
+                        app.exit(0);
+                    } else {
+                        std::process::exit(0);
+                    }
                 }
-
-                #[cfg(not(all(target_os = "macos", feature = "cef")))]
-                {
-                    app.exit(0);
-                }
+                #[cfg(not(target_os = "macos"))]
+                app.exit(0);
+            }
+            "tray-quit" => {
+                // Tray icon "Quit" click — exit immediately, no confirmation
+                std::process::exit(0);
             }
             _ => {}
         })

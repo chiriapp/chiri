@@ -29,7 +29,7 @@ const tryUrl = async (url: string, signal: AbortSignal): Promise<boolean> => {
  *    "server(s) down" from "no network."
  * 3. No accounts configured → go straight to tiebreaker.
  */
-const checkConnectivity = async (controller: AbortController): Promise<boolean> => {
+const checkConnectivity = async (controller: AbortController, tiebreakerEnabled: boolean) => {
   const accounts = getAllAccounts().filter((a) => a.isActive);
 
   for (const account of accounts) {
@@ -43,6 +43,11 @@ const checkConnectivity = async (controller: AbortController): Promise<boolean> 
       if (controller.signal.aborted) throw new Error('Aborted');
       log.debug(`Probe failed: ${account.serverUrl}`);
     }
+  }
+
+  if (!tiebreakerEnabled) {
+    log.debug('All CalDAV probes failed — tiebreaker disabled, assuming offline');
+    return false;
   }
 
   // All CalDAV probes failed (or no accounts) — use tiebreaker
@@ -61,7 +66,7 @@ const checkConnectivity = async (controller: AbortController): Promise<boolean> 
 };
 
 export const useOffline = (options: UseOfflineOptions = {}) => {
-  const { connectivityCheckInterval } = useSyncExternalStore(
+  const { connectivityCheckEnabled, connectivityCheckInterval } = useSyncExternalStore(
     settingsStore.subscribe,
     settingsStore.getSnapshot,
     settingsStore.getSnapshot,
@@ -107,7 +112,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
     abortControllerRef.current = controller;
 
     try {
-      if (await checkConnectivity(controller)) {
+      if (await checkConnectivity(controller, connectivityCheckEnabled)) {
         setOnline();
       } else {
         setOffline();
@@ -117,7 +122,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
     } finally {
       isCheckingRef.current = false;
     }
-  }, [setOnline, setOffline]);
+  }, [connectivityCheckEnabled, setOnline, setOffline]);
 
   useEffect(() => {
     log.info(`Starting connectivity checks (interval: ${connectivityCheckInterval}s)`);

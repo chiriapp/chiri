@@ -71,6 +71,47 @@
             bin = bin;
           };
 
+        apps.caldav-test =
+          let
+            script = pkgs.writeShellApplication {
+              name = "caldav-test";
+              runtimeInputs = [ pkgs.xandikos ];
+              text = ''
+                DATA_DIR="''${CALDAV_DATA_DIR:-$HOME/.local/share/chiri-caldav-test}"
+                PORT="''${CALDAV_PORT:-5232}"
+                PRINCIPAL="''${CALDAV_PRINCIPAL:-test}"
+
+                mkdir -p "$DATA_DIR"
+
+                echo "Xandikos CalDAV test server (no auth)"
+                echo "  Principal URL: http://localhost:$PORT/$PRINCIPAL/"
+                echo "  Data:          $DATA_DIR"
+                echo ""
+                echo "Press Ctrl+C to stop."
+                echo ""
+
+                # Disable git commit signing — dulwich (xandikos's storage backend)
+                # reads ~/.gitconfig directly and will try to invoke op-ssh-sign.
+                # GIT_CONFIG_GLOBAL overrides the user config path in dulwich 1.1+.
+                GITCONFIG_OVERRIDE=$(mktemp)
+                printf '[commit]\n\tgpgsign = false\n[user]\n\tname = xandikos-test\n\temail = test@localhost\n' > "$GITCONFIG_OVERRIDE"
+                export GIT_CONFIG_GLOBAL="$GITCONFIG_OVERRIDE"
+                trap 'rm -f "$GITCONFIG_OVERRIDE"' EXIT
+
+                exec xandikos serve \
+                  -d "$DATA_DIR" \
+                  -l 127.0.0.1 \
+                  -p "$PORT" \
+                  --current-user-principal "/$PRINCIPAL/" \
+                  --defaults
+              '';
+            };
+          in
+          {
+            type = "app";
+            program = "${script}/bin/caldav-test";
+          };
+
         devShells.default = pkgs.mkShell {
           buildInputs =
             with pkgs;

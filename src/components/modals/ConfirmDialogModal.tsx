@@ -1,7 +1,21 @@
+import AlertTriangle from 'lucide-react/icons/triangle-alert';
+import Loader2 from 'lucide-react/icons/loader-2';
 import X from 'lucide-react/icons/x';
 import { type ReactNode, useEffect, useState } from 'react';
 import { ModalBackdrop } from '$components/ModalBackdrop';
-import { ModalButton } from '$components/ModalButton';
+import type { ConfirmNotice } from '$context/confirmDialogContext';
+
+const getButtonClasses = (isDestructive: boolean, isPrimary: boolean) => {
+  if (isDestructive) {
+    return 'bg-red-600 hover:bg-red-700 outline-hidden focus-visible:ring-2 focus-visible:ring-red-500 text-white';
+  }
+
+  if (isPrimary) {
+    return 'bg-primary-600 hover:bg-primary-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 text-primary-contrast';
+  }
+
+  return 'border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500';
+};
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -15,6 +29,9 @@ interface ConfirmDialogProps {
   alternateDestructive?: boolean;
   delayConfirmSeconds?: number;
   isLoading?: boolean;
+  error?: string;
+  notice?: ConfirmNotice;
+  disableConfirm?: boolean;
   onConfirm: () => void;
   onAlternate?: () => void;
   onCancel: () => void;
@@ -32,6 +49,9 @@ export const ConfirmDialogModal = ({
   alternateDestructive = false,
   delayConfirmSeconds,
   isLoading = false,
+  error,
+  notice,
+  disableConfirm = false,
   onConfirm,
   onAlternate,
   onCancel,
@@ -75,7 +95,7 @@ export const ConfirmDialogModal = ({
   if (!isOpen) return null;
 
   return (
-    <ModalBackdrop zIndex="z-70" onClose={onCancel}>
+    <ModalBackdrop zIndex="z-[70]" onClose={onCancel}>
       <div
         role="dialog"
         aria-modal="true"
@@ -103,43 +123,79 @@ export const ConfirmDialogModal = ({
           <button
             type="button"
             onClick={onCancel}
-            className="shrink-0 ml-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 p-1 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="flex-shrink-0 ml-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 p-1 rounded transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="p-4">
-          <p
-            id="confirm-dialog-description"
-            className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed"
-          >
-            {message}
-          </p>
-        </div>
+        {message && (
+          <div className="p-4">
+            <p
+              id="confirm-dialog-description"
+              className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed"
+            >
+              {message}
+            </p>
+          </div>
+        )}
 
-        <div className="border-t border-surface-200 dark:border-surface-700 p-4 flex justify-end gap-2">
-          <ModalButton variant="secondary" onClick={onCancel} disabled={isLoading}>
+        {notice && (
+          <div className={`mx-4 mb-4 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300${message ? '' : ' mt-4'}`}>
+            <AlertTriangle className="mt-px size-3.5 shrink-0" />
+            <span>
+              {notice.message}{' '}
+              {notice.link && (
+                <a
+                  href={notice.link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium underline underline-offset-2 hover:opacity-80"
+                >
+                  {notice.link.label}
+                </a>
+              )}
+              {notice.suffix}
+            </span>
+          </div>
+        )}
+
+        {error && (
+          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2 text-xs text-red-700 dark:text-red-300">
+            <AlertTriangle className="mt-px size-3.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="px-4 pb-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
+          >
             {cancelLabel}
-          </ModalButton>
+          </button>
           {alternateLabel && onAlternate && (
-            <ModalButton
-              variant={alternateDestructive ? 'destructive' : 'primary'}
+            <button
+              type="button"
               onClick={onAlternate}
               disabled={isLoading}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${getButtonClasses(alternateDestructive, !alternateDestructive && !destructive)} disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               {alternateLabel}
-            </ModalButton>
+            </button>
           )}
-          <ModalButton
-            variant={destructive ? 'destructive' : 'primary'}
+          <button
+            type="button"
             onClick={onConfirm}
-            disabled={isConfirmDisabled}
-            loading={isLoading}
+            disabled={isConfirmDisabled || isLoading || disableConfirm}
+            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${getButtonClasses(destructive, !alternateLabel)} disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
           >
+            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
             {isConfirmDisabled ? `${confirmLabel} (${remainingSeconds}s)` : confirmLabel}
-          </ModalButton>
+          </button>
         </div>
       </div>
     </ModalBackdrop>

@@ -17,6 +17,16 @@ const checkPropertySuccess = (responseBody: string, propertyName: string) => {
   return false;
 };
 
+export const calendarExists = async (conn: Connection, calendarUrl: string): Promise<boolean> => {
+  const response = await propfind(
+    calendarUrl,
+    conn.credentials,
+    `<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/></d:prop></d:propfind>`,
+    '0',
+  );
+  return response.status === 207 || response.status === 200;
+};
+
 export const fetchCalendars = async (conn: Connection, accountId: string): Promise<Calendar[]> => {
   const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
 <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:a="http://apple.com/ns/ical/">
@@ -89,13 +99,20 @@ export const createCalendar = async (
   displayName: string,
   color?: string,
 ): Promise<Calendar> => {
+  const isVikunja = conn.serverType === 'vikunja' || conn.calendarHome.includes('/dav/projects');
+  if (isVikunja) {
+    throw new Error(
+      "Vikunja doesn't support creating projects via CalDAV. Create the project in Vikunja's web interface, then sync.",
+    );
+  }
+
   const slug =
     displayName
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '') ?? 'calendar';
 
-  const calendarUrl = `${conn.calendarHome}${slug}/`;
+  const calendarUrl = `${conn.calendarHome.replace(/\/$/, '')}/${slug}/`;
 
   let colorProp = '';
   if (color) {

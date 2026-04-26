@@ -1,7 +1,7 @@
 import { connectionStore } from '$context/connectionContext';
 import { makeAbsoluteUrl } from '$lib/caldav/utils';
 import type { CalDAVCredentials } from '$lib/tauri-http';
-import { parseMultiStatus, propfind } from '$lib/tauri-http';
+import { parseMultiStatus, propfind, tauriRequest } from '$lib/tauri-http';
 import type { Account, ServerType } from '$types';
 
 interface ServerConfig {
@@ -25,23 +25,27 @@ const CALDAV_PATH_PATTERNS = [
 ];
 
 const SERVER_CONFIGS: Record<string, ServerConfig> = {
-  rustical: {
-    principalPath: (username) => `/caldav/principal/${username}/`,
-  },
-  radicale: {
-    principalPath: (username) => `/${username}/`,
-  },
   baikal: {
     principalPath: (username) => `/dav.php/principals/${username}/`,
     calendarHomePath: (username) => `/dav.php/calendars/${username}/`,
+  },
+  fruux: {
+    principalPath: (username) => `/principals/uid/${username}/`,
+    calendarHomePath: (username) => `/calendars/${username}/`,
   },
   nextcloud: {
     principalPath: (username) => `/remote.php/dav/principals/users/${username}/`,
     calendarHomePath: (username) => `/remote.php/dav/calendars/${username}/`,
   },
-  fruux: {
-    principalPath: (username) => `/principals/uid/${username}/`,
-    calendarHomePath: (username) => `/calendars/${username}/`,
+  radicale: {
+    principalPath: (username) => `/${username}/`,
+  },
+  rustical: {
+    principalPath: (username) => `/caldav/principal/${username}/`,
+  },
+  vikunja: {
+    principalPath: (username) => `/dav/principals/${username}/`,
+    calendarHomePath: () => `/dav/projects/`,
   },
 };
 
@@ -178,6 +182,25 @@ const discoverGenericUrls = async (
   return { principalUrl, calendarHome: makeAbsoluteUrl(discoveredCalendarHome, baseUrl) };
 };
 
+export const detectVikunja = async (serverUrl: string, credentials: CalDAVCredentials) => {
+  try {
+    const baseUrl = serverUrl.replace(/\/$/, '');
+    const response = await tauriRequest(`${baseUrl}/api/v1/info`, 'GET', credentials);
+    if (response.status !== 200) return false;
+    const body = JSON.parse(response.body);
+    if (typeof body.caldav_enabled !== 'boolean') return false;
+    if (!body.caldav_enabled) {
+      throw new Error(
+        'Vikunja CalDAV integration is disabled. Enable it in your Vikunja settings.',
+      );
+    }
+    return true;
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('Vikunja')) throw e;
+    return false;
+  }
+};
+
 export const connect = async (
   accountId: string,
   serverUrl: string,
@@ -218,11 +241,12 @@ export const connect = async (
     calendarHome = makeAbsoluteUrl(discoveredCalendarHome, baseUrl);
   } else {
     switch (serverType) {
-      case 'rustical':
-      case 'radicale':
       case 'baikal':
+      case 'fruux':
       case 'nextcloud':
-      case 'fruux': {
+      case 'radicale':
+      case 'rustical':
+      case 'vikunja': {
         const config = SERVER_CONFIGS[serverType];
         principalUrl = `${baseUrl}${config.principalPath(username)}`;
         calendarHome = config.calendarHomePath
