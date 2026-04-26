@@ -35,14 +35,15 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
     password: accountData.password ?? '',
     serverType: accountData.serverType,
     calendarHomeUrl: accountData.calendarHomeUrl,
+    principalUrl: accountData.principalUrl,
     calendars: [],
     isActive: true,
     sortOrder: accountData.sortOrder || maxOrder + 100,
   };
 
   await conn.execute(
-    `INSERT INTO accounts (id, name, server_url, username, password, server_type, calendar_home_url, last_sync, is_active, sort_order)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    `INSERT INTO accounts (id, name, server_url, username, password, server_type, calendar_home_url, principal_url, last_sync, is_active, sort_order, accept_invalid_certs)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
     [
       account.id,
       account.name,
@@ -51,9 +52,11 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
       account.password,
       account.serverType || null,
       account.calendarHomeUrl || null,
+      account.principalUrl || null,
       account.lastSync ? account.lastSync.toISOString() : null,
       account.isActive ? 1 : 0,
       account.sortOrder,
+      account.acceptInvalidCerts ? 1 : 0,
     ],
   );
 
@@ -76,8 +79,8 @@ export const updateAccount = async (
   const updated: Account = { ...existing, ...updates };
 
   await conn.execute(
-    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, calendar_home_url = $6, last_sync = $7, is_active = $8, sort_order = $9
-     WHERE id = $10`,
+    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, calendar_home_url = $6, principal_url = $7, last_sync = $8, is_active = $9, sort_order = $10, accept_invalid_certs = $11
+     WHERE id = $12`,
     [
       updated.name,
       updated.serverUrl,
@@ -85,9 +88,11 @@ export const updateAccount = async (
       updated.password,
       updated.serverType || null,
       updated.calendarHomeUrl || null,
+      updated.principalUrl || null,
       updated.lastSync ? updated.lastSync.toISOString() : null,
       updated.isActive ? 1 : 0,
       updated.sortOrder,
+      updated.acceptInvalidCerts ? 1 : 0,
       id,
     ],
   );
