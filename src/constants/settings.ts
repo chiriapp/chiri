@@ -117,6 +117,7 @@ export const SERVER_TYPE_OPTIONS: ServerTypeOption[] = SERVER_TYPE_GROUPS.flatMa
  */
 export const PREDEFINED_SERVER_URLS: Partial<Record<ServerType, string>> = {
   fastmail: 'https://caldav.fastmail.com',
+  fruux: 'https://dav.fruux.com',
   mailbox: 'https://dav.mailbox.org',
 };
 
