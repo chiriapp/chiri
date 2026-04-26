@@ -1,0 +1,90 @@
+name: Bug Report
+description: Something isn't working correctly in Chiri.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out as much detail as you can. It really helps track things down.
+
+  - type: input
+    id: version
+    attributes:
+      label: Chiri version
+      description: Found in Settings → About, or the title bar.
+      placeholder: "e.g. 0.8.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: platform_detail
+    attributes:
+      label: Platform details
+      description: "Windows: version + architecture. macOS: version + Intel/Apple Silicon. Linux: distro, version, desktop environment, and display server (X11/Wayland)."
+      placeholder: "e.g. Ubuntu 24.04, GNOME 46, Wayland"
+
+  - type: dropdown
+    id: caldav_server
+    attributes:
+      label: CalDAV server (if relevant)
+      description: Leave blank if the bug isn't related to sync or accounts.
+      options:
+        - Not applicable
+        - Nextcloud
+        - Baikal
+        - Radicale
+        - RustiCal
+        - Fastmail
+        - Other (describe below)
+
+  - type: input
+    id: caldav_server_other
+    attributes:
+      label: CalDAV server version / other details
+      placeholder: "e.g. Nextcloud 29.0.3, or \"self-hosted Baikal 0.9.4\""
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What should have happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error output
+      description: Paste any relevant logs here. Chiri logs can be found via Settings → About → Open log file.
+      render: text

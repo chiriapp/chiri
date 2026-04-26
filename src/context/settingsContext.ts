@@ -98,6 +98,7 @@ interface SettingsState {
   // Date picker
   quickTimePresets: QuickTimePresets;
   // Connectivity
+  connectivityCheckEnabled: boolean;
   connectivityCheckUrl: string;
   connectivityCheckInterval: number;
   // Window decorations (Linux)
@@ -168,6 +169,7 @@ interface SettingsActions {
   setEditorFieldVisibility: (visibility: EditorFieldVisibility) => void;
   setTaskBadgeVisibility: (visibility: TaskBadgeVisibility) => void;
   setQuickTimePresets: (presets: QuickTimePresets) => void;
+  setConnectivityCheckEnabled: (enabled: boolean) => void;
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;
   setWindowDecorationsMode: (mode: WindowDecorationsMode) => void;
@@ -260,6 +262,7 @@ const defaultState: SettingsState = {
   },
   // 9:00, 12:00, 17:00, 21:00 (minutes from midnight)
   quickTimePresets: { morning: 540, afternoon: 720, evening: 1020, night: 1260 },
+  connectivityCheckEnabled: true,
   connectivityCheckUrl: '',
   connectivityCheckInterval: 30,
   windowDecorationsMode: 'auto',
@@ -511,6 +514,8 @@ export const settingsStore = {
   setTaskBadgeVisibility: (taskBadgeVisibility: TaskBadgeVisibility) =>
     setState({ taskBadgeVisibility }),
   setQuickTimePresets: (quickTimePresets: QuickTimePresets) => setState({ quickTimePresets }),
+  setConnectivityCheckEnabled: (connectivityCheckEnabled: boolean) =>
+    setState({ connectivityCheckEnabled }),
   setConnectivityCheckUrl: (connectivityCheckUrl: string) => setState({ connectivityCheckUrl }),
   setConnectivityCheckInterval: (connectivityCheckInterval: number) =>
     setState({ connectivityCheckInterval }),
@@ -589,6 +594,7 @@ export const settingsStore = {
         'quietHoursEnabled',
         'quietHoursStart',
         'quietHoursEnd',
+        'connectivityCheckEnabled',
         'connectivityCheckUrl',
         'connectivityCheckInterval',
         'windowDecorationsMode',

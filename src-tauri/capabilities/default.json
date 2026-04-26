@@ -55,6 +55,7 @@
       "identifier": "opener:allow-open-path",
       "allow": [{ "path": "$APPLOG" }, { "path": "$APPLOG/**" }]
     },
-    "updater:default"
+    "updater:default",
+    "deep-link:default"
   ]
 }

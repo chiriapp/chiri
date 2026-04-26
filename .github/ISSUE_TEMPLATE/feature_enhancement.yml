@@ -1,0 +1,57 @@
+name: Feature Enhancement
+description: Suggest an improvement to existing functionality in Chiri.
+title: "FE: "
+labels: ["feature enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Something already exists but could be better? Tell us what you'd like to see improved!
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Feature area
+      options:
+        - Task editor
+        - Task list / sorting / filtering
+        - Sync / CalDAV
+        - Settings
+        - Sidebar / navigation
+        - Notifications / reminders
+        - Keyboard shortcuts
+        - Import / export
+        - UI / visuals
+        - Other (describe below)
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behaviour
+      description: Describe how it works today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: desired
+    attributes:
+      label: Desired behaviour
+      description: What would you like it to do instead, or in addition?
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Why would this be an improvement?
+      description: Help us understand the use case or workflow that motivates this change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, related issues, links to CalDAV specs, etc.

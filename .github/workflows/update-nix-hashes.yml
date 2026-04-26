@@ -1,4 +1,4 @@
-name: 'Update Nix Binary Hashes'
+name: 'Update Nix hashes'
 
 # Runs when a release is published (after you manually publish the draft)
 # or can be manually triggered with a version input

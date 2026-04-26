@@ -9,7 +9,6 @@ mod linux;
 mod logging;
 mod macos;
 mod migrations;
-mod notification_manager;
 mod notifications;
 mod plist;
 mod tray;
@@ -120,7 +119,7 @@ fn main() {
             {
                 let bundle_id = _app.config().identifier.clone();
                 let notification_manager =
-                    notification_manager::NotificationManagerState::new(bundle_id);
+                    notifications::manager::NotificationManagerState::new(bundle_id);
                 notification_manager.register_categories_and_handler(_app.handle().clone());
                 _app.manage(notification_manager);
             }

@@ -152,10 +152,10 @@ export const BehaviorSettings = () => {
             <label className="flex items-center justify-between p-4">
               <div>
                 <p className="text-sm text-surface-700 dark:text-surface-300">
-                  Require double-press to quit
+                  Show warning before quitting with ⌘Q
                 </p>
                 <p className="text-xs text-surface-500 dark:text-surface-400">
-                  Press ⌘Q twice within 2 seconds to quit. Requires restart.
+                  Hold or double press ⌘Q to quit. Requires restart.
                 </p>
               </div>
               <input

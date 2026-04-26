@@ -15,7 +15,7 @@ import { isMacPlatform } from '$utils/platform';
 type NotificationPermission = 'granted' | 'denied' | 'unknown';
 
 const QUIT_MESSAGE = {
-  title: 'Press ⌘Q again to quit',
+  title: 'Hold or double press ⌘Q to quit',
   description: 'You can change this behavior in Settings',
 };
 

@@ -12,12 +12,14 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
   const alternateResolverRef = useRef<((value: ConfirmResult) => void) | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [options, setOptions] = useState<ConfirmOptions>(defaultConfirmOptions);
   const [dialogKey, setDialogKey] = useState(0);
 
   const close = useCallback(() => {
     setIsOpen(false);
     setIsLoading(false);
+    setError('');
     resolverRef.current = null;
     alternateResolverRef.current = null;
   }, []);
@@ -48,8 +50,7 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
     } else {
       resolverRef.current?.(true);
     }
-    close();
-  }, [close]);
+  }, []);
 
   const handleAlternate = useCallback(() => {
     alternateResolverRef.current?.('alternate');
@@ -67,7 +68,7 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
 
   return (
     <ConfirmDialogContext.Provider
-      value={{ confirm, confirmWithAlternate, isOpen, setLoading: setIsLoading, close }}
+      value={{ confirm, confirmWithAlternate, isOpen, setLoading: setIsLoading, setError, close }}
     >
       {children}
       <ConfirmDialogModal
@@ -83,6 +84,9 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
         alternateDestructive={options.alternateDestructive}
         delayConfirmSeconds={options.delayConfirmSeconds}
         isLoading={isLoading}
+        error={error}
+        notice={options.notice}
+        disableConfirm={options.disableConfirm}
         onConfirm={handleConfirm}
         onAlternate={handleAlternate}
         onCancel={handleCancel}

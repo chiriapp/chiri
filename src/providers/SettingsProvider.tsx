@@ -253,6 +253,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (presets: QuickTimePresets) => settingsStore.setQuickTimePresets(presets),
     [],
   );
+  const setConnectivityCheckEnabled = useCallback(
+    (enabled: boolean) => settingsStore.setConnectivityCheckEnabled(enabled),
+    [],
+  );
   const setConnectivityCheckUrl = useCallback(
     (url: string) => settingsStore.setConnectivityCheckUrl(url),
     [],
@@ -333,6 +337,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setEditorFieldVisibility,
     setTaskBadgeVisibility,
     setQuickTimePresets,
+    setConnectivityCheckEnabled,
     setConnectivityCheckUrl,
     setConnectivityCheckInterval,
     setWindowDecorationsMode,
