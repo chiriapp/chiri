@@ -707,6 +707,74 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                 required={!account}
                 className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
+              {serverType === 'fastmail' && (
+                <div className="mt-3 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+                  <Info className="mt-px size-3.5 shrink-0" />
+                  <span>
+                    To use Chiri with Fastmail,{' '}
+                    <a
+                      href="https://app.fastmail.com/settings/security/apps/new"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium underline underline-offset-2 hover:opacity-80"
+                    >
+                      create an app password
+                    </a>{' '}
+                    with access to CalDAV.
+                  </span>
+                </div>
+              )}
+              {serverType === 'fruux' && (
+                <div className="mt-3 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+                  <Info className="mt-px size-3.5 shrink-0" />
+                  <span>
+                    It's recommended to use device-specific credentials for fruux.{' '}
+                    <a
+                      href="https://fruux.com/sync/credentials/?deviceType=generic"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium underline underline-offset-2 hover:opacity-80"
+                    >
+                      Create a new device
+                    </a>{' '}
+                    and use the generated username and password.
+                  </span>
+                </div>
+              )}
+              {serverType === 'runbox' && (
+                <div className="mt-3 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+                  <Info className="mt-px size-3.5 shrink-0" />
+                  <span>
+                    If two-factor authentication (2FA) is enabled, you will need to{' '}
+                    <a
+                      href="https://runbox.com/mail/account_security"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium underline underline-offset-2 hover:opacity-80"
+                    >
+                      create an app password
+                    </a>{' '}
+                    and use it here instead.
+                  </span>
+                </div>
+              )}
+              {serverType === 'purelymail' && (
+                <div className="mt-3 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+                  <Info className="mt-px size-3.5 shrink-0" />
+                  <span>
+                    If two-factor authentication (2FA) is enabled, you will need to{' '}
+                    <a
+                      href="https://purelymail.com/manage/users"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium underline underline-offset-2 hover:opacity-80"
+                    >
+                      create an app password
+                    </a>{' '}
+                    and use it here instead.
+                  </span>
+                </div>
+              )}
             </div>
 
             <AdvancedSection
