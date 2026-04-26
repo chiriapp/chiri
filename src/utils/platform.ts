@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { platform } from '@tauri-apps/plugin-os';
 import { loggers } from '$lib/logger';
 
 let isCefRuntime: boolean | null = null;
@@ -12,14 +13,21 @@ export const isCEF = () => {
     return isCefRuntime;
   }
 
+  // Windows uses WebView2 which is Chromium, but it's not CEF.
+  if (isWindowsPlatform()) {
+    isCefRuntime = false;
+    return isCefRuntime;
+  }
+
   const ua = navigator.userAgent;
 
   // Wry on macOS: "Mozilla/5.0 ... AppleWebKit/... Version/... Safari/..."
   // CEF: "Mozilla/5.0 ... Chrome/... Safari/..." (has Chrome but not "Version" from Safari)
   const hasChrome = ua.includes('Chrome/');
   const hasSafariVersion = ua.includes('Version/') && ua.includes('Safari/');
+  const hasEdge = ua.includes('Edg/');
 
-  isCefRuntime = hasChrome && !hasSafariVersion;
+  isCefRuntime = hasChrome && !hasSafariVersion && !hasEdge;
 
   return isCefRuntime;
 };
@@ -28,20 +36,21 @@ export const isCEF = () => {
  * Detect if running on macOS platform
  */
 export const isMacPlatform = () => {
-  if (typeof navigator === 'undefined') {
-    return false;
-  }
-  return /Mac/.test(navigator.userAgent);
+  return platform() === 'macos';
 };
 
 /**
  * Detect if running on Linux platform
  */
 export const isLinuxPlatform = () => {
-  if (typeof navigator === 'undefined') {
-    return false;
-  }
-  return /Linux/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent);
+  return platform() === 'linux';
+};
+
+/**
+ * Detect if running on Windows platform
+ */
+export const isWindowsPlatform = () => {
+  return platform() === 'windows';
 };
 
 /**

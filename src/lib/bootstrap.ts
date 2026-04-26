@@ -1,7 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
-import { platform } from '@tauri-apps/plugin-os';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { settingsStore } from '$context/settingsContext';
 import { db } from '$lib/database';
@@ -9,7 +8,7 @@ import { createBootstrapErrorUI } from '$lib/errorUI';
 import { initLogger, loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import { initAppMenu } from '$utils/menu';
-import { isCEF, isLinuxPlatform } from '$utils/platform';
+import { isCEF, isLinuxPlatform, isMacPlatform, isWindowsPlatform } from '$utils/platform';
 
 const log = loggers.bootstrap;
 
@@ -58,25 +57,34 @@ export const initializeApp = async () => {
   const shortcuts = settingsStore.getState().keyboardShortcuts;
   log.debug('Loaded keyboard shortcuts');
 
-  // initialize macOS application menu with current state and user shortcuts
-  // Skip under CEF to avoid IPC deadlock
+  // Initialize app menu only on macOS.
+  // Skip under CEF on macOS to avoid IPC deadlock.
   // TODO: Figure out how to support the app menu on macOS under CEF.
-  const skipMenu = isCEF();
-  log.debug(
-    `CEF runtime check: ${skipMenu ? 'CEF detected, skipping menu' : 'Not CEF, initializing menu'}`,
-  );
+  const isWindows = isWindowsPlatform();
+  const isMac = isMacPlatform();
 
-  if (!skipMenu) {
-    log.debug('Initializing app menu...');
-    await initAppMenu({
-      showCompleted: uiState.showCompletedTasks,
-      sortMode,
-      shortcuts,
-    }).catch((error) => {
-      log.error('Failed to initialize app menu:', error);
-    });
+  if (isWindows) {
+    log.debug('Windows platform detected (WebView2 runtime); skipping app menu initialization');
+  } else if (!isMac) {
+    log.debug('Non-macOS platform detected; skipping app menu initialization');
   } else {
-    log.debug('Skipping app menu initialization (CEF runtime)');
+    const skipMenu = isCEF();
+    log.debug(
+      `macOS runtime check: ${skipMenu ? 'CEF detected, skipping menu' : 'WebKit detected, initializing menu'}`,
+    );
+
+    if (!skipMenu) {
+      log.debug('Initializing app menu...');
+      await initAppMenu({
+        showCompleted: uiState.showCompletedTasks,
+        sortMode,
+        shortcuts,
+      }).catch((error) => {
+        log.error('Failed to initialize app menu:', error);
+      });
+    } else {
+      log.debug('Skipping app menu initialization (macOS CEF runtime)');
+    }
   }
 
   log.info('Application initialization finished');
@@ -101,7 +109,7 @@ export const deleteDatabase = async () => {
   try {
     log.warn('Deleting database file...');
 
-    const baseDir = platform() === 'macos' ? BaseDirectory.AppLocalData : BaseDirectory.AppConfig;
+    const baseDir = isMacPlatform() ? BaseDirectory.AppLocalData : BaseDirectory.AppConfig;
     await remove('chiri.db', { baseDir });
     log.info('Database file deleted successfully');
 
