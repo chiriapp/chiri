@@ -144,14 +144,17 @@ export interface Calendar {
 }
 
 export type ServerType =
-  | 'rustical'
-  | 'radicale'
-  | 'baikal'
-  | 'nextcloud'
-  | 'mailbox'
+  | 'generic'
   | 'fastmail'
   | 'fruux'
-  | 'generic';
+  | 'mailbox'
+  | 'migadu'
+  | 'purelymail'
+  | 'runbox'
+  | 'baikal'
+  | 'nextcloud'
+  | 'radicale'
+  | 'rustical';
 
 export interface Account {
   id: string;

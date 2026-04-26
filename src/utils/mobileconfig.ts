@@ -29,6 +29,9 @@ const detectServerType = (hostname: string | null, principalUrl: string | null):
     const host = hostname.toLowerCase();
     if (host.includes('fastmail.com')) return 'fastmail';
     if (host.includes('mailbox.org')) return 'mailbox';
+    if (host.includes('migadu.com')) return 'migadu';
+    if (host.includes('purelymail.com')) return 'purelymail';
+    if (host.includes('runbox.com')) return 'runbox';
   }
 
   // Check principal URL path pattern
