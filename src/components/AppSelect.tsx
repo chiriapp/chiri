@@ -18,6 +18,16 @@ export const AppSelect = ({ className = '', children, onMouseDown, ...props }: A
   const isFullWidth = className.includes('w-full');
   const lastMouseDownAt = useRef(0);
 
+  // native select popups on some platforms (notably Windows/Linux in dark mode)
+  // can inherit focus background colors from the <select> itself, causing the
+  // dropdown list to become accent-tinted and unreadable
+  const sanitizedClassName = className
+    .split(/\s+/)
+    .filter(
+      (token) => token && !token.startsWith('focus:bg-') && !token.startsWith('dark:focus:bg-'),
+    )
+    .join(' ');
+
   const handleMouseDown = (e: React.MouseEvent<HTMLSelectElement>) => {
     const now = Date.now();
     if (now - lastMouseDownAt.current < WEBKIT_DOUBLE_OPEN_THRESHOLD_MS) {
@@ -31,7 +41,7 @@ export const AppSelect = ({ className = '', children, onMouseDown, ...props }: A
   return (
     <div className={`relative ${isFullWidth ? 'block w-full' : 'inline-flex items-center'}`}>
       <select
-        className={`appearance-none px-3 py-0.5 pr-7 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm ${className}`}
+        className={`appearance-none px-3 py-0.5 pr-7 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm ${sanitizedClassName}`}
         onMouseDown={handleMouseDown}
         {...props}
       >
