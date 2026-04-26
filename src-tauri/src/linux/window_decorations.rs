@@ -6,7 +6,7 @@ use std::env;
 /// Detects if the current desktop environment needs GTK client-side decorations
 /// Returns true for GNOME, COSMIC, and other DEs that work better with GTK decorations
 #[cfg(target_os = "linux")]
-pub fn needs_gtk_decorations() -> bool {
+fn needs_gtk_decorations() -> bool {
     let desktop = env::var("XDG_CURRENT_DESKTOP")
         .ok()
         .map(|d| d.to_lowercase())
@@ -36,10 +36,20 @@ pub fn needs_gtk_decorations() -> bool {
 
 /// Returns true for tiling/scrolling WMs that don't need any window decorations
 #[cfg(target_os = "linux")]
-pub fn is_tiling_wm() -> bool {
+fn is_tiling_wm() -> bool {
     let tiling_wms = [
-        "hyprland", "sway", "i3", "niri", "bspwm", "dwm",
-        "awesome", "qtile", "xmonad", "herbstluftwm", "river", "leftwm",
+        "hyprland",
+        "sway",
+        "i3",
+        "niri",
+        "bspwm",
+        "dwm",
+        "awesome",
+        "qtile",
+        "xmonad",
+        "herbstluftwm",
+        "river",
+        "leftwm",
     ];
 
     if let Ok(desktop) = env::var("XDG_CURRENT_DESKTOP") {
@@ -72,7 +82,7 @@ pub fn is_tiling_wm() -> bool {
 /// note: the Wayland xdg_toplevel app_id is derived from the binary name,
 /// so the Flatpak installs the binary as moe.sapphic.Chiri to match the .desktop filename for KWin icon lookup
 #[cfg(target_os = "linux")]
-pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
+fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
     use gtk::prelude::GtkWindowExt;
 
     let desktop = env::var("XDG_CURRENT_DESKTOP").unwrap_or_else(|_| "Unknown".to_string());

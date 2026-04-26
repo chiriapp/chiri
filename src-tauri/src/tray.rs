@@ -23,125 +23,23 @@ static SYNC_ITEM: LazyLock<Mutex<Option<MenuItem<AppRuntime>>>> =
 static TRAY_VISIBLE: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(true));
 static TRAY_ENABLED: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(true));
 
-/// Check if we're running on GNOME
-#[cfg(target_os = "linux")]
-pub fn is_gnome() -> bool {
-    // Check XDG_CURRENT_DESKTOP first, then XDG_SESSION_DESKTOP
-    std::env::var("XDG_CURRENT_DESKTOP")
-        .or_else(|_| std::env::var("XDG_SESSION_DESKTOP"))
-        .map(|desktop| desktop.to_lowercase().contains("gnome"))
-        .unwrap_or(false)
-}
-
-/// Check if we're running on Linux/GNOME for frontend
-#[tauri::command]
-pub async fn is_gnome_desktop() -> Result<bool, String> {
+fn get_current_theme(app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
     #[cfg(target_os = "linux")]
-    {
-        Ok(is_gnome())
-    }
+    return crate::linux::desktop::get_tray_theme();
 
     #[cfg(not(target_os = "linux"))]
     {
-        Ok(false)
-    }
-}
-
-/// Get the current system theme
-#[cfg(target_os = "linux")]
-fn get_current_theme(_app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
-    // GNOME's top bar is ALWAYS dark, even in light theme
-    if is_gnome() {
-        debug!("[Tray] GNOME detected - top bar is always dark, using light icon");
-        return Theme::Dark;
-    }
-
-    // Try the sandboxed XDG Settings portal approach first
-    if let Some(theme) = query_portal_color_scheme() {
-        return theme;
-    }
-
-    // Fall back to gsettings for non-Flatpak installs where
-    // the portal may not be running but dconf is directly accessible
-    query_gsettings_color_scheme()
-}
-
-/// Query color-scheme from the XDG Settings portal via gdbus.
-/// Returns None if the portal is unavailable or returns no preference.
-#[cfg(target_os = "linux")]
-fn query_portal_color_scheme() -> Option<Theme> {
-    let output = std::process::Command::new("gdbus")
-        .args([
-            "call",
-            "--session",
-            "--dest",
-            "org.freedesktop.portal.Desktop",
-            "--object-path",
-            "/org/freedesktop/portal/desktop",
-            "--method",
-            "org.freedesktop.portal.Settings.Read",
-            "org.freedesktop.appearance",
-            "color-scheme",
-        ])
-        .output()
-        .ok()?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if !output.status.success() {
-        debug!("[Tray] Portal unavailable, falling back to gsettings");
-        return None;
-    }
-
-    // gdbus output format: (<uint32 N>,)  where N = 0/1/2
-    if stdout.contains("uint32 1") {
-        debug!("[Tray] Portal: dark theme");
-        Some(Theme::Dark)
-    } else if stdout.contains("uint32 2") {
-        debug!("[Tray] Portal: light theme");
-        Some(Theme::Light)
-    } else {
-        // 0 = no preference — fall through to gsettings
-        debug!("[Tray] Portal: no preference, trying gsettings");
-        None
-    }
-}
-
-/// Fall back to gsettings for environments where the portal isn't available.
-#[cfg(target_os = "linux")]
-fn query_gsettings_color_scheme() -> Theme {
-    match std::process::Command::new("gsettings")
-        .args(["get", "org.gnome.desktop.interface", "color-scheme"])
-        .output()
-    {
-        Ok(output) => {
-            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            debug!("[Tray] gsettings color-scheme: {:?}", stdout);
-            if stdout.contains("prefer-dark") {
-                Theme::Dark
-            } else {
-                Theme::Light
-            }
-        }
-        Err(e) => {
-            debug!("[Tray] gsettings failed: {}, defaulting to light icon", e);
+        if let Some(main_window) = app_handle.get_webview_window("main") {
+            let theme = main_window.theme().unwrap_or(Theme::Dark);
+            debug!(
+                "[Tray] Detected system theme via window.theme(): {:?}",
+                theme
+            );
+            theme
+        } else {
+            debug!("[Tray] No main window found, defaulting to Dark theme");
             Theme::Dark
         }
-    }
-}
-
-/// Get the current system theme
-#[cfg(not(target_os = "linux"))]
-fn get_current_theme(app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
-    if let Some(main_window) = app_handle.get_webview_window("main") {
-        let theme = main_window.theme().unwrap_or(Theme::Dark);
-        debug!(
-            "[Tray] Detected system theme via window.theme(): {:?}",
-            theme
-        );
-        theme
-    } else {
-        debug!("[Tray] No main window found, defaulting to Dark theme");
-        Theme::Dark
     }
 }
 
