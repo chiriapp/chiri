@@ -96,6 +96,9 @@ interface SettingsState {
   taskBadgeVisibility: TaskBadgeVisibility;
   // Date picker
   quickTimePresets: QuickTimePresets;
+  // Connectivity
+  connectivityCheckUrl: string;
+  connectivityCheckInterval: number;
 }
 
 interface SettingsActions {
@@ -162,6 +165,8 @@ interface SettingsActions {
   setEditorFieldVisibility: (visibility: EditorFieldVisibility) => void;
   setTaskBadgeVisibility: (visibility: TaskBadgeVisibility) => void;
   setQuickTimePresets: (presets: QuickTimePresets) => void;
+  setConnectivityCheckUrl: (url: string) => void;
+  setConnectivityCheckInterval: (interval: number) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;
   resetSettings: () => void;
@@ -251,6 +256,8 @@ const defaultState: SettingsState = {
   },
   // 9:00, 12:00, 17:00, 21:00 (minutes from midnight)
   quickTimePresets: { morning: 540, afternoon: 720, evening: 1020, night: 1260 },
+  connectivityCheckUrl: '',
+  connectivityCheckInterval: 30,
 };
 
 /**
@@ -499,6 +506,9 @@ export const settingsStore = {
   setTaskBadgeVisibility: (taskBadgeVisibility: TaskBadgeVisibility) =>
     setState({ taskBadgeVisibility }),
   setQuickTimePresets: (quickTimePresets: QuickTimePresets) => setState({ quickTimePresets }),
+  setConnectivityCheckUrl: (connectivityCheckUrl: string) => setState({ connectivityCheckUrl }),
+  setConnectivityCheckInterval: (connectivityCheckInterval: number) =>
+    setState({ connectivityCheckInterval }),
 
   exportSettings: () => {
     const exportData = {
@@ -572,6 +582,8 @@ export const settingsStore = {
         'quietHoursEnabled',
         'quietHoursStart',
         'quietHoursEnd',
+        'connectivityCheckUrl',
+        'connectivityCheckInterval',
       ];
 
       // Build new state with simple settings

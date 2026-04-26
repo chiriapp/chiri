@@ -252,6 +252,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (presets: QuickTimePresets) => settingsStore.setQuickTimePresets(presets),
     [],
   );
+  const setConnectivityCheckUrl = useCallback(
+    (url: string) => settingsStore.setConnectivityCheckUrl(url),
+    [],
+  );
+  const setConnectivityCheckInterval = useCallback(
+    (interval: number) => settingsStore.setConnectivityCheckInterval(interval),
+    [],
+  );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
   const resetSettings = useCallback(() => settingsStore.resetSettings(), []);
@@ -320,6 +328,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setEditorFieldVisibility,
     setTaskBadgeVisibility,
     setQuickTimePresets,
+    setConnectivityCheckUrl,
+    setConnectivityCheckInterval,
     exportSettings,
     importSettings,
     resetSettings,

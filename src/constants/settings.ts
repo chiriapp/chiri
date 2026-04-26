@@ -28,6 +28,17 @@ export const WEEK_START_OPTIONS: Array<{ value: StartOfWeek; label: string }> = 
 ];
 
 /**
+ * Connectivity check interval options (in seconds)
+ */
+export const CONNECTIVITY_CHECK_INTERVAL_OPTIONS: Array<{ value: number; label: string }> = [
+  { value: 15, label: 'Every 15 seconds' },
+  { value: 30, label: 'Every 30 seconds' },
+  { value: 60, label: 'Every minute' },
+  { value: 120, label: 'Every 2 minutes' },
+  { value: 300, label: 'Every 5 minutes' },
+];
+
+/**
  * Sync interval options (in minutes)
  */
 export const SYNC_INTERVAL_OPTIONS: Array<{ value: number; label: string }> = [
@@ -56,6 +67,11 @@ export const SERVER_TYPE_GROUPS: ServerTypeGroup[] = [
         value: 'fastmail',
         label: 'Fastmail',
         description: 'Uses auto-discovery (username is your email address)',
+      },
+      {
+        value: 'fruux',
+        label: 'fruux',
+        description: 'Uses device-specific credentials (username is not your email address)',
       },
       {
         value: 'mailbox',
