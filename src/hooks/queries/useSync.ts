@@ -22,7 +22,7 @@ import type { Task } from '$types';
 
 const log = loggers.sync;
 
-export type SyncTrigger =
+type SyncTrigger =
   | string
   | {
       source: string;
@@ -106,11 +106,7 @@ export const useSyncQuery = () => {
   });
 
   const syncCalendar = useCallback(
-    (calendarId: string, trigger?: SyncTrigger) => {
-      const syncTrigger = normalizeSyncTrigger(trigger);
-      log.info('Starting calendar sync...', { calendarId, trigger: syncTrigger });
-      return syncCalendarTasks(calendarId, queryClient, setSyncingCalendarId);
-    },
+    (calendarId: string) => syncCalendarTasks(calendarId, queryClient, setSyncingCalendarId),
     [queryClient, setSyncingCalendarId],
   );
 
@@ -131,6 +127,11 @@ export const useSyncQuery = () => {
       if (isOfflineRef.current) {
         log.info('Skipping sync - offline', { requestedBy: syncTrigger });
         setLastSyncError('You are offline. Changes will sync when you reconnect.');
+        return;
+      }
+
+      if (getAllAccounts().length === 0) {
+        log.info('Skipping sync - no accounts configured', { requestedBy: syncTrigger });
         return;
       }
 
