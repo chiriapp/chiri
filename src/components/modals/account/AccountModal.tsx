@@ -1,13 +1,14 @@
 import { useQueryClient } from '@tanstack/react-query';
 import CheckCircle from 'lucide-react/icons/check-circle';
-import ChevronDown from 'lucide-react/icons/chevron-down';
-import Cloud from 'lucide-react/icons/cloud';
 import Info from 'lucide-react/icons/info';
 import { useRef, useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
 import { ComposedInput } from '$components/ComposedInput';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
+import { AdvancedSection } from '$components/modals/account/AdvancedSection';
+import { ConnectionSuccessBanner } from '$components/modals/account/ConnectionSuccessBanner';
+import { QuickConnectSection } from '$components/modals/account/QuickConnectSection';
 import { NextcloudLoginModal } from '$components/modals/NextcloudLoginModal';
 import { RusticalLoginModal } from '$components/modals/RusticalLoginModal';
 import {
@@ -17,12 +18,14 @@ import {
 } from '$constants/settings';
 import { useAddCalendar, useCreateAccount, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
+import { useFocusTrap } from '$hooks/ui/useFocusTrap';
 import { CalDAVClient } from '$lib/caldav';
+import { isCertError, tauriRequest } from '$lib/tauri-http';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
 import type { Account, Calendar, ServerType } from '$types';
-import { generateUUID, isVikunjaServer, pluralize } from '$utils/misc';
+import { generateUUID, isVikunjaServer } from '$utils/misc';
 import type { CalDAVConfig } from '$utils/mobileconfig';
 
 const log = loggers.account;
@@ -53,9 +56,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   );
   const [calendarHomeUrl, setCalendarHomeUrl] = useState(() => account?.calendarHomeUrl || '');
   const [principalUrl, setPrincipalUrl] = useState(() => account?.principalUrl || '');
-  const [showAdvanced, setShowAdvanced] = useState(
-    () => !!account?.calendarHomeUrl || !!account?.principalUrl,
-  );
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testSuccess, setTestSuccess] = useState(false);
@@ -64,6 +64,17 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const [error, setError] = useState('');
   const [showNextcloudLogin, setShowNextcloudLogin] = useState(false);
   const [showRusticalLogin, setShowRusticalLogin] = useState(false);
+
+  const quickConnectHandlers: Partial<Record<ServerType, () => void>> = {
+    nextcloud: () => setShowNextcloudLogin(true),
+    rustical: () => setShowRusticalLogin(true),
+  };
+  const quickConnectHandler = quickConnectHandlers[serverType];
+
+  const [acceptInvalidCerts, setAcceptInvalidCerts] = useState(
+    () => account?.acceptInvalidCerts ?? false,
+  );
+  const focusTrapRef = useFocusTrap();
   const nameInputFocusedRef = useRef(false);
 
   // Reset test state when credentials change
@@ -154,6 +165,35 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     } catch (error) {
       log.error(`Failed to fetch tasks for calendar ${calendar.displayName}:`, error);
     }
+  };
+
+  /**
+   * show warning dialog for untrusted/self-signed server certificates
+   */
+  const showCertTrustDialog = async () => {
+    return await confirm({
+      title: 'Untrusted certificate',
+      message: (
+        <div className="space-y-3">
+          <p>
+            The server's SSL/TLS certificate is not trusted. This could be because it's self-signed
+            or from an unknown certificate authority.
+          </p>
+
+          <p>
+            Connecting to a server with an untrusted certificate could allow attackers to intercept
+            your data if you're on an untrusted network.
+          </p>
+
+          <p className="font-bold text-surface-800 dark:text-surface-200">
+            Do you want to proceed anyway?
+          </p>
+        </div>
+      ),
+      confirmLabel: 'Trust and connect',
+      cancelLabel: 'Cancel',
+      destructive: true,
+    });
   };
 
   /**
@@ -669,64 +709,14 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               />
             </div>
 
-            {!getPredefinedServerUrl(serverType) && (
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setShowAdvanced((v) => !v)}
-                  className="flex items-center gap-1 text-xs text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
-                >
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform ${showAdvanced ? '' : '-rotate-90'}`}
-                  />
-                  Advanced
-                </button>
-                {showAdvanced && (
-                  <div className="mt-3 space-y-3">
-                    <div>
-                      <label
-                        htmlFor="principal-url"
-                        className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                      >
-                        Principal URL
-                      </label>
-                      <ComposedInput
-                        id="principal-url"
-                        type="url"
-                        value={principalUrl}
-                        onChange={setPrincipalUrl}
-                        placeholder="https://caldav.example.com/principals/user/"
-                        className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-                      />
-                      <p className="mt-1.5 text-xs flex flex-row text-surface-500 dark:text-surface-400">
-                        <Info className="inline w-3.5 h-3.5 mr-1 shrink-0 text-surface-400" />
-                        Override the auto-discovered principal URL.
-                      </p>
-                    </div>
-                    <div>
-                      <label
-                        htmlFor="calendar-home-url"
-                        className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                      >
-                        Calendar Home URL
-                      </label>
-                      <ComposedInput
-                        id="calendar-home-url"
-                        type="url"
-                        value={calendarHomeUrl}
-                        onChange={setCalendarHomeUrl}
-                        placeholder="https://caldav.example.com/calendars/user/"
-                        className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-                      />
-                      <p className="mt-1.5 text-xs flex flex-row text-surface-500 dark:text-surface-400">
-                        <Info className="inline w-3.5 h-3.5 mr-1 shrink-0 text-surface-400" />
-                        Skip auto-discovery entirely and use this URL directly.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            <AdvancedSection
+              serverType={serverType}
+              principalUrl={principalUrl}
+              onPrincipalUrlChange={setPrincipalUrl}
+              calendarHomeUrl={calendarHomeUrl}
+              onCalendarHomeUrlChange={setCalendarHomeUrl}
+              initialOpen={!!account?.calendarHomeUrl || !!account?.principalUrl}
+            />
 
             {error && (
               <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
@@ -734,64 +724,10 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               </div>
             )}
 
-            {testSuccess && (
-              <div className="p-3 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2">
-                <div>
-                  <div className="font-medium">Connection verified!</div>
-                  {testedCalendars.length > 0 && (
-                    <div className="text-xs mt-0.5">
-                      Found {testedCalendars.length} {pluralize(testedCalendars.length, 'calendar')}
-                      .
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {testSuccess && <ConnectionSuccessBanner calendarCount={testedCalendars.length} />}
 
-            {!account && serverType === 'nextcloud' && (
-              <div className="pt-3 border-surface-200 dark:border-surface-700">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
-                  <span className="text-xs text-surface-400 dark:text-surface-500">
-                    Quick connect
-                  </span>
-                  <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowNextcloudLogin(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-                >
-                  <Cloud className="w-4 h-4" />
-                  Use Nextcloud Login Flow
-                </button>
-                <p className="mt-2 text-xs text-center text-surface-500 dark:text-surface-400">
-                  Automatically authenticate via browser
-                </p>
-              </div>
-            )}
-
-            {!account && serverType === 'rustical' && (
-              <div className="pt-3 border-surface-200 dark:border-surface-700">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
-                  <span className="text-xs text-surface-400 dark:text-surface-500">
-                    Quick connect
-                  </span>
-                  <div className="flex-1 border-t border-surface-200 dark:border-surface-700" />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowRusticalLogin(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-                >
-                  <Cloud className="w-4 h-4" />
-                  Use RustiCal Login Flow
-                </button>
-                <p className="mt-2 text-xs text-center text-surface-500 dark:text-surface-400">
-                  Automatically authenticate via browser
-                </p>
-              </div>
+            {!account && quickConnectHandler && (
+              <QuickConnectSection serverType={serverType} onClick={quickConnectHandler} />
             )}
           </form>
         </ModalWrapper>
