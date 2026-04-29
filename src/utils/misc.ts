@@ -2,6 +2,10 @@ export const generateUUID = () => {
   return crypto.randomUUID();
 };
 
+export const isVikunjaServer = (calendarHome: string) => {
+  return calendarHome.includes('/dav/projects');
+};
+
 /**
  * Check if there are any open modal elements in the DOM
  */
