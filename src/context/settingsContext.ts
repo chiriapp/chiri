@@ -103,6 +103,9 @@ interface SettingsState {
   connectivityCheckInterval: number;
   // Window decorations (Linux)
   windowDecorationsMode: WindowDecorationsMode;
+  // WebDAV Push
+  enablePush: boolean;
+  ntfyServerUrl: string;
 }
 
 interface SettingsActions {
@@ -173,6 +176,8 @@ interface SettingsActions {
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;
   setWindowDecorationsMode: (mode: WindowDecorationsMode) => void;
+  setEnablePush: (enabled: boolean) => void;
+  setNtfyServerUrl: (url: string) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;
   resetSettings: () => void;
@@ -266,6 +271,8 @@ const defaultState: SettingsState = {
   connectivityCheckUrl: '',
   connectivityCheckInterval: 30,
   windowDecorationsMode: 'auto',
+  enablePush: false,
+  ntfyServerUrl: 'https://ntfy.sh',
 };
 
 /**
@@ -521,6 +528,8 @@ export const settingsStore = {
     setState({ connectivityCheckInterval }),
   setWindowDecorationsMode: (windowDecorationsMode: WindowDecorationsMode) =>
     setState({ windowDecorationsMode }),
+  setEnablePush: (enablePush: boolean) => setState({ enablePush }),
+  setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),
 
   exportSettings: () => {
     const exportData = {
@@ -598,6 +607,8 @@ export const settingsStore = {
         'connectivityCheckUrl',
         'connectivityCheckInterval',
         'windowDecorationsMode',
+        'enablePush',
+        'ntfyServerUrl',
       ];
 
       // Build new state with simple settings

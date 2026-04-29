@@ -57,6 +57,11 @@ export interface CalendarRow {
   emoji: string | null;
   supported_components: string | null;
   sort_order: number | null;
+
+  // WebDAV Push support
+  push_topic: string | null;
+  push_supported: number | null;
+  push_vapid_key: string | null;
 }
 
 export interface TagRow {
@@ -116,4 +121,14 @@ export interface TaskHistoryRow {
   field: string;
   old_value: string | null;
   new_value: string | null;
+}
+
+export interface PushSubscriptionRow {
+  id: string;
+  calendar_id: string;
+  account_id: string;
+  registration_url: string;
+  push_resource: string;
+  expires_at: string;
+  created_at: string;
 }

@@ -269,6 +269,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (mode: WindowDecorationsMode) => settingsStore.setWindowDecorationsMode(mode),
     [],
   );
+  const setEnablePush = useCallback((enabled: boolean) => settingsStore.setEnablePush(enabled), []);
+  const setNtfyServerUrl = useCallback((url: string) => settingsStore.setNtfyServerUrl(url), []);
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
   const resetSettings = useCallback(() => settingsStore.resetSettings(), []);
@@ -341,6 +343,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setConnectivityCheckUrl,
     setConnectivityCheckInterval,
     setWindowDecorationsMode,
+    setEnablePush,
+    setNtfyServerUrl,
     exportSettings,
     importSettings,
     resetSettings,

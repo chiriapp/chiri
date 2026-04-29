@@ -3,6 +3,7 @@ import * as accountOps from '$lib/database/accounts';
 import * as calendarOps from '$lib/database/calendars';
 import * as historyOps from '$lib/database/history';
 import * as pendingOps from '$lib/database/pendingDeletions';
+import * as pushOps from '$lib/database/pushSubscriptions';
 import * as snapshotOps from '$lib/database/snapshot';
 import * as tagOps from '$lib/database/tags';
 import * as taskOps from '$lib/database/tasks';
@@ -19,6 +20,7 @@ import type {
   Task,
 } from '$types';
 import type { TaskHistoryEntry } from '$types/database';
+import type { PushSubscription } from '$types/push';
 import type { DataChangeListener, DataStore, PendingDeletion, UIState } from '$types/store';
 
 const DB_NAME = 'sqlite:chiri.db';
@@ -274,6 +276,40 @@ class Database {
   async clearPendingDeletion(uid: string): Promise<void> {
     await pendingOps.clearPendingDeletion(await this.conn(), uid);
     this.notify();
+  }
+
+  // Push subscriptions
+  async getAllPushSubscriptions(): Promise<PushSubscription[]> {
+    return pushOps.getAllPushSubscriptions(await this.conn());
+  }
+
+  async getPushSubscriptionsByCalendar(calendarId: string): Promise<PushSubscription[]> {
+    return pushOps.getPushSubscriptionsByCalendar(await this.conn(), calendarId);
+  }
+
+  async getExpiringSubscriptions(withinHours?: number): Promise<PushSubscription[]> {
+    return pushOps.getExpiringSubscriptions(await this.conn(), withinHours);
+  }
+
+  async upsertPushSubscription(subscription: PushSubscription): Promise<void> {
+    await pushOps.upsertPushSubscription(await this.conn(), subscription);
+    this.notify();
+  }
+
+  async deletePushSubscription(subscriptionId: string): Promise<void> {
+    await pushOps.deletePushSubscription(await this.conn(), subscriptionId);
+    this.notify();
+  }
+
+  async deletePushSubscriptionsByCalendar(calendarId: string): Promise<void> {
+    await pushOps.deletePushSubscriptionsByCalendar(await this.conn(), calendarId);
+    this.notify();
+  }
+
+  async deleteExpiredSubscriptions(): Promise<number> {
+    const count = await pushOps.deleteExpiredSubscriptions(await this.conn());
+    if (count > 0) this.notify();
+    return count;
   }
 
   // Snapshot

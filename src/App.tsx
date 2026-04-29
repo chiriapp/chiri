@@ -38,6 +38,7 @@ import { toastManager } from '$hooks/ui/useToast';
 import { useAppMenu } from '$hooks/useAppMenu';
 import { useChangelog } from '$hooks/useChangelog';
 import { useMenuHandlers } from '$hooks/useMenuHandlers';
+import { useWebDAVPush } from '$hooks/useWebDAVPush';
 
 import { getTasksByCalendar } from '$lib/store/tasks';
 
@@ -55,6 +56,9 @@ const App = () => {
 
   const { isSyncing, syncingCalendarId, isOffline, lastSyncTime, syncAll, syncCalendar } =
     useSyncQuery();
+
+  // WebDAV Push: triggers sync when server sends push messages
+  useWebDAVPush({ onSyncCalendar: syncCalendar, lastSyncTime });
 
   // app update checker (hoisted above callbacks that reference updateAvailable)
   const {

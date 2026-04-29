@@ -141,6 +141,11 @@ export interface Calendar {
   accountId: string;
   supportedComponents?: string[]; // e.g., ['VTODO', 'VEVENT']
   sortOrder: number; // apple-calendar-order
+
+  // WebDAV Push support (draft spec)
+  pushTopic?: string; // Unique topic identifier for WebDAV Push messages
+  pushSupported?: boolean; // Whether server supports WebDAV Push
+  pushVapidKey?: string; // VAPID public key for Web Push (base64url)
 }
 
 export type ServerType =
