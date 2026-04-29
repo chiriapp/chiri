@@ -30,6 +30,41 @@ export interface CalDAVCredentials {
   bearerToken?: string;
 }
 
+/**
+ * Returns true if the error looks like a TLS certificate validation failure.
+ * Covers native-tls (macOS/Windows) and rustls (Linux) error messages.
+ */
+export const isCertError = (error: unknown): boolean => {
+  const raw = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
+  const lower = raw.toLowerCase();
+  return (
+    lower.includes('certificate') ||
+    lower.includes('unknownissuer') ||
+    lower.includes('invalidcertificate') ||
+    lower.includes('self signed') ||
+    lower.includes('self-signed') ||
+    lower.includes('cert')
+  );
+};
+
+/**
+ * Extract a user-friendly error message from an unknown error value.
+ */
+export const getErrorMessage = (error: unknown): string => {
+  const raw =
+    error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
+
+  if (isCertError(raw)) {
+    return 'Server certificate could not be verified (self-signed or untrusted CA)';
+  }
+
+  if (raw.includes('error sending request for url')) {
+    return 'Server unreachable';
+  }
+
+  return raw;
+};
+
 export const tauriRequest = async (
   url: string,
   method: string,
