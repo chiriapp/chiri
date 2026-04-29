@@ -1,49 +1,23 @@
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use tauri::State;
-#[cfg(target_os = "macos")]
 use tauri::{AppHandle, Emitter, Manager};
-#[cfg(target_os = "macos")]
 use user_notify::{
-    get_notification_manager, NotificationCategory, NotificationCategoryAction,
-    NotificationResponse, NotificationResponseAction,
+    NotificationCategory, NotificationCategoryAction, NotificationResponse,
+    NotificationResponseAction,
 };
-use user_notify::{NotificationBuilder, NotificationManager};
 
-// Notification action category identifiers
-pub const TASK_OVERDUE_CATEGORY: &str = "moe.sapphic.Chiri.task.overdue";
-pub const TASK_REMINDER_CATEGORY: &str = "moe.sapphic.Chiri.task.reminder";
+use super::manager::{
+    NotificationActionEvent, NotificationManagerState, TASK_OVERDUE_CATEGORY,
+    TASK_REMINDER_CATEGORY, USER_INFO_NOTIFICATION_TYPE, USER_INFO_TASK_ID,
+};
 
-// Action identifiers
-#[cfg(target_os = "macos")]
+// Action identifiers — macOS uses reverse-DNS strings; other platforms use plain strings
 pub const ACTION_COMPLETE: &str = "moe.sapphic.Chiri.action.complete";
-#[cfg(target_os = "macos")]
 pub const ACTION_SNOOZE_15MIN: &str = "moe.sapphic.Chiri.action.snooze.15min";
-#[cfg(target_os = "macos")]
 pub const ACTION_SNOOZE_1HR: &str = "moe.sapphic.Chiri.action.snooze.1hr";
-#[cfg(target_os = "macos")]
 pub const ACTION_VIEW: &str = "moe.sapphic.Chiri.action.view";
 
-// User info keys for notification metadata
-pub const USER_INFO_TASK_ID: &str = "taskId";
-pub const USER_INFO_NOTIFICATION_TYPE: &str = "notificationType";
-
-#[derive(Debug, Clone)]
-pub struct NotificationManagerState {
-    pub manager: Arc<dyn NotificationManager>,
-}
-
-#[cfg(target_os = "macos")]
 impl NotificationManagerState {
-    pub fn new(app_id: String) -> Self {
-        Self {
-            manager: get_notification_manager(app_id, None),
-        }
-    }
-
     pub fn register_categories_and_handler(&self, app: AppHandle<impl tauri::Runtime>) {
         let categories = vec![
-            // Category for overdue task notifications
             NotificationCategory {
                 identifier: TASK_OVERDUE_CATEGORY.to_string(),
                 actions: vec![
@@ -61,7 +35,6 @@ impl NotificationManagerState {
                     },
                 ],
             },
-            // Category for reminder notifications
             NotificationCategory {
                 identifier: TASK_REMINDER_CATEGORY.to_string(),
                 actions: vec![
@@ -86,7 +59,7 @@ impl NotificationManagerState {
                 Box::new(move |response| {
                     let app = app.clone();
                     tauri::async_runtime::spawn(async move {
-                        handle_notification_response(&app, response).await;
+                        handle_response(&app, response).await;
                     });
                 }),
                 categories,
@@ -97,97 +70,7 @@ impl NotificationManagerState {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SendNotificationRequest {
-    pub title: String,
-    pub body: String,
-    pub task_id: String,
-    pub notification_type: NotificationType,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum NotificationType {
-    Overdue,
-    Reminder,
-}
-
-#[cfg(target_os = "macos")]
-#[derive(Debug, Serialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct NotificationActionEvent {
-    pub action: String,
-    pub task_id: String,
-    pub notification_type: String,
-}
-
-/// Send a notification with actions
-#[tauri::command]
-pub async fn send_notification_with_actions(
-    request: SendNotificationRequest,
-    state: State<'_, NotificationManagerState>,
-) -> Result<(), String> {
-    let category_id = match request.notification_type {
-        NotificationType::Overdue => TASK_OVERDUE_CATEGORY,
-        NotificationType::Reminder => TASK_REMINDER_CATEGORY,
-    };
-
-    let mut user_info = std::collections::HashMap::new();
-    user_info.insert(USER_INFO_TASK_ID.to_string(), request.task_id);
-    user_info.insert(
-        USER_INFO_NOTIFICATION_TYPE.to_string(),
-        serde_json::to_string(&request.notification_type).map_err(|e| e.to_string())?,
-    );
-
-    let notification = NotificationBuilder::new()
-        .title(&request.title)
-        .body(&request.body)
-        .set_category_id(category_id)
-        .set_user_info(user_info);
-
-    state
-        .manager
-        .send_notification(notification)
-        .await
-        .map_err(|e| format!("Failed to send notification: {e:?}"))?;
-
-    Ok(())
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct SimpleNotificationRequest {
-    pub title: String,
-    pub body: String,
-}
-
-/// Send a simple notification without actions or task metadata.
-/// Used for system notifications like quit confirmation.
-#[tauri::command]
-pub async fn send_simple_notification(
-    request: SimpleNotificationRequest,
-    state: State<'_, NotificationManagerState>,
-) -> Result<(), String> {
-    let notification = NotificationBuilder::new()
-        .title(&request.title)
-        .body(&request.body);
-
-    state
-        .manager
-        .send_notification(notification)
-        .await
-        .map_err(|e| format!("Failed to send notification: {e:?}"))?;
-
-    Ok(())
-}
-
-/// Handle notification response (user clicked notification or action)
-#[cfg(target_os = "macos")]
-async fn handle_notification_response(
-    app: &AppHandle<impl tauri::Runtime>,
-    response: NotificationResponse,
-) {
+async fn handle_response(app: &AppHandle<impl tauri::Runtime>, response: NotificationResponse) {
     eprintln!("[Notifications] Received response: {response:?}");
 
     let task_id = match response.user_info.get(USER_INFO_TASK_ID) {
@@ -206,12 +89,10 @@ async fn handle_notification_response(
 
     match response.action {
         NotificationResponseAction::Default => {
-            // User clicked the notification - open the app and focus the task
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
                 let _ = window.set_focus();
             }
-
             let _ = app.emit(
                 "notification-action",
                 NotificationActionEvent {
@@ -222,11 +103,9 @@ async fn handle_notification_response(
             );
         }
         NotificationResponseAction::Dismiss => {
-            // User dismissed the notification - no action needed
             eprintln!("[Notifications] Notification dismissed");
         }
         NotificationResponseAction::Other(action_id) => {
-            // User clicked an action button
             let action_name = if action_id == ACTION_COMPLETE {
                 "complete"
             } else if action_id == ACTION_SNOOZE_15MIN {
@@ -240,7 +119,6 @@ async fn handle_notification_response(
                 return;
             };
 
-            // Emit event to frontend
             let _ = app.emit(
                 "notification-action",
                 NotificationActionEvent {
@@ -250,8 +128,6 @@ async fn handle_notification_response(
                 },
             );
 
-            // Only show and focus the window for "View Task" action
-            // Complete and Snooze actions work silently in the background
             if action_id == ACTION_VIEW {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
