@@ -28,6 +28,9 @@ export interface CalDAVCredentials {
 
   /** OAuth Bearer token - if provided, uses Bearer auth instead of Basic */
   bearerToken?: string;
+
+  /** If true, accept self-signed or untrusted certificates */
+  acceptInvalidCerts?: boolean;
 }
 
 /**

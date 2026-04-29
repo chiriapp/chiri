@@ -18,7 +18,6 @@ import {
 } from '$constants/settings';
 import { useAddCalendar, useCreateAccount, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
 import { CalDAVClient } from '$lib/caldav';
 import { isCertError, tauriRequest } from '$lib/tauri-http';
 import { loggers } from '$lib/logger';
@@ -74,7 +73,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const [acceptInvalidCerts, setAcceptInvalidCerts] = useState(
     () => account?.acceptInvalidCerts ?? false,
   );
-  const focusTrapRef = useFocusTrap();
   const nameInputFocusedRef = useRef(false);
 
   // Reset test state when credentials change
@@ -310,81 +308,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       setIsTesting(false);
     }
   };
-
-  const handleCreateAccount = async (effectivePassword: string) => {
-    let tempId: string;
-    let calendars: Calendar[];
-
-    // If we already tested the connection successfully, reuse it
-    if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
-      log.debug('Reusing tested connection...');
-      tempId = testedConnectionId;
-      calendars = testedCalendars;
-    } else {
-      tempId = generateUUID();
-
-      log.debug(`Connecting to ${serverUrl}...`);
-      const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
-      if (!connectionInfo) {
-        setIsLoading(false);
-        return;
-      }
-
-      if (isVikunjaServer(connectionInfo.calendarHome)) {
-        const proceed = await showVikunjaWarning();
-        if (!proceed) {
-          CalDAVClient.disconnect(tempId);
-          setIsLoading(false);
-          return;
-        }
-      }
-
-      log.debug(`Fetching calendars...`);
-      calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
-      log.info(`Found ${calendars.length} calendars:`, calendars);
-    }
-
-    createAccountMutation.mutate(
-      {
-        id: tempId, // use the same ID so the caldavService connection maps correctly
-        name,
-        serverUrl,
-        username,
-        password: effectivePassword,
-        serverType,
-        calendarHomeUrl: calendarHomeUrl.trim() || undefined,
-        principalUrl: principalUrl.trim() || undefined,
-        acceptInvalidCerts: acceptInvalidCerts || undefined,
-      },
-      {
-        onSuccess: async (newAccount) => {
-          try {
-            for (const calendar of calendars) {
-              addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
-            }
-            log.debug('Fetching tasks for all calendars...');
-            for (const calendar of calendars) {
-              await fetchTasksForCalendar(newAccount.id, calendar);
-            }
-            queryClient.invalidateQueries({ queryKey: ['tasks'] });
-            queryClient.invalidateQueries({ queryKey: ['tags'] });
-            onClose();
-          } catch (error) {
-            log.error('Error setting up account:', error);
-            onClose();
-          } finally {
-            setIsLoading(false);
-          }
-        },
-        onError: (error) => {
-          log.error('Error creating account:', error);
-          setError(error instanceof Error ? error.message : 'Failed to create account');
-          setIsLoading(false);
-        },
-      },
-    );
-  };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -166,6 +166,7 @@ export interface Account {
   serverType?: ServerType;
   calendarHomeUrl?: string;
   principalUrl?: string;
+  acceptInvalidCerts?: boolean;
   calendars: Calendar[];
   lastSync?: Date;
   isActive: boolean;
