@@ -12,7 +12,9 @@
     "tauri": "tauri",
     "lint": "biome lint .",
     "format": "biome format --write .",
-    "check": "biome check --write ."
+    "check": "biome check --write .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "pnpm": {
     "updateConfig": {
@@ -52,10 +54,13 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "@vitest/coverage-v8": "^4.1.5",
     "autoprefixer": "^10.4.27",
+    "happy-dom": "^20.9.0",
     "postcss": "^8.5.8",
     "tailwindcss": "^3.4.0",
     "typescript": "^6.0.2",
-    "vite": "^8.0.3"
+    "vite": "^8.0.3",
+    "vitest": "^4.1.5"
   }
 }

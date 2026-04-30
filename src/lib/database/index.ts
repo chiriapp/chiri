@@ -271,6 +271,11 @@ class Database {
     return pendingOps.getPendingDeletions(await this.conn());
   }
 
+  async addPendingDeletion(deletion: PendingDeletion): Promise<void> {
+    await pendingOps.addPendingDeletion(await this.conn(), deletion);
+    this.notify();
+  }
+
   async clearPendingDeletion(uid: string): Promise<void> {
     await pendingOps.clearPendingDeletion(await this.conn(), uid);
     this.notify();
