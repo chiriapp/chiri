@@ -4,6 +4,7 @@ import FileText from 'lucide-react/icons/file-text';
 import Info from 'lucide-react/icons/info';
 import Loader from 'lucide-react/icons/loader-circle';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
+import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
@@ -29,17 +30,28 @@ export const UpdateSettings = () => {
     downloadProgress,
   } = useUpdateChecker();
   const [hasManuallyChecked, setHasManuallyChecked] = useState(false);
+  const [isStatusDismissed, setIsStatusDismissed] = useState(false);
   const [showChangelogModal, setShowChangelogModal] = useState(false);
 
   const handleManualCheck = async () => {
     setHasManuallyChecked(true);
+    setIsStatusDismissed(false);
     await checkForUpdates('settings-manual');
   };
 
   const showError =
-    !isManagedInstall && !isChecking && error && (hasManuallyChecked || error.kind === 'download');
+    !isManagedInstall &&
+    !isChecking &&
+    !isStatusDismissed &&
+    error &&
+    (hasManuallyChecked || error.kind === 'download');
   const showUpToDate =
-    !isManagedInstall && hasManuallyChecked && !isChecking && !updateAvailable && !error;
+    !isManagedInstall &&
+    hasManuallyChecked &&
+    !isChecking &&
+    !isStatusDismissed &&
+    !updateAvailable &&
+    !error;
 
   const getPackageManagerName = () => {
     switch (installType) {
@@ -69,11 +81,11 @@ export const UpdateSettings = () => {
         <div className="border-t border-surface-200 dark:border-surface-700" />
 
         {!isManagedInstallLoading && isManagedInstall && (
-          <div className="flex items-start gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+          <div className="flex items-start gap-2 px-4 py-3 bg-semantic-info/10 text-semantic-info">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-semantic-info" />
             <div>
               <p className="text-sm font-medium">Updates managed by {getPackageManagerName()}</p>
-              <p className="mt-0.5 text-xs text-blue-600 dark:text-blue-400">
+              <p className="mt-0.5 text-xs text-semantic-info">
                 This installation is managed by {getPackageManagerName()}. Update Chiri through your
                 system's update mechanism.
               </p>
@@ -134,9 +146,19 @@ export const UpdateSettings = () => {
         {showError && (
           <>
             <div className="border-t border-surface-200 dark:border-surface-700" />
-            <div className="px-4 py-3 bg-red-50 dark:bg-red-950/50">
-              <p className="text-sm font-medium text-red-700 dark:text-red-300">{error.title}</p>
-              <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">{error.description}</p>
+            <div className="flex items-start gap-2 px-4 py-3 bg-semantic-error/10">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-semantic-error">{error.title}</p>
+                <p className="text-xs text-semantic-error mt-0.5 opacity-80">{error.description}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsStatusDismissed(true)}
+                aria-label="Dismiss update message"
+                className="-mr-1 p-1 text-semantic-error hover:bg-semantic-error/10 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </>
         )}
@@ -144,9 +166,17 @@ export const UpdateSettings = () => {
         {showUpToDate && (
           <>
             <div className="border-t border-surface-200 dark:border-surface-700" />
-            <div className="flex items-center gap-2 px-4 py-3 bg-green-50 dark:bg-green-950/50">
-              <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 shrink-0" />
-              <p className="text-sm text-green-700 dark:text-green-300">You're up to date!</p>
+            <div className="flex items-center gap-2 px-4 py-3 bg-semantic-success/10">
+              <CheckCircle className="w-4 h-4 text-semantic-success shrink-0" />
+              <p className="flex-1 text-sm text-semantic-success">You're up to date!</p>
+              <button
+                type="button"
+                onClick={() => setIsStatusDismissed(true)}
+                aria-label="Dismiss update message"
+                className="-mr-1 p-1 text-semantic-success hover:bg-semantic-success/10 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
           </>
         )}
