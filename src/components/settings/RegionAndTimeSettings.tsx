@@ -7,7 +7,7 @@ import { AppSelect } from '$components/AppSelect';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
 import { DATE_FORMAT_OPTIONS, WEEK_START_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import type { DateFormat, StartOfWeek, TimeFormat } from '$types';
+import type { DateFormat, StartOfWeek } from '$types';
 import type { QuickTimePresets } from '$types/settings';
 import { formatTime } from '$utils/date';
 
@@ -78,14 +78,27 @@ export const RegionAndTimeSettings = () => {
               12-hour (AM/PM) or 24-hour clock
             </p>
           </div>
-          <AppSelect
-            value={timeFormat}
-            onChange={(e) => setTimeFormat(e.target.value as TimeFormat)}
-            className={selectClassName}
-          >
-            <option value="12">12-hour time</option>
-            <option value="24">24-hour time</option>
-          </AppSelect>
+          <div className="flex gap-2 shrink-0">
+            {(
+              [
+                ['12', '12-hour'],
+                ['24', '24-hour'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTimeFormat(value)}
+                className={`flex items-center px-3 py-1.5 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  timeFormat === value
+                    ? 'border-surface-300 dark:border-surface-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
+                    : 'border-transparent bg-surface-100 dark:bg-surface-700/50 text-surface-500 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 hover:text-surface-700 dark:hover:text-surface-300'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="border-t border-surface-200 dark:border-surface-700" />
@@ -136,7 +149,7 @@ export const RegionAndTimeSettings = () => {
                       {label}
                     </span>
                   </div>
-                  <span className="text-sm font-semibold tabular-nums text-primary-500">
+                  <span className="text-sm font-semibold tabular-nums text-surface-700 dark:text-surface-300">
                     {minutesToTimeLabel(presetMinutes)}
                   </span>
                 </button>
