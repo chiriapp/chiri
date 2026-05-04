@@ -151,7 +151,9 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
                           : 'text-surface-600 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
                       }`}
                     >
-                      <span className="shrink-0 text-surface-500 dark:text-surface-400">
+                      <span
+                        className={`shrink-0 ${isActiveTab ? 'text-surface-900 dark:text-surface-100' : 'text-surface-500 dark:text-surface-400'}`}
+                      >
                         {tab.icon}
                       </span>
                       <span className="truncate">{tab.label}</span>
