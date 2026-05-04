@@ -213,8 +213,6 @@ export type ExportFormat = 'ics' | 'json' | 'markdown' | 'csv';
 export type ExportType = 'tasks' | 'all-calendars' | 'single-calendar';
 
 export type SubtaskDeletionBehavior = 'delete' | 'keep';
-export type Theme = 'light' | 'dark' | 'system';
-export type AccentColor = string;
 export type StartOfWeek =
   | 'sunday'
   | 'monday'
