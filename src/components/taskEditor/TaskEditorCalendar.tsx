@@ -57,7 +57,7 @@ export const TaskEditorCalendar = ({
             </p>
           )}
           {task.parentUid && (
-            <p className="mt-3 text-xs text-surface-700 dark:text-surface-200 border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 rounded-md p-2">
+            <p className="mt-3 text-xs text-surface-700 dark:text-surface-200 border border-semantic-warning/30 bg-semantic-warning/10 rounded-md p-2">
               Changing the calendar will convert this subtask to a regular task.
             </p>
           )}

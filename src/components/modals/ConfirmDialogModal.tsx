@@ -1,5 +1,5 @@
-import AlertTriangle from 'lucide-react/icons/triangle-alert';
 import Loader2 from 'lucide-react/icons/loader-2';
+import AlertTriangle from 'lucide-react/icons/triangle-alert';
 import X from 'lucide-react/icons/x';
 import { type ReactNode, useEffect, useState } from 'react';
 import { ModalBackdrop } from '$components/ModalBackdrop';
@@ -7,7 +7,7 @@ import type { ConfirmNotice } from '$context/confirmDialogContext';
 
 const getButtonClasses = (isDestructive: boolean, isPrimary: boolean) => {
   if (isDestructive) {
-    return 'bg-red-600 hover:bg-red-700 outline-hidden focus-visible:ring-2 focus-visible:ring-red-500 text-white';
+    return 'bg-semantic-error hover:opacity-90 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error text-white';
   }
 
   if (isPrimary) {
@@ -142,7 +142,9 @@ export const ConfirmDialogModal = ({
         )}
 
         {notice && (
-          <div className={`mx-4 mb-4 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300${message ? '' : ' mt-4'}`}>
+          <div
+            className={`mx-4 mb-4 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300${message ? '' : ' mt-4'}`}
+          >
             <AlertTriangle className="mt-px size-3.5 shrink-0" />
             <span>
               {notice.message}{' '}
@@ -162,7 +164,7 @@ export const ConfirmDialogModal = ({
         )}
 
         {error && (
-          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-3 py-2 text-xs text-red-700 dark:text-red-300">
+          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-error/30 bg-semantic-error/10 px-3 py-2 text-xs text-semantic-error">
             <AlertTriangle className="mt-px size-3.5 shrink-0" />
             <span>{error}</span>
           </div>

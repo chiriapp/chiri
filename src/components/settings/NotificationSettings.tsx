@@ -65,7 +65,7 @@ export const NotificationSettings = () => {
               Get notified for task reminders and overdue tasks
             </p>
             {macPermissionPending && (
-              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              <p className="text-xs text-semantic-warning mt-1">
                 Notification permission is required, use the controls below to grant it.
               </p>
             )}

@@ -146,7 +146,7 @@ export const FileUploadStep = ({
 
       {/* Error Display */}
       {error && (
-        <div className="flex items-start gap-2 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+        <div className="flex items-start gap-2 p-3 text-sm text-semantic-error bg-semantic-error/10 border border-semantic-error/30 rounded-lg">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
           <span>{error}</span>
         </div>
@@ -154,7 +154,7 @@ export const FileUploadStep = ({
 
       {/* Parse Warnings */}
       {parseErrors.length > 0 && (
-        <div className="p-3 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+        <div className="p-3 text-sm text-semantic-warning bg-semantic-warning/10 border border-semantic-warning/30 rounded-lg">
           <div className="flex items-start gap-2">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <div className="space-y-1">

@@ -63,7 +63,7 @@ export const TaskEditorReminders = ({
                 e.stopPropagation();
                 onRemoveReminder(reminder.id);
               }}
-              className="p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-full invisible group-hover:visible focus-visible:visible outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="p-1 text-surface-400 hover:text-semantic-error hover:bg-surface-100 dark:hover:bg-surface-800 rounded-full invisible group-hover:visible focus-visible:visible outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               title="Remove reminder"
             >
               <X className="w-4 h-4" />
@@ -81,7 +81,7 @@ export const TaskEditorReminders = ({
             Add reminder
           </button>
         ) : (
-          <div className="flex items-center justify-between gap-2 text-xs text-surface-700 dark:text-surface-300 border border-amber-300 dark:border-amber-700 bg-surface-100 dark:bg-surface-800 rounded-md p-2">
+          <div className="flex items-center justify-between gap-2 text-xs text-surface-700 dark:text-surface-300 border border-semantic-warning/30 bg-surface-100 dark:bg-surface-800 rounded-md p-2">
             <span>
               {isMacPlatform()
                 ? 'Grant notification permission to add reminders.'
@@ -91,7 +91,7 @@ export const TaskEditorReminders = ({
               <button
                 type="button"
                 onClick={onOpenNotificationSettings}
-                className="flex items-center gap-1 shrink-0 font-medium text-amber-700 dark:text-amber-400 hover:text-amber-900 dark:hover:text-amber-200 transition-colors outline-hidden focus-visible:underline"
+                className="flex items-center gap-1 shrink-0 font-medium text-semantic-warning hover:opacity-80 transition-colors outline-hidden focus-visible:underline"
               >
                 <Settings className="w-3 h-3" />
                 Settings

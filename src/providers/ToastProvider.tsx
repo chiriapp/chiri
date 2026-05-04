@@ -19,10 +19,10 @@ export const ToastProvider = () => {
             'bg-surface-100! dark:bg-surface-700! hover:bg-surface-200! dark:hover:bg-surface-600! text-surface-700! dark:text-surface-300! border-0! rounded-md!',
           closeButton:
             'bg-surface-100! dark:bg-surface-700! hover:bg-surface-200! dark:hover:bg-surface-600! text-surface-500! dark:text-surface-400! border! border-surface-200! dark:border-surface-600! rounded-md!',
-          success: 'text-green-600! dark:text-green-500!',
-          error: 'text-red-600! dark:text-red-500!',
-          warning: 'text-amber-600! dark:text-amber-500!',
-          info: 'text-blue-600! dark:text-blue-500!',
+          success: 'text-semantic-success!',
+          error: 'text-semantic-error!',
+          warning: 'text-semantic-warning!',
+          info: 'text-primary-500!',
         },
       }}
     />

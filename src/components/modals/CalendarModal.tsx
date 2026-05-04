@@ -246,7 +246,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
           </div>
 
           {warning && (
-            <div className="p-3 text-sm text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <div className="p-3 text-sm text-semantic-warning bg-semantic-warning/10 border border-semantic-warning/30 rounded-lg">
               {warning}
             </div>
           )}
@@ -292,7 +292,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
           )}
 
           {error && !isVikunja && (
-            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="p-3 text-sm text-semantic-error bg-semantic-error/10 border border-semantic-error/30 rounded-lg">
               {error}
             </div>
           )}

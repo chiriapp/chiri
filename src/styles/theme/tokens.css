@@ -25,6 +25,20 @@
   --color-surface-800: var(--surface-800, #27272a);
   --color-surface-900: var(--surface-900, #18181b);
 
+  --color-priority-high: var(--priority-high);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-low: var(--priority-low);
+
+  --color-semantic-info: var(--semantic-info);
+  --color-semantic-warning: var(--semantic-warning);
+  --color-semantic-success: var(--semantic-success);
+  --color-semantic-error: var(--semantic-error);
+
+  --color-status-needs-action: var(--status-needs-action);
+  --color-status-in-process: var(--status-in-process);
+  --color-status-completed: var(--status-completed);
+  --color-status-cancelled: var(--status-cancelled);
+
   --animate-fade-in: fadeIn 0.2s ease-out;
   --animate-slide-up: slideUp 0.2s ease-out;
   --animate-scale-in: scaleIn 0.15s ease-out;

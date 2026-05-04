@@ -11,9 +11,9 @@ import { useState } from 'react';
 import type { ReviewStepProps } from '$types/import';
 
 const PRIORITY_CONFIG = {
-  high: { label: 'High', color: 'text-red-500' },
-  medium: { label: 'Med', color: 'text-amber-500' },
-  low: { label: 'Low', color: 'text-blue-500' },
+  high: { label: 'High', color: 'text-priority-high' },
+  medium: { label: 'Med', color: 'text-priority-medium' },
+  low: { label: 'Low', color: 'text-priority-low' },
   none: { label: '', color: '' },
 } as const;
 
@@ -121,9 +121,9 @@ export const ReviewStep = ({
                     : ''
                 } ${
                   task.importStatus === 'success'
-                    ? 'bg-green-50/50 dark:bg-green-900/10'
+                    ? 'bg-semantic-success/10'
                     : task.importStatus === 'error'
-                      ? 'bg-red-50/50 dark:bg-red-900/10'
+                      ? 'bg-semantic-error/10'
                       : ''
                 }`}
               >
@@ -132,9 +132,9 @@ export const ReviewStep = ({
                   {task.importStatus === 'importing' ? (
                     <Loader2 className="w-4 h-4 text-primary-500 animate-spin" />
                   ) : task.importStatus === 'success' ? (
-                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    <CheckCircle className="w-4 h-4 text-semantic-success" />
                   ) : task.importStatus === 'error' ? (
-                    <AlertTriangle className="w-4 h-4 text-red-500" />
+                    <AlertTriangle className="w-4 h-4 text-semantic-error" />
                   ) : task.completed ? (
                     <Check className="w-4 h-4 text-surface-400" />
                   ) : (
