@@ -1,6 +1,6 @@
 import { dataStore } from '$lib/store';
 import { getSortedTasks } from '$lib/store/filters';
-import type { Task } from '$types';
+import type { SortConfig, Task } from '$types';
 import type { FlattenedTask } from '$types/store';
 
 type TaskUpdate = {
@@ -184,21 +184,42 @@ export const reorderTasks = (
   targetIndent?: number,
 ) => {
   const data = dataStore.load();
-  const tasks = data.tasks;
+  const reorderedTasks = reorderTaskList(
+    data.tasks,
+    activeId,
+    overId,
+    flattenedItems,
+    data.ui.sortConfig,
+    targetIndent,
+  );
+
+  if (!reorderedTasks) return;
+
+  dataStore.save({ ...data, tasks: reorderedTasks });
+};
+
+export const reorderTaskList = (
+  tasks: Task[],
+  activeId: string,
+  overId: string,
+  flattenedItems: FlattenedTask[],
+  sortConfig?: SortConfig,
+  targetIndent?: number,
+): Task[] | null => {
   const activeTask = tasks.find((t) => t.id === activeId);
   const overTask = tasks.find((t) => t.id === overId);
 
-  if (!activeTask || !overTask) return;
+  if (!activeTask || !overTask) return null;
 
   const activeIndex = flattenedItems.findIndex((t) => t.id === activeId);
   const overIndex = flattenedItems.findIndex((t) => t.id === overId);
 
-  if (activeIndex === -1 || overIndex === -1) return;
+  if (activeIndex === -1 || overIndex === -1) return null;
 
   const overItem = flattenedItems[overIndex];
   const activeItem = flattenedItems[activeIndex];
 
-  if (overItem.ancestorIds.includes(activeId)) return;
+  if (overItem.ancestorIds.includes(activeId)) return null;
 
   const effectiveIndent = targetIndent ?? overItem.depth;
   const newParentUid = findNewParentUid(
@@ -213,7 +234,7 @@ export const reorderTasks = (
   const siblings = tasks.filter(
     (t) => t.parentUid === newParentUid && t.id !== activeId && !descendantIds.has(t.id),
   );
-  const sortedSiblings = getSortedTasks(siblings, data.ui.sortConfig);
+  const sortedSiblings = getSortedTasks(siblings, sortConfig);
 
   const insertIndex = findInsertIndex(
     flattenedItems,
@@ -240,5 +261,5 @@ export const reorderTasks = (
     inheritance,
   );
 
-  dataStore.save({ ...data, tasks: applyUpdates(tasks, updates) });
+  return applyUpdates(tasks, updates);
 };

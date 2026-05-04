@@ -14,6 +14,7 @@ import {
   updateAccount,
 } from '$lib/store/accounts';
 import { addCalendar, deleteCalendar } from '$lib/store/calendars';
+import { moveItem } from '$lib/store/reorder';
 import { reorderAccounts } from '$lib/store/reorder/accounts';
 import { reorderCalendars } from '$lib/store/reorder/calendars';
 import type { Account, Calendar } from '$types';
@@ -135,6 +136,12 @@ export const useReorderAccounts = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: ({ activeId, overId }: { activeId: string; overId: string }) => {
+      queryClient.setQueryData<Account[]>(queryKeys.accounts.all, (accounts) => {
+        if (!accounts) return accounts;
+        return moveItem(accounts, activeId, overId) ?? accounts;
+      });
+    },
     mutationFn: ({ activeId, overId }: { activeId: string; overId: string }) => {
       reorderAccounts(activeId, overId);
       return Promise.resolve();
@@ -152,6 +159,25 @@ export const useReorderCalendars = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: ({
+      accountId,
+      activeId,
+      overId,
+    }: {
+      accountId: string;
+      activeId: string;
+      overId: string;
+    }) => {
+      queryClient.setQueryData<Account[]>(queryKeys.accounts.all, (accounts) => {
+        if (!accounts) return accounts;
+
+        return accounts.map((account) => {
+          if (account.id !== accountId) return account;
+          const calendars = moveItem(account.calendars, activeId, overId);
+          return calendars ? { ...account, calendars } : account;
+        });
+      });
+    },
     mutationFn: ({
       accountId,
       activeId,
