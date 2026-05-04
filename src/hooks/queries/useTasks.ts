@@ -304,7 +304,10 @@ export const useReorderTasks = () => {
       const sortConfig = dataStore.load().ui.sortConfig;
       const reorderCachedTasks = (tasks: Task[] | undefined) => {
         if (!tasks) return tasks;
-        return reorderTaskList(tasks, activeId, overId, flattenedItems, sortConfig, targetIndent) ?? tasks;
+        return (
+          reorderTaskList(tasks, activeId, overId, flattenedItems, sortConfig, targetIndent) ??
+          tasks
+        );
       };
 
       queryClient.setQueryData<Task[]>(queryKeys.tasks.all, reorderCachedTasks);

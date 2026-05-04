@@ -75,8 +75,7 @@ const getDayButtonClass = (
   isCurrentMonth: boolean,
 ): string => {
   if (isSelected) return 'bg-primary-500 text-primary-contrast';
-  if (isTodayDate)
-    return 'bg-primary-500/15 text-primary-500 font-medium';
+  if (isTodayDate) return 'bg-primary-500/15 text-primary-500 font-medium';
   if (isCurrentMonth)
     return 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700';
   return 'text-surface-400 dark:text-surface-600';

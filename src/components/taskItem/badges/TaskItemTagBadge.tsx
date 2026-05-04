@@ -20,7 +20,9 @@ export const TaskItemTagBadge = ({
       style={{ borderColor: tag.color }}
     >
       {tag.emoji ? (
-        <span className="text-xs leading-none" style={{ color: tag.color }}>{tag.emoji}</span>
+        <span className="text-xs leading-none" style={{ color: tag.color }}>
+          {tag.emoji}
+        </span>
       ) : (
         <TagIcon className="w-3 h-3" style={{ color: tag.color }} />
       )}

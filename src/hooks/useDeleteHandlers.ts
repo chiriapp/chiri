@@ -79,8 +79,7 @@ export const useDeleteHandlers = () => {
     const account = accounts.find((a) => a.id === accountId);
     const calendar = account?.calendars.find((c) => c.id === calendarId);
 
-    const isVikunja =
-      account?.serverType === 'vikunja' || calendar?.url.includes('/dav/projects/');
+    const isVikunja = account?.serverType === 'vikunja' || calendar?.url.includes('/dav/projects/');
     const projectId = calendar?.url.match(/\/dav\/projects\/(\d+)/)?.[1];
     const vikunjaDeleteUrl =
       isVikunja && projectId

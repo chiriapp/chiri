@@ -221,9 +221,7 @@ export const DestinationStep = ({
                         style={{ backgroundColor: cal.color || '#3b82f6' }}
                       />
                       <span className="truncate flex-1">{cal.displayName}</span>
-                      {isSelected && (
-                        <Check className="w-4 h-4 text-primary-500 shrink-0" />
-                      )}
+                      {isSelected && <Check className="w-4 h-4 text-primary-500 shrink-0" />}
                     </button>
                   );
                 })}

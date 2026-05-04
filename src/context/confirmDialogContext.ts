@@ -40,12 +40,22 @@ export const ConfirmDialogContext = createContext<ConfirmDialogContextValue | nu
 export const defaultConfirmOptions: Required<
   Omit<
     ConfirmOptions,
-    'alternateLabel' | 'alternateDestructive' | 'subtitle' | 'delayConfirmSeconds' | 'notice' | 'disableConfirm'
+    | 'alternateLabel'
+    | 'alternateDestructive'
+    | 'subtitle'
+    | 'delayConfirmSeconds'
+    | 'notice'
+    | 'disableConfirm'
   >
 > &
   Pick<
     ConfirmOptions,
-    'alternateLabel' | 'alternateDestructive' | 'subtitle' | 'delayConfirmSeconds' | 'notice' | 'disableConfirm'
+    | 'alternateLabel'
+    | 'alternateDestructive'
+    | 'subtitle'
+    | 'delayConfirmSeconds'
+    | 'notice'
+    | 'disableConfirm'
   > = {
   title: 'Confirm action',
   subtitle: undefined,
