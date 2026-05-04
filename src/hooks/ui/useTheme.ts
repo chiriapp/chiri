@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { COLOR_SCHEMES, DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import { COLOR_SCHEMES } from '$constants/colorSchemes';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
 import {
   applyAccentColor,
   applyColorScheme,
@@ -47,7 +48,7 @@ export const useTheme = () => {
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
-  }, [theme]);
+  }, [colorScheme, colorSchemeFlavor, setColorScheme, theme]);
 
   // apply color scheme surface palette
   useEffect(() => {
@@ -61,7 +62,7 @@ export const useTheme = () => {
     } else {
       applySchemeAccentColor(accentColor);
     }
-  }, [accentColor, colorScheme]);
+  }, [accentColor, isDefaultScheme]);
 
   return { theme, accentColor, colorScheme, colorSchemeFlavor };
 };

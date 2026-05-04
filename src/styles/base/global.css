@@ -1,3 +1,31 @@
+:root {
+  --semantic-info: #2563eb; /* blue-600 */
+  --semantic-warning: #d97706; /* amber-600 */
+  --semantic-success: #16a34a; /* green-600 */
+  --semantic-error: #dc2626; /* red-600 */
+  --status-needs-action: #71717a; /* zinc-500 */
+  --status-in-process: #2563eb; /* blue-600 */
+  --status-completed: #16a34a; /* green-600 */
+  --status-cancelled: #e11d48; /* rose-600 */
+  --priority-high: #dc2626; /* red-600 */
+  --priority-medium: #d97706; /* amber-600 */
+  --priority-low: #2563eb; /* blue-600 */
+}
+
+:root.dark {
+  --semantic-info: #60a5fa; /* blue-400 */
+  --semantic-warning: #fbbf24; /* amber-400 */
+  --semantic-success: #4ade80; /* green-400 */
+  --semantic-error: #f87171; /* red-400 */
+  --status-needs-action: #a1a1aa; /* zinc-400 */
+  --status-in-process: #60a5fa; /* blue-400 */
+  --status-completed: #4ade80; /* green-400 */
+  --status-cancelled: #fb7185; /* rose-400 */
+  --priority-high: #f87171; /* red-400 */
+  --priority-medium: #fbbf24; /* amber-400 */
+  --priority-low: #60a5fa; /* blue-400 */
+}
+
 * {
   box-sizing: border-box;
   scrollbar-width: thin;

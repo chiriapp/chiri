@@ -7,6 +7,7 @@ interface TaskItemCheckboxProps {
   status: TaskStatus;
   flashComplete: boolean;
   checkmarkColor: string;
+  useAccentColor: boolean;
   onClick: (e: React.MouseEvent) => void;
 }
 
@@ -14,6 +15,7 @@ export const TaskItemCheckbox = ({
   status,
   flashComplete,
   checkmarkColor,
+  useAccentColor,
   onClick,
 }: TaskItemCheckboxProps) => {
   const isCompleted = status === 'completed' || flashComplete;
@@ -30,11 +32,14 @@ export const TaskItemCheckbox = ({
   const getClassName = () => {
     const base =
       'w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
-    if (isCompleted) return `${base} bg-primary-500 border-primary-500`;
-    if (isCancelled)
-      return `${base} bg-rose-400 border-rose-400 dark:bg-rose-500 dark:border-rose-500`;
-    if (isInProcess)
-      return `${base} bg-blue-400 border-blue-400 dark:bg-blue-500 dark:border-blue-500`;
+    if (isCompleted)
+      return `${base} ${
+        useAccentColor
+          ? 'bg-primary-500 border-primary-500'
+          : 'bg-status-completed border-status-completed'
+      }`;
+    if (isCancelled) return `${base} bg-status-cancelled border-status-cancelled`;
+    if (isInProcess) return `${base} bg-status-in-process border-status-in-process`;
     return `${base} border-surface-300 dark:border-surface-600 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30`;
   };
 
@@ -44,7 +49,7 @@ export const TaskItemCheckbox = ({
         <Check className="w-4 h-4" style={{ color: checkmarkColor }} strokeWidth={3} />
       )}
       {isCancelled && <X className="w-4 h-4 text-white dark:text-surface-200" strokeWidth={3} />}
-      {isInProcess && <Loader className="w-4 h-4 text-white dark:text-blue-100" />}
+      {isInProcess && <Loader className="w-4 h-4 text-white dark:text-surface-100" />}
     </button>
   );
 };

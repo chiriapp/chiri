@@ -51,7 +51,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
             <span className="font-bold">Are you sure?</span> This will not affect data on your
             CalDAV servers, but local data will be lost and accounts will need to be set up again.
           </p>
-          <p className="text-sm text-amber-600 dark:text-amber-400">
+          <p className="text-sm text-semantic-warning">
             Not recommended unless you are experiencing issues or want to start fresh.
           </p>
         </div>
@@ -165,7 +165,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
 
         <div className="flex items-center justify-between p-4">
           <div>
-            <p className="text-sm text-red-600 dark:text-red-400">Reset database</p>
+            <p className="text-sm text-semantic-error">Reset database</p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
               Deletes all local data. Only use this as a last resort.
             </p>
@@ -173,7 +173,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
           <button
             type="button"
             onClick={handleResetDatabase}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-red-600 dark:bg-red-500 hover:bg-red-700 dark:hover:bg-red-600 text-white rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-semantic-error hover:opacity-90 text-white rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset shrink-0"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reset

@@ -70,15 +70,15 @@ export const SystemSettings = () => {
 
         {isGNOME && (
           <div className="px-4 pb-4">
-            <div className="flex gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 p-3 border border-amber-200 dark:border-amber-800/50">
-              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-700 dark:text-amber-300">
+            <div className="flex gap-2 rounded-lg bg-semantic-warning/10 p-3 border border-semantic-warning/30">
+              <AlertTriangle className="w-4 h-4 text-semantic-warning shrink-0 mt-0.5" />
+              <p className="text-xs text-semantic-warning">
                 <strong>GNOME detected:</strong> System tray requires the{' '}
                 <a
                   href="https://extensions.gnome.org/extension/615/appindicator-support/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:text-amber-800 dark:hover:text-amber-200"
+                  className="underline hover:opacity-80"
                 >
                   AppIndicator and KStatusNotifierItem Support
                 </a>{' '}
@@ -119,14 +119,12 @@ export const SystemSettings = () => {
         {systemTrayChanged && (
           <>
             <div className="border-t border-surface-200 dark:border-surface-700" />
-            <div className="flex items-center justify-between gap-4 px-4 py-3 bg-blue-50 dark:bg-blue-950/50">
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                Restart required to apply changes
-              </p>
+            <div className="flex items-center justify-between gap-4 px-4 py-3 bg-semantic-info/10">
+              <p className="text-sm text-semantic-info">Restart required to apply changes</p>
               <button
                 type="button"
                 onClick={handleRestart}
-                className="px-3 py-1.5 text-sm font-medium bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-inset shrink-0"
+                className="px-3 py-1.5 text-sm font-medium bg-semantic-info hover:opacity-90 text-white rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-info focus-visible:ring-inset shrink-0"
               >
                 Restart now
               </button>

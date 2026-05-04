@@ -379,16 +379,16 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                     </label>
 
                     {isGNOME && enableSystemTray && (
-                      <div className="mt-2 p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                      <div className="mt-2 p-2 rounded-lg bg-semantic-warning/10 border border-semantic-warning/30">
                         <div className="flex gap-2">
-                          <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                          <div className="text-xs text-amber-800 dark:text-amber-200">
+                          <AlertTriangle className="w-4 h-4 text-semantic-warning shrink-0 mt-0.5" />
+                          <div className="text-xs text-semantic-warning">
                             <strong>GNOME Desktop:</strong> Requires{' '}
                             <a
                               href="https://extensions.gnome.org/extension/615/appindicator-support/"
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="underline hover:text-amber-900 dark:hover:text-amber-100"
+                              className="underline hover:opacity-80"
                             >
                               AppIndicator extension
                             </a>
@@ -444,7 +444,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                         Desktop notifications
                       </span>
                       {macPermissionPending && (
-                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        <p className="text-xs text-semantic-warning mt-1">
                           Notification permission is required first.
                         </p>
                       )}

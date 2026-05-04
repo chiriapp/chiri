@@ -16,23 +16,23 @@ export const PRIORITY_CONFIG: Record<
   high: {
     value: 'high',
     label: 'High',
-    color: 'text-red-500',
-    borderColor: 'border-red-400',
-    bgColor: 'bg-red-50 dark:bg-red-900/30',
+    color: 'text-priority-high',
+    borderColor: 'border-priority-high',
+    bgColor: 'bg-priority-high/15',
   },
   medium: {
     value: 'medium',
     label: 'Medium',
-    color: 'text-amber-600 dark:text-amber-500',
-    borderColor: 'border-amber-400',
-    bgColor: 'bg-amber-50 dark:bg-amber-900/30',
+    color: 'text-priority-medium',
+    borderColor: 'border-priority-medium',
+    bgColor: 'bg-priority-medium/15',
   },
   low: {
     value: 'low',
     label: 'Low',
-    color: 'text-blue-600 dark:text-blue-500',
-    borderColor: 'border-blue-400',
-    bgColor: 'bg-blue-50 dark:bg-blue-900/30',
+    color: 'text-priority-low',
+    borderColor: 'border-priority-low',
+    bgColor: 'bg-priority-low/15',
   },
   none: {
     value: 'none',
@@ -52,16 +52,16 @@ export const PRIORITIES = Object.values(PRIORITY_CONFIG);
  * Priority colors for task items (combined border and background)
  */
 export const PRIORITY_COLORS: Record<Priority, string> = {
-  high: 'border-red-400 bg-red-50 dark:bg-red-900/30',
-  medium: 'border-amber-400 bg-amber-50 dark:bg-amber-900/30',
-  low: 'border-blue-400 bg-blue-50 dark:bg-blue-900/30',
+  high: 'border-priority-high bg-priority-high/15',
+  medium: 'border-priority-medium bg-priority-medium/15',
+  low: 'border-priority-low bg-priority-low/15',
   none: 'border-transparent',
 };
 
 export const RING_COLORS: Record<Priority, string> = {
-  high: 'ring-3 ring-red-400 dark:ring-red-500',
-  medium: 'ring-3 ring-amber-400 dark:ring-amber-500',
-  low: 'ring-3 ring-blue-400 dark:ring-blue-500',
+  high: 'ring-3 ring-priority-high',
+  medium: 'ring-3 ring-priority-medium',
+  low: 'ring-3 ring-priority-low',
   none: 'ring-3 ring-primary-500',
 };
 
@@ -69,9 +69,9 @@ export const RING_COLORS: Record<Priority, string> = {
  * Priority dot colors for subtask indicators
  */
 export const PRIORITY_DOTS: Record<Priority, string> = {
-  high: 'bg-red-500',
-  medium: 'bg-amber-500',
-  low: 'bg-blue-500',
+  high: 'bg-priority-high',
+  medium: 'bg-priority-medium',
+  low: 'bg-priority-low',
   none: '',
 };
 

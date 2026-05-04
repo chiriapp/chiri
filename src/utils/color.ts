@@ -1,6 +1,6 @@
 import { COLOR_PRESETS } from '$constants';
 import { COLOR_SCHEMES } from '$constants/colorSchemes';
-import type { Theme } from '$types';
+import type { Theme } from '$types/color';
 
 /**
  * parse any valid CSS color string to [r, g, b] using a canvas element.
@@ -214,18 +214,43 @@ export const applyColorScheme = (schemeId: string, flavorId: string | null) => {
     for (const shade of SURFACE_SHADES) {
       root.style.removeProperty(`--surface-${shade}`);
     }
+    root.style.removeProperty('--semantic-info');
+    root.style.removeProperty('--semantic-warning');
+    root.style.removeProperty('--semantic-success');
+    root.style.removeProperty('--semantic-error');
+
+    root.style.removeProperty('--status-needs-action');
+    root.style.removeProperty('--status-in-process');
+    root.style.removeProperty('--status-completed');
+    root.style.removeProperty('--status-cancelled');
+
+    root.style.removeProperty('--priority-high');
+    root.style.removeProperty('--priority-medium');
+    root.style.removeProperty('--priority-low');
     return;
   }
 
-  const flavor = flavorId
-    ? scheme.flavors.find((f) => f.id === flavorId)
-    : scheme.flavors[0];
+  const flavor = flavorId ? scheme.flavors.find((f) => f.id === flavorId) : scheme.flavors[0];
 
   if (!flavor) return;
 
   for (const shade of SURFACE_SHADES) {
     root.style.setProperty(`--surface-${shade}`, flavor.surfaces[shade]);
   }
+
+  root.style.setProperty('--semantic-info', flavor.semanticColors.info);
+  root.style.setProperty('--semantic-warning', flavor.semanticColors.warning);
+  root.style.setProperty('--semantic-success', flavor.semanticColors.success);
+  root.style.setProperty('--semantic-error', flavor.semanticColors.error);
+
+  root.style.setProperty('--status-needs-action', flavor.statusColors.needsAction);
+  root.style.setProperty('--status-in-process', flavor.statusColors.inProcess);
+  root.style.setProperty('--status-completed', flavor.statusColors.completed);
+  root.style.setProperty('--status-cancelled', flavor.statusColors.cancelled);
+
+  root.style.setProperty('--priority-high', flavor.priorityColors.high);
+  root.style.setProperty('--priority-medium', flavor.priorityColors.medium);
+  root.style.setProperty('--priority-low', flavor.priorityColors.low);
 };
 
 /**

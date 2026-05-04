@@ -49,7 +49,7 @@ export const createBootstrapErrorUI = async (error: unknown) => {
     'max-h-48 overflow-auto rounded-md bg-muted/80 p-4 font-mono text-sm border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-900';
 
   const errorText = document.createElement('p');
-  errorText.className = 'text-red-600 dark:text-red-400 whitespace-pre-line selectable';
+  errorText.className = 'text-semantic-error whitespace-pre-line selectable';
   errorText.textContent = `${String(error)}`;
 
   errorBox.appendChild(errorText);
@@ -105,7 +105,7 @@ This won't delete any data on your CalDAV servers, however local data will be lo
     resetCardDescription,
     'Reset Database and Reload',
     'border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/30',
-    'bg-red-600 dark:bg-red-500 text-primary-contrast hover:bg-red-700 dark:hover:bg-red-600 focus:ring-red-500',
+    'bg-semantic-error hover:opacity-90 text-white focus:ring-semantic-error',
     () => {},
   );
 
@@ -123,7 +123,7 @@ This won't delete any data on your CalDAV servers, however local data will be lo
   confirmSection.className = 'hidden space-y-3';
 
   const confirmText = document.createElement('p');
-  confirmText.className = 'text-sm text-red-600 dark:text-red-400 font-semibold';
+  confirmText.className = 'text-sm text-semantic-error font-semibold';
   confirmText.textContent = 'Are you sure? This action cannot be undone.';
 
   const confirmButtons = document.createElement('div');
@@ -132,7 +132,7 @@ This won't delete any data on your CalDAV servers, however local data will be lo
   const confirmBtn = document.createElement('button');
   confirmBtn.id = 'resetConfirmBtn';
   confirmBtn.className =
-    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-primary-contrast hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
+    'flex-1 rounded-md bg-semantic-error hover:opacity-90 px-4 py-2 text-sm font-medium text-white transition-colors focus:outline-hidden focus:ring-2 focus:ring-semantic-error focus:ring-offset-2';
   confirmBtn.textContent = 'Yes, Reset Database';
 
   const cancelBtn = document.createElement('button');
@@ -189,7 +189,7 @@ This won't delete any data on your CalDAV servers, however local data will be lo
   confirmPrefsSection.className = 'hidden space-y-3';
 
   const confirmPrefsText = document.createElement('p');
-  confirmPrefsText.className = 'text-sm text-red-600 dark:text-red-400 font-semibold';
+  confirmPrefsText.className = 'text-sm text-semantic-error font-semibold';
   confirmPrefsText.textContent =
     'Are you sure? All preferences will be reset to defaults and the app will reload.';
 
@@ -198,7 +198,7 @@ This won't delete any data on your CalDAV servers, however local data will be lo
 
   const confirmPrefsBtn = document.createElement('button');
   confirmPrefsBtn.className =
-    'flex-1 rounded-md bg-red-600 dark:bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 dark:hover:bg-red-600 transition-colors focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2';
+    'flex-1 rounded-md bg-semantic-error hover:opacity-90 px-4 py-2 text-sm font-medium text-white transition-colors focus:outline-hidden focus:ring-2 focus:ring-semantic-error focus:ring-offset-2';
   confirmPrefsBtn.textContent = 'Yes, Reset Preferences';
 
   const cancelPrefsBtn = document.createElement('button');

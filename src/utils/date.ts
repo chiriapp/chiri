@@ -82,8 +82,7 @@ export const formatDueDate = (date: Date, timeFormat?: TimeFormat) => {
   const isOverdue = d.getTime() < now.getTime();
   const dayDiff = differenceInCalendarDays(d, now);
 
-  const overdue =
-    'border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+  const overdue = 'border-semantic-error/30 bg-semantic-error/10 text-semantic-error';
   const neutral =
     'border-surface-300 dark:border-surface-600 bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-400';
 
@@ -92,7 +91,7 @@ export const formatDueDate = (date: Date, timeFormat?: TimeFormat) => {
       text: `Today ${time}`,
       className: isOverdue
         ? overdue
-        : 'border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+        : 'border-semantic-warning/30 bg-semantic-warning/10 text-semantic-warning',
     };
   }
 

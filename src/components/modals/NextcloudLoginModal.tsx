@@ -207,7 +207,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
           </div>
 
           {error && (
-            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
+            <div className="p-3 text-sm text-semantic-error bg-semantic-error/10 border border-semantic-error/30 rounded-lg">
               {error}
             </div>
           )}

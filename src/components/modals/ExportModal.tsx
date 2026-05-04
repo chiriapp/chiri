@@ -228,9 +228,9 @@ export const ExportModal = ({
           )}
 
           {error && (
-            <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-semantic-error/10 border border-semantic-error/30">
+              <AlertCircle className="w-4 h-4 text-semantic-error shrink-0 mt-0.5" />
+              <p className="text-sm text-semantic-error">{error}</p>
             </div>
           )}
         </div>

@@ -260,7 +260,7 @@ export const TaskItemContextMenu = ({
             <button
               type="button"
               onClick={handleDelete}
-              className="w-full rounded-b-md flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+              className="w-full rounded-b-md flex items-center gap-2 px-3 py-2 text-sm text-semantic-error hover:bg-semantic-error/15 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset"
             >
               <Trash2 className="w-4 h-4" />
               Delete
