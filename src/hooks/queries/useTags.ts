@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
+import { moveItem } from '$lib/store/reorder';
 import { reorderTags } from '$lib/store/reorder/tags';
 import { createTag, deleteTag, getAllTags, getTagById, updateTag } from '$lib/store/tags';
 import { getTasksByTag } from '$lib/store/tasks';
@@ -114,6 +115,12 @@ export const useReorderTags = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: ({ activeId, overId }: { activeId: string; overId: string }) => {
+      queryClient.setQueryData<Tag[]>(queryKeys.tags.all, (tags) => {
+        if (!tags) return tags;
+        return moveItem(tags, activeId, overId) ?? tags;
+      });
+    },
     mutationFn: ({ activeId, overId }: { activeId: string; overId: string }) => {
       reorderTags(activeId, overId);
       return Promise.resolve();

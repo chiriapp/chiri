@@ -9,7 +9,7 @@ import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
 import { getFilteredTasks, getSortedTasks } from '$lib/store/filters';
 import { addReminder, removeReminder, updateReminder } from '$lib/store/reminders';
-import { reorderTasks } from '$lib/store/reorder/tasks';
+import { reorderTaskList, reorderTasks } from '$lib/store/reorder/tasks';
 import {
   addSubtask,
   deleteSubtask,
@@ -290,6 +290,26 @@ export const useReorderTasks = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
+    onMutate: ({
+      activeId,
+      overId,
+      flattenedItems,
+      targetIndent,
+    }: {
+      activeId: string;
+      overId: string;
+      flattenedItems: FlattenedTask[];
+      targetIndent?: number;
+    }) => {
+      const sortConfig = dataStore.load().ui.sortConfig;
+      const reorderCachedTasks = (tasks: Task[] | undefined) => {
+        if (!tasks) return tasks;
+        return reorderTaskList(tasks, activeId, overId, flattenedItems, sortConfig, targetIndent) ?? tasks;
+      };
+
+      queryClient.setQueryData<Task[]>(queryKeys.tasks.all, reorderCachedTasks);
+      queryClient.setQueryData<Task[]>(['filteredTasks'], reorderCachedTasks);
+    },
     mutationFn: async ({
       activeId,
       overId,
