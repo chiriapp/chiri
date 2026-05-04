@@ -1,10 +1,13 @@
 import { emit } from '@tauri-apps/api/event';
 import Activity from 'lucide-react/icons/activity';
+import CheckCircle from 'lucide-react/icons/check-circle';
+import CircleAlert from 'lucide-react/icons/circle-alert';
 import Edit2 from 'lucide-react/icons/edit-2';
 import Loader2 from 'lucide-react/icons/loader-2';
 import Plus from 'lucide-react/icons/plus';
 import Trash2 from 'lucide-react/icons/trash-2';
 import User from 'lucide-react/icons/user';
+import X from 'lucide-react/icons/x';
 import { useMemo, useState } from 'react';
 import { Tooltip } from '$components/Tooltip';
 import { MENU_EVENTS } from '$constants/menu';
@@ -62,6 +65,14 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
 
   const handleEditAccount = (accountId: string) => {
     emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId });
+  };
+
+  const handleDismissTestResult = (accountId: string) => {
+    setTestResults((prev) => {
+      const next = { ...prev };
+      delete next[accountId];
+      return next;
+    });
   };
 
   const handleTestConnection = async (account: Account) => {
@@ -140,9 +151,9 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
               return (
                 <div
                   key={account.id}
-                  className="rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 p-4"
+                  className="overflow-hidden rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50"
                 >
-                  <div className="flex justify-between gap-3">
+                  <div className="flex justify-between gap-3 p-4">
                     <div className="flex flex-col">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="flex flex-row gap-1.5 items-center text-sm font-medium text-surface-700 dark:text-surface-300">
@@ -150,9 +161,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
                           {account.name}
                         </p>
                         {!isConnected && (
-                          <span className="text-xs text-amber-600 dark:text-amber-400">
-                            Disconnected
-                          </span>
+                          <span className="text-xs text-semantic-warning">Disconnected</span>
                         )}
                       </div>
 
@@ -200,7 +209,7 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
                         <button
                           type="button"
                           onClick={() => handleDeleteAccount(account)}
-                          className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                          className="p-1.5 text-semantic-error hover:bg-semantic-error/10 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
@@ -209,15 +218,39 @@ export const ConnectionsSettings = ({ accounts }: ConnectionsSettingsProps) => {
                   </div>
 
                   {testResult && (
-                    <div
-                      className={`p-2 rounded-lg text-xs mt-3 border bg-surface-100 dark:bg-surface-700 border-surface-200 dark:border-surface-600 ${
-                        testResult.success
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-red-600 dark:text-red-400'
-                      }`}
-                    >
-                      {testResult.message}
-                    </div>
+                    <>
+                      <div className="border-t border-surface-200 dark:border-surface-700" />
+                      <div
+                        className={`flex items-center gap-2 px-4 py-3 ${
+                          testResult.success ? 'bg-semantic-success/10' : 'bg-semantic-error/10'
+                        }`}
+                      >
+                        {testResult.success ? (
+                          <CheckCircle className="w-4 h-4 text-semantic-success shrink-0" />
+                        ) : (
+                          <CircleAlert className="w-4 h-4 text-semantic-error shrink-0" />
+                        )}
+                        <p
+                          className={`flex-1 text-sm ${
+                            testResult.success ? 'text-semantic-success' : 'text-semantic-error'
+                          }`}
+                        >
+                          {testResult.message}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => handleDismissTestResult(account.id)}
+                          aria-label="Dismiss connection test message"
+                          className={`-mr-1 p-1 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                            testResult.success
+                              ? 'text-semantic-success hover:bg-semantic-success/10'
+                              : 'text-semantic-error hover:bg-semantic-error/10'
+                          }`}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               );
