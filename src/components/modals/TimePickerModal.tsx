@@ -167,7 +167,7 @@ export const TimePickerModal = ({
             onMouseDown={() => startHold(incrementHour)}
             onMouseUp={stopHold}
             onMouseLeave={stopHold}
-            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
+            className="w-14 p-3 flex items-center justify-center text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
             aria-label="Increment hour"
           >
             <ChevronUp className="w-5 h-5" />
@@ -188,7 +188,7 @@ export const TimePickerModal = ({
             onMouseDown={() => startHold(decrementHour)}
             onMouseUp={stopHold}
             onMouseLeave={stopHold}
-            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
+            className="w-14 p-3 flex items-center justify-center text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-200 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
             aria-label="Decrement hour"
           >
             <ChevronDown className="w-5 h-5" />
@@ -207,7 +207,7 @@ export const TimePickerModal = ({
             onMouseDown={() => startHold(incrementMinute)}
             onMouseUp={stopHold}
             onMouseLeave={stopHold}
-            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
+            className="w-14 p-3 flex items-center justify-center text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
             aria-label="Increment minute"
           >
             <ChevronUp className="w-5 h-5" />
@@ -228,7 +228,7 @@ export const TimePickerModal = ({
             onMouseDown={() => startHold(decrementMinute)}
             onMouseUp={stopHold}
             onMouseLeave={stopHold}
-            className="p-3 text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
+            className="w-14 p-3 flex items-center justify-center text-surface-600 dark:text-surface-400 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 select-none"
             aria-label="Decrement minute"
           >
             <ChevronDown className="w-5 h-5" />
