@@ -123,7 +123,7 @@ export const ConfirmDialogModal = ({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-shrink-0 ml-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 p-1 rounded transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="shrink-0 ml-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 p-1 rounded transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
