@@ -1,3 +1,12 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Activity from 'lucide-react/icons/activity';
 import AlignLeft from 'lucide-react/icons/align-left';
 import Bell from 'lucide-react/icons/bell';
@@ -6,16 +15,14 @@ import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import Flag from 'lucide-react/icons/flag';
 import FolderSync from 'lucide-react/icons/folder-sync';
 import Link from 'lucide-react/icons/link';
+import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Tag from 'lucide-react/icons/tag';
+import {
+  EditorSettingsSortableFieldRow,
+  type FieldConfig,
+} from '$components/settings/EditorSettingsSortableFieldRow';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import type { EditorFieldVisibility } from '$types/settings';
-
-type FieldConfig = {
-  key: keyof EditorFieldVisibility;
-  label: string;
-  description: string;
-  icon: React.ReactNode;
-};
+import type { EditorFieldKey } from '$types/settings';
 
 const FIELDS: FieldConfig[] = [
   {
@@ -41,6 +48,12 @@ const FIELDS: FieldConfig[] = [
     label: 'Dates',
     description: 'Start date and due date pickers',
     icon: <CalendarClock className="w-4 h-4" />,
+  },
+  {
+    key: 'repeat',
+    label: 'Repeat',
+    description: 'Recurrence options for the task',
+    icon: <RefreshCw className="w-4 h-4" />,
   },
   {
     key: 'priority',
@@ -74,41 +87,45 @@ const FIELDS: FieldConfig[] = [
   },
 ];
 
-export const EditorSettings = () => {
-  const { editorFieldVisibility, setEditorFieldVisibility } = useSettingsStore();
+const FIELD_MAP = new Map(FIELDS.map((field) => [field.key, field]));
 
-  const toggle = (key: keyof EditorFieldVisibility, value: boolean) => {
+export const EditorSettings = () => {
+  const { editorFieldVisibility, editorFieldOrder, setEditorFieldVisibility, setEditorFieldOrder } =
+    useSettingsStore();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const orderedFields = editorFieldOrder
+    .map((key) => FIELD_MAP.get(key))
+    .filter(Boolean) as FieldConfig[];
+
+  const toggle = (key: EditorFieldKey, value: boolean) => {
     setEditorFieldVisibility({ ...editorFieldVisibility, [key]: value });
+  };
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = editorFieldOrder.indexOf(active.id as EditorFieldKey);
+    const newIndex = editorFieldOrder.indexOf(over.id as EditorFieldKey);
+    if (oldIndex === -1 || newIndex === -1) return;
+    setEditorFieldOrder(arrayMove(editorFieldOrder, oldIndex, newIndex));
   };
 
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">Editor</h3>
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
-        {FIELDS.map((field, index) => (
-          <div key={field.key}>
-            {index > 0 && <div className="border-t border-surface-200 dark:border-surface-700" />}
-            <label className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <span className="text-surface-400 dark:text-surface-500 shrink-0">
-                  {field.icon}
-                </span>
-                <div>
-                  <p className="text-sm text-surface-700 dark:text-surface-300">{field.label}</p>
-                  <p className="text-xs text-surface-500 dark:text-surface-400">
-                    {field.description}
-                  </p>
-                </div>
-              </div>
-              <input
-                type="checkbox"
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={editorFieldOrder} strategy={verticalListSortingStrategy}>
+            {orderedFields.map((field, index) => (
+              <EditorSettingsSortableFieldRow
+                key={field.key}
+                field={field}
+                showBorder={index > 0}
                 checked={editorFieldVisibility[field.key]}
-                onChange={(e) => toggle(field.key, e.target.checked)}
-                className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0"
+                onToggle={toggle}
               />
-            </label>
-          </div>
-        ))}
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
     </div>
   );

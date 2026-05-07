@@ -1,3 +1,12 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import CalendarClock from 'lucide-react/icons/calendar-clock';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import Clock from 'lucide-react/icons/clock';
@@ -6,15 +15,12 @@ import Link from 'lucide-react/icons/link';
 import Loader from 'lucide-react/icons/loader';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Tag from 'lucide-react/icons/tag';
+import {
+  type BadgeConfig,
+  BadgesSettingsSortableBadgeRow,
+} from '$components/settings/BadgesSettingsSortableBadgeRow';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import type { TaskBadgeVisibility } from '$types/settings';
-
-type BadgeConfig = {
-  key: keyof TaskBadgeVisibility;
-  label: string;
-  description: string;
-  icon: React.ReactNode;
-};
+import type { TaskBadgeKey } from '$types/settings';
 
 const BADGES: BadgeConfig[] = [
   {
@@ -67,41 +73,45 @@ const BADGES: BadgeConfig[] = [
   },
 ];
 
-export const BadgesSettings = () => {
-  const { taskBadgeVisibility, setTaskBadgeVisibility } = useSettingsStore();
+const BADGE_MAP = new Map(BADGES.map((badge) => [badge.key, badge]));
 
-  const toggle = (key: keyof TaskBadgeVisibility, value: boolean) => {
+export const BadgesSettings = () => {
+  const { taskBadgeVisibility, taskBadgeOrder, setTaskBadgeVisibility, setTaskBadgeOrder } =
+    useSettingsStore();
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const orderedBadges = taskBadgeOrder
+    .map((key) => BADGE_MAP.get(key))
+    .filter(Boolean) as BadgeConfig[];
+
+  const toggle = (key: TaskBadgeKey, value: boolean) => {
     setTaskBadgeVisibility({ ...taskBadgeVisibility, [key]: value });
+  };
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = taskBadgeOrder.indexOf(active.id as TaskBadgeKey);
+    const newIndex = taskBadgeOrder.indexOf(over.id as TaskBadgeKey);
+    if (oldIndex === -1 || newIndex === -1) return;
+    setTaskBadgeOrder(arrayMove(taskBadgeOrder, oldIndex, newIndex));
   };
 
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">Badges</h3>
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
-        {BADGES.map((badge, index) => (
-          <div key={badge.key}>
-            {index > 0 && <div className="border-t border-surface-200 dark:border-surface-700" />}
-            <label className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-3">
-                <span className="text-surface-400 dark:text-surface-500 shrink-0">
-                  {badge.icon}
-                </span>
-                <div>
-                  <p className="text-sm text-surface-700 dark:text-surface-300">{badge.label}</p>
-                  <p className="text-xs text-surface-500 dark:text-surface-400">
-                    {badge.description}
-                  </p>
-                </div>
-              </div>
-              <input
-                type="checkbox"
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={taskBadgeOrder} strategy={verticalListSortingStrategy}>
+            {orderedBadges.map((badge, index) => (
+              <BadgesSettingsSortableBadgeRow
+                key={badge.key}
+                badge={badge}
+                showBorder={index > 0}
                 checked={taskBadgeVisibility[badge.key]}
-                onChange={(e) => toggle(badge.key, e.target.checked)}
-                className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0"
+                onToggle={toggle}
               />
-            </label>
-          </div>
-        ))}
+            ))}
+          </SortableContext>
+        </DndContext>
       </div>
     </div>
   );
