@@ -2,48 +2,8 @@ import Search from 'lucide-react/icons/search';
 import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { getFallbackItemColor } from '$constants/colorSchemes';
-import { getIconByName } from '$constants/icons';
+import { MoveToCalendarOption } from '$components/modals/MoveToCalendarOption';
 import type { Account, Task } from '$types';
-
-type CalendarEntry = Account['calendars'][number] & { accountName: string };
-
-interface CalendarOptionProps {
-  cal: CalendarEntry;
-  onMove: (calendarId: string) => void;
-  onClose: () => void;
-}
-
-const CalendarOption = ({ cal, onMove, onClose }: CalendarOptionProps) => {
-  const CalIcon = getIconByName(cal.icon || 'calendar');
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        onMove(cal.id);
-        onClose();
-      }}
-      className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset hover:bg-surface-100 dark:hover:bg-surface-700"
-    >
-      {cal.emoji ? (
-        <span className="text-base leading-none">{cal.emoji}</span>
-      ) : (
-        <CalIcon
-          className="w-4 h-4 shrink-0"
-          style={{ color: cal.color ?? getFallbackItemColor() }}
-        />
-      )}
-      <div className="flex-1 text-left min-w-0">
-        <div className="truncate font-medium text-surface-700 dark:text-surface-300">
-          {cal.displayName || 'Calendar'}
-        </div>
-        <div className="text-xs text-surface-400 dark:text-surface-500 truncate">
-          {cal.accountName}
-        </div>
-      </div>
-    </button>
-  );
-};
 
 interface MoveToCalendarModalProps {
   task: Task;
@@ -116,7 +76,7 @@ export const MoveToCalendarModal = ({
         ) : (
           <div className="space-y-1">
             {filteredCalendars.map((cal) => (
-              <CalendarOption key={cal.id} cal={cal} onMove={onMove} onClose={onClose} />
+              <MoveToCalendarOption key={cal.id} cal={cal} onMove={onMove} onClose={onClose} />
             ))}
           </div>
         )}
