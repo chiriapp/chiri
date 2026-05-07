@@ -7,7 +7,7 @@ import type { ConfirmNotice } from '$context/confirmDialogContext';
 
 const getButtonClasses = (isDestructive: boolean, isPrimary: boolean) => {
   if (isDestructive) {
-    return 'bg-semantic-error hover:opacity-90 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error text-white';
+    return 'bg-semantic-error hover:opacity-90 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error text-primary-contrast';
   }
 
   if (isPrimary) {
@@ -143,7 +143,7 @@ export const ConfirmDialogModal = ({
 
         {notice && (
           <div
-            className={`mx-4 mb-4 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300${message ? '' : ' mt-4'}`}
+            className={`mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info${message ? '' : ' mt-4'}`}
           >
             <AlertTriangle className="mt-px size-3.5 shrink-0" />
             <span>

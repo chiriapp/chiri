@@ -1,6 +1,5 @@
-import { COLOR_PRESETS } from '$constants';
-import { COLOR_SCHEMES } from '$constants/colorSchemes';
-import type { Theme } from '$types/color';
+import { getColorSchemeColorPresets, getColorSchemeFlavor } from '$constants/colorSchemes';
+import { DEFAULT_COLOR_SCHEME_ID, type Theme } from '$types/color';
 
 /**
  * parse any valid CSS color string to [r, g, b] using a canvas element.
@@ -43,7 +42,10 @@ export const getContrastTextColor = (color: string) => {
 /**
  * generate a consistent color for a tag based on its name
  */
-export const generateTagColor = (name: string) => {
+export const generateTagColor = (
+  name: string,
+  presets: readonly string[] = getColorSchemeColorPresets(DEFAULT_COLOR_SCHEME_ID, null),
+) => {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = (hash << 5) - hash + name.charCodeAt(i);
@@ -54,7 +56,10 @@ export const generateTagColor = (name: string) => {
   hash = Math.imul(hash, 0x45d9f3b7);
   hash ^= hash >>> 16;
 
-  return COLOR_PRESETS[Math.abs(hash) % COLOR_PRESETS.length];
+  const availablePresets =
+    presets.length > 0 ? presets : getColorSchemeColorPresets(DEFAULT_COLOR_SCHEME_ID, null);
+
+  return availablePresets[Math.abs(hash) % availablePresets.length];
 };
 
 /**
@@ -203,36 +208,14 @@ export const applySchemeAccentColor = (color: string) => {
 
 /**
  * apply a color scheme's surface palette as CSS custom properties.
- * pass schemeId 'default' (or an unknown id) to clear all overrides.
  */
-export const applyColorScheme = (schemeId: string, flavorId: string | null) => {
+export const applyColorScheme = (
+  schemeId: string,
+  flavorId: string | null,
+  mode?: 'light' | 'dark',
+) => {
   const root = document.documentElement;
-
-  const scheme = COLOR_SCHEMES.find((s) => s.id === schemeId);
-
-  if (!scheme || scheme.id === 'default' || scheme.flavors.length === 0) {
-    for (const shade of SURFACE_SHADES) {
-      root.style.removeProperty(`--surface-${shade}`);
-    }
-    root.style.removeProperty('--semantic-info');
-    root.style.removeProperty('--semantic-warning');
-    root.style.removeProperty('--semantic-success');
-    root.style.removeProperty('--semantic-error');
-
-    root.style.removeProperty('--status-needs-action');
-    root.style.removeProperty('--status-in-process');
-    root.style.removeProperty('--status-completed');
-    root.style.removeProperty('--status-cancelled');
-
-    root.style.removeProperty('--priority-high');
-    root.style.removeProperty('--priority-medium');
-    root.style.removeProperty('--priority-low');
-    return;
-  }
-
-  const flavor = flavorId ? scheme.flavors.find((f) => f.id === flavorId) : scheme.flavors[0];
-
-  if (!flavor) return;
+  const flavor = getColorSchemeFlavor(schemeId, flavorId, mode);
 
   for (const shade of SURFACE_SHADES) {
     root.style.setProperty(`--surface-${shade}`, flavor.surfaces[shade]);

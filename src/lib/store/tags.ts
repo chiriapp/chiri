@@ -1,4 +1,4 @@
-import { FALLBACK_ITEM_COLOR } from '$constants';
+import { getFallbackItemColor } from '$constants/colorSchemes';
 import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
@@ -23,7 +23,7 @@ export const createTag = (tagData: Partial<Tag>) => {
   const tag: Tag = {
     id: generateUUID(),
     name: tagData.name ?? 'New Tag',
-    color: tagData.color ?? FALLBACK_ITEM_COLOR,
+    color: tagData.color ?? getFallbackItemColor(),
     icon: tagData.icon,
     emoji: tagData.emoji,
     sortOrder: tagData.sortOrder || maxExistingOrder + 100,

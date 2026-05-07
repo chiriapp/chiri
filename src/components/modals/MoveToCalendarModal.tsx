@@ -2,7 +2,7 @@ import Search from 'lucide-react/icons/search';
 import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { FALLBACK_ITEM_COLOR } from '$constants';
+import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
 import type { Account, Task } from '$types';
 
@@ -28,7 +28,10 @@ const CalendarOption = ({ cal, onMove, onClose }: CalendarOptionProps) => {
       {cal.emoji ? (
         <span className="text-base leading-none">{cal.emoji}</span>
       ) : (
-        <CalIcon className="w-4 h-4 shrink-0" style={{ color: cal.color ?? FALLBACK_ITEM_COLOR }} />
+        <CalIcon
+          className="w-4 h-4 shrink-0"
+          style={{ color: cal.color ?? getFallbackItemColor() }}
+        />
       )}
       <div className="flex-1 text-left min-w-0">
         <div className="truncate font-medium text-surface-700 dark:text-surface-300">

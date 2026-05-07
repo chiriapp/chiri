@@ -28,9 +28,9 @@ export const useTheme = () => {
     applyTheme(theme);
 
     const scheme = COLOR_SCHEMES.find((s) => s.id === colorScheme);
+    const effectiveMode = resolveEffectiveTheme(theme);
     if (scheme && scheme.flavors.length > 0) {
       const currentFlavor = scheme.flavors.find((f) => f.id === colorSchemeFlavor);
-      const effectiveMode = resolveEffectiveTheme(theme);
 
       if (currentFlavor && currentFlavor.mode !== effectiveMode) {
         const compatible = scheme.flavors.find((f) => f.mode === effectiveMode);
@@ -38,13 +38,32 @@ export const useTheme = () => {
           // Pass the compatible flavor's defaultAccent as the fallback so that
           // setColorScheme restores the saved accent (if any) or uses the default.
           setColorScheme(colorScheme, compatible.id, compatible.defaultAccent);
+        } else {
+          // No flavor supports this mode - fall back to the default scheme
+          setColorScheme(DEFAULT_COLOR_SCHEME_ID, null);
         }
       }
     }
 
     if (theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => applyTheme('system');
+      const handleChange = () => {
+        applyTheme('system');
+
+        const nextMode = resolveEffectiveTheme('system');
+        const currentScheme = COLOR_SCHEMES.find((s) => s.id === colorScheme);
+        const currentFlavor = currentScheme?.flavors.find((f) => f.id === colorSchemeFlavor);
+
+        if (currentScheme && currentFlavor && currentFlavor.mode !== nextMode) {
+          const compatible = currentScheme.flavors.find((f) => f.mode === nextMode);
+          if (compatible) {
+            setColorScheme(colorScheme, compatible.id, compatible.defaultAccent);
+            return;
+          }
+        }
+
+        applyColorScheme(colorScheme, colorSchemeFlavor, nextMode);
+      };
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
@@ -52,8 +71,8 @@ export const useTheme = () => {
 
   // apply color scheme surface palette
   useEffect(() => {
-    applyColorScheme(colorScheme, colorSchemeFlavor);
-  }, [colorScheme, colorSchemeFlavor]);
+    applyColorScheme(colorScheme, colorSchemeFlavor, resolveEffectiveTheme(theme));
+  }, [colorScheme, colorSchemeFlavor, theme]);
 
   // apply accent color — normalize pastel scheme colors so hue differences are visible
   useEffect(() => {

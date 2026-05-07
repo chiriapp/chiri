@@ -173,7 +173,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
           <button
             type="button"
             onClick={handleResetDatabase}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-semantic-error hover:opacity-90 text-white rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-semantic-error hover:opacity-90 text-primary-contrast rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset shrink-0"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             Reset

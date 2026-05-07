@@ -5,10 +5,10 @@ import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { ModalBackdrop } from '$components/ModalBackdrop';
-import { COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '$constants';
 import { getIconByName } from '$constants/icons';
 import { useAccounts, useAddCalendar, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { useColorPresets } from '$hooks/ui/useColorPresets';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import { CalDAVClient } from '$lib/caldav';
@@ -25,6 +25,8 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   const addCalendarMutation = useAddCalendar();
   const updateAccountMutation = useUpdateAccount();
   const { defaultCalendarColor, accentColor } = useSettingsStore();
+  const colorPresets = useColorPresets();
+  const fallbackColor = colorPresets[0] ?? accentColor;
 
   const resolvedDefaultCalendarColor =
     defaultCalendarColor === 'accent' ? accentColor : defaultCalendarColor;
@@ -183,7 +185,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
                 onChange={setDisplayName}
                 placeholder="My Calendar"
                 required
-                className="flex-1 px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                className="flex-1 px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
             </div>
           </div>
@@ -193,7 +195,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
               Color
             </p>
             <div className="flex flex-wrap gap-2">
-              {COLOR_PRESETS.map((preset) => (
+              {colorPresets.map((preset) => (
                 <button
                   key={preset}
                   type="button"
@@ -218,8 +220,8 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
                 type="text"
                 value={color}
                 onChange={setColor}
-                placeholder={FALLBACK_ITEM_COLOR}
-                className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                placeholder={fallbackColor}
+                className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
             </div>
           </div>
@@ -252,7 +254,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
           )}
 
           {isVikunja && calendar && (
-            <div className="flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info">
               <AlertTriangle className="mt-px size-3.5 shrink-0" />
               <span>
                 Vikunja doesn't support editing projects via CalDAV.{' '}
@@ -272,7 +274,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
           )}
 
           {isVikunja && !calendar && (
-            <div className="flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info">
               <AlertTriangle className="mt-px size-3.5 shrink-0" />
               <span>
                 Vikunja doesn't support creating projects via CalDAV.{' '}
