@@ -1,7 +1,6 @@
 import { type ReactNode, useCallback, useSyncExternalStore } from 'react';
 import { SettingsContext, type SettingsStore, settingsStore } from '$context/settingsContext';
 import type {
-  AccentColor,
   DateFormat,
   DefaultDateOffset,
   DefaultReminderOffset,
@@ -10,12 +9,13 @@ import type {
   StartOfWeek,
   SubtaskDeletionBehavior,
   TaskStatus,
-  Theme,
   TimeFormat,
 } from '$types';
 import type {
+  EditorFieldKey,
   EditorFieldVisibility,
   QuickTimePresets,
+  TaskBadgeKey,
   TaskBadgeVisibility,
   TaskListDensity,
   WindowDecorationsMode,
@@ -245,8 +245,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (visibility: EditorFieldVisibility) => settingsStore.setEditorFieldVisibility(visibility),
     [],
   );
+  const setEditorFieldOrder = useCallback(
+    (order: EditorFieldKey[]) => settingsStore.setEditorFieldOrder(order),
+    [],
+  );
   const setTaskBadgeVisibility = useCallback(
     (visibility: TaskBadgeVisibility) => settingsStore.setTaskBadgeVisibility(visibility),
+    [],
+  );
+  const setTaskBadgeOrder = useCallback(
+    (order: TaskBadgeKey[]) => settingsStore.setTaskBadgeOrder(order),
     [],
   );
   const setQuickTimePresets = useCallback(
@@ -337,7 +345,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setQuietHoursStart,
     setQuietHoursEnd,
     setEditorFieldVisibility,
+    setEditorFieldOrder,
     setTaskBadgeVisibility,
+    setTaskBadgeOrder,
     setQuickTimePresets,
     setConnectivityCheckEnabled,
     setConnectivityCheckUrl,

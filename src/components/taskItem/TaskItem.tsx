@@ -2,7 +2,6 @@ import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import { useEffect, useRef, useState } from 'react';
-import { TaskItemDueDateBadge } from '$components/taskItem/badges/TaskItemDueDateBadge';
 import { TaskItemBadges } from '$components/taskItem/TaskItemBadges';
 import { TaskItemCheckbox } from '$components/taskItem/TaskItemCheckbox';
 import { TaskItemContextMenu } from '$components/taskItem/TaskItemContextMenu';
@@ -49,7 +48,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
   const setActiveTagMutation = useSetActiveTag();
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveAccountMutation = useSetActiveAccount();
-  const { accentColor, taskListDensity, taskBadgeVisibility } = useSettingsStore();
+  const { accentColor, taskListDensity, taskBadgeVisibility, taskBadgeOrder } = useSettingsStore();
   const { contextMenu, handleContextMenu, handleCloseContextMenu, setContextMenu } =
     useContextMenu();
 
@@ -171,6 +170,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
     onCalendarClick: handleCalendarClick,
     onToggleCollapsed: handleToggleCollapsed,
     badgeVisibility: taskBadgeVisibility,
+    badgeOrder: taskBadgeOrder,
   };
 
   return (
@@ -210,9 +210,6 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                 />
                 <TaskItemBadges {...badgesProps} compact={true} />
               </div>
-              <div className="flex items-center gap-1 shrink-0">
-                {taskBadgeVisibility.dueDate && <TaskItemDueDateBadge dueDate={task.dueDate} />}
-              </div>
             </div>
           ) : (
             <>
@@ -223,9 +220,6 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
                   isUnstarted={isUnstarted}
                   className="text-sm font-medium leading-5 truncate flex-1 min-w-0"
                 />
-                <div className="flex items-center gap-1 shrink-0">
-                  <TaskItemDueDateBadge dueDate={task.dueDate} />
-                </div>
               </div>
 
               {filterCalDavDescription(task.description) && (

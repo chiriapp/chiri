@@ -22,13 +22,20 @@ import type {
   TimeFormat,
 } from '$types';
 import type {
+  EditorFieldKey,
   EditorFieldVisibility,
   QuickTimePresets,
+  TaskBadgeKey,
   TaskBadgeVisibility,
   TaskListDensity,
   WindowDecorationsMode,
 } from '$types/settings';
-import { applyAccentColor, applyColorScheme, applySchemeAccentColor, applyTheme } from '$utils/color';
+import {
+  applyAccentColor,
+  applyColorScheme,
+  applySchemeAccentColor,
+  applyTheme,
+} from '$utils/color';
 
 const log = loggers.settings;
 
@@ -93,8 +100,10 @@ interface SettingsState {
   quietHoursEnd: number;
   // Editor
   editorFieldVisibility: EditorFieldVisibility;
+  editorFieldOrder: EditorFieldKey[];
   // Badges
   taskBadgeVisibility: TaskBadgeVisibility;
+  taskBadgeOrder: TaskBadgeKey[];
   // Date picker
   quickTimePresets: QuickTimePresets;
   // Connectivity
@@ -170,7 +179,9 @@ interface SettingsActions {
   setQuietHoursStart: (hour: number) => void;
   setQuietHoursEnd: (hour: number) => void;
   setEditorFieldVisibility: (visibility: EditorFieldVisibility) => void;
+  setEditorFieldOrder: (order: EditorFieldKey[]) => void;
   setTaskBadgeVisibility: (visibility: TaskBadgeVisibility) => void;
+  setTaskBadgeOrder: (order: TaskBadgeKey[]) => void;
   setQuickTimePresets: (presets: QuickTimePresets) => void;
   setConnectivityCheckEnabled: (enabled: boolean) => void;
   setConnectivityCheckUrl: (url: string) => void;
@@ -249,12 +260,25 @@ const defaultState: SettingsState = {
     description: true,
     url: true,
     dates: true,
+    repeat: true,
     priority: true,
     calendar: true,
     tags: true,
     reminders: true,
     subtasks: true,
   },
+  editorFieldOrder: [
+    'status',
+    'description',
+    'url',
+    'dates',
+    'repeat',
+    'priority',
+    'calendar',
+    'tags',
+    'reminders',
+    'subtasks',
+  ],
   taskBadgeVisibility: {
     startDate: true,
     dueDate: true,
@@ -265,6 +289,16 @@ const defaultState: SettingsState = {
     repeat: true,
     subtasks: true,
   },
+  taskBadgeOrder: [
+    'startDate',
+    'dueDate',
+    'tags',
+    'calendar',
+    'url',
+    'status',
+    'repeat',
+    'subtasks',
+  ],
   // 9:00, 12:00, 17:00, 21:00 (minutes from midnight)
   quickTimePresets: { morning: 540, afternoon: 720, evening: 1020, night: 1260 },
   connectivityCheckEnabled: true,
@@ -290,6 +324,14 @@ const mergeShortcuts = (
   });
 };
 
+const mergeOrder = <T extends string>(storedOrder: unknown, defaultOrder: T[]) => {
+  if (!Array.isArray(storedOrder)) return defaultOrder;
+
+  const validStoredOrder = storedOrder.filter((key): key is T => defaultOrder.includes(key as T));
+  const missingKeys = defaultOrder.filter((key) => !validStoredOrder.includes(key));
+  return [...validStoredOrder, ...missingKeys];
+};
+
 const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -301,6 +343,23 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
       if (Array.isArray(loadedState.quickTimePresets)) {
         loadedState.quickTimePresets = defaultState.quickTimePresets;
       }
+
+      loadedState.editorFieldVisibility = {
+        ...defaultState.editorFieldVisibility,
+        ...loadedState.editorFieldVisibility,
+      };
+      loadedState.taskBadgeVisibility = {
+        ...defaultState.taskBadgeVisibility,
+        ...loadedState.taskBadgeVisibility,
+      };
+      loadedState.editorFieldOrder = mergeOrder(
+        loadedState.editorFieldOrder,
+        defaultState.editorFieldOrder,
+      );
+      loadedState.taskBadgeOrder = mergeOrder(
+        loadedState.taskBadgeOrder,
+        defaultState.taskBadgeOrder,
+      );
 
       // Merge keyboard shortcuts to include any new defaults
       let migrated = false;
@@ -497,7 +556,11 @@ export const settingsStore = {
     setState({ defaultAllDayReminderHour }),
   setAllDayReminderNotificationsEnabled: (allDayReminderNotificationsEnabled: boolean) =>
     setState({ allDayReminderNotificationsEnabled }),
-  setColorScheme: (colorScheme: string, colorSchemeFlavor: string | null, fallbackAccent?: string) => {
+  setColorScheme: (
+    colorScheme: string,
+    colorSchemeFlavor: string | null,
+    fallbackAccent?: string,
+  ) => {
     // Save the current scheme's accent before switching
     const savedAccents = { ...state.accentColorByScheme, [state.colorScheme]: state.accentColor };
     // Restore the target scheme's saved accent, or use the provided fallback
@@ -518,8 +581,10 @@ export const settingsStore = {
   setQuietHoursEnd: (quietHoursEnd: number) => setState({ quietHoursEnd }),
   setEditorFieldVisibility: (editorFieldVisibility: EditorFieldVisibility) =>
     setState({ editorFieldVisibility }),
+  setEditorFieldOrder: (editorFieldOrder: EditorFieldKey[]) => setState({ editorFieldOrder }),
   setTaskBadgeVisibility: (taskBadgeVisibility: TaskBadgeVisibility) =>
     setState({ taskBadgeVisibility }),
+  setTaskBadgeOrder: (taskBadgeOrder: TaskBadgeKey[]) => setState({ taskBadgeOrder }),
   setQuickTimePresets: (quickTimePresets: QuickTimePresets) => setState({ quickTimePresets }),
   setConnectivityCheckEnabled: (connectivityCheckEnabled: boolean) =>
     setState({ connectivityCheckEnabled }),
@@ -603,6 +668,8 @@ export const settingsStore = {
         'quietHoursEnabled',
         'quietHoursStart',
         'quietHoursEnd',
+        'editorFieldOrder',
+        'taskBadgeOrder',
         'connectivityCheckEnabled',
         'connectivityCheckUrl',
         'connectivityCheckInterval',
@@ -625,10 +692,12 @@ export const settingsStore = {
       newState.editorFieldVisibility = data.editorFieldVisibility
         ? { ...defaultState.editorFieldVisibility, ...data.editorFieldVisibility }
         : defaultState.editorFieldVisibility;
+      newState.editorFieldOrder = mergeOrder(data.editorFieldOrder, defaultState.editorFieldOrder);
 
       newState.taskBadgeVisibility = data.taskBadgeVisibility
         ? { ...defaultState.taskBadgeVisibility, ...data.taskBadgeVisibility }
         : defaultState.taskBadgeVisibility;
+      newState.taskBadgeOrder = mergeOrder(data.taskBadgeOrder, defaultState.taskBadgeOrder);
 
       newState.quickTimePresets =
         data.quickTimePresets && !Array.isArray(data.quickTimePresets)
