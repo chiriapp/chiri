@@ -5,6 +5,49 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
   name: 'Tokyo Night',
   flavors: [
     {
+      id: 'light',
+      name: 'Light',
+      mode: 'light',
+      // 50–100: light content bg; 200–300: sidebar/panel bg + hover; 400–600: muted text; 700–900: text
+      surfaces: {
+        50: '#f0f1f5', // lightest bg (inputs, cards)
+        100: '#e6e7ed', // editor bg (editor.background)
+        200: '#d6d8df', // sidebar bg / hover / borders (sideBar.background)
+        300: '#c8cad3', // slightly stronger border
+        400: '#9da0ab', // line numbers / very muted (editorLineNumber.foreground)
+        500: '#888b94', // comment text
+        600: '#73767d', // placeholder / ghost text
+        700: '#4a5069', // medium text
+        800: '#363c4d', // UI foreground (editor.foreground adjusted)
+        900: '#343b59', // primary text (editor.foreground)
+      },
+      accentColors: [
+        { name: 'Red', value: '#8c4351' },
+        { name: 'Orange', value: '#965027' },
+        { name: 'Amber', value: '#8f5e15' },
+        { name: 'Green', value: '#33635c' },
+        { name: 'Teal', value: '#006c86' },
+        { name: 'Cyan', value: '#0da0ba' },
+        { name: 'Blue', value: '#2959aa' },
+        { name: 'Deep Purple', value: '#65359d' },
+        { name: 'Purple', value: '#7b43ba' },
+      ],
+      defaultAccent: '#2959aa',
+      semanticColors: {
+        info: '#0da0ba',
+        warning: '#8f5e15',
+        success: '#33635c',
+        error: '#bd4040',
+      },
+      statusColors: {
+        needsAction: '#707280',
+        inProcess: '#2959aa',
+        completed: '#33635c',
+        cancelled: '#8c4351',
+      },
+      priorityColors: { high: '#8c4351', medium: '#8f5e15', low: '#2959aa' },
+    },
+    {
       id: 'night',
       name: 'Night',
       mode: 'dark',
