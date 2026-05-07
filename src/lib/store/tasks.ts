@@ -441,6 +441,7 @@ export const toggleTaskComplete = (id: string) => {
       : task.status === 'cancelled' || task.status === 'in-process'
         ? 'needs-action'
         : 'completed';
+
   const updates = {
     status: newStatus as Task['status'],
     completed: newStatus === 'completed',
