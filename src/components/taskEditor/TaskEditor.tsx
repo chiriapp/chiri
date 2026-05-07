@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { ReminderPickerModal } from '$components/modals/ReminderPickerModal';
 import { RepeatModal } from '$components/modals/RepeatModal';
@@ -33,6 +33,7 @@ import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
 import type { Task, TaskStatus } from '$types';
+import type { EditorFieldKey } from '$types/settings';
 import { getContrastTextColor } from '$utils/color';
 import { hasOpenModalElements } from '$utils/misc';
 
@@ -51,7 +52,14 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   const updateReminderMutation = useUpdateReminder();
   const { data: tags = [] } = useTags();
   const { data: accounts = [] } = useAccounts();
-  const { accentColor, notifications, timeFormat, editorFieldVisibility } = useSettingsStore();
+  const {
+    accentColor,
+    notifications,
+    timeFormat,
+    editorFieldVisibility,
+    editorFieldOrder,
+    useAccentColorForCheckboxes,
+  } = useSettingsStore();
   const { confirmAndDelete } = useConfirmTaskDelete();
 
   const checkmarkColor = getContrastTextColor(accentColor);
@@ -195,6 +203,79 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
     }
   };
 
+  const editorFieldRenderers: Record<EditorFieldKey, () => React.ReactNode> = {
+    status: () =>
+      editorFieldVisibility.status ? (
+        <TaskEditorStatus
+          task={task}
+          onStatusChange={handleStatusChange}
+          onCommitPercent={commitPercentComplete}
+        />
+      ) : null,
+    description: () =>
+      editorFieldVisibility.description ? <TaskEditorDescription task={task} /> : null,
+    url: () => (editorFieldVisibility.url ? <TaskEditorUrl task={task} /> : null),
+    dates: () =>
+      editorFieldVisibility.dates ? (
+        <TaskEditorDates
+          task={task}
+          timeFormat={timeFormat}
+          onOpenStartDate={() => setShowStartDatePicker(true)}
+          onOpenDueDate={() => setShowDueDatePicker(true)}
+        />
+      ) : null,
+    repeat: () =>
+      editorFieldVisibility.repeat ? (
+        <TaskEditorRepeat task={task} onOpen={() => setShowRepeatModal(true)} />
+      ) : null,
+    priority: () => (editorFieldVisibility.priority ? <TaskEditorPriority task={task} /> : null),
+    calendar: () =>
+      editorFieldVisibility.calendar ? (
+        <TaskEditorCalendar
+          task={task}
+          accounts={accounts}
+          onCalendarChange={handleCalendarChange}
+        />
+      ) : null,
+    tags: () =>
+      editorFieldVisibility.tags ? (
+        <TaskEditorTags
+          task={task}
+          tags={tags}
+          onAddTag={(tagId) => addTagToTaskMutation.mutate({ taskId: task.id, tagId })}
+          onRemoveTag={(tagId) => removeTagFromTaskMutation.mutate({ taskId: task.id, tagId })}
+          onOpenTagPicker={() => setShowTagPicker(true)}
+        />
+      ) : null,
+    reminders: () =>
+      editorFieldVisibility.reminders ? (
+        <TaskEditorReminders
+          task={task}
+          timeFormat={timeFormat}
+          notifications={notifications}
+          onOpenNotificationSettings={onOpenNotificationSettings}
+          onRemoveReminder={(reminderId) =>
+            removeReminderMutation.mutate({ taskId: task.id, reminderId })
+          }
+          onOpenReminderPicker={() => setShowReminderPicker(true)}
+          onEditReminder={(reminder) => {
+            setEditingReminderId(reminder.id);
+            setEditReminderDate(reminder.trigger);
+          }}
+        />
+      ) : null,
+    subtasks: () =>
+      editorFieldVisibility.subtasks ? (
+        <TaskEditorSubtasks
+          task={task}
+          checkmarkColor={checkmarkColor}
+          useAccentColorForCheckboxes={useAccentColorForCheckboxes}
+          updateTask={(id, updates) => updateTaskMutation.mutate({ id, updates })}
+          confirmAndDelete={confirmAndDelete}
+        />
+      ) : null,
+  };
+
   return (
     <>
       <div className="flex flex-col h-full bg-white dark:bg-surface-900" ref={editorContainerRef}>
@@ -204,76 +285,15 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
         />
 
         <div className="flex-1 overflow-y-auto p-4 space-y-6 flex overscroll-contain flex-col">
-          <TaskEditorTitle task={task} checkmarkColor={checkmarkColor} />
+          <TaskEditorTitle
+            task={task}
+            checkmarkColor={checkmarkColor}
+            useAccentColorForCheckboxes={useAccentColorForCheckboxes}
+          />
 
-          {editorFieldVisibility.status && (
-            <TaskEditorStatus
-              task={task}
-              onStatusChange={handleStatusChange}
-              onCommitPercent={commitPercentComplete}
-            />
-          )}
-
-          {editorFieldVisibility.description && <TaskEditorDescription task={task} />}
-
-          {editorFieldVisibility.url && <TaskEditorUrl task={task} />}
-
-          {editorFieldVisibility.dates && (
-            <TaskEditorDates
-              task={task}
-              timeFormat={timeFormat}
-              onOpenStartDate={() => setShowStartDatePicker(true)}
-              onOpenDueDate={() => setShowDueDatePicker(true)}
-            />
-          )}
-
-          <TaskEditorRepeat task={task} onOpen={() => setShowRepeatModal(true)} />
-
-          {editorFieldVisibility.priority && <TaskEditorPriority task={task} />}
-
-          {editorFieldVisibility.calendar && (
-            <TaskEditorCalendar
-              task={task}
-              accounts={accounts}
-              onCalendarChange={handleCalendarChange}
-            />
-          )}
-
-          {editorFieldVisibility.tags && (
-            <TaskEditorTags
-              task={task}
-              tags={tags}
-              onAddTag={(tagId) => addTagToTaskMutation.mutate({ taskId: task.id, tagId })}
-              onRemoveTag={(tagId) => removeTagFromTaskMutation.mutate({ taskId: task.id, tagId })}
-              onOpenTagPicker={() => setShowTagPicker(true)}
-            />
-          )}
-
-          {editorFieldVisibility.reminders && (
-            <TaskEditorReminders
-              task={task}
-              timeFormat={timeFormat}
-              notifications={notifications}
-              onOpenNotificationSettings={onOpenNotificationSettings}
-              onRemoveReminder={(reminderId) =>
-                removeReminderMutation.mutate({ taskId: task.id, reminderId })
-              }
-              onOpenReminderPicker={() => setShowReminderPicker(true)}
-              onEditReminder={(reminder) => {
-                setEditingReminderId(reminder.id);
-                setEditReminderDate(reminder.trigger);
-              }}
-            />
-          )}
-
-          {editorFieldVisibility.subtasks && (
-            <TaskEditorSubtasks
-              task={task}
-              checkmarkColor={checkmarkColor}
-              updateTask={(id, updates) => updateTaskMutation.mutate({ id, updates })}
-              confirmAndDelete={confirmAndDelete}
-            />
-          )}
+          {editorFieldOrder.map((fieldKey) => (
+            <Fragment key={fieldKey}>{editorFieldRenderers[fieldKey]()}</Fragment>
+          ))}
         </div>
 
         <TaskEditorFooter task={task} timeFormat={timeFormat} />
