@@ -2,25 +2,23 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
+  type Modifier,
   PointerSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import SortDesc from 'lucide-react/icons/arrow-down-wide-narrow';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
-import SortAsc from 'lucide-react/icons/arrow-up-narrow-wide';
 import ChevronDown from 'lucide-react/icons/chevron-down';
-import ChevronRight from 'lucide-react/icons/chevron-right';
 import Plus from 'lucide-react/icons/plus';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { SidebarTagItem } from '$components/sidebar/SidebarTagItem';
+import { SidebarTagsSortMenu } from '$components/sidebar/SidebarTagsSortMenu';
 import { Tooltip } from '$components/Tooltip';
-import { FALLBACK_ITEM_COLOR, TAG_SORT_OPTIONS } from '$constants';
-import { getIconByName } from '$constants/icons';
 import { useReorderTags } from '$hooks/queries/useTags';
-import { useSetTagSortConfig, useTagSortConfig } from '$hooks/queries/useUIState';
+import { useTagSortConfig } from '$hooks/queries/useUIState';
 import { useEscapeKey } from '$hooks/ui/useEscapeKey';
-import type { Tag, TagSortConfig, Task } from '$types';
+import type { Tag, Task } from '$types';
 
 interface SidebarTagsListProps {
   tags: Tag[];
@@ -43,99 +41,6 @@ interface SidebarTagsListProps {
 const isActiveTask = (t: { status: string }) =>
   t.status !== 'completed' && t.status !== 'cancelled';
 
-interface TagItemContentProps {
-  tag: Tag;
-  isActive: boolean;
-  isContextMenuOpen: boolean;
-  isAnyModalOpen: boolean;
-  taskCount: number;
-  isAnyTagDragging?: boolean;
-  isDragging?: boolean;
-  dragHandleProps?: React.HTMLAttributes<HTMLElement>;
-  onSelect: () => void;
-  onContextMenu: (e: React.MouseEvent) => void;
-}
-
-const TagItemContent = ({
-  tag,
-  isActive,
-  isContextMenuOpen,
-  isAnyModalOpen,
-  taskCount,
-  isAnyTagDragging,
-  isDragging,
-  dragHandleProps,
-  onSelect,
-  onContextMenu,
-}: TagItemContentProps) => {
-  const TagIcon = getIconByName(tag.icon ?? 'tag');
-  const tagColor = tag.color ?? FALLBACK_ITEM_COLOR;
-
-  return (
-    <button
-      type="button"
-      data-context-menu
-      onClick={onSelect}
-      onContextMenu={onContextMenu}
-      className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-        isActive
-          ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
-          : `text-surface-600 dark:text-surface-400 ${
-              isContextMenuOpen
-                ? 'bg-surface-200 dark:bg-surface-700'
-                : !isAnyModalOpen && !isAnyTagDragging
-                  ? 'hover:bg-surface-200 dark:hover:bg-surface-700'
-                  : ''
-            }`
-      } ${isDragging ? 'opacity-50' : ''} ${isAnyTagDragging && !isDragging ? 'pointer-events-none' : ''}`}
-      {...dragHandleProps}
-    >
-      {tag.emoji ? (
-        <span
-          className="text-xs leading-none"
-          style={{ color: tagColor }}
-        >
-          {tag.emoji}
-        </span>
-      ) : (
-        <TagIcon
-          className="w-3.5 h-3.5"
-          style={{ color: tagColor }}
-        />
-      )}
-      <span className="flex-1 text-left truncate">{tag.name}</span>
-      <span className="text-xs">{taskCount}</span>
-    </button>
-  );
-};
-
-interface SortableTagItemProps
-  extends Omit<TagItemContentProps, 'isDragging' | 'dragHandleProps'> {}
-
-const SortableTagItem = (props: SortableTagItemProps) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
-    id: props.tag.id,
-  });
-
-  const transformStr = transform
-    ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX}) scaleY(${transform.scaleY})`
-    : undefined;
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={{ transform: transformStr }}
-      className="cursor-grab active:cursor-grabbing"
-    >
-      <TagItemContent
-        {...props}
-        isDragging={isDragging}
-        dragHandleProps={{ ...attributes, ...listeners } as React.HTMLAttributes<HTMLDivElement>}
-      />
-    </div>
-  );
-};
-
 export const SidebarTagsList = ({
   tags,
   tasks,
@@ -150,23 +55,10 @@ export const SidebarTagsList = ({
 }: SidebarTagsListProps) => {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [isAnyTagDragging, setIsAnyTagDragging] = useState(false);
+  const tagsDragBoundsRef = useRef<HTMLDivElement>(null);
   const tagSortConfig = useTagSortConfig();
-  const setTagSortConfigMutation = useSetTagSortConfig();
   const reorderMutation = useReorderTags();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-
-  const isDirectionDisabled = tagSortConfig.mode === 'manual';
-
-  const handleSortModeChange = (mode: TagSortConfig['mode']) => {
-    setTagSortConfigMutation.mutate({ ...tagSortConfig, mode });
-  };
-
-  const toggleSortDirection = () => {
-    setTagSortConfigMutation.mutate({
-      ...tagSortConfig,
-      direction: tagSortConfig.direction === 'asc' ? 'desc' : 'asc',
-    });
-  };
 
   const closeSortMenu = useCallback(() => setShowSortMenu(false), []);
   useEscapeKey(closeSortMenu, { enabled: showSortMenu });
@@ -212,6 +104,23 @@ export const SidebarTagsList = ({
     reorderMutation.mutate({ activeId: active.id as string, overId: over.id as string });
   };
 
+  const restrictTagDragToSection = useCallback<Modifier>(({ draggingNodeRect, transform }) => {
+    const bounds = tagsDragBoundsRef.current?.getBoundingClientRect();
+    if (!bounds || !draggingNodeRect) return transform;
+
+    return {
+      ...transform,
+      x: Math.min(
+        Math.max(transform.x, bounds.left - draggingNodeRect.left),
+        bounds.right - draggingNodeRect.right,
+      ),
+      y: Math.min(
+        Math.max(transform.y, bounds.top - draggingNodeRect.top),
+        bounds.bottom - draggingNodeRect.bottom,
+      ),
+    };
+  }, []);
+
   return (
     <div>
       <div className="relative">
@@ -221,15 +130,14 @@ export const SidebarTagsList = ({
           onKeyDown={(e) => e.key === 'Enter' && onToggleTagsSection()}
           role="button"
           tabIndex={0}
-          className="flex items-center justify-between px-3.5 py-2 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+          aria-expanded={!tagsSectionCollapsed}
+          className="flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer hover:bg-surface-200 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
         >
           <div className="flex items-center gap-1.5">
-            {tagsSectionCollapsed ? (
-              <ChevronRight className="w-4 h-4 text-surface-400" />
-            ) : (
-              <ChevronDown className="w-4 h-4 text-surface-400" />
-            )}
-            <span className="text-sm font-semibold text-surface-500 dark:text-surface-400 tracking-wider">
+            <ChevronDown
+              className={`w-4 h-4 text-surface-400 motion-safe:transition-transform motion-safe:duration-200 ${tagsSectionCollapsed ? '-rotate-90' : 'rotate-0'}`}
+            />
+            <span className="text-sm font-semibold text-surface-500 dark:text-surface-400">
               Tags
             </span>
           </div>
@@ -268,95 +176,47 @@ export const SidebarTagsList = ({
         </div>
 
         {showSortMenu && (
-          <>
-            {/* biome-ignore lint/a11y/noStaticElementInteractions: Sort menu backdrop for closing on outside click */}
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: Sort menu backdrop for closing on outside click */}
-            <div className="fixed inset-0 z-40" onClick={() => setShowSortMenu(false)} />
-            <div
-              data-context-menu-content
-              className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-50 animate-scale-in"
-            >
-              <div className="py-2">
-                <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                  Sort By
-                </div>
-                {TAG_SORT_OPTIONS.map((option) => (
-                  <button
-                    type="button"
-                    key={option.value}
-                    onClick={() => handleSortModeChange(option.value)}
-                    className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                      tagSortConfig.mode === option.value
-                        ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
-                        : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
-                    }`}
-                  >
-                    <span>{option.label}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="pt-2 border-t border-surface-200 dark:border-surface-700">
-                <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                  Sort Direction
-                </div>
-                <Tooltip
-                  content={isDirectionDisabled ? 'Not available for manual sorting' : ''}
-                  position="bottom"
-                  allowInModal
-                  className="whitespace-nowrap"
-                  triggerClassName="w-full"
-                >
-                  <button
-                    type="button"
-                    onClick={isDirectionDisabled ? undefined : toggleSortDirection}
-                    disabled={isDirectionDisabled}
-                    className={`w-full flex rounded-b-md items-center justify-between gap-2 px-3 py-1.5 text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                      isDirectionDisabled
-                        ? 'text-surface-400 dark:text-surface-600 cursor-not-allowed'
-                        : 'text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {tagSortConfig.direction === 'asc' ? (
-                        <SortAsc className="w-4 h-4" />
-                      ) : (
-                        <SortDesc className="w-4 h-4" />
-                      )}
-                      <span>{tagSortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}</span>
-                    </div>
-                  </button>
-                </Tooltip>
-              </div>
-            </div>
-          </>
+          <SidebarTagsSortMenu tagSortConfig={tagSortConfig} onClose={closeSortMenu} />
         )}
       </div>
 
-      {!tagsSectionCollapsed &&
-        (tags.length === 0 ? (
-          <div className="px-4 py-1 text-sm text-surface-500 dark:text-surface-400">
-            No tags yet.
-          </div>
-        ) : tagSortConfig.mode === 'manual' ? (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={() => setIsAnyTagDragging(true)}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={sortedTags.map((t) => t.id)}
-              strategy={verticalListSortingStrategy}
-            >
+      <div
+        className={`grid motion-safe:transition-[grid-template-rows] motion-safe:duration-200 motion-safe:ease-in-out ${tagsSectionCollapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'}`}
+      >
+        <div className="overflow-hidden">
+          {tags.length === 0 ? (
+            <div className="px-3 py-1 text-sm text-surface-500 dark:text-surface-400">
+              No tags. Click + to add one!
+            </div>
+          ) : tagSortConfig.mode === 'manual' ? (
+            <div ref={tagsDragBoundsRef}>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                modifiers={[restrictTagDragToSection]}
+                onDragStart={() => setIsAnyTagDragging(true)}
+                onDragEnd={handleDragEnd}
+                onDragCancel={() => setIsAnyTagDragging(false)}
+              >
+                <SortableContext
+                  items={sortedTags.map((t) => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {sortedTags.map((tag) => (
+                    <SidebarTagItem key={tag.id} {...sharedItemProps(tag)} sortable />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            </div>
+          ) : (
+            <div ref={tagsDragBoundsRef}>
               {sortedTags.map((tag) => (
-                <SortableTagItem key={tag.id} {...sharedItemProps(tag)} />
+                <SidebarTagItem key={tag.id} {...sharedItemProps(tag)} />
               ))}
-            </SortableContext>
-          </DndContext>
-        ) : (
-          sortedTags.map((tag) => <TagItemContent key={tag.id} {...sharedItemProps(tag)} />)
-        ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
