@@ -1,7 +1,6 @@
 import { EmojiPicker } from 'frimousse';
 import { Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { FALLBACK_ITEM_COLOR } from '$constants';
 import { CALENDAR_ICONS, getIconByName } from '$constants/icons';
 import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 
@@ -18,7 +17,7 @@ export const IconEmojiPicker = ({
   emojiValue = '',
   onIconChange,
   onEmojiChange,
-  color = FALLBACK_ITEM_COLOR,
+  color,
 }: IconEmojiPickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'icon' | 'emoji'>('icon');
@@ -61,8 +60,8 @@ export const IconEmojiPicker = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-10 h-10 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 flex items-center justify-center hover:border-surface-300 dark:hover:border-surface-500 transition-colors cursor-pointer outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
-        style={{ color }}
+        className="w-10 h-10 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 flex items-center justify-center text-surface-600 dark:text-surface-300 hover:border-surface-300 dark:hover:border-surface-500 transition-colors cursor-pointer outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
+        style={color ? { color } : undefined}
       >
         {emojiValue ? (
           <span className="text-lg leading-none">{emojiValue}</span>

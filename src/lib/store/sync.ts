@@ -1,6 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { emit } from '@tauri-apps/api/event';
+import { getColorSchemeColorPresets } from '$constants/colorSchemes';
 import { MENU_EVENTS } from '$constants/menu';
+import { settingsStore } from '$context/settingsContext';
 import { toastManager } from '$hooks/ui/useToast';
 import { CalDAVClient } from '$lib/caldav';
 import { db } from '$lib/database';
@@ -14,7 +16,7 @@ import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$li
 import { getUIState, setAllTasksView } from '$lib/store/ui';
 import { getErrorMessage } from '$lib/tauri-http';
 import type { Calendar, Task } from '$types';
-import { generateTagColor } from '$utils/color';
+import { generateTagColor, resolveEffectiveTheme } from '$utils/color';
 
 const log = loggers.dataStore;
 const syncLog = loggers.sync;
@@ -178,9 +180,16 @@ export const ensureTagExists = (tagName: string) => {
     return existing.id;
   }
 
+  const settings = settingsStore.getState();
+  const colorPresets = getColorSchemeColorPresets(
+    settings.colorScheme,
+    settings.colorSchemeFlavor,
+    resolveEffectiveTheme(settings.theme),
+  );
+
   const newTag = createTag({
     name: tagName,
-    color: generateTagColor(tagName),
+    color: generateTagColor(tagName, colorPresets),
   });
 
   return newTag.id;

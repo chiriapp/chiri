@@ -190,7 +190,7 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
               }}
               placeholder="https://rust.example.com"
               disabled={isLoading}
-              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-purple-300 dark:focus:border-purple-400 focus:bg-white dark:focus:bg-purple-900/30 transition-colors"
+              className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
             />
             <p className="mt-1.5 text-xs text-surface-500 dark:text-surface-400">
               Your browser will open for authentication

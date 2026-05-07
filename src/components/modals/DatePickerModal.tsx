@@ -276,7 +276,7 @@ export const DatePickerModal = ({
       <ModalButton
         variant="ghost"
         onClick={handleClear}
-        className="text-surface-500 dark:text-surface-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+        className="text-surface-500 dark:text-surface-400 hover:text-semantic-error hover:bg-semantic-error/10"
       >
         Clear
       </ModalButton>

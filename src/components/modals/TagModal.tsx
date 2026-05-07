@@ -3,10 +3,10 @@ import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '$constants';
 import { getIconByName } from '$constants/icons';
 import { useCreateTag, useTags, useUpdateTag } from '$hooks/queries/useTags';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { useColorPresets } from '$hooks/ui/useColorPresets';
 
 interface TagModalProps {
   tagId: string | null;
@@ -19,6 +19,8 @@ export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
   const createTagMutation = useCreateTag();
   const updateTagMutation = useUpdateTag();
   const { defaultTagColor, accentColor } = useSettingsStore();
+  const colorPresets = useColorPresets();
+  const fallbackColor = colorPresets[0] ?? accentColor;
 
   const existingTag = tagId ? tags.find((t) => t.id === tagId) : null;
 
@@ -96,7 +98,7 @@ export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
             Color
           </p>
           <div className="flex flex-wrap gap-2">
-            {COLOR_PRESETS.map((preset) => (
+            {colorPresets.map((preset) => (
               <button
                 key={preset}
                 type="button"
@@ -121,7 +123,7 @@ export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
               type="text"
               value={color}
               onChange={setColor}
-              placeholder={FALLBACK_ITEM_COLOR}
+              placeholder={fallbackColor}
               className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
             />
           </div>

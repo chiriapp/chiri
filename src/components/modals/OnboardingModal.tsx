@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
 import { MacNotificationPermissionCard } from '$components/MacNotificationPermissionCard';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { ACCENT_COLORS } from '$constants';
+import { getColorSchemeAccentColors } from '$constants/colorSchemes';
 import { ONBOARDING_STEPS } from '$constants/onboarding';
 import { SYNC_INTERVAL_OPTIONS } from '$constants/settings';
 import { THEME_OPTIONS } from '$constants/theme';
@@ -19,6 +19,8 @@ import { useAccounts } from '$hooks/queries/useAccounts';
 import { useNotificationContext } from '$hooks/store/useNotificationContext';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { usePlatform } from '$hooks/system/usePlatform';
+import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
+import { resolveEffectiveTheme } from '$utils/color';
 import { isMacPlatform } from '$utils/platform';
 
 interface OnboardingModalProps {
@@ -60,6 +62,11 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
   const { isGNOME } = usePlatform();
   const isMac = isMacPlatform();
   const { permissionStatus, isCheckingPermission, requestPermission } = useNotificationContext();
+  const accentColors = getColorSchemeAccentColors(
+    DEFAULT_COLOR_SCHEME_ID,
+    null,
+    resolveEffectiveTheme(theme),
+  );
 
   const macPermissionPending =
     isMac &&
@@ -303,7 +310,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
                       Accent color
                     </div>
                     <div className="flex gap-2 flex-wrap">
-                      {ACCENT_COLORS.map((color) => (
+                      {accentColors.map((color) => (
                         <button
                           key={color.value}
                           type="button"

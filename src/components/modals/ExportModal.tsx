@@ -192,7 +192,7 @@ export const ExportModal = ({
                   onClick={() => setSelectedFormat(format.id)}
                   className={`flex items-start gap-3 p-3 rounded-lg border transition-colors text-left outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     selectedFormat === format.id
-                      ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                      ? 'border-primary-500 bg-primary-500/10'
                       : 'border-surface-200 dark:border-surface-700 hover:border-surface-300 dark:hover:border-surface-600'
                   }`}
                 >
@@ -221,7 +221,7 @@ export const ExportModal = ({
           </div>
 
           {tasks.length === 0 && (
-            <div className="flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info">
               <Info className="mt-px size-3.5 shrink-0" />
               <span>There are no tasks to export.</span>
             </div>

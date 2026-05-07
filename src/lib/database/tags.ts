@@ -1,5 +1,5 @@
 import type DatabasePlugin from '@tauri-apps/plugin-sql';
-import { FALLBACK_ITEM_COLOR } from '$constants';
+import { getFallbackItemColor } from '$constants/colorSchemes';
 import { rowToTag } from '$lib/database/converters';
 import { getTasksByTag, updateTask } from '$lib/database/tasks';
 import { setActiveTag } from '$lib/database/ui';
@@ -26,7 +26,7 @@ export const createTag = async (conn: DatabasePlugin, tagData: Partial<Tag>) => 
   const tag: Tag = {
     id: generateUUID(),
     name: tagData.name ?? 'New Tag',
-    color: tagData.color ?? FALLBACK_ITEM_COLOR,
+    color: tagData.color ?? getFallbackItemColor(),
     icon: tagData.icon,
     emoji: tagData.emoji,
     sortOrder: tagData.sortOrder || maxOrder + 100,
