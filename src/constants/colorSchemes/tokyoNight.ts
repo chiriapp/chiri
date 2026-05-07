@@ -22,15 +22,15 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
         900: '#16161e', // bg_dark
       },
       accentColors: [
-        { name: 'Blue', value: '#7aa2f7' },
-        { name: 'Magenta', value: '#bb9af7' },
-        { name: 'Purple', value: '#9d7cd8' },
+        { name: 'Red', value: '#f7768e' },
+        { name: 'Orange', value: '#ff9e64' },
+        { name: 'Yellow', value: '#e0af68' },
+        { name: 'Green', value: '#9ece6a' },
         { name: 'Teal', value: '#73daca' },
         { name: 'Cyan', value: '#7dcfff' },
-        { name: 'Green', value: '#9ece6a' },
-        { name: 'Yellow', value: '#e0af68' },
-        { name: 'Orange', value: '#ff9e64' },
-        { name: 'Red', value: '#f7768e' },
+        { name: 'Blue', value: '#7aa2f7' },
+        { name: 'Purple', value: '#9d7cd8' },
+        { name: 'Magenta', value: '#bb9af7' },
       ],
       defaultAccent: '#7aa2f7',
       semanticColors: {

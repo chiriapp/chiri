@@ -22,9 +22,9 @@ export const gruvboxColorScheme: ColorSchemeDefinition = {
         900: '#1d2021', // dark0_hard
       },
       accentColors: [
-        { name: 'Yellow', value: '#fabd2f' },
-        { name: 'Orange', value: '#fe8019' },
         { name: 'Red', value: '#fb4934' },
+        { name: 'Orange', value: '#fe8019' },
+        { name: 'Yellow', value: '#fabd2f' },
         { name: 'Green', value: '#b8bb26' },
         { name: 'Aqua', value: '#8ec07c' },
         { name: 'Blue', value: '#83a598' },
@@ -63,9 +63,9 @@ export const gruvboxColorScheme: ColorSchemeDefinition = {
         900: '#282828', // dark0
       },
       accentColors: [
-        { name: 'Yellow', value: '#d79921' },
-        { name: 'Orange', value: '#d65d0e' },
         { name: 'Red', value: '#cc241d' },
+        { name: 'Orange', value: '#d65d0e' },
+        { name: 'Yellow', value: '#d79921' },
         { name: 'Green', value: '#98971a' },
         { name: 'Aqua', value: '#689d6a' },
         { name: 'Blue', value: '#458588' },
