@@ -4,7 +4,7 @@
     <h1>Chiri</h1>
   </div>
 
-  <p>🍃 A (work in progress) cross-platform CalDAV compatible task management app.</p>
+  <p>🍃 Cross-platform CalDAV-compatible task management app.</p>
 
   <!-- header badges start -->
   [![GitHub Repo stars][header-repo-stars-badge]][repo-stars]
