@@ -45,3 +45,5 @@ src-tauri/icons/ios
 
 # temporary
 tmp/
+caldav-test
+src-tauri/gen/Assets.car
