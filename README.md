@@ -206,6 +206,12 @@ Chiri is licensed under the [<span aria-hidden="true">&nearr;</span> zlib/libpng
 # Privacy
 See [<span aria-hidden="true">&nearr;</span> PRIVACY.md][repo-privacy] for details on what data Chiri processes and how.
 
+# Security
+Found a security issue? Please report it privately — see [<span aria-hidden="true">&nearr;</span> SECURITY.md][repo-security] for details.
+
+# Code signing
+Free code signing on Windows is provided by [<span aria-hidden="true">&nearr;</span> SignPath.io][signpath-io], certificate by the [<span aria-hidden="true">&nearr;</span> SignPath Foundation][signpath-foundation]. See [<span aria-hidden="true">&nearr;</span> CODE_SIGNING.md][repo-code-signing] for the full code signing policy.
+
 [donate-kofi]: https://ko-fi.com/solelychloe
 [donate-liberapay]: https://liberapay.com/chloe
 
@@ -229,5 +235,10 @@ See [<span aria-hidden="true">&nearr;</span> PRIVACY.md][repo-privacy] for detai
 
 [repo-license]: https://github.com/chiriapp/chiri/blob/master/LICENSE
 [repo-privacy]: https://github.com/chiriapp/chiri/blob/master/PRIVACY.md
+[repo-code-signing]: https://github.com/chiriapp/chiri/blob/master/CODE_SIGNING.md
+[repo-security]: https://github.com/chiriapp/chiri/blob/master/SECURITY.md
 [repo-releases]: https://github.com/chiriapp/chiri/releases
 [repo-stars]: https://github.com/chiriapp/chiri/stargazers
+
+[signpath-io]: https://signpath.io
+[signpath-foundation]: https://signpath.org
