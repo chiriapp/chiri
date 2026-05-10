@@ -11,6 +11,7 @@ import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ExportModal } from '$components/modals/ExportModal';
 import { MoveToCalendarModal } from '$components/modals/MoveToCalendarModal';
 import { SubtaskModal } from '$components/modals/SubtaskModal';
@@ -28,6 +29,8 @@ interface TaskItemContextMenuProps {
   onClose: () => void;
   setContextMenu: (val: null) => void;
 }
+
+const FLYOUT_HIDE_DELAY_MS = 40;
 
 export const TaskItemContextMenu = ({
   task,
@@ -115,7 +118,7 @@ export const TaskItemContextMenu = ({
   };
 
   const handlePriorityMouseLeave = () => {
-    priorityHideTimer.current = setTimeout(() => setPriorityFlyoutPos(null), 120);
+    priorityHideTimer.current = setTimeout(() => setPriorityFlyoutPos(null), FLYOUT_HIDE_DELAY_MS);
   };
 
   const handleChangeStatus = (status: TaskStatus) => {
@@ -154,7 +157,7 @@ export const TaskItemContextMenu = ({
   };
 
   const handleStatusMouseLeave = () => {
-    statusHideTimer.current = setTimeout(() => setStatusFlyoutPos(null), 120);
+    statusHideTimer.current = setTimeout(() => setStatusFlyoutPos(null), FLYOUT_HIDE_DELAY_MS);
   };
 
   const handleClose = () => {
@@ -168,7 +171,7 @@ export const TaskItemContextMenu = ({
   const menuItemClass =
     'w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
 
-  return (
+  return createPortal(
     <>
       {!isMenuHidden && (
         <>
@@ -382,6 +385,7 @@ export const TaskItemContextMenu = ({
           }}
         />
       )}
-    </>
+    </>,
+    document.body,
   );
 };

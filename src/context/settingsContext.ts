@@ -1,15 +1,13 @@
 import { createContext } from 'react';
 import {
-  DEFAULT_COLOR,
   DEFAULT_DAY_OF_WEEK,
   DEFAULT_EDITOR_WIDTH,
   DEFAULT_SHORTCUTS,
   DEFAULT_SIDEBAR_WIDTH,
 } from '$constants';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import { getDefaultAccentColor } from '$constants/colorSchemes';
 import { loggers } from '$lib/logger';
 import type {
-  AccentColor,
   DateFormat,
   DefaultDateOffset,
   DefaultReminderOffset,
@@ -18,9 +16,10 @@ import type {
   StartOfWeek,
   SubtaskDeletionBehavior,
   TaskStatus,
-  Theme,
   TimeFormat,
 } from '$types';
+import type { AccentColor, Theme } from '$types/color';
+import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
 import type {
   EditorFieldKey,
   EditorFieldVisibility,
@@ -35,6 +34,7 @@ import {
   applyColorScheme,
   applySchemeAccentColor,
   applyTheme,
+  resolveEffectiveTheme,
 } from '$utils/color';
 
 const log = loggers.settings;
@@ -91,6 +91,7 @@ interface SettingsState {
   colorSchemeFlavor: string | null;
   /** remembers the chosen accent per scheme so switching back restores it */
   accentColorByScheme: Record<string, string>;
+  useAccentColorForCheckboxes: boolean;
   taskListDensity: TaskListDensity;
   defaultTagColor: string;
   defaultCalendarColor: string;
@@ -172,6 +173,7 @@ interface SettingsActions {
   /** switches scheme+flavor, saves the current accent, and restores the saved one (or fallbackAccent) */
   setColorScheme: (schemeId: string, flavorId: string | null, fallbackAccent?: string) => void;
   setColorSchemeFlavor: (flavorId: string | null) => void;
+  setUseAccentColorForCheckboxes: (enabled: boolean) => void;
   setTaskListDensity: (density: TaskListDensity) => void;
   setDefaultTagColor: (color: string) => void;
   setDefaultCalendarColor: (color: string) => void;
@@ -197,11 +199,12 @@ interface SettingsActions {
 export type SettingsStore = SettingsState & SettingsActions;
 
 const STORAGE_KEY = 'chiri-settings';
+const defaultAccentColor = getDefaultAccentColor();
 
 // Detect locale preferences for intelligent defaults
 const defaultState: SettingsState = {
   theme: 'system',
-  accentColor: DEFAULT_COLOR,
+  accentColor: defaultAccentColor,
   autoSync: true,
   syncInterval: 5,
   syncOnStartup: true,
@@ -248,7 +251,8 @@ const defaultState: SettingsState = {
   allDayReminderNotificationsEnabled: true,
   colorScheme: DEFAULT_COLOR_SCHEME_ID,
   colorSchemeFlavor: null,
-  accentColorByScheme: { [DEFAULT_COLOR_SCHEME_ID]: DEFAULT_COLOR },
+  accentColorByScheme: { [DEFAULT_COLOR_SCHEME_ID]: defaultAccentColor },
+  useAccentColorForCheckboxes: false,
   taskListDensity: 'comfortable',
   defaultTagColor: 'accent',
   defaultCalendarColor: 'accent',
@@ -410,7 +414,7 @@ let pendingMigrationSave = loadResult.migrated;
 
 // Apply theme, color scheme, and accent color immediately on module load
 applyTheme(state.theme);
-applyColorScheme(state.colorScheme, state.colorSchemeFlavor);
+applyColorScheme(state.colorScheme, state.colorSchemeFlavor, resolveEffectiveTheme(state.theme));
 if (state.colorScheme === DEFAULT_COLOR_SCHEME_ID) {
   applyAccentColor(state.accentColor);
 } else {
@@ -573,6 +577,8 @@ export const settingsStore = {
     });
   },
   setColorSchemeFlavor: (colorSchemeFlavor: string | null) => setState({ colorSchemeFlavor }),
+  setUseAccentColorForCheckboxes: (useAccentColorForCheckboxes: boolean) =>
+    setState({ useAccentColorForCheckboxes }),
   setTaskListDensity: (taskListDensity: TaskListDensity) => setState({ taskListDensity }),
   setDefaultTagColor: (defaultTagColor: string) => setState({ defaultTagColor }),
   setDefaultCalendarColor: (defaultCalendarColor: string) => setState({ defaultCalendarColor }),
@@ -619,6 +625,7 @@ export const settingsStore = {
         'colorScheme',
         'colorSchemeFlavor',
         'accentColorByScheme',
+        'useAccentColorForCheckboxes',
         'autoSync',
         'syncInterval',
         'syncOnStartup',

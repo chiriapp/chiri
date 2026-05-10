@@ -81,6 +81,28 @@ const parsePushCapabilities = (xml: string): PushCapabilities => {
 };
 
 /**
+ * Quick server-level WebDAV Push detection via OPTIONS.
+ *
+ * The spec requires servers that support WebDAV Push to include "webdav-push"
+ * in the DAV header of OPTIONS responses. This is cheaper than a PROPFIND and
+ * can be used to skip push subscriptions entirely for non-supporting servers.
+ *
+ * Returns false on any error (network failure, unexpected response, etc.).
+ */
+export const checkPushSupportViaOptions = async (url: string, credentials: CalDAVCredentials) => {
+  try {
+    const response = await tauriRequest(url, 'OPTIONS', credentials);
+    const davHeader = response.headers.dav ?? response.headers.DAV ?? '';
+    return davHeader
+      .split(',')
+      .map((s) => s.trim())
+      .includes('webdav-push');
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Check if a resource supports WebDAV Push
  *
  * Performs a PROPFIND request to check for push-related properties:

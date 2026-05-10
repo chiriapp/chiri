@@ -2,13 +2,12 @@ import AlignJustify from 'lucide-react/icons/align-justify';
 import Grip from 'lucide-react/icons/grip';
 import LayoutList from 'lucide-react/icons/layout-list';
 import Palette from 'lucide-react/icons/palette';
-import Wand2 from 'lucide-react/icons/wand-2';
 import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
-import { ACCENT_COLORS, COLOR_PRESETS, FALLBACK_ITEM_COLOR } from '$constants';
-import { COLOR_SCHEMES, DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import { COLOR_SCHEMES, getColorSchemeFlavor } from '$constants/colorSchemes';
 import { THEME_OPTIONS } from '$constants/theme';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
 import type { TaskListDensity } from '$types/settings';
 import { resolveEffectiveTheme } from '$utils/color';
 
@@ -24,14 +23,6 @@ const SWITCHER_ACTIVE =
 const SWITCHER_INACTIVE =
   'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400';
 
-type ColorMode = 'accent' | 'preset' | 'custom';
-
-const initColorMode = (value: string, presets: readonly string[]): ColorMode => {
-  if (value === 'accent') return 'accent';
-  if ((presets as string[]).includes(value)) return 'preset';
-  return 'custom';
-};
-
 export const LookAndFeelSettings = () => {
   const {
     theme,
@@ -42,57 +33,46 @@ export const LookAndFeelSettings = () => {
     colorSchemeFlavor,
     setColorScheme,
     setColorSchemeFlavor,
+    useAccentColorForCheckboxes,
+    setUseAccentColorForCheckboxes,
     taskListDensity,
     setTaskListDensity,
-    defaultTagColor,
-    setDefaultTagColor,
-    defaultCalendarColor,
-    setDefaultCalendarColor,
   } = useSettingsStore();
-
-  const [accentMode, setAccentMode] = useState<'preset' | 'custom'>(() =>
-    colorScheme !== DEFAULT_COLOR_SCHEME_ID || ACCENT_COLORS.some((c) => c.value === accentColor)
-      ? 'preset'
-      : 'custom',
-  );
-  const [tagColorMode, setTagColorMode] = useState<ColorMode>(() =>
-    initColorMode(defaultTagColor, COLOR_PRESETS),
-  );
-  const [calendarColorMode, setCalendarColorMode] = useState<ColorMode>(() =>
-    initColorMode(defaultCalendarColor, COLOR_PRESETS),
-  );
 
   const effectiveMode = resolveEffectiveTheme(theme);
   const activeScheme = COLOR_SCHEMES.find((s) => s.id === colorScheme) ?? COLOR_SCHEMES[0];
   const isDefaultScheme = activeScheme.id === DEFAULT_COLOR_SCHEME_ID;
 
-  // Flavors that are compatible with the current effective theme
   const availableFlavors = activeScheme.flavors.filter((f) => f.mode === effectiveMode);
-  const activeFlavor = activeScheme.flavors.find((f) => f.id === colorSchemeFlavor) ?? null;
+  const activeFlavor = getColorSchemeFlavor(colorScheme, colorSchemeFlavor, effectiveMode);
+  const accentColors = activeFlavor.accentColors;
 
-  // Accent colors: use the active flavor's palette for non-default schemes,
-  // fall back to the built-in ACCENT_COLORS for the default scheme.
-  const schemeAccentColors = !isDefaultScheme && activeFlavor ? activeFlavor.accentColors : null;
+  const [accentMode, setAccentMode] = useState<'preset' | 'custom'>(() =>
+    accentColors.some((c) => c.value === accentColor) ? 'preset' : 'custom',
+  );
 
   const handleSchemeChange = (schemeId: string) => {
     const scheme = COLOR_SCHEMES.find((s) => s.id === schemeId);
     if (!scheme) return;
 
     if (scheme.id === DEFAULT_COLOR_SCHEME_ID) {
-      // setColorScheme will restore the saved accent for 'default' automatically
-      setColorScheme(DEFAULT_COLOR_SCHEME_ID, null);
+      const flavor = getColorSchemeFlavor(DEFAULT_COLOR_SCHEME_ID, null, effectiveMode);
+      setColorScheme(DEFAULT_COLOR_SCHEME_ID, null, flavor.defaultAccent);
       setAccentMode('preset');
       return;
     }
 
-    // Auto-select the first flavor matching the current effective mode.
-    // Fall back to the first flavor overall if none match.
-    const compatible = scheme.flavors.find((f) => f.mode === effectiveMode) ?? scheme.flavors[0];
-    if (!compatible) return;
+    const compatible = scheme.flavors.find((f) => f.mode === effectiveMode);
+    const flavor = compatible ?? scheme.flavors[0];
+    if (!flavor) return;
 
-    // Pass defaultAccent as the fallback — setColorScheme will prefer the
-    // previously saved accent for this scheme if one exists.
-    setColorScheme(schemeId, compatible.id, compatible.defaultAccent);
+    // If the scheme has no flavor for the current mode, switch the theme to
+    // match (e.g. selecting a dark-only scheme while in light mode → go dark).
+    if (!compatible) {
+      setTheme(flavor.mode);
+    }
+
+    setColorScheme(schemeId, flavor.id, flavor.defaultAccent);
     setAccentMode('preset');
   };
 
@@ -102,7 +82,6 @@ export const LookAndFeelSettings = () => {
 
     setColorSchemeFlavor(flavorId);
 
-    // If the current accent isn't in the new flavor's palette, reset to its default.
     if (!flavor.accentColors.some((c) => c.value === accentColor)) {
       setAccentColor(flavor.defaultAccent);
     }
@@ -113,6 +92,7 @@ export const LookAndFeelSettings = () => {
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
         Look & feel
       </h3>
+
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <div className="p-4">
           <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">Theme</p>
@@ -130,15 +110,18 @@ export const LookAndFeelSettings = () => {
             ))}
           </div>
         </div>
+      </div>
 
-        <div className="border-t border-surface-200 dark:border-surface-700" />
-
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <div className="p-4">
           <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
             Color scheme
           </p>
           <div className="flex flex-wrap gap-2">
-            {COLOR_SCHEMES.map((scheme) => (
+            {COLOR_SCHEMES.filter(
+              (scheme) =>
+                scheme.flavors.length === 0 || scheme.flavors.some((f) => f.mode === effectiveMode),
+            ).map((scheme) => (
               <button
                 type="button"
                 key={scheme.id}
@@ -150,7 +133,6 @@ export const LookAndFeelSettings = () => {
             ))}
           </div>
 
-          {/* Flavor picker — only shown when scheme has >1 compatible flavor */}
           {!isDefaultScheme && availableFlavors.length > 1 && (
             <div className="mt-3">
               <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
@@ -176,34 +158,12 @@ export const LookAndFeelSettings = () => {
 
         <div className="p-4">
           <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
-            Task list density
-          </p>
-          <div className="flex gap-2">
-            {DENSITY_OPTIONS.map((option) => (
-              <button
-                type="button"
-                key={option.value}
-                onClick={() => setTaskListDensity(option.value)}
-                className={`${SWITCHER_CLASS} ${taskListDensity === option.value ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-              >
-                {option.icon}
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-surface-200 dark:border-surface-700" />
-
-        <div className="p-4">
-          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
             Accent color
           </p>
 
-          {schemeAccentColors ? (
-            /* Scheme-provided accent colors */
+          {!isDefaultScheme ? (
             <div className="flex items-center gap-2">
-              {schemeAccentColors.map((color) => (
+              {accentColors.map((color) => (
                 <button
                   type="button"
                   key={color.value}
@@ -219,15 +179,15 @@ export const LookAndFeelSettings = () => {
               ))}
             </div>
           ) : (
-            /* Default scheme: preset or custom */
             <>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     setAccentMode('preset');
-                    if (!ACCENT_COLORS.some((c) => c.value === accentColor))
-                      setAccentColor(ACCENT_COLORS[0].value);
+                    if (!accentColors.some((c) => c.value === accentColor)) {
+                      setAccentColor(activeFlavor.defaultAccent);
+                    }
                   }}
                   className={`${SWITCHER_CLASS} ${accentMode === 'preset' ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
                 >
@@ -245,7 +205,7 @@ export const LookAndFeelSettings = () => {
               </div>
               <div className="flex items-center gap-2 mt-3">
                 {accentMode === 'preset' ? (
-                  ACCENT_COLORS.map((color) => (
+                  accentColors.map((color) => (
                     <button
                       type="button"
                       key={color.value}
@@ -271,7 +231,7 @@ export const LookAndFeelSettings = () => {
                       type="text"
                       value={accentColor}
                       onChange={setAccentColor}
-                      placeholder={FALLBACK_ITEM_COLOR}
+                      placeholder={activeFlavor.defaultAccent}
                       className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
                     />
                   </>
@@ -285,156 +245,41 @@ export const LookAndFeelSettings = () => {
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <div className="p-4">
           <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
-            Default calendar color
+            Task list density
           </p>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setCalendarColorMode('accent');
-                setDefaultCalendarColor('accent');
-              }}
-              className={`${SWITCHER_CLASS} ${calendarColorMode === 'accent' ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-            >
-              <Wand2 className="w-4 h-4" />
-              Follow accent
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setCalendarColorMode('preset');
-                if (calendarColorMode !== 'preset') setDefaultCalendarColor(COLOR_PRESETS[0]);
-              }}
-              className={`${SWITCHER_CLASS} ${calendarColorMode === 'preset' ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-            >
-              <Grip className="w-4 h-4" />
-              Use preset
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setCalendarColorMode('custom');
-                if (calendarColorMode === 'accent') setDefaultCalendarColor(accentColor);
-              }}
-              className={`${SWITCHER_CLASS} ${calendarColorMode === 'custom' ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-            >
-              <Palette className="w-4 h-4" />
-              Use custom
-            </button>
+            {DENSITY_OPTIONS.map((option) => (
+              <button
+                type="button"
+                key={option.value}
+                onClick={() => setTaskListDensity(option.value)}
+                className={`${SWITCHER_CLASS} ${taskListDensity === option.value ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
+              >
+                {option.icon}
+                {option.label}
+              </button>
+            ))}
           </div>
-          {calendarColorMode !== 'accent' && (
-            <div className="flex items-center gap-2 mt-3">
-              {calendarColorMode === 'preset' ? (
-                COLOR_PRESETS.map((preset) => (
-                  <button
-                    type="button"
-                    key={preset}
-                    onClick={() => setDefaultCalendarColor(preset)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
-                      defaultCalendarColor === preset
-                        ? 'border-surface-800 dark:border-white scale-110'
-                        : 'border-transparent hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: preset }}
-                  />
-                ))
-              ) : (
-                <>
-                  <input
-                    type="color"
-                    value={defaultCalendarColor}
-                    onChange={(e) => setDefaultCalendarColor(e.target.value)}
-                    className="w-10 h-10 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 hover:border-surface-300 dark:hover:border-surface-500 transition-colors cursor-pointer [&::-webkit-color-swatch-wrapper]:p-2 [&::-webkit-color-swatch]:rounded-full"
-                  />
-                  <ComposedInput
-                    type="text"
-                    value={defaultCalendarColor}
-                    onChange={setDefaultCalendarColor}
-                    placeholder={FALLBACK_ITEM_COLOR}
-                    className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-                  />
-                </>
-              )}
-            </div>
-          )}
         </div>
+
         <div className="border-t border-surface-200 dark:border-surface-700" />
 
-        <div className="p-4">
-          <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
-            Default tag color
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setTagColorMode('accent');
-                setDefaultTagColor('accent');
-              }}
-              className={`${SWITCHER_CLASS} ${tagColorMode === 'accent' ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-            >
-              <Wand2 className="w-4 h-4" />
-              Follow accent
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTagColorMode('preset');
-                if (tagColorMode !== 'preset') setDefaultTagColor(COLOR_PRESETS[0]);
-              }}
-              className={`${SWITCHER_CLASS} ${tagColorMode === 'preset' ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-            >
-              <Grip className="w-4 h-4" />
-              Use preset
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTagColorMode('custom');
-                if (tagColorMode === 'accent') setDefaultTagColor(accentColor);
-              }}
-              className={`${SWITCHER_CLASS} ${tagColorMode === 'custom' ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-            >
-              <Palette className="w-4 h-4" />
-              Use custom
-            </button>
+        <label className="flex items-center justify-between gap-4 p-4 cursor-pointer">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              Use accent color for completed checkboxes
+            </p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              Completed tasks use your selected accent
+            </p>
           </div>
-          {tagColorMode !== 'accent' && (
-            <div className="flex items-center gap-2 mt-3">
-              {tagColorMode === 'preset' ? (
-                COLOR_PRESETS.map((preset) => (
-                  <button
-                    type="button"
-                    key={preset}
-                    onClick={() => setDefaultTagColor(preset)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 ${
-                      defaultTagColor === preset
-                        ? 'border-surface-800 dark:border-white scale-110'
-                        : 'border-transparent hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: preset }}
-                  />
-                ))
-              ) : (
-                <>
-                  <input
-                    type="color"
-                    value={defaultTagColor}
-                    onChange={(e) => setDefaultTagColor(e.target.value)}
-                    className="w-10 h-10 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 hover:border-surface-300 dark:hover:border-surface-500 transition-colors cursor-pointer [&::-webkit-color-swatch-wrapper]:p-2 [&::-webkit-color-swatch]:rounded-full"
-                  />
-                  <ComposedInput
-                    type="text"
-                    value={defaultTagColor}
-                    onChange={setDefaultTagColor}
-                    placeholder={FALLBACK_ITEM_COLOR}
-                    className="flex-1 px-3 py-2 text-sm font-mono text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-                  />
-                </>
-              )}
-            </div>
-          )}
-        </div>
+          <input
+            type="checkbox"
+            checked={useAccentColorForCheckboxes}
+            onChange={(e) => setUseAccentColorForCheckboxes(e.target.checked)}
+            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0"
+          />
+        </label>
       </div>
     </div>
   );

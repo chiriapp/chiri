@@ -8,8 +8,12 @@ pub enum InstallType {
     Aur,
     /// Installed via Flatpak
     Flatpak,
+    /// Installed via Homebrew Cask
+    Homebrew,
     /// Installed via Nix package manager
     Nix,
+    /// Installed via Scoop package manager
+    Scoop,
     /// Standard installation (AppImage, .deb, .rpm, .dmg, .exe, etc.)
     Standard,
 }
@@ -19,7 +23,11 @@ impl InstallType {
     pub fn has_external_updates(self) -> bool {
         matches!(
             self,
-            InstallType::Aur | InstallType::Flatpak | InstallType::Nix
+            InstallType::Aur
+                | InstallType::Flatpak
+                | InstallType::Homebrew
+                | InstallType::Nix
+                | InstallType::Scoop
         )
     }
 }
@@ -37,11 +45,22 @@ pub fn detect_install_type() -> InstallType {
         return InstallType::Flatpak;
     }
 
-    // Check for Nix (binary path contains /nix/store/)
+    // Check for Homebrew Cask (Homebrew always creates a Caskroom directory for managed apps)
+    if Path::new("/opt/homebrew/Caskroom/chiri").exists()
+        || Path::new("/usr/local/Caskroom/chiri").exists()
+    {
+        return InstallType::Homebrew;
+    }
+
+    // Check for Nix or Scoop via binary path
     if let Ok(exe_path) = env::current_exe() {
         if let Some(path_str) = exe_path.to_str() {
             if path_str.starts_with("/nix/store/") {
                 return InstallType::Nix;
+            }
+            // Scoop installs to %USERPROFILE%\scoop\apps\chiri\current\
+            if path_str.contains("\\scoop\\apps\\") {
+                return InstallType::Scoop;
             }
         }
     }
@@ -63,7 +82,9 @@ pub fn get_install_type() -> String {
     match install_type {
         InstallType::Aur => "aur".to_string(),
         InstallType::Flatpak => "flatpak".to_string(),
+        InstallType::Homebrew => "homebrew".to_string(),
         InstallType::Nix => "nix".to_string(),
+        InstallType::Scoop => "scoop".to_string(),
         InstallType::Standard => "standard".to_string(),
     }
 }

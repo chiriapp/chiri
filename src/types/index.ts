@@ -1,4 +1,4 @@
-export type InstallType = 'nix' | 'aur' | 'flatpak' | 'standard';
+export type InstallType = 'nix' | 'aur' | 'flatpak' | 'homebrew' | 'standard';
 
 export type Priority = 'high' | 'medium' | 'low' | 'none';
 
@@ -169,6 +169,8 @@ export interface Account {
   username: string;
   password: string;
   serverType?: ServerType;
+  icon?: string;
+  emoji?: string;
   calendarHomeUrl?: string;
   principalUrl?: string;
   acceptInvalidCerts?: boolean;

@@ -69,6 +69,8 @@ export const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account =>
   username: row.username,
   password: row.password,
   serverType: (row.server_type as ServerType) || undefined,
+  icon: row.icon || undefined,
+  emoji: row.emoji || undefined,
   calendarHomeUrl: row.calendar_home_url || undefined,
   principalUrl: row.principal_url || undefined,
   calendars: calendars.filter((c) => c.accountId === row.id),

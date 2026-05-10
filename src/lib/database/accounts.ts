@@ -34,6 +34,8 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
     username: accountData.username ?? '',
     password: accountData.password ?? '',
     serverType: accountData.serverType,
+    icon: accountData.icon,
+    emoji: accountData.emoji,
     calendarHomeUrl: accountData.calendarHomeUrl,
     principalUrl: accountData.principalUrl,
     calendars: [],
@@ -42,8 +44,8 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
   };
 
   await conn.execute(
-    `INSERT INTO accounts (id, name, server_url, username, password, server_type, calendar_home_url, principal_url, last_sync, is_active, sort_order, accept_invalid_certs)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+    `INSERT INTO accounts (id, name, server_url, username, password, server_type, icon, emoji, calendar_home_url, principal_url, last_sync, is_active, sort_order, accept_invalid_certs)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
     [
       account.id,
       account.name,
@@ -51,6 +53,8 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
       account.username,
       account.password,
       account.serverType || null,
+      account.icon || null,
+      account.emoji || null,
       account.calendarHomeUrl || null,
       account.principalUrl || null,
       account.lastSync ? account.lastSync.toISOString() : null,
@@ -79,14 +83,16 @@ export const updateAccount = async (
   const updated: Account = { ...existing, ...updates };
 
   await conn.execute(
-    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, calendar_home_url = $6, principal_url = $7, last_sync = $8, is_active = $9, sort_order = $10, accept_invalid_certs = $11
-     WHERE id = $12`,
+    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, icon = $6, emoji = $7, calendar_home_url = $8, principal_url = $9, last_sync = $10, is_active = $11, sort_order = $12, accept_invalid_certs = $13
+     WHERE id = $14`,
     [
       updated.name,
       updated.serverUrl,
       updated.username,
       updated.password,
       updated.serverType || null,
+      updated.icon || null,
+      updated.emoji || null,
       updated.calendarHomeUrl || null,
       updated.principalUrl || null,
       updated.lastSync ? updated.lastSync.toISOString() : null,

@@ -14,6 +14,7 @@ import type { FlattenedTask } from '$utils/tree';
 interface SubtasksProps {
   task: Task;
   checkmarkColor: string;
+  useAccentColorForCheckboxes: boolean;
   updateTask: (id: string, updates: Partial<Task>) => void;
   confirmAndDelete: (id: string) => Promise<boolean>;
 }
@@ -21,6 +22,7 @@ interface SubtasksProps {
 export const TaskEditorSubtasks = ({
   task,
   checkmarkColor,
+  useAccentColorForCheckboxes,
   updateTask,
   confirmAndDelete,
 }: SubtasksProps) => {
@@ -144,6 +146,7 @@ export const TaskEditorSubtasks = ({
                       task={flatItem}
                       depth={flatItem.depth - 1}
                       checkmarkColor={checkmarkColor}
+                      useAccentColorForCheckboxes={useAccentColorForCheckboxes}
                       expandedSubtasks={expandedSubtasks}
                       setExpandedSubtasks={setExpandedSubtasks}
                       updateTask={updateTask}
@@ -169,6 +172,7 @@ export const TaskEditorSubtasks = ({
                         task={activeDragSubtask}
                         depth={targetSubtaskIndent - 1}
                         checkmarkColor={checkmarkColor}
+                        useAccentColorForCheckboxes={useAccentColorForCheckboxes}
                         expandedSubtasks={expandedSubtasks}
                         setExpandedSubtasks={setExpandedSubtasks}
                         updateTask={updateTask}

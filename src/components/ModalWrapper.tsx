@@ -15,7 +15,7 @@ interface ModalWrapperProps {
   footer?: ReactNode;
   /** Left side of footer for split layouts (e.g., Clear button). When provided, footer is right-aligned. */
   footerLeft?: ReactNode;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   preventClose?: boolean;
   zIndex?: 'z-50' | 'z-60' | 'z-70';
   contentPadding?: boolean;

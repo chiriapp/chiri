@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-@import "./base/index.css";
-@import "./components/index.css";
-@import "./forms/index.css";
-@import "./interaction/index.css";
-@import "./theme/index.css";
-@import "./ui/index.css";
+@import "./base";
+@import "./components";
+@import "./forms";
+@import "./interaction";
+@import "./theme";
+@import "./ui";

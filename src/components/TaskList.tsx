@@ -9,7 +9,6 @@ import { useCreateTask, useFilteredTasks } from '$hooks/queries/useTasks';
 import { useSetSelectedTask, useUIState } from '$hooks/queries/useUIState';
 import { truncateName, useSortableDrag } from '$hooks/ui/useSortableDrag';
 import { getSortedTasks } from '$lib/store/filters';
-import { getChildTasks } from '$lib/store/tasks';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
 import { flattenTasks } from '$utils/tree';
 
@@ -38,7 +37,7 @@ export const TaskList = () => {
 
   const getFilteredChildTasks = useCallback(
     (parentUid: string) => {
-      const children = getChildTasks(parentUid);
+      const children = filteredTasks.filter((task) => task.parentUid === parentUid);
       if (!showCompletedTasks) {
         return children.filter(
           (task) => task.status !== 'completed' && task.status !== 'cancelled',
@@ -46,7 +45,7 @@ export const TaskList = () => {
       }
       return children;
     },
-    [showCompletedTasks],
+    [filteredTasks, showCompletedTasks],
   );
 
   const flattenedTasks = useMemo(

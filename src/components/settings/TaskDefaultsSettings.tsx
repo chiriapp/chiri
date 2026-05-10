@@ -11,13 +11,14 @@ import { AppSelect } from '$components/AppSelect';
 import { RepeatModal } from '$components/modals/RepeatModal';
 import { TagModal } from '$components/modals/TagModal';
 import { TagPickerModal } from '$components/modals/TagPickerModal';
+import { TaskDefaultsColorPickerSection } from '$components/settings/TaskDefaultsColorPickerSection';
+import { TaskDefaultsReminderPickerModal } from '$components/settings/TaskDefaultsReminderPickerModal';
 import { getIconByName } from '$constants/icons';
 import { PRIORITIES } from '$constants/priority';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useTags } from '$hooks/queries/useTags';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { useColorPresets } from '$hooks/ui/useColorPresets';
 import type { DefaultReminderOffset, TaskStatus } from '$types';
 import { rruleToText } from '$utils/recurrence';
 
@@ -66,70 +67,6 @@ const START_DATE_OPTION_GROUPS = [
   },
 ] as const;
 
-interface ReminderPickerModalProps {
-  available: { value: DefaultReminderOffset; label: string }[];
-  onSelect: (offset: DefaultReminderOffset) => void;
-  onClose: () => void;
-  editing?: DefaultReminderOffset;
-}
-
-const DefaultReminderPickerModal = ({
-  available,
-  onSelect,
-  onClose,
-  editing,
-}: ReminderPickerModalProps) => {
-  const focusTrapRef = useFocusTrap();
-  useModalEscapeKey(onClose);
-
-  return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop
-    // biome-ignore lint/a11y/useKeyWithClickEvents: Modal backdrop
-    <div
-      className="fixed inset-0 z-70 flex items-center justify-center bg-black/50 animate-fade-in"
-      onClick={(e) => e.stopPropagation()}
-    >
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-xs animate-scale-in"
-      >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700">
-          <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
-            {editing ? 'Edit Default Reminder' : 'Add Default Reminder'}
-          </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="py-2 max-h-112 overflow-y-auto">
-          {available.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => {
-                onSelect(opt.value);
-                onClose();
-              }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors outline-hidden focus-visible:bg-surface-50 dark:focus-visible:bg-surface-700 ${
-                opt.value === editing
-                  ? 'bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 font-medium'
-                  : 'text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700'
-              }`}
-            >
-              <BellRing className="w-4 h-4 text-surface-400 shrink-0" />
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export const TaskDefaultsSettings = () => {
   const {
     defaultPriority,
@@ -138,10 +75,13 @@ export const TaskDefaultsSettings = () => {
     setDefaultStatus,
     defaultPercentComplete,
     setDefaultPercentComplete,
+    accentColor,
     defaultTags,
     setDefaultTags,
     defaultCalendarId,
     setDefaultCalendarId,
+    defaultCalendarColor,
+    setDefaultCalendarColor,
     defaultStartDate,
     setDefaultStartDate,
     defaultDueDate,
@@ -153,7 +93,10 @@ export const TaskDefaultsSettings = () => {
     defaultRepeatFrom,
     setDefaultRepeatFrom,
     dateFormat,
+    defaultTagColor,
+    setDefaultTagColor,
   } = useSettingsStore();
+  const colorPresets = useColorPresets();
   const { data: accounts = [] } = useAccounts();
   const { data: tags = [] } = useTags();
   const [showTagPicker, setShowTagPicker] = useState(false);
@@ -230,32 +173,36 @@ export const TaskDefaultsSettings = () => {
                   value: 'needs-action',
                   label: 'Needs Action',
                   Icon: RotateCcw,
+                  iconClass: 'text-status-needs-action',
                   activeClass:
-                    'border-surface-400 dark:border-surface-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
+                    'border-status-needs-action bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
                 },
                 {
                   value: 'in-process',
                   label: 'In Process',
                   Icon: Loader,
+                  iconClass: 'text-status-in-process',
                   activeClass:
-                    'border-blue-400 dark:border-blue-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
+                    'border-status-in-process bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
                 },
                 {
                   value: 'completed',
                   label: 'Completed',
                   Icon: Check,
+                  iconClass: 'text-status-completed',
                   activeClass:
-                    'border-primary-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
+                    'border-status-completed bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
                 },
                 {
                   value: 'cancelled',
                   label: 'Cancelled',
                   Icon: Ban,
+                  iconClass: 'text-status-cancelled',
                   activeClass:
-                    'border-rose-400 dark:border-rose-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
+                    'border-status-cancelled bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100',
                 },
               ] as const
-            ).map(({ value, label, Icon, activeClass }) => (
+            ).map(({ value, label, Icon, iconClass, activeClass }) => (
               <button
                 key={value}
                 type="button"
@@ -266,7 +213,7 @@ export const TaskDefaultsSettings = () => {
                     : 'border-surface-200 dark:border-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400'
                 }`}
               >
-                <Icon className="w-4 h-4 shrink-0" />
+                <Icon className={`w-4 h-4 shrink-0 ${defaultStatus === value ? iconClass : ''}`} />
                 {label}
               </button>
             ))}
@@ -288,8 +235,9 @@ export const TaskDefaultsSettings = () => {
             max={100}
             step={5}
             value={defaultPercentComplete}
+            style={{ '--pct': `${defaultPercentComplete}%` } as React.CSSProperties}
             onChange={(e) => setDefaultPercentComplete(Number(e.target.value))}
-            className="w-full accent-primary-500 cursor-pointer"
+            className="w-full"
           />
           <div className="flex justify-between mt-1">
             <span className="text-xs text-surface-400">0%</span>
@@ -359,6 +307,16 @@ export const TaskDefaultsSettings = () => {
 
         <div className="border-t border-surface-200 dark:border-surface-700" />
 
+        <TaskDefaultsColorPickerSection
+          label="Default calendar color"
+          value={defaultCalendarColor}
+          onChange={setDefaultCalendarColor}
+          presets={colorPresets}
+          accentColor={accentColor}
+        />
+
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
         <div className="flex items-center justify-between gap-4 p-4">
           <p className="text-sm text-surface-700 dark:text-surface-300">Start date</p>
           <AppSelect
@@ -416,6 +374,16 @@ export const TaskDefaultsSettings = () => {
       </div>
 
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
+        <TaskDefaultsColorPickerSection
+          label="Default tag color"
+          value={defaultTagColor}
+          onChange={setDefaultTagColor}
+          presets={colorPresets}
+          accentColor={accentColor}
+        />
+
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
         <div className="p-4">
           <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">Tags</p>
           <div className="flex flex-wrap gap-2">
@@ -491,7 +459,7 @@ export const TaskDefaultsSettings = () => {
                     e.stopPropagation();
                     handleRemoveReminder(offset);
                   }}
-                  className="p-1 text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-full invisible group-hover:visible focus-visible:visible outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                  className="p-1 text-surface-400 hover:text-semantic-error hover:bg-surface-100 dark:hover:bg-surface-800 rounded-full invisible group-hover:visible focus-visible:visible outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                   title="Remove reminder"
                 >
                   <X className="w-4 h-4" />
@@ -544,7 +512,7 @@ export const TaskDefaultsSettings = () => {
       )}
 
       {showReminderPicker && (
-        <DefaultReminderPickerModal
+        <TaskDefaultsReminderPickerModal
           available={reminderOptionsForPicker}
           onSelect={handleSelectReminder}
           onClose={handleCloseReminderPicker}

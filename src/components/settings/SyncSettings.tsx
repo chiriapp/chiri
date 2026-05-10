@@ -1,13 +1,13 @@
-import ChevronDown from 'lucide-react/icons/chevron-down';
-import ChevronRight from 'lucide-react/icons/chevron-right';
-import { Info } from 'lucide-react';
-import { useState } from 'react';
+import { Info, Zap, ZapOff } from 'lucide-react';
 import { AppSelect } from '$components/AppSelect';
 import { CONNECTIVITY_CHECK_INTERVAL_OPTIONS, SYNC_INTERVAL_OPTIONS } from '$constants/settings';
+import { useAccounts } from '$hooks/queries/useAccounts';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { DEFAULT_CONNECTIVITY_CHECK_URL } from '$hooks/system/useOffline';
 
 export const SyncSettings = () => {
+  const { data: accounts = [] } = useAccounts();
+
   const {
     autoSync,
     setAutoSync,
@@ -28,8 +28,6 @@ export const SyncSettings = () => {
     ntfyServerUrl,
     setNtfyServerUrl,
   } = useSettingsStore();
-
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -110,13 +108,16 @@ export const SyncSettings = () => {
             className="rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
           />
         </label>
+      </div>
 
-        <div className="border-t border-surface-200 dark:border-surface-700" />
-
+      <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
+        WebDAV Push
+      </h3>
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <label className="flex items-center justify-between p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
-              WebDAV Push (experimental)
+              Enable WebDAV Push (experimental)
             </p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
               Real-time sync when server sends push messages
@@ -131,50 +132,64 @@ export const SyncSettings = () => {
         </label>
 
         {enablePush && (
-          <div className="px-4 pb-4">
-            <div className="space-y-4">
-              <div className="rounded-lg border border-yellow-500/30 dark:border-yellow-500/40 bg-yellow-50 dark:bg-yellow-900/10 px-3 py-2 text-xs text-yellow-800 dark:text-yellow-200">
-                Note: Not all CalDAV servers support WebDAV Push. If your server doesn't support it,
-                Chiri will continue to use regular polling.
+          <>
+            <div className="border-t border-surface-200 dark:border-surface-700" />
+
+            <div className="p-4 space-y-2">
+              <div>
+                <p className="text-sm text-surface-700 dark:text-surface-300">ntfy server URL</p>
+                <p className="text-xs text-surface-500 dark:text-surface-400">
+                  UnifiedPush distributor endpoint. Changing this requires restarting the app.
+                </p>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAdvanced(!showAdvanced)}
-                className="flex items-center gap-2 text-xs text-surface-600 dark:text-surface-400 hover:text-surface-800 dark:hover:text-surface-200 transition-colors"
-              >
-                {showAdvanced ? (
-                  <ChevronDown className="w-3 h-3" />
-                ) : (
-                  <ChevronRight className="w-3 h-3" />
-                )}
-                Advanced settings
-              </button>
-
-              {showAdvanced && (
-                <div className="pl-4 border-l-2 border-surface-200 dark:border-surface-600 space-y-2">
-                  <label className="block">
-                    <p className="text-sm text-surface-700 dark:text-surface-300 mb-1">
-                      ntfy server URL
-                    </p>
-                    <p className="text-xs text-surface-500 dark:text-surface-400 mb-2">
-                      UnifiedPush distributor endpoint
-                    </p>
-                    <input
-                      type="url"
-                      value={ntfyServerUrl}
-                      onChange={(e) => setNtfyServerUrl(e.target.value)}
-                      placeholder="https://ntfy.sh"
-                      className="w-full px-3 py-2 text-sm border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-500 dark:focus:border-primary-400 transition-colors"
-                    />
-                  </label>
-                  <p className="text-xs text-surface-500 dark:text-surface-400 italic">
-                    Note: Changing the server URL requires restarting the app to take effect.
-                  </p>
-                </div>
-              )}
+              <input
+                type="url"
+                value={ntfyServerUrl}
+                onChange={(e) => setNtfyServerUrl(e.target.value)}
+                placeholder="https://ntfy.sh"
+                className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
+              />
             </div>
-          </div>
+
+            {accounts.length > 0 && (
+              <>
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <div className="p-4 space-y-2">
+                  <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide">
+                    Account push support
+                  </p>
+                  <div className="space-y-1">
+                    {accounts.map((account) => {
+                      const supported = account.calendars.some((c) => c.pushSupported);
+                      return (
+                        <div key={account.id} className="flex items-center gap-2 text-sm">
+                          {supported ? (
+                            <Zap className="size-3.5 shrink-0 fill-current text-semantic-success" />
+                          ) : (
+                            <ZapOff className="size-3.5 shrink-0 text-surface-400 dark:text-surface-500" />
+                          )}
+                          <span
+                            className={
+                              supported
+                                ? 'text-surface-700 dark:text-surface-300'
+                                : 'text-surface-400 dark:text-surface-500'
+                            }
+                          >
+                            {account.name}
+                          </span>
+                          {!supported && (
+                            <span className="text-xs text-surface-400 dark:text-surface-500">
+                              — not supported
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
 
@@ -201,7 +216,7 @@ export const SyncSettings = () => {
         </label>
 
         {!connectivityCheckEnabled && (
-          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
+          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info">
             <Info className="mt-px size-3.5 shrink-0" />
             <span>
               Disabling this may cause the app to incorrectly report offline status when your CalDAV
@@ -225,7 +240,7 @@ export const SyncSettings = () => {
                 id="connectivity-check-interval"
                 value={connectivityCheckInterval.toString()}
                 onChange={(e) => setConnectivityCheckInterval(Number(e.target.value))}
-                className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+                className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0"
               >
                 {CONNECTIVITY_CHECK_INTERVAL_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -250,7 +265,7 @@ export const SyncSettings = () => {
                 value={connectivityCheckUrl}
                 onChange={(e) => setConnectivityCheckUrl(e.target.value)}
                 placeholder={DEFAULT_CONNECTIVITY_CHECK_URL}
-                className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
             </div>
           </>

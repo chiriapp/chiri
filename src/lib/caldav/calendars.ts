@@ -28,18 +28,24 @@ export const calendarExists = async (conn: Connection, calendarUrl: string): Pro
   return response.status === 207 || response.status === 200;
 };
 
+/**
+ * Parse WebDAV Push properties from a single calendar's already-extracted prop values.
+ *
+ * Uses the per-calendar `topic` and `transports` values from parseMultiStatus rather than
+ * scanning the full response body, which would cause all calendars to inherit the first
+ * match found anywhere in the document.
+ */
 const parsePushProperties = (
-  xml: string,
+  topicProp: string | null | undefined,
+  transportsProp: string | null | undefined,
 ): { topic?: string; vapidKey?: string; supported: boolean } => {
-  const topicMatch = xml.match(/<[^:>]*:?topic[^>]*>([^<]+)<\/[^:>]*:?topic>/i);
-  const topic = topicMatch?.[1]?.trim();
+  const topic = (topicProp ?? '').trim() || undefined;
 
-  const vapidMatch = xml.match(
+  const hasWebPush = transportsProp ? /<[^:>]*:?web-push[^>]*/i.test(transportsProp) : false;
+  const vapidMatch = transportsProp?.match(
     /<[^:>]*:?vapid-public-key[^>]*>([^<]+)<\/[^:>]*:?vapid-public-key>/i,
   );
   const vapidKey = vapidMatch?.[1]?.trim();
-
-  const hasWebPush = /<[^:>]*:?web-push[^>]*>/i.test(xml);
 
   return {
     topic,
@@ -101,9 +107,7 @@ export const fetchCalendars = async (conn: Connection, accountId: string): Promi
     const calendarUrl = makeAbsoluteUrl(result.href, conn.serverUrl);
     const serverOrder = result.props['calendar-order'];
 
-    // Parse WebDAV Push properties from the raw response body for this result
-    // We need to extract the response element for this specific href
-    const pushProps = parsePushProperties(response.body);
+    const pushProps = parsePushProperties(result.props.topic, result.props.transports);
 
     calendars.push({
       id: calendarUrl,

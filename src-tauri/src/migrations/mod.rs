@@ -17,6 +17,7 @@ mod v016_account_calendar_home_url;
 mod v017_trusted_cert;
 mod v018_account_principal_url;
 mod v019_webdav_push;
+mod v020_account_icon;
 
 use tauri_plugin_sql::Migration;
 
@@ -39,6 +40,7 @@ pub use v016_account_calendar_home_url::migration as migration_v016;
 pub use v017_trusted_cert::migration as migration_v017;
 pub use v018_account_principal_url::migration as migration_v018;
 pub use v019_webdav_push::migration as migration_v019;
+pub use v020_account_icon::migration as migration_v020;
 
 /// Returns all database migrations for the application
 pub fn get_migrations() -> Vec<Migration> {
@@ -62,5 +64,6 @@ pub fn get_migrations() -> Vec<Migration> {
         migration_v017(),
         migration_v018(),
         migration_v019(),
+        migration_v020(),
     ]
 }

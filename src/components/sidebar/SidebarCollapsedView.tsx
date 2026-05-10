@@ -2,7 +2,7 @@ import Download from 'lucide-react/icons/download';
 import Inbox from 'lucide-react/icons/inbox';
 import Settings from 'lucide-react/icons/settings';
 import { Tooltip } from '$components/Tooltip';
-import { FALLBACK_ITEM_COLOR } from '$constants';
+import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
 import type { Account, Tag } from '$types';
 
@@ -13,6 +13,8 @@ interface SidebarCollapsedViewProps {
   activeTagId: string | null;
   contextMenu: { type: string; id: string } | null;
   showCollapsedContent: boolean;
+  accountsSectionCollapsed: boolean;
+  tagsSectionCollapsed: boolean;
   updateAvailable?: boolean;
   onAllTasks: () => void;
   onSelectCalendar: (accountId: string, calendarId: string) => void;
@@ -34,6 +36,8 @@ export const SidebarCollapsedView = ({
   activeTagId,
   contextMenu,
   showCollapsedContent,
+  accountsSectionCollapsed,
+  tagsSectionCollapsed,
   updateAvailable,
   onAllTasks,
   onSelectCalendar,
@@ -44,7 +48,7 @@ export const SidebarCollapsedView = ({
 }: SidebarCollapsedViewProps) => {
   return (
     <div
-      className={`flex-1 flex flex-col items-center py-2 gap-1 overflow-y-auto transition-opacity duration-150 ${showCollapsedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className={`flex-1 flex flex-col items-center py-2 gap-1 overflow-y-auto motion-safe:transition-opacity motion-safe:duration-150 ${showCollapsedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
     >
       <Tooltip content="All Tasks" position="right">
         <button
@@ -52,7 +56,7 @@ export const SidebarCollapsedView = ({
           onClick={onAllTasks}
           className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
             activeCalendarId === null && activeTagId === null
-              ? 'bg-surface-200 dark:bg-surface-700'
+              ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
               : 'text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
           }`}
         >
@@ -60,86 +64,80 @@ export const SidebarCollapsedView = ({
         </button>
       </Tooltip>
 
-      {accounts.some((account) => account.calendars.length > 0) && (
+      {!accountsSectionCollapsed &&
+        accounts.map((account) => {
+          if (account.calendars.length === 0) return null;
+          return (
+            <div key={account.id} className="flex flex-col items-center gap-1">
+              <div className="w-6 h-px bg-surface-200 dark:bg-surface-700 my-1" />
+              {account.calendars.map((calendar) => {
+                const CalendarIcon = getIconByName(calendar.icon ?? 'calendar');
+                const isActive = activeCalendarId === calendar.id;
+                const calendarColor = calendar.color ?? getFallbackItemColor();
+                return (
+                  <Tooltip key={calendar.id} content={calendar.displayName} position="right">
+                    <button
+                      type="button"
+                      data-context-menu
+                      onClick={() => onSelectCalendar(account.id, calendar.id)}
+                      onContextMenu={(e) => onContextMenu(e, 'calendar', calendar.id, account.id)}
+                      className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                        isActive
+                          ? 'bg-surface-200 dark:bg-surface-700'
+                          : contextMenu?.type === 'calendar' && contextMenu.id === calendar.id
+                            ? 'bg-surface-200 dark:bg-surface-700'
+                            : 'hover:bg-surface-200 dark:hover:bg-surface-700'
+                      }`}
+                    >
+                      {calendar.emoji ? (
+                        <span className="text-base leading-none" style={{ color: calendarColor }}>
+                          {calendar.emoji}
+                        </span>
+                      ) : (
+                        <CalendarIcon className="w-5 h-5" style={{ color: calendarColor }} />
+                      )}
+                    </button>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          );
+        })}
+
+      {!tagsSectionCollapsed && tags.length > 0 && (
         <div className="w-6 h-px bg-surface-200 dark:bg-surface-700 my-1" />
       )}
 
-      {accounts.flatMap((account) =>
-        account.calendars.map((calendar) => {
-          const CalendarIcon = getIconByName(calendar.icon ?? 'calendar');
-          const isActive = activeCalendarId === calendar.id;
-          const calendarColor = calendar.color ?? FALLBACK_ITEM_COLOR;
+      {!tagsSectionCollapsed &&
+        tags.map((tag) => {
+          const isActive = activeTagId === tag.id;
+          const TagIcon = getIconByName(tag.icon ?? 'tag');
           return (
-            <Tooltip key={calendar.id} content={calendar.displayName} position="right">
+            <Tooltip key={tag.id} content={tag.name} position="right">
               <button
                 type="button"
                 data-context-menu
-                onClick={() => onSelectCalendar(account.id, calendar.id)}
-                onContextMenu={(e) => onContextMenu(e, 'calendar', calendar.id, account.id)}
+                onClick={() => onSelectTag(tag.id)}
+                onContextMenu={(e) => onContextMenu(e, 'tag', tag.id)}
                 className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   isActive
                     ? 'bg-surface-200 dark:bg-surface-700'
-                    : contextMenu?.type === 'calendar' && contextMenu.id === calendar.id
+                    : contextMenu?.type === 'tag' && contextMenu.id === tag.id
                       ? 'bg-surface-200 dark:bg-surface-700'
                       : 'hover:bg-surface-200 dark:hover:bg-surface-700'
                 }`}
               >
-                {calendar.emoji ? (
-                  <span
-                    className="text-base leading-none"
-                    style={{ color: calendarColor }}
-                  >
-                    {calendar.emoji}
+                {tag.emoji ? (
+                  <span className="text-base leading-none" style={{ color: tag.color }}>
+                    {tag.emoji}
                   </span>
                 ) : (
-                  <CalendarIcon
-                    className="w-5 h-5"
-                    style={{ color: calendarColor }}
-                  />
+                  <TagIcon className="w-5 h-5" style={{ color: tag.color }} />
                 )}
               </button>
             </Tooltip>
           );
-        }),
-      )}
-
-      {tags.length > 0 && <div className="w-6 h-px bg-surface-200 dark:bg-surface-700 my-1" />}
-
-      {tags.map((tag) => {
-        const isActive = activeTagId === tag.id;
-        const TagIcon = getIconByName(tag.icon ?? 'tag');
-        return (
-          <Tooltip key={tag.id} content={tag.name} position="right">
-            <button
-              type="button"
-              data-context-menu
-              onClick={() => onSelectTag(tag.id)}
-              onContextMenu={(e) => onContextMenu(e, 'tag', tag.id)}
-              className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                isActive
-                  ? 'bg-surface-200 dark:bg-surface-700'
-                  : contextMenu?.type === 'tag' && contextMenu.id === tag.id
-                    ? 'bg-surface-200 dark:bg-surface-700'
-                    : 'hover:bg-surface-200 dark:hover:bg-surface-700'
-              }`}
-            >
-              {tag.emoji ? (
-                <span
-                  className="text-base leading-none"
-                  style={{ color: tag.color }}
-                >
-                  {tag.emoji}
-                </span>
-              ) : (
-                <TagIcon
-                  className="w-5 h-5"
-                  style={{ color: tag.color }}
-                />
-              )}
-            </button>
-          </Tooltip>
-        );
-      })}
+        })}
 
       <div className="mt-auto flex flex-col pt-2 border-t border-surface-200 dark:border-surface-700">
         {updateAvailable && (

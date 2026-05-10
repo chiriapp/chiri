@@ -48,7 +48,13 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
   const setActiveTagMutation = useSetActiveTag();
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveAccountMutation = useSetActiveAccount();
-  const { accentColor, taskListDensity, taskBadgeVisibility, taskBadgeOrder } = useSettingsStore();
+  const {
+    accentColor,
+    taskListDensity,
+    taskBadgeVisibility,
+    taskBadgeOrder,
+    useAccentColorForCheckboxes,
+  } = useSettingsStore();
   const { contextMenu, handleContextMenu, handleCloseContextMenu, setContextMenu } =
     useContextMenu();
 
@@ -194,6 +200,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
             status={task.status}
             flashComplete={flashComplete}
             checkmarkColor={checkmarkColor}
+            useAccentColor={useAccentColorForCheckboxes}
             onClick={handleCheckboxClick}
           />
         </div>

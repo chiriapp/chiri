@@ -25,13 +25,13 @@ import {
 } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { useGlobalContextMenuClose } from '$hooks/ui/useGlobalContextMenu';
+import { usePrefersReducedMotion } from '$hooks/ui/usePrefersReducedMotion';
 import { useSidebarResize } from '$hooks/ui/useSidebarResize';
 import { useDeleteHandlers } from '$hooks/useDeleteHandlers';
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account, Calendar as CalendarType } from '$types';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
 import { clampToViewport } from '$utils/misc';
-import { getAppInfo } from '$utils/version';
 
 interface SidebarProps {
   onOpenSettings?: () => void;
@@ -63,8 +63,6 @@ export const Sidebar = ({
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveTagMutation = useSetActiveTag();
   const setAllTasksViewMutation = useSetAllTasksView();
-
-  const { version } = getAppInfo();
 
   const { handleDeleteAccount, handleDeleteTag, handleDeleteCalendar } = useDeleteHandlers();
   const { syncCalendar, syncingCalendarId } = useSyncQuery();
@@ -131,6 +129,7 @@ export const Sidebar = ({
   const settingsShortcut = `${metaKey}${modifierJoiner},`;
 
   const { isResizing, resizeHandleRef, handleResizeStart } = useSidebarResize(onWidthChange);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   // Track last menu close time to prevent immediate reopening
   const lastMenuCloseTimeRef = useRef<number>(0);
@@ -142,6 +141,13 @@ export const Sidebar = ({
 
   // Handle content visibility during transitions
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setShowExpandedContent(!isCollapsed);
+      setShowCollapsedContent(isCollapsed);
+      setIsTransitioning(false);
+      return;
+    }
+
     if (isCollapsed) {
       setShowExpandedContent(false);
       setIsTransitioning(true);
@@ -159,7 +165,7 @@ export const Sidebar = ({
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isCollapsed]);
+  }, [isCollapsed, prefersReducedMotion]);
 
   const toggleAccount = (id: string) => {
     toggleAccountExpanded(id);
@@ -217,7 +223,7 @@ export const Sidebar = ({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: Container onClick for closing context menu on outside click */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: Container onClick for closing context menu on outside click */}
       <div
-        className={`bg-surface-100 dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700 flex flex-col h-full relative overflow-hidden ${!isResizing ? 'transition-[width] duration-200 ease-in-out' : ''}`}
+        className={`bg-surface-100 dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700 flex flex-col h-full relative overflow-hidden ${!isResizing ? 'motion-safe:transition-[width] motion-safe:duration-200 motion-safe:ease-in-out' : ''}`}
         style={{ width: isCollapsed ? 48 : width }}
         onClick={handleCloseContextMenu}
       >
@@ -238,16 +244,16 @@ export const Sidebar = ({
 
         {!isCollapsed && (
           <div
-            className={`flex-1 flex flex-col min-h-0 transition-opacity duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            className={`flex-1 flex flex-col min-h-0 motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           >
-            <div className="flex-1 flex flex-col gap-2.5 overflow-y-auto overscroll-contain">
+            <div className="flex-1 flex flex-col gap-2.5 overflow-y-auto overscroll-contain px-2 py-2">
               <button
                 type="button"
                 onClick={() => {
                   setAllTasksViewMutation.mutate();
                   setActiveAccountMutation.mutate(null);
                 }}
-                className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   activeCalendarId === null && activeTagId === null
                     ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
@@ -303,7 +309,6 @@ export const Sidebar = ({
               onUpdateClick={onUpdateClick}
               onOpenSettings={onOpenSettings}
               settingsShortcut={settingsShortcut}
-              version={version}
               isAnyModalOpen={isAnyModalOpen}
             />
           </div>
@@ -317,6 +322,8 @@ export const Sidebar = ({
             activeTagId={activeTagId}
             contextMenu={contextMenu}
             showCollapsedContent={showCollapsedContent}
+            accountsSectionCollapsed={accountsSectionCollapsed}
+            tagsSectionCollapsed={tagsSectionCollapsed}
             updateAvailable={updateAvailable}
             onAllTasks={() => {
               setAllTasksViewMutation.mutate();

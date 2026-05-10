@@ -40,16 +40,20 @@ export const TaskItemCheckbox = ({
       }`;
     if (isCancelled) return `${base} bg-status-cancelled border-status-cancelled`;
     if (isInProcess) return `${base} bg-status-in-process border-status-in-process`;
-    return `${base} border-surface-300 dark:border-surface-600 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30`;
+    return `${base} border-surface-300 dark:border-surface-600 hover:border-primary-500 hover:bg-surface-100 dark:hover:bg-surface-700`;
   };
 
   return (
     <button type="button" onClick={onClick} aria-label={getTitle()} className={getClassName()}>
       {isCompleted && (
-        <Check className="w-4 h-4" style={{ color: checkmarkColor }} strokeWidth={3} />
+        <Check
+          className={`w-4 h-4 ${!useAccentColor ? 'text-surface-900' : ''}`}
+          style={useAccentColor ? { color: checkmarkColor } : undefined}
+          strokeWidth={3}
+        />
       )}
-      {isCancelled && <X className="w-4 h-4 text-white dark:text-surface-200" strokeWidth={3} />}
-      {isInProcess && <Loader className="w-4 h-4 text-white dark:text-surface-100" />}
+      {isCancelled && <X className="w-4 h-4 text-primary-contrast" strokeWidth={3} />}
+      {isInProcess && <Loader className="w-4 h-4 dark:text-primary-contrast" />}
     </button>
   );
 };
