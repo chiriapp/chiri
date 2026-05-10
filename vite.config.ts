@@ -39,9 +39,15 @@ export default defineConfig({
     },
   },
   clearScreen: false,
+  optimizeDeps: {
+    exclude: ['@tailwindcss/vite'],
+  },
   server: {
     port: 1420,
     strictPort: true,
+    watch: {
+      ignored: ['**/src-tauri/gen/**'],
+    },
   },
   envPrefix: ['VITE_', 'TAURI_'],
   build: {
