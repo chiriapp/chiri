@@ -203,9 +203,6 @@ Does the app work on other CalDAV servers or CalDAV-compatible clients that are 
 # License
 Chiri is licensed under the [<span aria-hidden="true">&nearr;</span> zlib/libpng][repo-license] license.
 
-# Acknowledgements
-This project is tested with BrowserStack.
-
 [donate-kofi]: https://ko-fi.com/solelychloe
 [donate-liberapay]: https://liberapay.com/chloe
 
