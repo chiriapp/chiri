@@ -143,9 +143,9 @@ export const ConfirmDialogModal = ({
 
         {notice && (
           <div
-            className={`mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info${message ? '' : ' mt-4'}`}
+            className={`mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300${message ? '' : ' mt-4'}`}
           >
-            <AlertTriangle className="mt-px size-3.5 shrink-0" />
+            <AlertTriangle className="mt-px size-3.5 shrink-0 text-semantic-info" />
             <span>
               {notice.message}{' '}
               {notice.link && (
@@ -164,8 +164,8 @@ export const ConfirmDialogModal = ({
         )}
 
         {error && (
-          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-error/30 bg-semantic-error/10 px-3 py-2 text-xs text-semantic-error">
-            <AlertTriangle className="mt-px size-3.5 shrink-0" />
+          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-error/30 bg-semantic-error/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300">
+            <AlertTriangle className="mt-px size-3.5 shrink-0 text-semantic-error" />
             <span>{error}</span>
           </div>
         )}

@@ -155,7 +155,7 @@ export const ExportModal = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 p-4 animate-fade-in">
       <div
         ref={focusTrapRef}
         className="bg-white dark:bg-surface-800 rounded-xl shadow-xl max-w-md w-full max-h-[90vh] flex flex-col animate-scale-in"
@@ -172,7 +172,7 @@ export const ExportModal = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors flex-shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
+            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors shrink-0 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -211,7 +211,7 @@ export const ExportModal = ({
                     </div>
                   </div>
                   {selectedFormat === format.id && (
-                    <div className="text-primary-500 dark:text-primary-400 flex-shrink-0">
+                    <div className="text-primary-500 dark:text-primary-400 shrink-0">
                       <CheckCircle2 className="w-5 h-5" />
                     </div>
                   )}
@@ -221,8 +221,8 @@ export const ExportModal = ({
           </div>
 
           {tasks.length === 0 && (
-            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info">
-              <Info className="mt-px size-3.5 shrink-0" />
+            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300">
+              <Info className="mt-px size-3.5 shrink-0 text-semantic-info" />
               <span>There are no tasks to export.</span>
             </div>
           )}

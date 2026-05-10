@@ -83,11 +83,11 @@ export const UpdateSettings = () => {
         <div className="border-t border-surface-200 dark:border-surface-700" />
 
         {!isManagedInstallLoading && isManagedInstall && (
-          <div className="flex items-start gap-2 px-4 py-3 bg-semantic-info/10 text-semantic-info">
+          <div className="flex items-start gap-2 px-4 py-3 bg-semantic-info/10 text-surface-700 dark:text-surface-300">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-semantic-info" />
             <div>
               <p className="text-sm font-medium">Updates managed by {getPackageManagerName()}</p>
-              <p className="mt-0.5 text-xs text-semantic-info">
+              <p className="mt-0.5 text-xs">
                 This installation is managed by {getPackageManagerName()}. Update Chiri through your
                 system's update mechanism.
               </p>

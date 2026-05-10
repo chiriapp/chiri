@@ -220,7 +220,7 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
 
       {step === 'authenticating' && (
         <div className="py-8 text-center">
-          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-purple-600 dark:text-purple-400" />
+          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-primary-500" />
           <h3 className="mb-1 text-base font-medium text-surface-800 dark:text-surface-200">
             Waiting for authentication...
           </h3>
@@ -232,7 +232,7 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
 
       {step === 'processing' && (
         <div className="py-8 text-center">
-          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-purple-600 dark:text-purple-400" />
+          <Loader2 className="mx-auto mb-3 h-10 w-10 animate-spin text-primary-500" />
           <h3 className="mb-1 text-base font-medium text-surface-800 dark:text-surface-200">
             Setting up your account...
           </h3>

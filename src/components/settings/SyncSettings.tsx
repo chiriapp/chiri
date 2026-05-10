@@ -216,8 +216,8 @@ export const SyncSettings = () => {
         </label>
 
         {!connectivityCheckEnabled && (
-          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
-            <Info className="mt-px size-3.5 shrink-0" />
+          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300">
+            <Info className="mt-px size-3.5 shrink-0 text-semantic-info" />
             <span>
               Disabling this may cause the app to incorrectly report offline status when your CalDAV
               servers are temporarily unreachable.
@@ -240,7 +240,7 @@ export const SyncSettings = () => {
                 id="connectivity-check-interval"
                 value={connectivityCheckInterval.toString()}
                 onChange={(e) => setConnectivityCheckInterval(Number(e.target.value))}
-                className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors shrink-0"
+                className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0"
               >
                 {CONNECTIVITY_CHECK_INTERVAL_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -265,7 +265,7 @@ export const SyncSettings = () => {
                 value={connectivityCheckUrl}
                 onChange={(e) => setConnectivityCheckUrl(e.target.value)}
                 placeholder={DEFAULT_CONNECTIVITY_CHECK_URL}
-                className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-300 dark:focus:border-primary-400 focus:bg-white dark:focus:bg-primary-900/30 transition-colors"
+                className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
               />
             </div>
           </>

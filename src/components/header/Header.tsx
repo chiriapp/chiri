@@ -273,7 +273,7 @@ export const Header = ({
           <button
             type="button"
             onClick={handleNewTask}
-            className={`flex items-center gap-2 px-4 py-1.5 rounded-lg border border-transparent text-sm transition-colors bg-primary-500 text-primary-contrast ${!isAnyModalOpen ? 'hover:bg-primary-600' : ''} shadow-xs outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
+            className={`flex items-center gap-2 px-4 py-1.5 font-medium rounded-lg border border-transparent text-sm transition-colors bg-primary-500 text-primary-contrast ${!isAnyModalOpen ? 'hover:bg-primary-600' : ''} shadow-xs outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
           >
             <Plus className="w-4 h-4" />
             New Task
