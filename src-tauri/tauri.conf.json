@@ -31,7 +31,8 @@
     "active": true,
     "createUpdaterArtifacts": true,
     "category": "Productivity",
-    "homepage": "https://github.com/SapphoSys/chiri",
+    "publisher": "Chiri",
+    "homepage": "https://github.com/chiriapp/chiri",
     "copyright": "Copyright (c) 2026 Sapphic Angels"
   },
   "plugins": {
