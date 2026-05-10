@@ -203,6 +203,9 @@ Does the app work on other CalDAV servers or CalDAV-compatible clients that are 
 # License
 Chiri is licensed under the [<span aria-hidden="true">&nearr;</span> zlib/libpng][repo-license] license.
 
+# Privacy
+See [<span aria-hidden="true">&nearr;</span> PRIVACY.md][repo-privacy] for details on what data Chiri processes and how.
+
 [donate-kofi]: https://ko-fi.com/solelychloe
 [donate-liberapay]: https://liberapay.com/chloe
 
@@ -225,5 +228,6 @@ Chiri is licensed under the [<span aria-hidden="true">&nearr;</span> zlib/libpng
 [release-linux-rpm-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri-0.8.1-1.aarch64.rpm
 
 [repo-license]: https://github.com/SapphoSys/chiri/blob/master/LICENSE
+[repo-privacy]: https://github.com/SapphoSys/chiri/blob/master/PRIVACY.md
 [repo-releases]: https://github.com/SapphoSys/chiri/releases
 [repo-stars]: https://github.com/SapphoSys/chiri/stargazers
