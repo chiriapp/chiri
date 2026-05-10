@@ -1,4 +1,4 @@
-export type InstallType = 'nix' | 'aur' | 'flatpak' | 'standard';
+export type InstallType = 'nix' | 'aur' | 'flatpak' | 'homebrew' | 'standard';
 
 export type Priority = 'high' | 'medium' | 'low' | 'none';
 

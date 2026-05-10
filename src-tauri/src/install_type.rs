@@ -8,6 +8,8 @@ pub enum InstallType {
     Aur,
     /// Installed via Flatpak
     Flatpak,
+    /// Installed via Homebrew Cask
+    Homebrew,
     /// Installed via Nix package manager
     Nix,
     /// Standard installation (AppImage, .deb, .rpm, .dmg, .exe, etc.)
@@ -19,7 +21,7 @@ impl InstallType {
     pub fn has_external_updates(self) -> bool {
         matches!(
             self,
-            InstallType::Aur | InstallType::Flatpak | InstallType::Nix
+            InstallType::Aur | InstallType::Flatpak | InstallType::Homebrew | InstallType::Nix
         )
     }
 }
@@ -35,6 +37,13 @@ pub fn detect_install_type() -> InstallType {
     // Check for Flatpak (FLATPAK_ID environment variable is set by Flatpak runtime)
     if env::var("FLATPAK_ID").is_ok() {
         return InstallType::Flatpak;
+    }
+
+    // Check for Homebrew Cask (Homebrew always creates a Caskroom directory for managed apps)
+    if Path::new("/opt/homebrew/Caskroom/chiri").exists()
+        || Path::new("/usr/local/Caskroom/chiri").exists()
+    {
+        return InstallType::Homebrew;
     }
 
     // Check for Nix (binary path contains /nix/store/)
@@ -63,6 +72,7 @@ pub fn get_install_type() -> String {
     match install_type {
         InstallType::Aur => "aur".to_string(),
         InstallType::Flatpak => "flatpak".to_string(),
+        InstallType::Homebrew => "homebrew".to_string(),
         InstallType::Nix => "nix".to_string(),
         InstallType::Standard => "standard".to_string(),
     }

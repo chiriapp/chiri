@@ -61,6 +61,8 @@ export const UpdateSettings = () => {
         return 'AUR (Arch User Repository)';
       case 'flatpak':
         return 'Flatpak';
+      case 'homebrew':
+        return 'Homebrew';
       default:
         return 'your package manager';
     }
