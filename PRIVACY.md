@@ -16,7 +16,7 @@ Chiri is a CalDAV task management app. This policy explains what data the app pr
 
 - To connect to your selected CalDAV server.
 - To create, update, delete, and sync tasks and calendars.
-- To check for app updates and show release notes.
+- To check for app updates and show release notes from GitHub.
 
 ## Where data is stored
 
