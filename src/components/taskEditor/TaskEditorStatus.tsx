@@ -89,7 +89,7 @@ export const TaskEditorStatus = ({
       <div>
         <label
           htmlFor="task-percent-complete"
-          className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-2"
+          className="flex items-center gap-2 text-sm font-medium text-surface-600 dark:text-surface-400 mb-1"
         >
           <Loader className="w-4 h-4" />
           Progress ({draftPercent ?? task.percentComplete ?? 0}%)
@@ -101,6 +101,9 @@ export const TaskEditorStatus = ({
           max={100}
           step={5}
           value={draftPercent ?? task.percentComplete ?? 0}
+          style={
+            { '--pct': `${draftPercent ?? task.percentComplete ?? 0}%` } as React.CSSProperties
+          }
           onChange={(e) => setDraftPercent(Number(e.target.value))}
           onPointerUp={(e) => {
             const value = Number((e.target as HTMLInputElement).value);
@@ -112,7 +115,7 @@ export const TaskEditorStatus = ({
             setDraftPercent(undefined);
             onCommitPercent(value);
           }}
-          className="w-full accent-primary-500 cursor-pointer"
+          className="w-full"
         />
         <div className="flex justify-between text-xs text-surface-400 mt-1">
           <span>0%</span>

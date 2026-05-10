@@ -288,8 +288,9 @@ export const TaskDefaultsSettings = () => {
             max={100}
             step={5}
             value={defaultPercentComplete}
+            style={{ '--pct': `${defaultPercentComplete}%` } as React.CSSProperties}
             onChange={(e) => setDefaultPercentComplete(Number(e.target.value))}
-            className="w-full accent-primary-500 cursor-pointer"
+            className="w-full"
           />
           <div className="flex justify-between mt-1">
             <span className="text-xs text-surface-400">0%</span>
