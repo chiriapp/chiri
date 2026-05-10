@@ -25,6 +25,7 @@ import {
 } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { useGlobalContextMenuClose } from '$hooks/ui/useGlobalContextMenu';
+import { usePrefersReducedMotion } from '$hooks/ui/usePrefersReducedMotion';
 import { useSidebarResize } from '$hooks/ui/useSidebarResize';
 import { useDeleteHandlers } from '$hooks/useDeleteHandlers';
 import { getTasksByCalendar } from '$lib/store/tasks';
@@ -131,6 +132,7 @@ export const Sidebar = ({
   const settingsShortcut = `${metaKey}${modifierJoiner},`;
 
   const { isResizing, resizeHandleRef, handleResizeStart } = useSidebarResize(onWidthChange);
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   // Track last menu close time to prevent immediate reopening
   const lastMenuCloseTimeRef = useRef<number>(0);
@@ -142,6 +144,13 @@ export const Sidebar = ({
 
   // Handle content visibility during transitions
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setShowExpandedContent(!isCollapsed);
+      setShowCollapsedContent(isCollapsed);
+      setIsTransitioning(false);
+      return;
+    }
+
     if (isCollapsed) {
       setShowExpandedContent(false);
       setIsTransitioning(true);
@@ -159,7 +168,7 @@ export const Sidebar = ({
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isCollapsed]);
+  }, [isCollapsed, prefersReducedMotion]);
 
   const toggleAccount = (id: string) => {
     toggleAccountExpanded(id);
@@ -217,7 +226,7 @@ export const Sidebar = ({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: Container onClick for closing context menu on outside click */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: Container onClick for closing context menu on outside click */}
       <div
-        className={`bg-surface-100 dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700 flex flex-col h-full relative overflow-hidden ${!isResizing ? 'transition-[width] duration-200 ease-in-out' : ''}`}
+        className={`bg-surface-100 dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700 flex flex-col h-full relative overflow-hidden ${!isResizing ? 'motion-safe:transition-[width] motion-safe:duration-200 motion-safe:ease-in-out' : ''}`}
         style={{ width: isCollapsed ? 48 : width }}
         onClick={handleCloseContextMenu}
       >
@@ -238,7 +247,7 @@ export const Sidebar = ({
 
         {!isCollapsed && (
           <div
-            className={`flex-1 flex flex-col min-h-0 transition-opacity duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            className={`flex-1 flex flex-col min-h-0 motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           >
             <div className="flex-1 flex flex-col gap-2.5 overflow-y-auto overscroll-contain">
               <button

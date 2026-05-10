@@ -44,7 +44,7 @@ export const SidebarCollapsedView = ({
 }: SidebarCollapsedViewProps) => {
   return (
     <div
-      className={`flex-1 flex flex-col items-center py-2 gap-1 overflow-y-auto transition-opacity duration-150 ${showCollapsedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className={`flex-1 flex flex-col items-center py-2 gap-1 overflow-y-auto motion-safe:transition-opacity motion-safe:duration-150 ${showCollapsedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
     >
       <Tooltip content="All Tasks" position="right">
         <button

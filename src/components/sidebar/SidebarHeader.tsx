@@ -29,7 +29,7 @@ export const SidebarHeader = ({
         </Tooltip>
       ) : (
         <div
-          className={`flex items-center flex-1 px-2 transition-opacity duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0'}`}
+          className={`flex items-center flex-1 px-2 motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0'}`}
         >
           <h1 className="text-lg font-semibold text-surface-900 dark:text-surface-100 flex items-center gap-2 flex-1 min-w-0">
             <AppIcon className="w-5 h-5 text-primary-500 shrink-0" />
