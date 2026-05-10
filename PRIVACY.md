@@ -42,10 +42,8 @@ These services may receive technical metadata such as IP address and request hea
 
 ## Your choices
 
-- You can add, edit, or remove accounts.
+- You can add, edit, or remove CalDAV accounts.
 - You can change sync and update-check settings.
-- You can disable notifications.
-- You can reset preferences.
 - You can remove local data by deleting app data or uninstalling the app.
 
 ## Contact
