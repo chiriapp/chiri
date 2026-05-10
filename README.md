@@ -81,7 +81,7 @@ Add `chiri` as an input to your `flake.nix` file.
   inputs = {
     # ... other inputs ...
     chiri = {
-      url = "github:SapphoSys/chiri";
+      url = "github:chiriapp/chiri";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # ... other inputs ...
@@ -99,7 +99,7 @@ Add `chiri` as an input to your `flake.nix` file.
     inputs = {
       nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
       chiri = {
-        url = "github:SapphoSys/chiri";
+        url = "github:chiriapp/chiri";
         inputs.nixpkgs.follows = "nixpkgs";
       };
     };
@@ -148,7 +148,7 @@ Add `chiri` as an input to your `flake.nix` file.
         inputs.nixpkgs.follows = "nixpkgs";
       };
       chiri = {
-        url = "github:SapphoSys/chiri";
+        url = "github:chiriapp/chiri";
         inputs.nixpkgs.follows = "nixpkgs";
       };
     };
@@ -181,7 +181,7 @@ I work on Chiri during my free time as a student, so every amount, however small
 <!-- donation badges end -->
 
 # Compatibility
-Does the app work on other CalDAV servers or CalDAV-compatible clients that are not listed here? [Please let me know by filing an issue](https://github.com/SapphoSys/chiri/issues/new)!
+Does the app work on other CalDAV servers or CalDAV-compatible clients that are not listed here? [Please let me know by filing an issue](https://github.com/chiriapp/chiri/issues/new)!
 
 ## Servers
 | Server              | Support |
@@ -211,23 +211,23 @@ See [<span aria-hidden="true">&nearr;</span> PRIVACY.md][repo-privacy] for detai
 
 [header-donate-kofi-badge]: https://img.shields.io/badge/donate-kofi-f5c2e7?style=plastic&logo=kofi&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
 [header-donate-liberapay-badge]: https://img.shields.io/badge/donate-liberapay-f5c2e7?style=plastic&logo=liberapay&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
-[header-repo-license-badge]: https://img.shields.io/github/license/SapphoSys/chiri?style=plastic&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
-[header-repo-stars-badge]: https://img.shields.io/github/stars/SapphoSys/chiri?style=plastic&logo=github&logoColor=f5c2e7&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
-[header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/SapphoSys/chiri/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-license-badge]: https://img.shields.io/github/license/chiriapp/chiri?style=plastic&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-stars-badge]: https://img.shields.io/github/stars/chiriapp/chiri?style=plastic&logo=github&logoColor=f5c2e7&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/chiriapp/chiri/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
 
-[header-repo-issues-link]: https://github.com/SapphoSys/chiri/issues
-[header-screenshot]: https://raw.githubusercontent.com/SapphoSys/chiri/refs/heads/master/.github/assets/screenshot.png
+[header-repo-issues-link]: https://github.com/chiriapp/chiri/issues
+[header-screenshot]: https://raw.githubusercontent.com/chiriapp/chiri/refs/heads/master/.github/assets/screenshot.png
 
-[release-windows-msi-x64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_x64_en-US.msi
-[release-windows-msi-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_arm64_en-US.msi
-[release-macos-dmg-applesilicon]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_aarch64.dmg
-[release-macos-dmg-intel]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_x64.dmg
-[release-linux-deb-x86_64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_amd64.deb
-[release-linux-deb-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri_0.8.1_arm64.deb
-[release-linux-rpm-x86_64]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri-0.8.1-1.x86_64.rpm
-[release-linux-rpm-arm]: https://github.com/SapphoSys/chiri/releases/download/app-v0.8.1/chiri-0.8.1-1.aarch64.rpm
+[release-windows-msi-x64]: https://github.com/chiriapp/chiri/releases/download/app-v0.8.1/chiri_0.8.1_x64_en-US.msi
+[release-windows-msi-arm]: https://github.com/chiriapp/chiri/releases/download/app-v0.8.1/chiri_0.8.1_arm64_en-US.msi
+[release-macos-dmg-applesilicon]: https://github.com/chiriapp/chiri/releases/download/app-v0.8.1/chiri_0.8.1_aarch64.dmg
+[release-macos-dmg-intel]: https://github.com/chiriapp/chiri/releases/download/app-v0.8.1/chiri_0.8.1_x64.dmg
+[release-linux-deb-x86_64]: https://github.com/chiriapp/chiri/releases/download/app-v0.8.1/chiri_0.8.1_amd64.deb
+[release-linux-deb-arm]: https://github.com/chiriapp/chiri/releases/download/app-v0.8.1/chiri_0.8.1_arm64.deb
+[release-linux-rpm-x86_64]: https://github.com/chiriapp/chiri/releases/download/app-v0.8.1/chiri-0.8.1-1.x86_64.rpm
+[release-linux-rpm-arm]: https://github.com/chiriapp/chiri/releases/download/app-v0.8.1/chiri-0.8.1-1.aarch64.rpm
 
-[repo-license]: https://github.com/SapphoSys/chiri/blob/master/LICENSE
-[repo-privacy]: https://github.com/SapphoSys/chiri/blob/master/PRIVACY.md
-[repo-releases]: https://github.com/SapphoSys/chiri/releases
-[repo-stars]: https://github.com/SapphoSys/chiri/stargazers
+[repo-license]: https://github.com/chiriapp/chiri/blob/master/LICENSE
+[repo-privacy]: https://github.com/chiriapp/chiri/blob/master/PRIVACY.md
+[repo-releases]: https://github.com/chiriapp/chiri/releases
+[repo-stars]: https://github.com/chiriapp/chiri/stargazers
