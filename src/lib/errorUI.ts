@@ -91,7 +91,7 @@ ${error instanceof Error && error.stack ? error.stack : 'No stack trace availabl
 **Additional context:**
 <!-- Any other relevant information -->`;
 
-      const issueUrl = `https://github.com/SapphoSys/chiri/issues/new?title=${encodeURIComponent(errorTitle)}&body=${encodeURIComponent(errorBody)}`;
+      const issueUrl = `https://github.com/chiriapp/chiri/issues/new?title=${encodeURIComponent(errorTitle)}&body=${encodeURIComponent(errorBody)}`;
       await openUrl(issueUrl);
     },
   );

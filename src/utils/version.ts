@@ -6,7 +6,7 @@ export interface AppInfo {
   author: string;
 }
 
-const GITHUB_REPO = 'SapphoSys/chiri';
+const GITHUB_REPO = 'chiriapp/chiri';
 
 export const fetchReleaseNotes = async (version: string) => {
   try {
