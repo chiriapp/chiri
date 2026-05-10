@@ -26,6 +26,19 @@ const surfaces = {
   900: '#171717',
 } as const;
 
+const amoledSurfaces = {
+  50: '#fafafa',
+  100: '#f5f5f5',
+  200: '#e5e5e5',
+  300: '#d4d4d4',
+  400: '#a3a3a3',
+  500: '#525252',
+  600: '#2e2e2e',
+  700: '#222222',
+  800: '#141414',
+  900: '#000000',
+} as const;
+
 export const defaultColorScheme: ColorSchemeDefinition = {
   id: 'default',
   name: 'Default',
@@ -56,6 +69,27 @@ export const defaultColorScheme: ColorSchemeDefinition = {
       name: 'Dark',
       mode: 'dark',
       surfaces,
+      accentColors: [...defaultAccentColors],
+      defaultAccent: defaultAccentColor,
+      semanticColors: {
+        info: '#60a5fa',
+        warning: '#fbbf24',
+        success: '#4ade80',
+        error: '#f87171',
+      },
+      statusColors: {
+        needsAction: '#a1a1aa',
+        inProcess: '#60a5fa',
+        completed: '#4ade80',
+        cancelled: '#fb7185',
+      },
+      priorityColors: { high: '#f87171', medium: '#fbbf24', low: '#60a5fa' },
+    },
+    {
+      id: 'amoled',
+      name: 'AMOLED',
+      mode: 'dark',
+      surfaces: amoledSurfaces,
       accentColors: [...defaultAccentColors],
       defaultAccent: defaultAccentColor,
       semanticColors: {
