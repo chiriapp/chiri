@@ -39,7 +39,7 @@ importers:
         specifier: ~2.3.1
         version: 2.3.1
       '@tauri-apps/plugin-sql':
-        specifier: ^2.3.2
+        specifier: 2.3.2
         version: 2.3.2
       '@tauri-apps/plugin-updater':
         specifier: ^2.10.0
@@ -79,10 +79,10 @@ importers:
         specifier: ^2.10.1
         version: 2.10.1
       '@tauri-apps/plugin-dialog':
-        specifier: ^2.6.0
+        specifier: 2.6.0
         version: 2.6.0
       '@tauri-apps/plugin-fs':
-        specifier: ^2.4.5
+        specifier: 2.4.5
         version: 2.4.5
       '@tauri-apps/plugin-http':
         specifier: ^2.5.7
