@@ -211,6 +211,17 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
   const downloadUpdateMutation = useMutation<void, unknown, UpdateInfo>({
     mutationKey: DOWNLOAD_UPDATE_MUTATION_KEY,
     mutationFn: async () => {
+      if (import.meta.env.DEV) {
+        log.info('[dev] Faking update download...');
+        const steps = 20;
+        for (let i = 1; i <= steps; i++) {
+          await new Promise((r) => setTimeout(r, 150));
+          setDownloadProgress((i / steps) * 100);
+        }
+        log.info('[dev] Fake update complete — skipping relaunch');
+        return;
+      }
+
       const disableUpdates = await shouldDisableUpdates();
       if (disableUpdates) {
         throw new Error('__managed_installation__');
