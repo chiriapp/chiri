@@ -17,7 +17,7 @@ fn compile_swift_notifications() {
     use std::process::Command;
 
     let project_root = env!("CARGO_MANIFEST_DIR");
-    let objc_source = format!("{}/src/notifications.m", project_root);
+    let objc_source = format!("{}/src/notifications/permissions.m", project_root);
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR is not set");
     let output_lib = format!("{}/libnotifications.a", out_dir);
     let obj_file = format!("{}/notifications.o", out_dir);

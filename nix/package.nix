@@ -30,7 +30,7 @@
 
 rustPlatform.buildRustPackage (finalAttrs: {
   pname = "chiri";
-  version = "0.8.0";
+  version = "0.8.1";
 
   # Currently unused now that we have package-bin.nix. Keeping it here anyway
   src =
@@ -47,14 +47,14 @@ rustPlatform.buildRustPackage (finalAttrs: {
       };
 
   # cargo dependencies hash - update when Cargo.lock changes
-  cargoHash = "sha256-2CDwuZiE4b5cBUPZs8l4pf9/FyvtSpRwNwQZ5gp85zc=";
+  cargoHash = "sha256-TLYiCdkF/uX3uIVwplI7L1b7Ta5LTRdKqFlmnvCxFFc=";
 
   # pnpm dependencies for the frontend
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     pnpm = pnpm_9;
     fetcherVersion = 3;
-    hash = "sha256-3tUuOSW4SdcEh/dtmu2YLuTFf3mLncBo3xwPU8KA5Pw="; # pnpmDeps
+    hash = "sha256-8rVxz7QCmlQDecuLAqTAVN7NsEgl2BE2R+AajlS4RIE="; # pnpmDeps
   };
 
   nativeBuildInputs = [
@@ -132,7 +132,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     changelog = "https://github.com/SapphoSys/chiri/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.zlib;
     maintainers = with lib.maintainers; [ SapphoSys ];
-    mainProgram = "chiri";
+    mainProgram = "Chiri";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 })

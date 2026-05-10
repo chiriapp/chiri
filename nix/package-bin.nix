@@ -17,7 +17,7 @@
   libsoup_3,
 
   # Optional: override version
-  version ? "0.8.0",
+  version ? "0.8.1",
 }:
 
 let
@@ -27,19 +27,19 @@ let
   platformInfo = {
     "x86_64-linux" = {
       asset = "chiri_${version}_amd64.deb";
-      hash = "sha256-8AcQW6mAnk1LdVqbN0FeeLsZlth5P3AjRANLGSXmXbs=";
+      hash = "sha256-DvFBj5IevVWLbqyM36HJlvg7EEyIo/g5c9O1x3mMgo8=";
     };
     "aarch64-linux" = {
       asset = "chiri_${version}_arm64.deb";
-      hash = "sha256-qpWS9oy7jez4zZDXJMX2aR4ATXiriLQhJAlBTVgnhow=";
+      hash = "sha256-OMNKX69wQ7D/MV/ntOjj9Omn6Iq8WBquWgNo67bwrnU=";
     };
     "x86_64-darwin" = {
       asset = "chiri_${version}_x64.dmg";
-      hash = "sha256-T295TLcd1BFHf3TcpVJ6Q/iP0ERxD0f7tnMcjbA8FXk=";
+      hash = "sha256-aXQ80QAEVAFrXlwD16b61U7VZ2c8QXtFk9NAhaa4X38=";
     };
     "aarch64-darwin" = {
       asset = "chiri_${version}_aarch64.dmg";
-      hash = "sha256-U9gJzYb8VSoVBnmM1HFhXM4NzCMolplNhXLH7F+bghA=";
+      hash = "sha256-8jutJ5vOb4VNNtcv2WzSMMkaHCtPjFFnSsN9/Hz6rAk=";
     };
   };
 
@@ -66,6 +66,7 @@ if stdenvNoCC.isDarwin then
     installPhase = ''
       runHook preInstall
 
+      chmod -R +w "Chiri.app"
       mkdir -p $out/Applications
       cp -r "Chiri.app" $out/Applications/
 
@@ -123,9 +124,8 @@ else
       mkdir -p $out
       cp -r usr/* $out/
 
-      # Ensure the binary is in bin/
-      if [ -f "$out/bin/chiri" ]; then
-        chmod +x $out/bin/chiri
+      if [ -f "$out/bin/Chiri" ]; then
+        chmod +x $out/bin/Chiri
       fi
 
       # Copy desktop file and icons if present
@@ -138,7 +138,7 @@ else
 
     # Wrap to set required environment variables
     postFixup = ''
-      wrapProgram $out/bin/chiri \
+      wrapProgram $out/bin/Chiri \
         --set GIO_EXTRA_MODULES "${glib-networking}/lib/gio/modules" \
         --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ libayatana-appindicator ]}"
     '';
@@ -148,7 +148,7 @@ else
       homepage = "https://github.com/SapphoSys/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
-      mainProgram = "chiri";
+      mainProgram = "Chiri";
       platforms = [
         "x86_64-linux"
         "aarch64-linux"

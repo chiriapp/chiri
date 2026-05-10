@@ -205,11 +205,11 @@ jobs:
           Invoke-WebRequest -Uri $opUrl -OutFile "$env:RUNNER_TEMP\op.zip"
           Expand-Archive -Path "$env:RUNNER_TEMP\op.zip" -DestinationPath "$env:RUNNER_TEMP\op"
           $env:PATH = "$env:RUNNER_TEMP\op;$env:PATH"
-          
+
           # Load secrets
           $signingKey = op read "op://Tauri/Tauri Secrets/signing-key"
           $signingKeyPassword = op read "op://Tauri/Tauri Secrets/signing-key-password"
-          
+
           # Export to GitHub environment
           "TAURI_SIGNING_PRIVATE_KEY=$signingKey" | Out-File -FilePath $env:GITHUB_ENV -Append
           "TAURI_SIGNING_PRIVATE_KEY_PASSWORD=$signingKeyPassword" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -226,12 +226,12 @@ jobs:
           security set-keychain-settings -t 3600 -u build.keychain
           security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-          
+
           # Extract signing identity from certificate
           CERT_IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID" | head -1 | awk -F'"' '{print $2}')
           echo "Found signing identity: $CERT_IDENTITY"
           echo "APPLE_SIGNING_IDENTITY=$CERT_IDENTITY" >> "$GITHUB_ENV"
-          
+
           rm certificate.p12
 
       - name: Prepare Apple API key for signing [macOS]

@@ -10,5 +10,7 @@ mod macos;
 #[cfg(target_os = "windows")]
 mod windows;
 
+pub use manager::NotificationManagerState;
+
 #[cfg(target_os = "windows")]
 pub use windows::ensure_notification_icon;

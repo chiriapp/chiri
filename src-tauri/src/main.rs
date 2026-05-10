@@ -34,6 +34,13 @@ fn force_quit() {
 
 #[cfg_attr(feature = "cef", tauri::cef_entry_point)]
 fn main() {
+    // On Linux, WebKitGTK 2.42+ allocates DMA-BUF buffers via GBM, which is broken
+    // on NVIDIA proprietary drivers under Wayland and causes an immediate crash ("Error 71: Protocol error").
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
+        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+    }
+
     // Initialize default crypto provider for rustls (required for reqwest in CEF)
     #[cfg(feature = "cef")]
     {
@@ -119,9 +126,34 @@ fn main() {
             {
                 let bundle_id = _app.config().identifier.clone();
                 let notification_manager =
-                    notifications::manager::NotificationManagerState::new(bundle_id);
+                    notifications::NotificationManagerState::new(bundle_id);
                 notification_manager.register_categories_and_handler(_app.handle().clone());
                 _app.manage(notification_manager);
+            }
+            #[cfg(not(target_os = "macos"))]
+            {
+                let bundle_id = _app.config().identifier.clone();
+                let notification_manager =
+                    notifications::NotificationManagerState::new(bundle_id.clone());
+                _app.manage(notification_manager);
+            }
+
+            // Register with the Windows notification platform so toasts show the correct
+            // app name and icon. The icon is embedded in the binary at compile time and
+            // written to %LOCALAPPDATA%\Chiri\ so the path is always valid.
+            #[cfg(target_os = "windows")]
+            {
+                let bundle_id = _app.config().identifier.clone();
+                let display_name = _app.package_info().name.clone();
+                let icon_path = notifications::ensure_notification_icon();
+                match winrt_toast_reborn::register(
+                    &bundle_id,
+                    &display_name,
+                    icon_path.as_deref(),
+                ) {
+                    Ok(()) => log::info!("[Notifications] Windows notification platform registration succeeded with AUM ID {bundle_id:?}"),
+                    Err(e) => log::info!("[Notifications] Windows notification platform registration failed for AUM ID {bundle_id:?}: {e:?}"),
+                }
             }
 
             // tray will be initialized from frontend after reading settings

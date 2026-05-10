@@ -22,7 +22,7 @@ import type { Task } from '$types';
 
 const log = loggers.sync;
 
-type SyncTrigger =
+export type SyncTrigger =
   | string
   | {
       source: string;
@@ -106,7 +106,11 @@ export const useSyncQuery = () => {
   });
 
   const syncCalendar = useCallback(
-    (calendarId: string) => syncCalendarTasks(calendarId, queryClient, setSyncingCalendarId),
+    (calendarId: string, trigger?: SyncTrigger) => {
+      const syncTrigger = normalizeSyncTrigger(trigger);
+      log.info('Starting calendar sync...', { calendarId, trigger: syncTrigger });
+      return syncCalendarTasks(calendarId, queryClient, setSyncingCalendarId);
+    },
     [queryClient, setSyncingCalendarId],
   );
 
