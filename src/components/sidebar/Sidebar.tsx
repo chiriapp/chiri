@@ -32,7 +32,6 @@ import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account, Calendar as CalendarType } from '$types';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
 import { clampToViewport } from '$utils/misc';
-import { getAppInfo } from '$utils/version';
 
 interface SidebarProps {
   onOpenSettings?: () => void;
@@ -64,8 +63,6 @@ export const Sidebar = ({
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveTagMutation = useSetActiveTag();
   const setAllTasksViewMutation = useSetAllTasksView();
-
-  const { version } = getAppInfo();
 
   const { handleDeleteAccount, handleDeleteTag, handleDeleteCalendar } = useDeleteHandlers();
   const { syncCalendar, syncingCalendarId } = useSyncQuery();
@@ -249,14 +246,14 @@ export const Sidebar = ({
           <div
             className={`flex-1 flex flex-col min-h-0 motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           >
-            <div className="flex-1 flex flex-col gap-2.5 overflow-y-auto overscroll-contain">
+            <div className="flex-1 flex flex-col gap-2.5 overflow-y-auto overscroll-contain px-2 py-2">
               <button
                 type="button"
                 onClick={() => {
                   setAllTasksViewMutation.mutate();
                   setActiveAccountMutation.mutate(null);
                 }}
-                className={`w-full flex items-center gap-2 px-4 py-2 text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                   activeCalendarId === null && activeTagId === null
                     ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
@@ -312,7 +309,6 @@ export const Sidebar = ({
               onUpdateClick={onUpdateClick}
               onOpenSettings={onOpenSettings}
               settingsShortcut={settingsShortcut}
-              version={version}
               isAnyModalOpen={isAnyModalOpen}
             />
           </div>
@@ -326,6 +322,8 @@ export const Sidebar = ({
             activeTagId={activeTagId}
             contextMenu={contextMenu}
             showCollapsedContent={showCollapsedContent}
+            accountsSectionCollapsed={accountsSectionCollapsed}
+            tagsSectionCollapsed={tagsSectionCollapsed}
             updateAvailable={updateAvailable}
             onAllTasks={() => {
               setAllTasksViewMutation.mutate();
