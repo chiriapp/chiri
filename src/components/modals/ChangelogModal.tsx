@@ -40,7 +40,7 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
         <ModalButton
           variant="ghost"
           onClick={() => {
-            openUrl(`https://github.com/SapphoSys/chiri/releases/tag/app-v${version}`);
+            openUrl(`https://github.com/chiriapp/chiri/releases/tag/app-v${version}`);
           }}
         >
           <ExternalLink className="w-4 h-4" />
