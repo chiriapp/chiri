@@ -30,6 +30,8 @@ interface TaskItemContextMenuProps {
   setContextMenu: (val: null) => void;
 }
 
+const FLYOUT_HIDE_DELAY_MS = 40;
+
 export const TaskItemContextMenu = ({
   task,
   contextMenu,
@@ -116,7 +118,7 @@ export const TaskItemContextMenu = ({
   };
 
   const handlePriorityMouseLeave = () => {
-    priorityHideTimer.current = setTimeout(() => setPriorityFlyoutPos(null), 120);
+    priorityHideTimer.current = setTimeout(() => setPriorityFlyoutPos(null), FLYOUT_HIDE_DELAY_MS);
   };
 
   const handleChangeStatus = (status: TaskStatus) => {
@@ -155,7 +157,7 @@ export const TaskItemContextMenu = ({
   };
 
   const handleStatusMouseLeave = () => {
-    statusHideTimer.current = setTimeout(() => setStatusFlyoutPos(null), 120);
+    statusHideTimer.current = setTimeout(() => setStatusFlyoutPos(null), FLYOUT_HIDE_DELAY_MS);
   };
 
   const handleClose = () => {
