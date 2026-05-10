@@ -169,12 +169,12 @@ export const BehaviorSettings = () => {
             {confirmBeforeQuitChanged && (
               <>
                 <div className="border-t border-surface-200 dark:border-surface-700" />
-                <div className="flex items-center justify-between gap-4 px-4 py-3 bg-semantic-info/10">
-                  <p className="text-sm text-semantic-info">Restart required to apply changes</p>
+                <div className="flex items-center justify-between gap-4 px-4 py-3 bg-surface-100 dark:bg-surface-700/50">
+                  <p className="text-sm text-surface-700 dark:text-surface-300">Restart required to apply changes</p>
                   <button
                     type="button"
                     onClick={handleRestart}
-                    className="px-3 py-1.5 text-sm font-medium bg-semantic-info hover:opacity-90 text-white rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-info focus-visible:ring-inset shrink-0"
+                    className="px-3 py-1.5 text-sm font-medium bg-primary-500 hover:bg-primary-600 text-primary-contrast rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset shrink-0"
                   >
                     Restart now
                   </button>

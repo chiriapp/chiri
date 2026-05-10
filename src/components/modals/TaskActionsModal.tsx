@@ -85,7 +85,7 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
             disabled={task.completed}
             className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 disabled:opacity-50 disabled:cursor-not-allowed dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
-            <CheckSquare className="h-5 w-5 text-green-600 dark:text-green-500" />
+            <CheckSquare className="h-5 w-5 text-semantic-success" />
             <div className="flex-1">
               <div className="font-semibold">Complete Task</div>
               <div className="text-xs text-surface-500 dark:text-surface-400">
@@ -99,7 +99,7 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
             onClick={handleEdit}
             className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
-            <Edit className="h-5 w-5 text-blue-600 dark:text-blue-500" />
+            <Edit className="h-5 w-5 text-semantic-info" />
             <div className="flex-1">
               <div className="font-semibold">Edit Task</div>
               <div className="text-xs text-surface-500 dark:text-surface-400">
@@ -113,7 +113,7 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
             onClick={handleSnooze}
             className="flex items-center gap-3 rounded-lg border border-surface-200 bg-surface-50 px-4 py-3 text-left text-sm font-medium text-surface-900 transition-colors hover:bg-surface-100 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
-            <SnoozeIcon className="h-5 w-5 text-orange-600 dark:text-orange-500" />
+            <SnoozeIcon className="h-5 w-5 text-semantic-warning" />
             <div className="flex-1">
               <div className="font-semibold">Snooze</div>
               <div className="text-xs text-surface-500 dark:text-surface-400">

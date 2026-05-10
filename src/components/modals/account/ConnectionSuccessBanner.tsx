@@ -10,7 +10,7 @@ export const ConnectionSuccessBanner = ({
   calendarCount,
   pushSupportedCount = 0,
 }: ConnectionSuccessBannerProps) => (
-  <div className="p-3 text-sm text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
+  <div className="p-3 text-sm text-semantic-success bg-semantic-success/10 border border-semantic-success/30 rounded-lg">
     <div className="font-medium">Connection verified!</div>
     {calendarCount > 0 && (
       <div className="text-xs mt-0.5">

@@ -50,6 +50,7 @@ import Target from 'lucide-react/icons/target';
 import TreePine from 'lucide-react/icons/tree-pine';
 import TrendingUp from 'lucide-react/icons/trending-up';
 import Trophy from 'lucide-react/icons/trophy';
+import User from 'lucide-react/icons/user';
 import Users from 'lucide-react/icons/users';
 import Wallet from 'lucide-react/icons/wallet';
 import Wrench from 'lucide-react/icons/wrench';
@@ -104,6 +105,7 @@ export const CALENDAR_ICONS: { name: string; icon: LucideIcon }[] = [
   { name: 'book', icon: Book },
   { name: 'graduation-cap', icon: GraduationCap },
   // Social & Communication
+  { name: 'user', icon: User },
   { name: 'users', icon: Users },
   { name: 'gift', icon: Gift },
   { name: 'message-circle', icon: MessageCircle },

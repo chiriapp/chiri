@@ -35,12 +35,12 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: <User className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center gap-4 py-6">
-        <div className="w-16 h-16 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-          <User className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        <div className="w-16 h-16 rounded-2xl bg-semantic-info/15 flex items-center justify-center">
+          <User className="w-8 h-8 text-semantic-info" />
         </div>
         <ArrowRight className="w-6 h-6 text-surface-400" />
-        <div className="w-16 h-16 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-          <Calendar className="w-8 h-8 text-green-600 dark:text-green-400" />
+        <div className="w-16 h-16 rounded-2xl bg-semantic-success/15 flex items-center justify-center">
+          <Calendar className="w-8 h-8 text-semantic-success" />
         </div>
       </div>
     ),
@@ -51,8 +51,8 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: <Settings className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center py-6">
-        <div className="w-16 h-16 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-          <Settings className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+        <div className="w-16 h-16 rounded-2xl bg-primary-500/15 flex items-center justify-center">
+          <Settings className="w-8 h-8 text-primary-500" />
         </div>
       </div>
     ),

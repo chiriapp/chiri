@@ -248,14 +248,14 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
           </div>
 
           {warning && (
-            <div className="p-3 text-sm text-semantic-warning bg-semantic-warning/10 border border-semantic-warning/30 rounded-lg">
+            <div className="p-3 text-sm text-surface-700 dark:text-surface-300 bg-semantic-warning/10 border border-semantic-warning/30 rounded-lg">
               {warning}
             </div>
           )}
 
           {isVikunja && calendar && (
-            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info">
-              <AlertTriangle className="mt-px size-3.5 shrink-0" />
+            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300">
+              <AlertTriangle className="mt-px size-3.5 shrink-0 text-semantic-info" />
               <span>
                 Vikunja doesn't support editing projects via CalDAV.{' '}
                 {editProjectUrl && (
@@ -274,8 +274,8 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
           )}
 
           {isVikunja && !calendar && (
-            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-semantic-info">
-              <AlertTriangle className="mt-px size-3.5 shrink-0" />
+            <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300">
+              <AlertTriangle className="mt-px size-3.5 shrink-0 text-semantic-info" />
               <span>
                 Vikunja doesn't support creating projects via CalDAV.{' '}
                 {createProjectUrl && (

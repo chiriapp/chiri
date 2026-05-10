@@ -146,17 +146,17 @@ export const FileUploadStep = ({
 
       {/* Error Display */}
       {error && (
-        <div className="flex items-start gap-2 p-3 text-sm text-semantic-error bg-semantic-error/10 border border-semantic-error/30 rounded-lg">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2 p-3 text-sm text-surface-700 dark:text-surface-300 bg-semantic-error/10 border border-semantic-error/30 rounded-lg">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-semantic-error" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Parse Warnings */}
       {parseErrors.length > 0 && (
-        <div className="p-3 text-sm text-semantic-warning bg-semantic-warning/10 border border-semantic-warning/30 rounded-lg">
+        <div className="p-3 text-sm text-surface-700 dark:text-surface-300 bg-semantic-warning/10 border border-semantic-warning/30 rounded-lg">
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-semantic-warning" />
             <div className="space-y-1">
               <p className="font-medium">Some items couldn't be parsed:</p>
               <ul className="text-xs space-y-0.5 opacity-80">
