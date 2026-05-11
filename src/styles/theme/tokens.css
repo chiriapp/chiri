@@ -42,4 +42,6 @@
   --animate-fade-in: fadeIn 0.2s ease-out;
   --animate-slide-up: slideUp 0.2s ease-out;
   --animate-scale-in: scaleIn 0.15s ease-out;
+  --animate-step-forward: stepForward 0.18s ease-out;
+  --animate-step-back: stepBack 0.18s ease-out;
 }

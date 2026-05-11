@@ -19,6 +19,7 @@ export const MODAL_SIZE_CLASSES = {
   sm: 'max-w-sm',
   md: 'max-w-md',
   lg: 'max-w-lg',
+  xl: 'max-w-xl',
 } as const;
 
 export const JUST_NOW_SYNC_TEXT_MS_THRESHOLD = 10000;
