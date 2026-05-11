@@ -169,6 +169,8 @@ export interface Account {
   username: string;
   password: string;
   serverType?: ServerType;
+  icon?: string;
+  emoji?: string;
   calendarHomeUrl?: string;
   principalUrl?: string;
   acceptInvalidCerts?: boolean;

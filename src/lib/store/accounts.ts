@@ -37,6 +37,8 @@ export const createAccount = async (accountData: Partial<Account>) => {
     username: accountData.username ?? '',
     password: accountData.password ?? '',
     serverType: accountData.serverType,
+    icon: accountData.icon,
+    emoji: accountData.emoji,
     calendarHomeUrl: accountData.calendarHomeUrl,
     principalUrl: accountData.principalUrl,
     calendars: [],

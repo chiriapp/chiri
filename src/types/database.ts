@@ -38,11 +38,14 @@ export interface AccountRow {
   username: string;
   password: string;
   server_type: string | null;
+  icon: string | null;
+  emoji: string | null;
   calendar_home_url: string | null;
   principal_url: string | null;
   last_sync: string | null;
   is_active: number;
   sort_order: number | null;
+  accept_invalid_certs: number | null;
 }
 
 export interface CalendarRow {

@@ -12,13 +12,13 @@ const QUICK_CONNECT_CONFIG: Partial<Record<ServerType, QuickConnectConfig>> = {
     label: 'Use Nextcloud Login Flow',
     description: 'Automatically authenticate via browser',
     buttonClassName:
-      'bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-300',
+      'bg-semantic-info/10 hover:bg-semantic-info/20 border border-semantic-info/30 text-surface-800 dark:text-surface-200 [&_svg]:text-semantic-info',
   },
   rustical: {
     label: 'Use RustiCal Login Flow',
     description: 'Automatically authenticate via browser',
     buttonClassName:
-      'bg-purple-100 dark:bg-purple-900/30 hover:bg-purple-200 dark:hover:bg-purple-900/50 text-purple-700 dark:text-purple-300',
+      'bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/30 text-surface-800 dark:text-surface-200 [&_svg]:text-primary-500',
   },
 };
 

@@ -1,33 +1,35 @@
 import { useQueryClient } from '@tanstack/react-query';
+import ArrowLeft from 'lucide-react/icons/arrow-left';
 import CheckCircle from 'lucide-react/icons/check-circle';
-import Info from 'lucide-react/icons/info';
+import Cloud from 'lucide-react/icons/cloud';
+import KeyRound from 'lucide-react/icons/key-round';
 import { useRef, useState } from 'react';
-import { AppSelect } from '$components/AppSelect';
-import { ComposedInput } from '$components/ComposedInput';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { AdvancedSection } from '$components/modals/account/AdvancedSection';
-import { ConnectionSuccessBanner } from '$components/modals/account/ConnectionSuccessBanner';
-import { QuickConnectSection } from '$components/modals/account/QuickConnectSection';
-import { NextcloudLoginModal } from '$components/modals/NextcloudLoginModal';
-import { RusticalLoginModal } from '$components/modals/RusticalLoginModal';
-import {
-  getPredefinedServerUrl,
-  getServerTypeDescription,
-  SERVER_TYPE_GROUPS,
-} from '$constants/settings';
+import { CredentialsForm } from '$components/modals/account/CredentialsForm';
+import type {
+  QuickConnectFlowHandle,
+  QuickConnectLoginStep,
+} from '$components/modals/account/QuickConnectFlow';
+import { QuickConnectFlow } from '$components/modals/account/QuickConnectFlow';
+import { ServerTypePicker } from '$components/modals/account/ServerTypePicker';
+import { getPredefinedServerUrl, SERVER_TYPE_OPTIONS } from '$constants/settings';
 import { useAddCalendar, useCreateAccount, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
 import { CalDAVClient } from '$lib/caldav';
-import { isCertError, tauriRequest } from '$lib/tauri-http';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
+import { isCertError, tauriRequest } from '$lib/tauri-http';
 import type { Account, Calendar, ServerType } from '$types';
 import { generateUUID, isVikunjaServer } from '$utils/misc';
 import type { CalDAVConfig } from '$utils/mobileconfig';
 
 const log = loggers.account;
+
+type Step = 'pick-type' | 'connect-method' | 'quick-connect' | 'credentials';
+
+const QUICK_CONNECT_SERVER_TYPES = new Set<ServerType>(['nextcloud', 'rustical']);
 
 interface AccountModalProps {
   account: Account | null;
@@ -35,6 +37,7 @@ interface AccountModalProps {
   preloadedConfig?: CalDAVConfig;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This modal owns a multi-step account setup flow whose branches share state and confirmation dialogs.
 export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModalProps) => {
   const queryClient = useQueryClient();
   const { confirm } = useConfirmDialog();
@@ -42,7 +45,12 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const updateAccountMutation = useUpdateAccount();
   const addCalendarMutation = useAddCalendar();
 
+  const hasInitialType = !!(account || preloadedConfig);
+  const [step, setStep] = useState<Step>(hasInitialType ? 'credentials' : 'pick-type');
+
   const [name, setName] = useState(() => preloadedConfig?.accountName || account?.name || '');
+  const [icon, setIcon] = useState(() => account?.icon || 'user');
+  const [emoji, setEmoji] = useState(() => account?.emoji || '');
   const [serverUrl, setServerUrl] = useState(
     () => preloadedConfig?.serverUrl || account?.serverUrl || '',
   );
@@ -61,19 +69,18 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const [testedConnectionId, setTestedConnectionId] = useState<string | null>(null);
   const [testedCalendars, setTestedCalendars] = useState<Calendar[]>([]);
   const [error, setError] = useState('');
-  const [showNextcloudLogin, setShowNextcloudLogin] = useState(false);
-  const [showRusticalLogin, setShowRusticalLogin] = useState(false);
-
-  const quickConnectHandlers: Partial<Record<ServerType, () => void>> = {
-    nextcloud: () => setShowNextcloudLogin(true),
-    rustical: () => setShowRusticalLogin(true),
-  };
-  const quickConnectHandler = quickConnectHandlers[serverType];
+  const [quickConnectLoginStep, setQuickConnectLoginStep] =
+    useState<QuickConnectLoginStep>('input');
+  const [navDirection, setNavDirection] = useState<'forward' | 'back' | null>(null);
+  const [quickConnectButtonState, setQuickConnectButtonState] = useState({
+    disabled: true,
+    loading: false,
+  });
+  const quickConnectRef = useRef<QuickConnectFlowHandle>(null);
 
   const [acceptInvalidCerts, setAcceptInvalidCerts] = useState(
     () => account?.acceptInvalidCerts ?? false,
   );
-  const nameInputFocusedRef = useRef(false);
 
   // Reset test state when credentials change
   const [prevCredentials, setPrevCredentials] = useState({
@@ -96,9 +103,39 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     setTestedCalendars([]);
   }
 
-  /**
-   * show warning dialog for Vikunja servers
-   */
+  const handleSelectServerType = (type: ServerType) => {
+    setServerType(type);
+    const predefined = getPredefinedServerUrl(type);
+    if (predefined) {
+      setServerUrl(predefined);
+    } else {
+      setServerUrl('');
+    }
+    setNavDirection('forward');
+    setStep(QUICK_CONNECT_SERVER_TYPES.has(type) ? 'connect-method' : 'credentials');
+  };
+
+  const handleBack = () => {
+    setError('');
+    setTestSuccess(false);
+    setTestedConnectionId(null);
+    setTestedCalendars([]);
+    setNavDirection('back');
+    setStep(QUICK_CONNECT_SERVER_TYPES.has(serverType) ? 'connect-method' : 'pick-type');
+  };
+
+  const handleBackToTypePicker = () => {
+    setError('');
+    setNavDirection('back');
+    setStep('pick-type');
+  };
+
+  const handleBackFromQuickConnect = () => {
+    setQuickConnectLoginStep('input');
+    setNavDirection('back');
+    setStep('connect-method');
+  };
+
   const showVikunjaWarning = async () => {
     return await confirm({
       title: 'Vikunja server detected',
@@ -113,7 +150,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
           </p>
           <p>Vikunja has several CalDAV bugs that cause unpredictable behavior.</p>
           <p className="font-extrabold text-base text-surface-700 dark:text-surface-300">
-            ⚠️ This app may not work reliably with Vikunja and you may even encounter data loss. ⚠️
+            This app may not work reliably with Vikunja and you may even encounter data loss.
           </p>
           <p className="font-bold text-surface-800 dark:text-surface-200">
             It's recommend you try other CalDAV servers (like RustiCal, Fastmail, Baikal, Radicale,
@@ -129,9 +166,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     });
   };
 
-  /**
-   * fetch tasks for a calendar and store them locally
-   */
   const fetchTasksForCalendar = async (accountId: string, calendar: Calendar) => {
     try {
       const remoteTasks = await CalDAVClient.getForAccount(accountId).fetchTasks(calendar);
@@ -144,7 +178,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       log.info(`Fetched ${remoteTasks.length} tasks from ${calendar.displayName}`);
 
       for (const remoteTask of remoteTasks) {
-        // Extract category/tag from the task and create if needed
         let tagIds: string[] = [];
         if (remoteTask.categoryId) {
           const categoryNames = remoteTask.categoryId
@@ -154,7 +187,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
           tagIds = categoryNames.map((name: string) => ensureTagExists(name));
         }
 
-        // Add the task with tags
         createTask({
           ...remoteTask,
           tags: tagIds,
@@ -165,9 +197,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
-  /**
-   * show warning dialog for untrusted/self-signed server certificates
-   */
   const showCertTrustDialog = async () => {
     return await confirm({
       title: 'Untrusted certificate',
@@ -177,12 +206,10 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             The server's SSL/TLS certificate is not trusted. This could be because it's self-signed
             or from an unknown certificate authority.
           </p>
-
           <p>
             Connecting to a server with an untrusted certificate could allow attackers to intercept
             your data if you're on an untrusted network.
           </p>
-
           <p className="font-bold text-surface-800 dark:text-surface-200">
             Do you want to proceed anyway?
           </p>
@@ -194,12 +221,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     });
   };
 
-  /**
-   * Connects to the CalDAV server with automatic cert trust detection.
-   * If the connection fails with a network error and the server is reachable
-   * with cert validation bypassed, prompts the user to trust the certificate.
-   * Returns null if the user declined the cert trust dialog.
-   */
   const connectWithCertHandling = async (accountId: string, effectivePassword: string) => {
     const tryConnect = (withInvalidCerts?: boolean) =>
       CalDAVClient.connect(
@@ -222,8 +243,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
 
       if (!looksLikeNetworkError) throw err;
 
-      // Probe with cert bypass — any HTTP response means the server is reachable
-      // and the failure was a cert trust issue rather than genuine unreachability.
       let serverReachable = false;
       try {
         await tauriRequest(serverUrl, 'OPTIONS', {
@@ -246,7 +265,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
-
   const handleTestConnection = async () => {
     setError('');
     setTestSuccess(false);
@@ -268,45 +286,143 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       const tempId = generateUUID();
       log.debug(`Testing connection to ${serverUrl}...`);
 
-      const connectionInfo = await CalDAVClient.connect(
-        tempId,
-        serverUrl,
-        username,
-        effectivePassword,
-        serverType,
-        calendarHomeUrl.trim() || undefined,
-      );
+      const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
+      if (!connectionInfo) {
+        setIsTesting(false);
+        return;
+      }
 
-      // Check if this is a Vikunja server and warn the user
       if (isVikunjaServer(connectionInfo.calendarHome)) {
         const proceed = await showVikunjaWarning();
 
         if (!proceed) {
-          // User cancelled, disconnect and return
           CalDAVClient.disconnect(tempId);
           setIsTesting(false);
           return;
         }
       }
 
-      // Fetch calendars to verify full connection
       log.debug(`Fetching calendars...`);
       const calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
       log.info(`Connection test successful - found ${calendars.length} calendars`);
 
-      // Store the connection info for reuse
       setTestedConnectionId(tempId);
       setTestedCalendars(calendars);
       setTestSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to connect to CalDAV server');
       log.error('Connection test failed:', err);
-      // Clean up failed connection
       setTestedConnectionId(null);
       setTestedCalendars([]);
     } finally {
       setIsTesting(false);
     }
+  };
+
+  const updateExistingAccount = async (effectivePassword: string | undefined) => {
+    if (effectivePassword) {
+      log.debug(`Testing connection to ${serverUrl}...`);
+      const result = await connectWithCertHandling(account!.id, effectivePassword);
+      if (!result) return false;
+    }
+
+    updateAccountMutation.mutate({
+      id: account!.id,
+      updates: {
+        name,
+        icon,
+        emoji,
+        serverUrl,
+        username,
+        password: effectivePassword || account!.password,
+        serverType,
+        calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+        principalUrl: principalUrl.trim() || undefined,
+        acceptInvalidCerts: acceptInvalidCerts || undefined,
+      },
+    });
+
+    return true;
+  };
+
+  const connectAndFetchCalendars = async (effectivePassword: string) => {
+    if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
+      log.debug('Reusing tested connection...');
+      return { tempId: testedConnectionId, calendars: testedCalendars };
+    }
+
+    const tempId = generateUUID();
+
+    log.debug(`Connecting to ${serverUrl}...`);
+    const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
+    if (!connectionInfo) return null;
+
+    if (isVikunjaServer(connectionInfo.calendarHome)) {
+      const proceed = await showVikunjaWarning();
+
+      if (!proceed) {
+        CalDAVClient.disconnect(tempId);
+        return null;
+      }
+    }
+
+    log.debug(`Fetching calendars...`);
+    const calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
+    log.info(`Found ${calendars.length} calendars:`, calendars);
+
+    return { tempId, calendars };
+  };
+
+  const createNewAccount = async (effectivePassword: string) => {
+    const accountSetup = await connectAndFetchCalendars(effectivePassword);
+    if (!accountSetup) return false;
+
+    const { tempId, calendars } = accountSetup;
+    createAccountMutation.mutate(
+      {
+        id: tempId,
+        name,
+        icon,
+        emoji,
+        serverUrl,
+        username,
+        password: effectivePassword,
+        serverType,
+        calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+        acceptInvalidCerts: acceptInvalidCerts || undefined,
+      },
+      {
+        onSuccess: async (newAccount) => {
+          try {
+            for (const calendar of calendars) {
+              addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
+            }
+
+            log.debug('Fetching tasks for all calendars...');
+            for (const calendar of calendars) {
+              await fetchTasksForCalendar(newAccount.id, calendar);
+            }
+
+            queryClient.invalidateQueries({ queryKey: ['tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['tags'] });
+
+            onClose();
+          } catch (error) {
+            log.error('Error setting up account:', error);
+            onClose();
+          } finally {
+            setIsLoading(false);
+          }
+        },
+        onError: (error) => {
+          log.error('Error creating account:', error);
+          setError(error instanceof Error ? error.message : 'Failed to create account');
+          setIsLoading(false);
+        },
+      },
+    );
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -318,130 +434,18 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       const effectivePassword = password || account?.password;
 
       if (account) {
-        // update existing account
-        if (effectivePassword) {
-          // test connection with new credentials before saving
-          log.debug(`Testing connection to ${serverUrl}...`);
-          await CalDAVClient.connect(
-            account.id,
-            serverUrl,
-            username,
-            effectivePassword,
-            serverType,
-            calendarHomeUrl.trim() || undefined,
-          );
-        }
-
-        updateAccountMutation.mutate({
-          id: account.id,
-          updates: {
-            name,
-            serverUrl,
-            username,
-            password: effectivePassword || account.password,
-            serverType,
-            calendarHomeUrl: calendarHomeUrl.trim() || undefined,
-            principalUrl: principalUrl.trim() || undefined,
-            acceptInvalidCerts: acceptInvalidCerts || undefined,
-          },
-        });
+        const didUpdate = await updateExistingAccount(effectivePassword);
+        if (!didUpdate) setIsLoading(false);
       } else {
-        // for new accounts, first test connection before adding to store
         if (!effectivePassword) {
           throw new Error('Password is required');
         }
 
-        let tempId: string;
-        let calendars: Calendar[];
-
-        // If we already tested the connection successfully, reuse it
-        if (testSuccess && testedConnectionId && testedCalendars.length > 0) {
-          log.debug('Reusing tested connection...');
-          tempId = testedConnectionId;
-          calendars = testedCalendars;
-        } else {
-          // create a temporary ID to test the connection
-          tempId = generateUUID();
-
-          log.debug(`Connecting to ${serverUrl}...`);
-          const connectionInfo = await CalDAVClient.connect(
-            tempId,
-            serverUrl,
-            username,
-            effectivePassword,
-            serverType,
-            calendarHomeUrl.trim() || undefined,
-          );
-
-          // Check if this is a Vikunja server and warn the user
-          if (isVikunjaServer(connectionInfo.calendarHome)) {
-            const proceed = await showVikunjaWarning();
-
-            if (!proceed) {
-              // User cancelled, disconnect and return
-              CalDAVClient.disconnect(tempId);
-              setIsLoading(false);
-              return;
-            }
-          }
-
-          log.debug(`Fetching calendars...`);
-          calendars = await CalDAVClient.getForAccount(tempId).fetchCalendars();
-          log.info(`Found ${calendars.length} calendars:`, calendars);
-        }
-
-        // connection successful - now add the account with the same ID we used for connection
-        createAccountMutation.mutate(
-          {
-            id: tempId, // use the same ID so the caldavService connection maps correctly
-            name,
-            serverUrl,
-            username,
-            password: effectivePassword,
-            serverType,
-            calendarHomeUrl: calendarHomeUrl.trim() || undefined,
-          },
-          {
-            onSuccess: async (newAccount) => {
-              try {
-                // add the fetched calendars
-                for (const calendar of calendars) {
-                  addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
-                }
-
-                // fetch tasks for each calendar
-                log.debug('Fetching tasks for all calendars...');
-                for (const calendar of calendars) {
-                  await fetchTasksForCalendar(newAccount.id, calendar);
-                }
-
-                // Invalidate task queries to refresh the UI
-                queryClient.invalidateQueries({ queryKey: ['tasks'] });
-                queryClient.invalidateQueries({ queryKey: ['tags'] });
-
-                // Close modal after everything is complete
-                onClose();
-              } catch (error) {
-                log.error('Error setting up account:', error);
-                // Still close the modal, account was created successfully
-                onClose();
-              } finally {
-                setIsLoading(false);
-              }
-            },
-            onError: (error) => {
-              log.error('Error creating account:', error);
-              setError(error instanceof Error ? error.message : 'Failed to create account');
-              setIsLoading(false);
-            },
-          },
-        );
-
-        // Exit early to avoid the onClose() and finally block
+        const didStartCreate = await createNewAccount(effectivePassword);
+        if (!didStartCreate) setIsLoading(false);
         return;
       }
 
-      // For account updates, close immediately
       onClose();
       setIsLoading(false);
     } catch (err) {
@@ -451,23 +455,59 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     }
   };
 
+  const serverTypeLabel =
+    SERVER_TYPE_OPTIONS.find((o) => o.value === serverType)?.label ?? serverType;
+  const modalTitle = account
+    ? 'Edit Account'
+    : step === 'pick-type'
+      ? 'Add CalDAV Account'
+      : serverType === 'generic'
+        ? 'Add Generic CalDAV Account'
+        : `Add ${serverTypeLabel} Account`;
+
+  const modalDescription =
+    step === 'pick-type' ? 'Choose your server type to get started.' : undefined;
+
+  const isQuickConnectInProgress = step === 'quick-connect' && quickConnectLoginStep !== 'input';
+
+  const backButton =
+    !account && step !== 'pick-type' && !isQuickConnectInProgress ? (
+      <ModalButton
+        variant="secondary"
+        onClick={
+          step === 'credentials'
+            ? handleBack
+            : step === 'quick-connect'
+              ? handleBackFromQuickConnect
+              : handleBackToTypePicker
+        }
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back
+      </ModalButton>
+    ) : undefined;
+
   return (
-    <>
-      {showNextcloudLogin && (
-        <NextcloudLoginModal onClose={() => setShowNextcloudLogin(false)} onSuccess={onClose} />
-      )}
-
-      {showRusticalLogin && (
-        <RusticalLoginModal onClose={() => setShowRusticalLogin(false)} onSuccess={onClose} />
-      )}
-
-      {!showNextcloudLogin && !showRusticalLogin && (
-        <ModalWrapper
-          onClose={onClose}
-          title={account ? 'Edit Account' : 'Add CalDAV Account'}
-          zIndex="z-60"
-          contentPadding={false}
-          footerLeft={
+    <ModalWrapper
+      onClose={onClose}
+      title={modalTitle}
+      description={modalDescription}
+      size={step === 'pick-type' ? 'xl' : 'md'}
+      zIndex="z-60"
+      contentPadding={false}
+      preventClose={quickConnectLoginStep === 'processing'}
+      footerLeft={backButton}
+      footer={
+        step === 'quick-connect' && quickConnectLoginStep === 'input' ? (
+          <ModalButton
+            onClick={() => quickConnectRef.current?.connect()}
+            disabled={quickConnectButtonState.disabled}
+            loading={quickConnectButtonState.loading}
+          >
+            Connect
+          </ModalButton>
+        ) : step === 'credentials' ? (
+          <>
             <ModalButton
               variant="secondary"
               onClick={handleTestConnection}
@@ -481,248 +521,122 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               }
               loading={isTesting}
             >
-              {testSuccess && (
-                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
-              )}
+              {testSuccess && <CheckCircle className="w-4 h-4 text-semantic-success" />}
               {testSuccess ? 'Success' : isTesting ? 'Testing...' : 'Test connection'}
             </ModalButton>
-          }
-          footer={
-            <>
-              <ModalButton variant="secondary" onClick={onClose}>
-                Cancel
-              </ModalButton>
-              <ModalButton
-                onClick={handleSubmit}
-                disabled={
-                  isLoading ||
-                  !name.trim() ||
-                  !serverUrl.trim() ||
-                  !username.trim() ||
-                  (!account && !password.trim())
-                }
-                loading={isLoading}
-              >
-                {account ? 'Save' : 'Add Account'}
-              </ModalButton>
-            </>
-          }
-        >
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
-            <div>
-              <label
-                htmlFor="account-name"
-                className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-              >
-                Account Display Name
-              </label>
-              <ComposedInput
-                id="account-name"
-                type="text"
-                ref={(el) => {
-                  if (el && !nameInputFocusedRef.current) {
-                    nameInputFocusedRef.current = true;
-                    setTimeout(() => el.focus(), 100);
-                  }
-                }}
-                value={name}
-                onChange={setName}
-                placeholder="My CalDAV Account"
-                required
-                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-              />
-            </div>
+            <ModalButton
+              onClick={handleSubmit}
+              disabled={
+                isLoading ||
+                !name.trim() ||
+                !serverUrl.trim() ||
+                !username.trim() ||
+                (!account && !password.trim())
+              }
+              loading={isLoading}
+            >
+              {account ? 'Save' : 'Add Account'}
+            </ModalButton>
+          </>
+        ) : undefined
+      }
+    >
+      <div
+        key={step}
+        className={
+          navDirection === 'forward'
+            ? 'animate-step-forward'
+            : navDirection === 'back'
+              ? 'animate-step-back'
+              : undefined
+        }
+      >
+        {step === 'pick-type' && <ServerTypePicker onSelect={handleSelectServerType} />}
 
-            <div>
-              <label
-                htmlFor="server-type"
-                className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-              >
-                Server Type
-              </label>
-              <AppSelect
-                id="server-type"
-                value={serverType}
-                onChange={(e) => {
-                  const newType = e.target.value as ServerType;
-                  setServerType(newType);
-                  if (!account && !preloadedConfig) {
-                    const predefined = getPredefinedServerUrl(newType);
-                    if (predefined || getPredefinedServerUrl(serverType)) {
-                      setServerUrl(predefined || '');
-                    }
-                  }
-                }}
-                className="w-full text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-              >
-                {SERVER_TYPE_GROUPS.map((group) => (
-                  <optgroup key={group.label} label={group.label}>
-                    {group.options.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </AppSelect>
-              <p className="mt-1 text-xs text-surface-500 dark:text-surface-400">
-                {getServerTypeDescription(serverType)}
-              </p>
-            </div>
-
-            {!getPredefinedServerUrl(serverType) && (
-              <div>
-                <label
-                  htmlFor="server-url"
-                  className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-                >
-                  Server URL
-                </label>
-                <ComposedInput
-                  id="server-url"
-                  type="url"
-                  value={serverUrl}
-                  onChange={setServerUrl}
-                  placeholder="https://caldav.example.com"
-                  required
-                  className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-                />
-                {serverType === 'generic' && (
-                  <p className="mt-2 text-xs flex flex-row text-surface-500 dark:text-surface-400">
-                    <Info className="inline w-3.5 h-3.5 mr-1 text-surface-400" />
-                    The app will attempt to auto-discover for base URLs.
-                  </p>
-                )}
+        {step === 'connect-method' && (
+          <div className="p-4 space-y-3">
+            <button
+              type="button"
+              onClick={() => {
+                setNavDirection('forward');
+                setStep('quick-connect');
+              }}
+              className="group w-full flex items-center gap-4 px-4 py-4 text-left rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700/50 hover:border-surface-300 dark:hover:border-surface-500 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            >
+              <div className="size-9 rounded-lg bg-surface-200 dark:bg-surface-600 text-surface-600 dark:text-surface-300 flex items-center justify-center shrink-0">
+                <Cloud className="size-5" />
               </div>
-            )}
-
-            <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-              >
-                Username
-              </label>
-              <ComposedInput
-                id="username"
-                type="text"
-                value={username}
-                onChange={setUsername}
-                placeholder="user@example.com"
-                required
-                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
-              >
-                Password
-              </label>
-              <ComposedInput
-                id="password"
-                type="password"
-                value={password}
-                onChange={setPassword}
-                placeholder={account ? '(unchanged)' : 'Enter password'}
-                required={!account}
-                className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-              />
-              {serverType === 'fastmail' && (
-                <div className="mt-3 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
-                  <Info className="mt-px size-3.5 shrink-0" />
-                  <span>
-                    To use Chiri with Fastmail,{' '}
-                    <a
-                      href="https://app.fastmail.com/settings/security/apps/new"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium underline underline-offset-2 hover:opacity-80"
-                    >
-                      create an app password
-                    </a>{' '}
-                    with access to CalDAV.
-                  </span>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-surface-800 dark:text-surface-200">
+                  Login via server URL
                 </div>
-              )}
-              {serverType === 'fruux' && (
-                <div className="mt-3 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
-                  <Info className="mt-px size-3.5 shrink-0" />
-                  <span>
-                    It's recommended to use device-specific credentials for fruux.{' '}
-                    <a
-                      href="https://fruux.com/sync/credentials/?deviceType=generic"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium underline underline-offset-2 hover:opacity-80"
-                    >
-                      Create a new device
-                    </a>{' '}
-                    and use the generated username and password.
-                  </span>
+                <div className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
+                  Authenticate through your browser
                 </div>
-              )}
-              {serverType === 'runbox' && (
-                <div className="mt-3 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
-                  <Info className="mt-px size-3.5 shrink-0" />
-                  <span>
-                    If two-factor authentication (2FA) is enabled, you will need to{' '}
-                    <a
-                      href="https://runbox.com/mail/account_security"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium underline underline-offset-2 hover:opacity-80"
-                    >
-                      create an app password
-                    </a>{' '}
-                    and use it here instead.
-                  </span>
-                </div>
-              )}
-              {serverType === 'purelymail' && (
-                <div className="mt-3 flex gap-2 rounded-lg border border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20 px-3 py-2 text-xs text-primary-700 dark:text-primary-300">
-                  <Info className="mt-px size-3.5 shrink-0" />
-                  <span>
-                    If two-factor authentication (2FA) is enabled, you will need to{' '}
-                    <a
-                      href="https://purelymail.com/manage/users"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-medium underline underline-offset-2 hover:opacity-80"
-                    >
-                      create an app password
-                    </a>{' '}
-                    and use it here instead.
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <AdvancedSection
-              serverType={serverType}
-              principalUrl={principalUrl}
-              onPrincipalUrlChange={setPrincipalUrl}
-              calendarHomeUrl={calendarHomeUrl}
-              onCalendarHomeUrlChange={setCalendarHomeUrl}
-              initialOpen={!!account?.calendarHomeUrl || !!account?.principalUrl}
-            />
-
-            {error && (
-              <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-                {error}
               </div>
-            )}
+            </button>
 
-            {testSuccess && <ConnectionSuccessBanner calendarCount={testedCalendars.length} />}
+            <button
+              type="button"
+              onClick={() => {
+                setNavDirection('forward');
+                setStep('credentials');
+              }}
+              className="group w-full flex items-center gap-4 px-4 py-4 text-left rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700/50 hover:border-surface-300 dark:hover:border-surface-500 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            >
+              <div className="size-9 rounded-lg bg-surface-200 dark:bg-surface-600 text-surface-600 dark:text-surface-300 flex items-center justify-center shrink-0">
+                <KeyRound className="size-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-surface-800 dark:text-surface-200">
+                  Manually add credentials
+                </div>
+                <div className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
+                  Enter your username and password
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
 
-            {!account && quickConnectHandler && (
-              <QuickConnectSection serverType={serverType} onClick={quickConnectHandler} />
-            )}
-          </form>
-        </ModalWrapper>
-      )}
-    </>
+        {step === 'quick-connect' && (
+          <QuickConnectFlow
+            ref={quickConnectRef}
+            serverType={serverType as 'nextcloud' | 'rustical'}
+            onSuccess={onClose}
+            onStepChange={setQuickConnectLoginStep}
+            onConnectStateChange={setQuickConnectButtonState}
+          />
+        )}
+
+        {step === 'credentials' && (
+          <CredentialsForm
+            serverType={serverType}
+            name={name}
+            onNameChange={setName}
+            icon={icon}
+            onIconChange={setIcon}
+            emoji={emoji}
+            onEmojiChange={setEmoji}
+            serverUrl={serverUrl}
+            onServerUrlChange={setServerUrl}
+            username={username}
+            onUsernameChange={setUsername}
+            password={password}
+            onPasswordChange={setPassword}
+            principalUrl={principalUrl}
+            onPrincipalUrlChange={setPrincipalUrl}
+            calendarHomeUrl={calendarHomeUrl}
+            onCalendarHomeUrlChange={setCalendarHomeUrl}
+            account={account}
+            error={error}
+            testSuccess={testSuccess}
+            testedCalendarCount={testedCalendars.length}
+            testedPushSupportedCount={testedCalendars.filter((c) => c.pushSupported).length}
+            onSubmit={handleSubmit}
+          />
+        )}
+      </div>
+    </ModalWrapper>
   );
 };
