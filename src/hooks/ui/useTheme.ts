@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { COLOR_SCHEMES } from '$constants/colorSchemes';
+import { COLOR_SCHEMES, getColorSchemeFlavor } from '$constants/colorSchemes';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
 import {
@@ -7,6 +7,7 @@ import {
   applyColorScheme,
   applySchemeAccentColor,
   applyTheme,
+  resolveAccentColor,
   resolveEffectiveTheme,
 } from '$utils/color';
 
@@ -74,14 +75,16 @@ export const useTheme = () => {
     applyColorScheme(colorScheme, colorSchemeFlavor, resolveEffectiveTheme(theme));
   }, [colorScheme, colorSchemeFlavor, theme]);
 
-  // apply accent color — normalize pastel scheme colors so hue differences are visible
+  // apply accent color — resolve name→hex first, then normalize pastel scheme colors
   useEffect(() => {
+    const flavor = getColorSchemeFlavor(colorScheme, colorSchemeFlavor, resolveEffectiveTheme(theme));
+    const resolved = resolveAccentColor(accentColor, flavor.accentColors);
     if (isDefaultScheme) {
-      applyAccentColor(accentColor);
+      applyAccentColor(resolved);
     } else {
-      applySchemeAccentColor(accentColor);
+      applySchemeAccentColor(resolved);
     }
-  }, [accentColor, isDefaultScheme]);
+  }, [accentColor, isDefaultScheme, colorScheme, colorSchemeFlavor, theme]);
 
   return { theme, accentColor, colorScheme, colorSchemeFlavor };
 };

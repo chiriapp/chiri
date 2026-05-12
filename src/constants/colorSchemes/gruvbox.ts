@@ -30,7 +30,7 @@ export const gruvboxColorScheme: ColorSchemeDefinition = {
         { name: 'Blue', value: '#83a598' },
         { name: 'Purple', value: '#d3869b' },
       ],
-      defaultAccent: '#fabd2f',
+      defaultAccent: 'Yellow',
       semanticColors: {
         info: '#83a598',
         warning: '#fabd2f',
@@ -71,7 +71,7 @@ export const gruvboxColorScheme: ColorSchemeDefinition = {
         { name: 'Blue', value: '#458588' },
         { name: 'Purple', value: '#b16286' },
       ],
-      defaultAccent: '#d79921',
+      defaultAccent: 'Yellow',
       semanticColors: {
         info: '#458588',
         warning: '#d79921',

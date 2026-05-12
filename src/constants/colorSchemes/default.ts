@@ -1,17 +1,17 @@
 import type { ColorSchemeAccent, ColorSchemeDefinition } from '$types/color';
 
 const defaultAccentColors = [
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Yellow', value: '#eab308' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Teal', value: '#14b8a6' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Purple', value: '#8b5cf6' },
-  { name: 'Pink', value: '#ec4899' },
+  { name: 'Rose', value: '#f47b96' },
+  { name: 'Peach', value: '#f5a06a' },
+  { name: 'Amber', value: '#f5c430' },
+  { name: 'Sage', value: '#72cc86' },
+  { name: 'Teal', value: '#4ccfc4' },
+  { name: 'Sky', value: '#60b8f5' },
+  { name: 'Lavender', value: '#a88ef5' },
+  { name: 'Pink', value: '#f085cc' },
 ] as const satisfies readonly ColorSchemeAccent[];
 
-const defaultAccentColor = '#ec4899';
+const defaultAccentColor = 'Pink';
 
 const surfaces = {
   50: '#fafafa',

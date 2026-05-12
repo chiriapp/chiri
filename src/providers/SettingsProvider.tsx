@@ -11,6 +11,7 @@ import type {
   TaskStatus,
   TimeFormat,
 } from '$types';
+import type { AccentColor, Theme } from '$types/color';
 import type {
   EditorFieldKey,
   EditorFieldVisibility,

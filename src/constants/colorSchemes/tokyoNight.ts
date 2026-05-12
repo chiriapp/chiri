@@ -32,7 +32,7 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
         { name: 'Deep Purple', value: '#65359d' },
         { name: 'Purple', value: '#7b43ba' },
       ],
-      defaultAccent: '#2959aa',
+      defaultAccent: 'Blue',
       semanticColors: {
         info: '#0da0ba',
         warning: '#8f5e15',
@@ -75,7 +75,7 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
         { name: 'Purple', value: '#9d7cd8' },
         { name: 'Magenta', value: '#bb9af7' },
       ],
-      defaultAccent: '#7aa2f7',
+      defaultAccent: 'Blue',
       semanticColors: {
         info: '#7aa2f7',
         warning: '#e0af68',

@@ -1,15 +1,13 @@
 import { createContext } from 'react';
 import {
-  DEFAULT_COLOR,
   DEFAULT_DAY_OF_WEEK,
   DEFAULT_EDITOR_WIDTH,
   DEFAULT_SHORTCUTS,
   DEFAULT_SIDEBAR_WIDTH,
 } from '$constants';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import { getColorSchemeFlavor, getDefaultAccentColor } from '$constants/colorSchemes';
 import { loggers } from '$lib/logger';
 import type {
-  AccentColor,
   DateFormat,
   DefaultDateOffset,
   DefaultReminderOffset,
@@ -18,9 +16,10 @@ import type {
   StartOfWeek,
   SubtaskDeletionBehavior,
   TaskStatus,
-  Theme,
   TimeFormat,
 } from '$types';
+import type { AccentColor, Theme } from '$types/color';
+import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
 import type {
   EditorFieldKey,
   EditorFieldVisibility,
@@ -35,6 +34,8 @@ import {
   applyColorScheme,
   applySchemeAccentColor,
   applyTheme,
+  resolveAccentColor,
+  resolveEffectiveTheme,
 } from '$utils/color';
 
 const log = loggers.settings;
@@ -197,11 +198,12 @@ interface SettingsActions {
 export type SettingsStore = SettingsState & SettingsActions;
 
 const STORAGE_KEY = 'chiri-settings';
+const defaultAccentColor = getDefaultAccentColor();
 
 // Detect locale preferences for intelligent defaults
 const defaultState: SettingsState = {
   theme: 'system',
-  accentColor: DEFAULT_COLOR,
+  accentColor: defaultAccentColor,
   autoSync: true,
   syncInterval: 5,
   syncOnStartup: true,
@@ -248,7 +250,7 @@ const defaultState: SettingsState = {
   allDayReminderNotificationsEnabled: true,
   colorScheme: DEFAULT_COLOR_SCHEME_ID,
   colorSchemeFlavor: null,
-  accentColorByScheme: { [DEFAULT_COLOR_SCHEME_ID]: DEFAULT_COLOR },
+  accentColorByScheme: { [DEFAULT_COLOR_SCHEME_ID]: defaultAccentColor },
   taskListDensity: 'comfortable',
   defaultTagColor: 'accent',
   defaultCalendarColor: 'accent',
@@ -410,11 +412,14 @@ let pendingMigrationSave = loadResult.migrated;
 
 // Apply theme, color scheme, and accent color immediately on module load
 applyTheme(state.theme);
-applyColorScheme(state.colorScheme, state.colorSchemeFlavor);
+const _initEffectiveMode = resolveEffectiveTheme(state.theme);
+applyColorScheme(state.colorScheme, state.colorSchemeFlavor, _initEffectiveMode);
+const _initFlavor = getColorSchemeFlavor(state.colorScheme, state.colorSchemeFlavor, _initEffectiveMode);
+const _initAccent = resolveAccentColor(state.accentColor, _initFlavor.accentColors);
 if (state.colorScheme === DEFAULT_COLOR_SCHEME_ID) {
-  applyAccentColor(state.accentColor);
+  applyAccentColor(_initAccent);
 } else {
-  applySchemeAccentColor(state.accentColor);
+  applySchemeAccentColor(_initAccent);
 }
 
 const listeners = new Set<() => void>();

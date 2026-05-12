@@ -79,6 +79,20 @@ export const normalizeHexColor = (color: string | undefined | null): string | un
 };
 
 /**
+ * resolve a stored accent value to a hex color.
+ * presets are stored by name (e.g. "Rose"); custom colors are stored as hex.
+ * if the stored value matches a preset name, returns its current hex — making
+ * the palette resilient to hex changes without orphaning user selections.
+ */
+export const resolveAccentColor = (
+  stored: string,
+  accentColors: { name: string; value: string }[],
+): string => {
+  const preset = accentColors.find((c) => c.name === stored);
+  return preset ? preset.value : stored;
+};
+
+/**
  * apply the theme to the document
  */
 export const applyTheme = (theme: Theme) => {

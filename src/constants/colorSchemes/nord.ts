@@ -32,7 +32,7 @@ export const nordColorScheme: ColorSchemeDefinition = {
         { name: 'Frost Indigo', value: '#81a1c1' },
         { name: 'Aurora Purple', value: '#b48ead' },
       ],
-      defaultAccent: '#88c0d0',
+      defaultAccent: 'Frost Blue',
       semanticColors: {
         info: '#5e81ac',
         warning: '#ebcb8b',
