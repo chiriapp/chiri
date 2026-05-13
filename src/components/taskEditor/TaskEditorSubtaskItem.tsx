@@ -18,6 +18,7 @@ interface TaskEditorSubtaskItemProps {
   task: Task;
   depth: number;
   checkmarkColor: string;
+  useAccentColorForCheckboxes: boolean;
   expandedSubtasks: Set<string>;
   setExpandedSubtasks: React.Dispatch<React.SetStateAction<Set<string>>>;
   updateTask: (id: string, updates: Partial<Task>) => void;
@@ -30,6 +31,7 @@ export const TaskEditorSubtaskItem = ({
   task,
   depth,
   checkmarkColor,
+  useAccentColorForCheckboxes,
   expandedSubtasks,
   setExpandedSubtasks,
   updateTask,
@@ -142,14 +144,20 @@ export const TaskEditorSubtaskItem = ({
           }}
           className={`cursor-pointer w-4 h-4 rounded border-[1.5px] flex items-center justify-center shrink-0 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-1 ${
             task.status === 'completed'
-              ? 'bg-primary-500 border-primary-500'
+              ? useAccentColorForCheckboxes
+                ? 'bg-primary-500 border-primary-500'
+                : 'bg-status-completed border-status-completed'
               : task.status === 'cancelled'
-                ? 'bg-surface-400 border-surface-400'
+                ? 'bg-status-cancelled border-status-cancelled'
                 : 'border-surface-300 dark:border-surface-600 hover:border-primary-400 dark:hover:border-primary-500'
           }`}
         >
           {task.completed && (
-            <Check className="w-2.5 h-2.5" style={{ color: checkmarkColor }} strokeWidth={3} />
+            <Check
+              className={`w-2.5 h-2.5 ${!useAccentColorForCheckboxes ? 'text-surface-900' : ''}`}
+              style={useAccentColorForCheckboxes ? { color: checkmarkColor } : undefined}
+              strokeWidth={3}
+            />
           )}
         </button>
 
@@ -185,7 +193,7 @@ export const TaskEditorSubtaskItem = ({
             onClick={async () => {
               await confirmAndDelete(task.id);
             }}
-            className="cursor-pointer opacity-0 group-hover/row:opacity-100 p-0.5 shrink-0 rounded-sm text-surface-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all outline-hidden focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-red-500"
+            className="cursor-pointer opacity-0 group-hover/row:opacity-100 p-0.5 shrink-0 rounded-sm text-surface-400 hover:text-semantic-error hover:bg-semantic-error/10 transition-all outline-hidden focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-semantic-error"
           >
             <X className="w-3.5 h-3.5" />
           </button>

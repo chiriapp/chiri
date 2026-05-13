@@ -221,6 +221,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (flavorId: string | null) => settingsStore.setColorSchemeFlavor(flavorId),
     [],
   );
+  const setUseAccentColorForCheckboxes = useCallback(
+    (enabled: boolean) => settingsStore.setUseAccentColorForCheckboxes(enabled),
+    [],
+  );
   const setTaskListDensity = useCallback(
     (density: TaskListDensity) => settingsStore.setTaskListDensity(density),
     [],
@@ -339,6 +343,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setAllDayReminderNotificationsEnabled,
     setColorScheme,
     setColorSchemeFlavor,
+    setUseAccentColorForCheckboxes,
     setTaskListDensity,
     setDefaultTagColor,
     setDefaultCalendarColor,

@@ -92,6 +92,7 @@ interface SettingsState {
   colorSchemeFlavor: string | null;
   /** remembers the chosen accent per scheme so switching back restores it */
   accentColorByScheme: Record<string, string>;
+  useAccentColorForCheckboxes: boolean;
   taskListDensity: TaskListDensity;
   defaultTagColor: string;
   defaultCalendarColor: string;
@@ -173,6 +174,7 @@ interface SettingsActions {
   /** switches scheme+flavor, saves the current accent, and restores the saved one (or fallbackAccent) */
   setColorScheme: (schemeId: string, flavorId: string | null, fallbackAccent?: string) => void;
   setColorSchemeFlavor: (flavorId: string | null) => void;
+  setUseAccentColorForCheckboxes: (enabled: boolean) => void;
   setTaskListDensity: (density: TaskListDensity) => void;
   setDefaultTagColor: (color: string) => void;
   setDefaultCalendarColor: (color: string) => void;
@@ -251,6 +253,7 @@ const defaultState: SettingsState = {
   colorScheme: DEFAULT_COLOR_SCHEME_ID,
   colorSchemeFlavor: null,
   accentColorByScheme: { [DEFAULT_COLOR_SCHEME_ID]: defaultAccentColor },
+  useAccentColorForCheckboxes: false,
   taskListDensity: 'comfortable',
   defaultTagColor: 'accent',
   defaultCalendarColor: 'accent',
@@ -578,6 +581,8 @@ export const settingsStore = {
     });
   },
   setColorSchemeFlavor: (colorSchemeFlavor: string | null) => setState({ colorSchemeFlavor }),
+  setUseAccentColorForCheckboxes: (useAccentColorForCheckboxes: boolean) =>
+    setState({ useAccentColorForCheckboxes }),
   setTaskListDensity: (taskListDensity: TaskListDensity) => setState({ taskListDensity }),
   setDefaultTagColor: (defaultTagColor: string) => setState({ defaultTagColor }),
   setDefaultCalendarColor: (defaultCalendarColor: string) => setState({ defaultCalendarColor }),
@@ -624,6 +629,7 @@ export const settingsStore = {
         'colorScheme',
         'colorSchemeFlavor',
         'accentColorByScheme',
+        'useAccentColorForCheckboxes',
         'autoSync',
         'syncInterval',
         'syncOnStartup',

@@ -11,9 +11,14 @@ import type { Task } from '$types';
 interface TaskEditorTitleProps {
   task: Task;
   checkmarkColor: string;
+  useAccentColorForCheckboxes: boolean;
 }
 
-export const TaskEditorTitle = ({ task, checkmarkColor }: TaskEditorTitleProps) => {
+export const TaskEditorTitle = ({
+  task,
+  checkmarkColor,
+  useAccentColorForCheckboxes,
+}: TaskEditorTitleProps) => {
   const [pendingTitle, updatePendingTitle] = useDebouncedTaskUpdate(task.id, 'title', task.title);
   const toggleTaskCompleteMutation = useToggleTaskComplete();
   const titleRef = useRef<HTMLTextAreaElement>(null);
@@ -88,23 +93,29 @@ export const TaskEditorTitle = ({ task, checkmarkColor }: TaskEditorTitleProps) 
             shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset
             ${
               task.status === 'completed'
-                ? 'bg-primary-500 border-primary-500'
+                ? useAccentColorForCheckboxes
+                  ? 'bg-primary-500 border-primary-500'
+                  : 'bg-status-completed border-status-completed'
                 : task.status === 'cancelled'
-                  ? 'bg-rose-400 border-rose-400 dark:bg-rose-500 dark:border-rose-500'
+                  ? 'bg-status-cancelled border-status-cancelled'
                   : task.status === 'in-process'
-                    ? 'bg-blue-400 border-blue-400 dark:bg-blue-500 dark:border-blue-500'
-                    : 'border-surface-300 dark:border-surface-600 hover:border-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30'
+                    ? 'bg-status-in-process border-status-in-process'
+                    : 'border-surface-300 dark:border-surface-600 hover:border-primary-500 hover:bg-surface-100 dark:hover:bg-surface-700'
             }
           `}
         >
           {task.status === 'completed' && (
-            <Check className="w-4 h-4" style={{ color: checkmarkColor }} strokeWidth={3} />
+            <Check
+              className={`w-4 h-4 ${!useAccentColorForCheckboxes ? 'text-surface-900' : ''}`}
+              style={useAccentColorForCheckboxes ? { color: checkmarkColor } : undefined}
+              strokeWidth={3}
+            />
           )}
           {task.status === 'cancelled' && (
-            <X className="w-4 h-4 text-white dark:text-surface-200" strokeWidth={3} />
+            <X className="w-4 h-4 text-primary-contrast" strokeWidth={3} />
           )}
           {task.status === 'in-process' && (
-            <Loader className="w-4 h-4 text-white dark:text-blue-100" />
+            <Loader className="w-4 h-4 dark:text-primary-contrast" />
           )}
         </button>
         <ComposedTextarea
