@@ -1,18 +1,17 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
 import Bug from 'lucide-react/icons/bug';
-import ChevronRight from 'lucide-react/icons/chevron-right';
 import Code from 'lucide-react/icons/code';
 import Coffee from 'lucide-react/icons/coffee';
 import ExternalLink from 'lucide-react/icons/external-link';
 import Globe from 'lucide-react/icons/globe';
 import Heart from 'lucide-react/icons/heart';
-import Loader2 from 'lucide-react/icons/loader-2';
 import Mail from 'lucide-react/icons/mail';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import ScrollText from 'lucide-react/icons/scroll-text';
 import Sparkles from 'lucide-react/icons/sparkles';
-import type { ReactNode } from 'react';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
+import { AboutSettingsLinkRow } from '$components/settings/AboutSettings/AboutSettingsLinkRow';
+import { AboutSettingsSection } from '$components/settings/AboutSettings/AboutSettingsSection';
 import { useChangelog } from '$hooks/useChangelog';
 import { getAppInfo } from '$utils/version';
 
@@ -34,63 +33,6 @@ const LIBRARIES: { name: string; url: string }[] = [
   { name: 'sonner', url: 'https://sonner.emilkowal.ski' },
   { name: 'frimousse', url: 'https://www.npmjs.com/package/frimousse' },
 ];
-
-interface LinkRowProps {
-  icon: ReactNode;
-  label: string;
-  description?: string;
-  loading?: boolean;
-  /** 'internal' shows a chevron (in-app navigation); 'external' shows a persistent ExternalLink */
-  variant?: 'internal' | 'external';
-  onClick: () => void;
-}
-
-const LinkRow = ({
-  icon,
-  label,
-  description,
-  loading,
-  variant = 'external',
-  onClick,
-}: LinkRowProps) => (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={loading}
-    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface-100 dark:hover:bg-surface-700/60 transition-colors group outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500 disabled:opacity-60 disabled:cursor-not-allowed"
-  >
-    <span className="text-surface-400 dark:text-surface-500 shrink-0">{icon}</span>
-    <div className="flex-1 min-w-0">
-      <p className="text-sm text-surface-800 dark:text-surface-200">{label}</p>
-      {description && (
-        <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">{description}</p>
-      )}
-    </div>
-    {loading ? (
-      <Loader2 className="w-3.5 h-3.5 text-surface-400 dark:text-surface-500 animate-spin shrink-0" />
-    ) : variant === 'internal' ? (
-      <ChevronRight className="w-5 h-5 text-surface-400 dark:text-surface-500 group-hover:text-surface-600 dark:group-hover:text-surface-300 transition-colors shrink-0" />
-    ) : (
-      <ExternalLink className="w-4 h-4 text-surface-400 dark:text-surface-500 shrink-0" />
-    )}
-  </button>
-);
-
-interface SectionProps {
-  title: string;
-  children: ReactNode;
-}
-
-const Section = ({ title, children }: SectionProps) => (
-  <div className="space-y-2">
-    <p className="text-xs font-semibold text-surface-400 dark:text-surface-500 uppercase tracking-wider px-1">
-      {title}
-    </p>
-    <div className="rounded-lg border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 overflow-hidden divide-y divide-surface-100 dark:divide-surface-700">
-      {children}
-    </div>
-  </div>
-);
 
 interface AboutSettingsProps {
   onNavigateToUpdates?: () => void;
@@ -126,8 +68,8 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
           </div>
         </div>
 
-        <Section title="Updates">
-          <LinkRow
+        <AboutSettingsSection title="Updates">
+          <AboutSettingsLinkRow
             icon={<ScrollText className="w-5 h-5" />}
             label="What's New"
             description={`See what changed in v${version}`}
@@ -136,7 +78,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
             onClick={() => openChangelog(version)}
           />
           {onNavigateToUpdates && (
-            <LinkRow
+            <AboutSettingsLinkRow
               icon={<RefreshCw className="w-5 h-5" />}
               label="Check for updates"
               description="See if a newer version is available"
@@ -144,54 +86,57 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
               onClick={onNavigateToUpdates}
             />
           )}
-        </Section>
+        </AboutSettingsSection>
 
-        <Section title="Support">
-          <LinkRow
+        <AboutSettingsSection title="Support">
+          <AboutSettingsLinkRow
             icon={<Bug className="w-5 h-5" />}
             label="Report a bug"
             description="Open a new issue on GitHub"
             onClick={link(NEW_ISSUE_URL)}
           />
-          <LinkRow
+
+          <AboutSettingsLinkRow
             icon={<Mail className="w-5 h-5" />}
             label="Contact developer"
             description={CONTACT_EMAIL}
             onClick={link(`mailto:${CONTACT_EMAIL}`)}
           />
-          <LinkRow
+
+          <AboutSettingsLinkRow
             icon={<Globe className="w-5 h-5" />}
             label="Find us elsewhere"
             description="Follow or contact us elsewhere through our website"
             onClick={link(FIND_US_ELSEWHERE)}
           />
-        </Section>
+        </AboutSettingsSection>
 
-        <Section title="Donate">
-          <LinkRow
+        <AboutSettingsSection title="Donate">
+          <AboutSettingsLinkRow
             icon={<Coffee className="w-5 h-5" />}
             label="Ko-fi"
             description="ko-fi.com/solelychloe"
             onClick={link('https://ko-fi.com/solelychloe')}
           />
-          <LinkRow
+
+          <AboutSettingsLinkRow
             icon={<Heart className="w-5 h-5" />}
             label="Liberapay"
             description="liberapay.com/chloe"
             onClick={link('https://liberapay.com/chloe')}
           />
-        </Section>
+        </AboutSettingsSection>
 
-        <Section title="Open Source">
-          <LinkRow
+        <AboutSettingsSection title="Open Source">
+          <AboutSettingsLinkRow
             icon={<Code className="w-5 h-5" />}
             label="Source code"
             description="Licensed under the zlib/libpng license"
             onClick={link(GITHUB_URL)}
           />
-        </Section>
+        </AboutSettingsSection>
 
-        <Section title="Credits">
+        <AboutSettingsSection title="Credits">
           <div className="flex items-center gap-3 px-4 py-3">
             <span className="text-surface-400 dark:text-surface-500 shrink-0">
               <Sparkles className="text-[#2196F2] w-5 h-5" />
@@ -248,7 +193,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
               ))}
             </div>
           </div>
-        </Section>
+        </AboutSettingsSection>
       </div>
 
       {changelogData && (

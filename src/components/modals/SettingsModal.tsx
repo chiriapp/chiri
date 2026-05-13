@@ -18,7 +18,7 @@ import SquarePen from 'lucide-react/icons/square-pen';
 import User from 'lucide-react/icons/user';
 import { useState } from 'react';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { AboutSettings } from '$components/settings/AboutSettings';
+import { AboutSettings } from '$components/settings/AboutSettings/AboutSettings';
 import { BadgesSettings } from '$components/settings/BadgesSettings';
 import { BehaviorSettings } from '$components/settings/BehaviorSettings';
 import { ConnectionsSettings } from '$components/settings/ConnectionsSettings';
@@ -30,7 +30,7 @@ import { RegionAndTimeSettings } from '$components/settings/RegionAndTimeSetting
 import { ShortcutsSettings } from '$components/settings/ShortcutsSettings';
 import { SyncSettings } from '$components/settings/SyncSettings';
 import { SystemSettings } from '$components/settings/SystemSettings';
-import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings';
+import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings/TaskDefaultsSettings';
 import { UpdateSettings } from '$components/settings/UpdateSettings';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import type { SettingsCategory, SettingsSubtab } from '$types';
