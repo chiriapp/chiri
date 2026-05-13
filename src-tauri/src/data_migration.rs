@@ -50,18 +50,18 @@ pub fn migrate_from_caldav_tasks<R: tauri::Runtime>(app: &tauri::App<R>) {
                         .unwrap_or(false));
 
             if should_migrate {
-                println!(
-                    "Migrating app data from {} to {}",
+                log::info!(
+                    "[DataMigration] Migrating app data: {} → {}",
                     old_app_dir.display(),
                     app_local_data_dir.display()
                 );
 
                 if let Err(e) = std::fs::create_dir_all(&app_local_data_dir) {
-                    eprintln!("Failed to create new app directory: {}", e);
+                    log::warn!("[DataMigration] Failed to create new app directory: {e}");
                 } else if let Err(e) = copy_dir_recursive(&old_app_dir, &app_local_data_dir) {
-                    eprintln!("Failed to migrate app data: {}", e);
+                    log::warn!("[DataMigration] Failed to migrate app data: {e}");
                 } else {
-                    println!("Successfully migrated app data");
+                    log::info!("[DataMigration] App data migrated successfully");
 
                     // Rename the database file if it exists
                     let old_db_path = app_local_data_dir.join(old_db_name);
@@ -69,14 +69,13 @@ pub fn migrate_from_caldav_tasks<R: tauri::Runtime>(app: &tauri::App<R>) {
 
                     if old_db_path.exists() {
                         if let Err(e) = std::fs::rename(&old_db_path, &new_db_path) {
-                            eprintln!(
-                                "Failed to rename database from {} to {}: {}",
+                            log::warn!(
+                                "[DataMigration] Failed to rename database from {} to {}: {e}",
                                 old_db_path.display(),
                                 new_db_path.display(),
-                                e
                             );
                         } else {
-                            println!("Successfully renamed database to {}", new_db_name);
+                            log::info!("[DataMigration] Database renamed to {new_db_name}");
                         }
                     }
                 }
@@ -89,7 +88,9 @@ pub fn migrate_from_caldav_tasks<R: tauri::Runtime>(app: &tauri::App<R>) {
     {
         if let Some(home_dir) = dirs::home_dir() {
             let old_webkit_dir = home_dir.join("Library/WebKit").join(old_dir_name);
-            let new_webkit_dir = home_dir.join("Library/WebKit").join("moe.sapphic.Chiri");
+            let new_webkit_dir = home_dir
+                .join("Library/WebKit")
+                .join(&app.config().identifier);
 
             let should_migrate = old_webkit_dir.exists()
                 && (!new_webkit_dir.exists()
@@ -99,18 +100,18 @@ pub fn migrate_from_caldav_tasks<R: tauri::Runtime>(app: &tauri::App<R>) {
                         .unwrap_or(false));
 
             if should_migrate {
-                println!(
-                    "Migrating WebKit data from {} to {}",
+                log::info!(
+                    "[DataMigration] Migrating WebKit data: {} → {}",
                     old_webkit_dir.display(),
                     new_webkit_dir.display()
                 );
 
                 if let Err(e) = std::fs::create_dir_all(&new_webkit_dir) {
-                    eprintln!("Failed to create new WebKit directory: {}", e);
+                    log::warn!("[DataMigration] Failed to create new WebKit directory: {e}");
                 } else if let Err(e) = copy_dir_recursive(&old_webkit_dir, &new_webkit_dir) {
-                    eprintln!("Failed to migrate WebKit data: {}", e);
+                    log::warn!("[DataMigration] Failed to migrate WebKit data: {e}");
                 } else {
-                    println!("Successfully migrated WebKit data");
+                    log::info!("[DataMigration] WebKit data migrated successfully");
                 }
             }
         }

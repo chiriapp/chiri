@@ -4,6 +4,7 @@
 )]
 
 mod data_migration;
+mod legacy_migration;
 mod http_client;
 mod install_type;
 mod linux;
@@ -111,6 +112,9 @@ fn main() {
             {
                 macos::app_nap::disable_app_nap();
             }
+
+            // Migrate data from legacy moe.sapphic.Chiri identifier (pre-0.9.0)
+            legacy_migration::migrate_from_legacy_identifier(_app);
 
             // Migrate data from old caldav-tasks app
             data_migration::migrate_from_caldav_tasks(_app);
