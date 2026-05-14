@@ -130,7 +130,7 @@ pub fn migrate_from_legacy_identifier<R: tauri::Runtime>(app: &tauri::App<R>) {
             let old_webkit = webkit_base.join(OLD_IDENTIFIER);
             let new_webkit = webkit_base.join(&new_identifier);
 
-            for subdir in &["LocalStorage", "IndexedDB"] {
+            for subdir in &["WebsiteData/LocalStorage", "WebsiteData/IndexedDB"] {
                 let old_sub = old_webkit.join(subdir);
                 let new_sub = new_webkit.join(subdir);
                 if old_sub.exists() {
