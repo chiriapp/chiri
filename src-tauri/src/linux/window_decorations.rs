@@ -82,7 +82,7 @@ fn is_tiling_wm() -> bool {
 /// note: the Wayland xdg_toplevel app_id is derived from the binary name,
 /// so the Flatpak installs the binary as moe.sapphic.Chiri to match the .desktop filename for KWin icon lookup
 #[cfg(target_os = "linux")]
-fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
+pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
     use gtk::prelude::GtkWindowExt;
 
     let desktop = env::var("XDG_CURRENT_DESKTOP").unwrap_or_else(|_| "Unknown".to_string());
