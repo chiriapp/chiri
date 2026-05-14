@@ -53,9 +53,9 @@ fn main() {
     let builder = tauri::Builder::default()
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
-            // On Linux, forward args to the deep-link plugin so onOpenUrl fires
-            // for URLs opened while the app is already running.
-            #[cfg(target_os = "linux")]
+            // On Linux and Windows, forward args to the deep-link plugin so
+            // onOpenUrl fires for URLs opened while the app is already running.
+            #[cfg(any(windows, target_os = "linux"))]
             {
                 use tauri_plugin_deep_link::DeepLinkExt;
                 app.deep_link().handle_cli_arguments(args.iter());
