@@ -128,7 +128,7 @@ const App = () => {
     checkForUpdates('menu-manual', () => setShowUpdateModal(true));
   }, [checkForUpdates]);
 
-  const { data: accounts = [] } = useAccounts();
+  const { data: accounts = [], isPending: accountsPending } = useAccounts();
   const {
     sidebarCollapsed,
     sidebarWidth,
@@ -166,7 +166,7 @@ const App = () => {
     };
   }, [isEditorResizing, setTaskEditorWidth]);
 
-  const showOnboarding = !onboardingCompleted;
+  const showOnboarding = !onboardingCompleted && !accountsPending && accounts.length === 0;
 
   // system tray integration (sync button, status updates)
   useTray({
