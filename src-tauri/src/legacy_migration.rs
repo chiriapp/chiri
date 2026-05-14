@@ -117,15 +117,30 @@ pub fn migrate_from_legacy_identifier<R: tauri::Runtime>(app: &tauri::App<R>) {
 
     // macOS: WebKit storage lives in ~/Library/WebKit/<identifier>/, completely
     // separate from Application Support.
+    //
+    // WKWebView creates the new identifier's WebKit directory before setup()
+    // runs, so the standard is_dir_empty guard on the whole dir fires
+    // immediately and skips migration.  Migrate the individual data
+    // subdirectories instead — LocalStorage/ and IndexedDB/ will be absent or
+    // empty in the freshly-initialised dir even though the parent already exists.
     #[cfg(target_os = "macos")]
     {
         if let Some(home) = dirs::home_dir() {
             let webkit_base = home.join("Library/WebKit");
-            migrate_path_pair(
-                "WebKit",
-                &webkit_base.join(OLD_IDENTIFIER),
-                &webkit_base.join(&new_identifier),
-            );
+            let old_webkit = webkit_base.join(OLD_IDENTIFIER);
+            let new_webkit = webkit_base.join(&new_identifier);
+
+            for subdir in &["LocalStorage", "IndexedDB"] {
+                let old_sub = old_webkit.join(subdir);
+                let new_sub = new_webkit.join(subdir);
+                if old_sub.exists() {
+                    migrate_path_pair(
+                        &format!("WebKit/{subdir}"),
+                        &old_sub,
+                        &new_sub,
+                    );
+                }
+            }
         }
     }
 
