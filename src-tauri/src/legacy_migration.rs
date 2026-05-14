@@ -84,10 +84,19 @@ fn migrate_path_pair(label: &str, old: &Path, new: &Path) {
 /// - `app_log_dir`        — log files (all platforms)
 /// - `~/Library/WebKit`   — WebKit storage (macOS only; separate from App Support)
 ///
-/// Migration is non-destructive (copy, not move) and idempotent.
+/// Migration is non-destructive (copy, not move) and runs at most once,
+/// gated by a marker file written to app_local_data_dir on completion.
 pub fn migrate_from_legacy_identifier<R: tauri::Runtime>(app: &tauri::App<R>) {
     const OLD_IDENTIFIER: &str = "moe.sapphic.Chiri";
+    const MARKER: &str = ".legacy_migration_v1_done";
+
     let new_identifier = app.config().identifier.clone();
+
+    // Fast path: skip entirely if migration has already run.
+    let marker_path = app.path().app_local_data_dir().ok().map(|d| d.join(MARKER));
+    if marker_path.as_deref().map(|p| p.exists()).unwrap_or(false) {
+        return;
+    }
 
     log::info!("[LegacyMigration] Checking for legacy {OLD_IDENTIFIER} data…");
 
@@ -141,6 +150,15 @@ pub fn migrate_from_legacy_identifier<R: tauri::Runtime>(app: &tauri::App<R>) {
                     );
                 }
             }
+        }
+    }
+
+    // Write marker so this never runs again.
+    if let Some(marker) = marker_path {
+        if let Err(e) = std::fs::create_dir_all(marker.parent().unwrap_or(&marker)) {
+            log::warn!("[LegacyMigration] Could not create data dir for marker: {e}");
+        } else if let Err(e) = std::fs::write(&marker, "") {
+            log::warn!("[LegacyMigration] Could not write migration marker: {e}");
         }
     }
 
