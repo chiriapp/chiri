@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Connection } from '$lib/caldav/connection';
 import { createTask, deleteTask, updateTask } from '$lib/caldav/tasks';
 import type { HttpResponse, MultiStatusResponse } from '$lib/tauri-http';
 import * as http from '$lib/tauri-http';
-import type { Calendar, Task } from '$types';
+import { makeCalendar, makeConnection, makeTask } from '../../fixtures';
 
 // mock the entire tauri-http module. all functions call into Tauri IPC which
 // isn't available outside the Tauri runtime
@@ -38,11 +37,9 @@ const ok = (status: number, headers: Record<string, string> = {}): HttpResponse 
   body: '',
 });
 
-// test fixtures: partial objects cast through `unknown` because the production
-// types require many fields the code under test never reads
-const conn = { credentials: { username: 'user', password: 'pass' } } as unknown as Connection;
-const calendar = { url: 'https://cal.example.com/calendars/default/' } as unknown as Calendar;
-const task = { uid: 'test-uid-123' } as unknown as Task;
+const conn = makeConnection();
+const calendar = makeCalendar({ url: 'https://cal.example.com/calendars/default/' });
+const task = makeTask({ uid: 'test-uid-123' });
 const expectedHref = 'https://cal.example.com/calendars/default/test-uid-123.ics';
 
 describe('createTask', () => {
@@ -124,11 +121,11 @@ describe('createTask', () => {
 });
 
 describe('updateTask', () => {
-  const existingTask = {
+  const existingTask = makeTask({
     uid: 'abc',
     href: 'https://cal.example.com/calendars/default/abc.ics',
     etag: 'old-etag',
-  } as unknown as Task;
+  });
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -164,7 +161,7 @@ describe('updateTask', () => {
   });
 
   it('returns null when task has no href', async () => {
-    expect(await updateTask(conn, { uid: 'abc' } as unknown as Task)).toBeNull();
+    expect(await updateTask(conn, makeTask({ uid: 'abc' }))).toBeNull();
     expect(http.put).not.toHaveBeenCalled();
   });
 
@@ -194,11 +191,11 @@ describe('updateTask', () => {
 });
 
 describe('deleteTask', () => {
-  const existingTask = {
+  const existingTask = makeTask({
     uid: 'abc',
     href: 'https://cal.example.com/calendars/default/abc.ics',
     etag: 'tag',
-  } as unknown as Task;
+  });
 
   beforeEach(() => vi.clearAllMocks());
 
@@ -235,7 +232,7 @@ describe('deleteTask', () => {
   });
 
   it('returns false when task has no href', async () => {
-    expect(await deleteTask(conn, { uid: 'abc' } as unknown as Task)).toBe(false);
+    expect(await deleteTask(conn, makeTask({ uid: 'abc' }))).toBe(false);
     expect(http.del).not.toHaveBeenCalled();
   });
 

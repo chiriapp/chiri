@@ -5,20 +5,15 @@ vi.mock('$lib/store/tags', () => ({ getAllTags: () => [] }));
 vi.mock('$utils/misc', () => ({ generateUUID: () => 'fixed-test-uuid' }));
 
 import { generateVCalendar, generateVTodo, parseVTodo } from '$lib/ical/vtodo';
-import type { Task } from '$types';
+import { makeTask } from '../../fixtures';
 
-const baseTask = {
+const baseTask = makeTask({
   id: 'task-1',
   uid: 'uid-1',
   title: 'Buy milk',
-  status: 'needs-action',
-  priority: 'none',
-  sortOrder: 100,
-  createdAt: Date.UTC(2025, 0, 1),
-  modifiedAt: Date.UTC(2025, 0, 1),
   tags: [],
   reminders: [],
-} as unknown as Task;
+});
 
 describe('generateVTodo', () => {
   it('produces wrapped VTODO content', () => {

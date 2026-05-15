@@ -1,19 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '$types';
 import { calculateNewPositions, type FlattenedTask, flattenTasks } from '$utils/tree';
+import { makeFlattenedTask } from '../fixtures';
 
 const task = (id: string, uid: string, overrides: Partial<FlattenedTask> = {}): FlattenedTask =>
-  ({
-    id,
-    uid,
-    title: uid,
-    sortOrder: 100,
-    isCollapsed: false,
-    parentUid: undefined,
-    ancestorIds: [],
-    depth: 0,
-    ...overrides,
-  }) as unknown as FlattenedTask;
+  makeFlattenedTask({ id, uid, title: uid, ...overrides });
 
 describe('flattenTasks', () => {
   const noChildren = (): Task[] => [];
