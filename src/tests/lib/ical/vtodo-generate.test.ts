@@ -58,7 +58,7 @@ describe('generateVTodo', () => {
   });
 
   it('emits STATUS:COMPLETED + COMPLETED line when completed', () => {
-    const t = { ...baseTask, status: 'completed', completedAt: Date.UTC(2025, 5, 1, 12) };
+    const t = makeTask({ status: 'completed', completedAt: new Date(Date.UTC(2025, 5, 1, 12)) });
     const result = generateVTodo(t);
     expect(result).toContain('STATUS:COMPLETED');
     expect(result).toMatch(/COMPLETED:\d{8}T\d{6}Z/);
