@@ -77,7 +77,11 @@ export const useTheme = () => {
 
   // apply accent color — resolve name→hex first, then normalize pastel scheme colors
   useEffect(() => {
-    const flavor = getColorSchemeFlavor(colorScheme, colorSchemeFlavor, resolveEffectiveTheme(theme));
+    const flavor = getColorSchemeFlavor(
+      colorScheme,
+      colorSchemeFlavor,
+      resolveEffectiveTheme(theme),
+    );
     const resolved = resolveAccentColor(accentColor, flavor.accentColors);
     if (isDefaultScheme) {
       applyAccentColor(resolved);

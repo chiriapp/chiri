@@ -379,9 +379,7 @@ const applyVTodoProp = (result: ParsedVTodo, prop: ParsedProperty) => {
       result.priority = parseInt(prop.value, 10) || 0;
       break;
     case 'CATEGORIES':
-      result.categories = splitAllUnescaped(prop.value, ',').map((c) =>
-        unescapeICalText(c.trim()),
-      );
+      result.categories = splitAllUnescaped(prop.value, ',').map((c) => unescapeICalText(c.trim()));
       break;
     case 'X-TASKS-TAG-COLOR': {
       const parsedTagColor = parseTagColorValue(prop.value);
