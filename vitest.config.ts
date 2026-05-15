@@ -18,6 +18,7 @@ export default defineConfig({
             'src/tests/lib/tauri-http.test.ts',
             'src/tests/utils/mobileconfig.test.ts',
             'src/tests/utils/color.test.ts',
+            'src/tests/integration/**',
           ],
         },
       },
@@ -31,6 +32,18 @@ export default defineConfig({
             'src/tests/utils/mobileconfig.test.ts',
             'src/tests/utils/color.test.ts',
           ],
+        },
+      },
+      // integration project: runs against a real CalDAV server when
+      // CHIRI_TEST_CALDAV_* env vars are set. excluded from the default
+      // `pnpm test` run via `--project` filtering in the script
+      {
+        extends: true,
+        test: {
+          name: 'integration',
+          environment: 'node',
+          include: ['src/tests/integration/**/*.test.ts'],
+          setupFiles: ['./src/tests/setup.ts', './src/tests/integration/setup-integration.ts'],
         },
       },
     ],

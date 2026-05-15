@@ -13,9 +13,10 @@
     "lint": "biome lint .",
     "format": "biome format --write .",
     "check": "biome check --write .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test": "vitest run --project=node --project=jsdom",
+    "test:watch": "vitest --project=node --project=jsdom",
+    "test:coverage": "vitest run --project=node --project=jsdom --coverage",
+    "test:integration": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --project=integration"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -52,6 +53,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.6",
+    "@xmldom/xmldom": "^0.9.10",
     "jsdom": "^29.1.1",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2",
