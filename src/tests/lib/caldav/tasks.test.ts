@@ -63,23 +63,34 @@ describe('createTask', () => {
     });
   });
 
-  describe('409 Conflict — task already exists on server', () => {
-    it('fetches etag via PROPFIND and returns href+etag', async () => {
-      vi.mocked(http.put).mockResolvedValueOnce(ok(409));
-      vi.mocked(http.propfind).mockResolvedValueOnce(ok(207));
-      vi.mocked(http.parseMultiStatus).mockReturnValueOnce([
-        {
-          props: { getetag: '"server-etag"' },
-          href: expectedHref,
-          status: '',
-        } as MultiStatusResponse,
-      ]);
+  describe('"task already exists" recovery (409 Conflict or 412 Precondition Failed)', () => {
+    // servers differ on which status they return for If-None-Match: * failures.
+    // Rustical/Radicale: 409. Nextcloud/SabreDAV: 412. both are RFC-7232 valid
+    for (const status of [409, 412] as const) {
+      it(`fetches etag via PROPFIND and returns href+etag on ${status}`, async () => {
+        vi.mocked(http.put).mockResolvedValueOnce(ok(status));
+        vi.mocked(http.propfind).mockResolvedValueOnce(ok(207));
+        vi.mocked(http.parseMultiStatus).mockReturnValueOnce([
+          {
+            props: { getetag: '"server-etag"' },
+            href: expectedHref,
+            status: '',
+          } as MultiStatusResponse,
+        ]);
 
-      expect(await createTask(conn, calendar, task)).toEqual({
-        href: expectedHref,
-        etag: 'server-etag',
+        expect(await createTask(conn, calendar, task)).toEqual({
+          href: expectedHref,
+          etag: 'server-etag',
+        });
       });
-    });
+
+      it(`returns null when PROPFIND fails after ${status}`, async () => {
+        vi.mocked(http.put).mockResolvedValueOnce(ok(status));
+        vi.mocked(http.propfind).mockResolvedValueOnce(ok(404));
+
+        expect(await createTask(conn, calendar, task)).toBeNull();
+      });
+    }
 
     it('sends PROPFIND to the correct URL with depth 0', async () => {
       vi.mocked(http.put).mockResolvedValueOnce(ok(409));
@@ -96,13 +107,6 @@ describe('createTask', () => {
         expect.stringContaining('getetag'),
         '0',
       );
-    });
-
-    it('returns null when PROPFIND fails after 409', async () => {
-      vi.mocked(http.put).mockResolvedValueOnce(ok(409));
-      vi.mocked(http.propfind).mockResolvedValueOnce(ok(404));
-
-      expect(await createTask(conn, calendar, task)).toBeNull();
     });
   });
 
