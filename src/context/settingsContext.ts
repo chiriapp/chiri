@@ -417,7 +417,11 @@ let pendingMigrationSave = loadResult.migrated;
 applyTheme(state.theme);
 const _initEffectiveMode = resolveEffectiveTheme(state.theme);
 applyColorScheme(state.colorScheme, state.colorSchemeFlavor, _initEffectiveMode);
-const _initFlavor = getColorSchemeFlavor(state.colorScheme, state.colorSchemeFlavor, _initEffectiveMode);
+const _initFlavor = getColorSchemeFlavor(
+  state.colorScheme,
+  state.colorSchemeFlavor,
+  _initEffectiveMode,
+);
 const _initAccent = resolveAccentColor(state.accentColor, _initFlavor.accentColors);
 if (state.colorScheme === DEFAULT_COLOR_SCHEME_ID) {
   applyAccentColor(_initAccent);

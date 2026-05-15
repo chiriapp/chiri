@@ -170,7 +170,9 @@ export const BehaviorSettings = () => {
               <>
                 <div className="border-t border-surface-200 dark:border-surface-700" />
                 <div className="flex items-center justify-between gap-4 px-4 py-3 bg-surface-100 dark:bg-surface-700/50">
-                  <p className="text-sm text-surface-700 dark:text-surface-300">Restart required to apply changes</p>
+                  <p className="text-sm text-surface-700 dark:text-surface-300">
+                    Restart required to apply changes
+                  </p>
                   <button
                     type="button"
                     onClick={handleRestart}

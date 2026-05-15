@@ -1,5 +1,5 @@
-import { TaskHistoryEntry } from '$components/modals/TaskHistoryEntry';
 import { ModalWrapper } from '$components/ModalWrapper';
+import { TaskHistoryEntry } from '$components/modals/TaskHistoryEntry';
 import { useTaskHistory } from '$hooks/queries/useTaskHistory';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 

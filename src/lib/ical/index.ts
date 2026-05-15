@@ -70,11 +70,7 @@ export const parseICalDate = (value: string) => {
     const minute = parseInt(minuteStr, 10);
     const second = parseInt(secondStr, 10);
     const date = new Date(year, month - 1, day, hour, minute, second);
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
       return undefined;
     }
     return date;
@@ -88,11 +84,7 @@ export const parseICalDate = (value: string) => {
     const month = parseInt(monthStr, 10);
     const day = parseInt(dayStr, 10);
     const date = new Date(year, month - 1, day);
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
+    if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
       return undefined;
     }
     return date;
