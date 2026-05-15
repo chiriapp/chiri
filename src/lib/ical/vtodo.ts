@@ -186,6 +186,34 @@ const splitFirstUnescaped = (value: string, separator: string) => {
   return null;
 };
 
+const splitAllUnescaped = (value: string, separator: string) => {
+  const parts: string[] = [];
+  let escaped = false;
+  let start = 0;
+
+  for (let i = 0; i < value.length; i++) {
+    const char = value[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (char === '\\') {
+      escaped = true;
+      continue;
+    }
+
+    if (char === separator) {
+      parts.push(value.slice(start, i));
+      start = i + 1;
+    }
+  }
+
+  parts.push(value.slice(start));
+  return parts;
+};
+
 const parseTagColorValue = (value: string) => {
   const parts = splitFirstUnescaped(value, '|');
   if (!parts) return null;
@@ -351,7 +379,9 @@ const applyVTodoProp = (result: ParsedVTodo, prop: ParsedProperty) => {
       result.priority = parseInt(prop.value, 10) || 0;
       break;
     case 'CATEGORIES':
-      result.categories = prop.value.split(',').map((c) => unescapeICalText(c.trim()));
+      result.categories = splitAllUnescaped(prop.value, ',').map((c) =>
+        unescapeICalText(c.trim()),
+      );
       break;
     case 'X-TASKS-TAG-COLOR': {
       const parsedTagColor = parseTagColorValue(prop.value);

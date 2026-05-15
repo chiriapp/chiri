@@ -47,3 +47,6 @@ src-tauri/icons/ios
 tmp/
 caldav-test
 src-tauri/gen/Assets.car
+
+# tests
+coverage

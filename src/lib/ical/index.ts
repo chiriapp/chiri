@@ -40,39 +40,62 @@ export const parseICalDate = (value: string) => {
   if (cleanValue.endsWith('Z')) {
     const match = cleanValue.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/);
     if (match) {
-      const [, year, month, day, hour, minute, second] = match;
-      return new Date(
-        Date.UTC(
-          parseInt(year, 10),
-          parseInt(month, 10) - 1,
-          parseInt(day, 10),
-          parseInt(hour, 10),
-          parseInt(minute, 10),
-          parseInt(second, 10),
-        ),
-      );
+      const [, yearStr, monthStr, dayStr, hourStr, minuteStr, secondStr] = match;
+      const year = parseInt(yearStr, 10);
+      const month = parseInt(monthStr, 10);
+      const day = parseInt(dayStr, 10);
+      const hour = parseInt(hourStr, 10);
+      const minute = parseInt(minuteStr, 10);
+      const second = parseInt(secondStr, 10);
+      const date = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+      if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+      ) {
+        return undefined;
+      }
+      return date;
     }
   }
 
   // Local datetime: 20231225T120000
   const dtMatch = cleanValue.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);
   if (dtMatch) {
-    const [, year, month, day, hour, minute, second] = dtMatch;
-    return new Date(
-      parseInt(year, 10),
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10),
-    );
+    const [, yearStr, monthStr, dayStr, hourStr, minuteStr, secondStr] = dtMatch;
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+    const day = parseInt(dayStr, 10);
+    const hour = parseInt(hourStr, 10);
+    const minute = parseInt(minuteStr, 10);
+    const second = parseInt(secondStr, 10);
+    const date = new Date(year, month - 1, day, hour, minute, second);
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      return undefined;
+    }
+    return date;
   }
 
   // Date only: 20231225
   const dateMatch = cleanValue.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (dateMatch) {
-    const [, year, month, day] = dateMatch;
-    return new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+    const [, yearStr, monthStr, dayStr] = dateMatch;
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+    const day = parseInt(dayStr, 10);
+    const date = new Date(year, month - 1, day);
+    if (
+      date.getFullYear() !== year ||
+      date.getMonth() !== month - 1 ||
+      date.getDate() !== day
+    ) {
+      return undefined;
+    }
+    return date;
   }
 
   return undefined;

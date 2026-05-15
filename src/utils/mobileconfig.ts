@@ -36,23 +36,28 @@ const detectServerType = (hostname: string | null, principalUrl: string | null):
 
   // Check principal URL path pattern
   if (principalUrl) {
-    const path = principalUrl.toLowerCase();
+    let pathname = principalUrl.toLowerCase();
+    try {
+      pathname = new URL(principalUrl).pathname.toLowerCase();
+    } catch {
+      // already relative; use as-is
+    }
 
     // RustiCal: /caldav/principal/{username}/
-    if (path.includes('/caldav/principal/')) return 'rustical';
+    if (pathname.includes('/caldav/principal/')) return 'rustical';
 
     // Nextcloud: /remote.php/dav/principals/users/{username}/
     // Also matches calendar home: /remote.php/dav/calendars/{username}/
-    if (path.includes('/remote.php/dav/')) return 'nextcloud';
+    if (pathname.includes('/remote.php/dav/')) return 'nextcloud';
 
     // Baikal: /dav.php/principals/{username}/
     // Also matches calendars: /dav.php/calendars/{username}/
-    if (path.includes('/dav.php/principals/')) return 'baikal';
+    if (pathname.includes('/dav.php/principals/')) return 'baikal';
 
     // Radicale: /{username}/ (simple flat structure)
     // Radicale uses a minimalist structure with users at root level
-    const pathParts = path.split('/').filter((p) => p.length > 0);
-    if (pathParts.length <= 2 && !path.includes('.php') && !path.includes('/dav/')) {
+    const pathParts = pathname.split('/').filter((p) => p.length > 0);
+    if (pathParts.length <= 2 && !pathname.includes('.php') && !pathname.includes('/dav/')) {
       return 'radicale';
     }
   }

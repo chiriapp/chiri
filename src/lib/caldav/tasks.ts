@@ -1,7 +1,7 @@
 import type { Connection } from '$lib/caldav/connection';
 import { cleanEtag, log, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
 import { taskToVTodo, vtodoToTask } from '$lib/ical/vtodo';
-import { del, parseMultiStatus, put, report } from '$lib/tauri-http';
+import { del, parseMultiStatus, propfind, put, report } from '$lib/tauri-http';
 import type { Calendar, Task } from '$types';
 
 export const fetchTasks = async (
@@ -130,6 +130,26 @@ export const createTask = async (
     if (response.status === 201 || response.status === 204) {
       const etag = cleanEtag(response.headers.etag);
       return { href: url, etag };
+    }
+
+    if (response.status === 409) {
+      // app was killed after PUT succeeded but before synced=1 was written probably. the task already
+      // exists on the server. fetch the current etag so we can mark it synced correctly
+      log.warn(`Task already exists on server (409), fetching etag: ${url}`);
+      const propfindBody =
+        `<?xml version="1.0" encoding="utf-8"?>` +
+        `<d:propfind xmlns:d="DAV:"><d:prop><d:getetag/></d:prop></d:propfind>`;
+
+      const propfindResponse = await propfind(url, conn.credentials, propfindBody, '0');
+
+      if (propfindResponse.status === 207) {
+        const results = parseMultiStatus(propfindResponse.body);
+        const etag = cleanEtag(results[0]?.props?.getetag);
+        return { href: url, etag };
+      }
+
+      log.error(`Failed to fetch etag after 409: HTTP ${propfindResponse.status}`);
+      return null;
     }
 
     log.error(`Failed to create task: HTTP ${response.status}`);
