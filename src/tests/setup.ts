@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import 'vitest-canvas-mock';
 
 // globally stub the Tauri logging plugin so any module that transitively imports
 // `$lib/logger` evaluates cleanly under Node
