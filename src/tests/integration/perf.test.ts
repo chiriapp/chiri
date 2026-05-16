@@ -68,8 +68,14 @@ integration(`perf smoke (real server, N=${N})`, () => {
       }),
     );
 
+    // Serial — Promise.all triggers concurrent-write rejections on Radicale
+    // (multifilesystem storage) and Xandikos (dulwich/git 423 Locked). Serial
+    // also matches how chiri's real sync pushes tasks.
     const start = performance.now();
-    const results = await Promise.all(tasks.map((t) => createTask(conn(), testCalendar, t)));
+    const results: Array<{ href: string; etag: string } | null> = [];
+    for (const t of tasks) {
+      results.push(await createTask(conn(), testCalendar, t));
+    }
     const elapsed = performance.now() - start;
 
     const successful = results.filter((r) => r !== null);
@@ -159,8 +165,13 @@ integration(`perf smoke (real server, N=${N})`, () => {
     const fetched = await fetchTasks(conn(), 'perf-acct', testCalendar);
     expect(fetched).toHaveLength(N);
 
+    // Serial for the same reasons as bulk_create — keeps results consistent
+    // across server backends regardless of their concurrency tolerance.
     const start = performance.now();
-    const results = await Promise.all(fetched!.map((t) => deleteTask(conn(), t)));
+    const results: boolean[] = [];
+    for (const t of fetched!) {
+      results.push(await deleteTask(conn(), t));
+    }
     const elapsed = performance.now() - start;
 
     expect(results.filter(Boolean)).toHaveLength(N);
