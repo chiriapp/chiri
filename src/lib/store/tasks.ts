@@ -310,6 +310,31 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
   const data = dataStore.load();
   let updatedTask: Task | undefined;
 
+  // when a synced task is moved to a different calendar, queue deletion from the
+  // old calendar URL and clear href/etag so the task is created fresh in the new
+  // calendar. CalDAV addresses tasks by URL, so a plain PUT to the old href just
+  // updates the task in the old calendar. the move never happens server-side
+  // see chiriapp/chiri#51
+  const existingTask = data.tasks.find((t) => t.id === id);
+  let pendingDeletions = data.pendingDeletions;
+  if (
+    existingTask?.href &&
+    updates.calendarId !== undefined &&
+    updates.calendarId !== existingTask.calendarId
+  ) {
+    const deletion = {
+      uid: existingTask.uid,
+      href: existingTask.href,
+      accountId: existingTask.accountId,
+      calendarId: existingTask.calendarId,
+    };
+    pendingDeletions = [...pendingDeletions, deletion];
+    db.addPendingDeletion(deletion).catch((e) =>
+      log.error('Failed to persist pending deletion for calendar move:', e),
+    );
+    updates = { ...updates, href: undefined, etag: undefined };
+  }
+
   const tasks = data.tasks.map((task) => {
     if (task.id === id) {
       updatedTask = {
@@ -329,7 +354,7 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
     db.updateTask(id, updatedTask).catch((e) => log.error('Failed to persist task update:', e));
   }
 
-  dataStore.save({ ...data, tasks });
+  dataStore.save({ ...data, tasks, pendingDeletions });
   return updatedTask;
 };
 
