@@ -25,6 +25,7 @@ import { useAccounts } from '$hooks/queries/useAccounts';
 import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { SortDirection, SortMode } from '$types';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
+import { pluralize } from '$utils/misc';
 
 const SYNC_SOURCE_LABELS: Record<string, string> = {
   'header-sync-button': 'manually',
@@ -61,7 +62,7 @@ const getSyncTooltip = (
     const suffix = showJustNow ? 'just now' : when;
     return sourceLabel ? `Last synced ${suffix} ${sourceLabel}` : `Last synced ${suffix}`;
   }
-  return `Sync with ${accountCount > 1 ? 'servers' : 'server'} (${syncShortcut})`;
+  return `Sync with ${pluralize(accountCount, 'server')} (${syncShortcut})`;
 };
 
 // Extracted helper: get sync button class
