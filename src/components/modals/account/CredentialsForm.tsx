@@ -221,14 +221,22 @@ export const CredentialsForm = ({
           htmlFor="password"
           className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
         >
-          Password
+          {serverType === 'fastmail' || serverType === 'runbox' || serverType === 'purelymail'
+            ? 'App Password'
+            : 'Password'}
         </label>
         <ComposedInput
           id="password"
           type="password"
           value={password}
           onChange={onPasswordChange}
-          placeholder={account ? '(unchanged)' : 'Enter password'}
+          placeholder={
+            account
+              ? '(unchanged)'
+              : serverType === 'fastmail' || serverType === 'runbox' || serverType === 'purelymail'
+                ? 'Enter app password'
+                : 'Enter password'
+          }
           required={!account}
           className="w-full px-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
         />

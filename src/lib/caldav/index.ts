@@ -41,6 +41,28 @@ export class CalDAVClient {
     );
   }
 
+  static async connectWithBearer(
+    accountId: string,
+    serverUrl: string,
+    username: string,
+    accessToken: string,
+    serverType: ServerType = 'generic',
+    calendarHomeUrl?: string,
+    principalUrl?: string,
+    acceptInvalidCerts?: boolean,
+  ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> {
+    return connectionOps.connectWithBearer(
+      accountId,
+      serverUrl,
+      username,
+      accessToken,
+      serverType,
+      calendarHomeUrl,
+      principalUrl,
+      acceptInvalidCerts,
+    );
+  }
+
   static disconnect(accountId: string): void {
     connectionOps.disconnect(accountId);
   }

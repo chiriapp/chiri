@@ -101,16 +101,18 @@ export const tauriRequest = async (
     ...(authHeader ? { Authorization: authHeader } : {}),
   };
 
-  // For accounts with untrusted certs, route through the Rust command which
-  // supports per-request certificate validation bypass.
+  // route through the Rust command when:
+  //  - cert validation bypass is needed (self-signed / private CA), or
+  //  - bearer token auth is in use (WebView injects an Origin header that
+  //    some servers, including Fastmail, reject)
   let response: HttpResponse;
-  if (credentials.acceptInvalidCerts) {
+  if (credentials.acceptInvalidCerts || credentials.bearerToken) {
     response = await invoke<HttpResponse>('caldav_request', {
       url,
       method,
       headers: requestHeaders,
       body: body ?? null,
-      acceptInvalidCerts: true,
+      acceptInvalidCerts: credentials.acceptInvalidCerts ?? false,
     });
   } else {
     const rawResponse = await tauriFetch(url, {

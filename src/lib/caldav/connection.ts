@@ -210,8 +210,14 @@ export const connect = async (
   calendarHomeUrl?: string,
   principalUrlOverride?: string,
   acceptInvalidCerts?: boolean,
+  bearerToken?: string,
 ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> => {
-  const credentials: CalDAVCredentials = { username, password, acceptInvalidCerts };
+  const credentials: CalDAVCredentials = {
+    username,
+    password,
+    acceptInvalidCerts,
+    ...(bearerToken ? { bearerToken } : {}),
+  };
 
   let baseUrl = serverUrl.replace(/\/$/, '');
 
@@ -295,6 +301,31 @@ export const connect = async (
   return { principalUrl, displayName, calendarHome };
 };
 
+/** connect() variant for OAuth bearer-token accounts */
+export const connectWithBearer = async (
+  accountId: string,
+  serverUrl: string,
+  username: string,
+  accessToken: string,
+  serverType: ServerType = 'generic',
+  calendarHomeUrl?: string,
+  principalUrlOverride?: string,
+  acceptInvalidCerts?: boolean,
+): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> => {
+  // pass empty string for password; bearerToken overrides it in tauriRequest
+  return connect(
+    accountId,
+    serverUrl,
+    username,
+    '',
+    serverType,
+    calendarHomeUrl,
+    principalUrlOverride,
+    acceptInvalidCerts,
+    accessToken,
+  );
+};
+
 export const disconnect = (accountId: string): void => {
   connectionStore.deleteConnection(accountId);
 };
@@ -304,9 +335,56 @@ export const isConnected = (accountId: string): boolean => {
 };
 
 export const reconnect = async (account: Account): Promise<void> => {
-  if (!account.serverUrl || !account.username || !account.password) {
+  if (!account.serverUrl || !account.username) {
     throw new Error('Missing account credentials');
   }
+
+  if (account.authType === 'oauth') {
+    // for OAuth accounts the 'password' column holds the current access token;
+    // proactively refresh if the token is expired (or within 60 s of expiry)
+    let accessToken = account.password;
+
+    if (account.tokenExpiry) {
+      const expiresAt = new Date(account.tokenExpiry).getTime();
+      const now = Date.now();
+      const bufferMs = 60 * 1000;
+
+      if (now >= expiresAt - bufferMs && account.refreshToken) {
+        // lazy import to avoid a circular-dependency chain at module init time
+        const { refreshFastmailToken } = await import('$lib/fastmail-auth');
+        const { updateAccount } = await import('$lib/store/accounts');
+        try {
+          const fresh = await refreshFastmailToken(account.refreshToken);
+          accessToken = fresh.accessToken;
+          updateAccount(account.id, {
+            password: fresh.accessToken,
+            refreshToken: fresh.refreshToken,
+            tokenExpiry: fresh.tokenExpiry,
+          });
+        } catch (e) {
+          // refresh failed, try with the existing token anyway
+          console.warn('[CalDAV] Token refresh failed, retrying with existing token:', e);
+        }
+      }
+    }
+
+    await connectWithBearer(
+      account.id,
+      account.serverUrl,
+      account.username,
+      accessToken,
+      account.serverType ?? 'generic',
+      account.calendarHomeUrl,
+      account.principalUrl,
+      account.acceptInvalidCerts,
+    );
+    return;
+  }
+
+  if (!account.password) {
+    throw new Error('Missing account password');
+  }
+
   await connect(
     account.id,
     account.serverUrl,

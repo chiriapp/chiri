@@ -2,14 +2,15 @@
 mod liquid_glass_icon;
 
 fn main() {
-    tauri_build::build();
-
-    // Compile macOS Liquid Glass icon
+    // compile macOS liquid glass icon first: tauri_build::build() checks for
+    // gen/Assets.car as a resource and will panic if it doesn't exist yet.
     #[cfg(target_os = "macos")]
     {
         liquid_glass_icon::compile_icon();
         compile_swift_notifications();
     }
+
+    tauri_build::build();
 }
 
 #[cfg(target_os = "macos")]

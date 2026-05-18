@@ -46,6 +46,9 @@ export interface AccountRow {
   is_active: number;
   sort_order: number | null;
   accept_invalid_certs: number | null;
+  auth_type: string | null;
+  refresh_token: string | null;
+  token_expiry: string | null;
 }
 
 export interface CalendarRow {

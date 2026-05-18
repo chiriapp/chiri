@@ -167,6 +167,7 @@ export interface Account {
   name: string;
   serverUrl: string;
   username: string;
+  /** For basic auth: the user's password. For OAuth: the current access token. */
   password: string;
   serverType?: ServerType;
   icon?: string;
@@ -178,6 +179,12 @@ export interface Account {
   lastSync?: Date;
   isActive: boolean;
   sortOrder: number;
+  /** Auth mechanism: 'basic' (default) or 'oauth' (bearer token via OAuth 2.0 + PKCE) */
+  authType?: 'basic' | 'oauth';
+  /** OAuth refresh token, only set when authType === 'oauth' */
+  refreshToken?: string;
+  /** ISO timestamp of access token expiry, only set when authType === 'oauth' */
+  tokenExpiry?: string;
 }
 
 export interface SortConfig {

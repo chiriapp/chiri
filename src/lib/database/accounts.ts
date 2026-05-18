@@ -41,11 +41,14 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
     calendars: [],
     isActive: true,
     sortOrder: accountData.sortOrder || maxOrder + 100,
+    authType: accountData.authType ?? 'basic',
+    refreshToken: accountData.refreshToken,
+    tokenExpiry: accountData.tokenExpiry,
   };
 
   await conn.execute(
-    `INSERT INTO accounts (id, name, server_url, username, password, server_type, icon, emoji, calendar_home_url, principal_url, last_sync, is_active, sort_order, accept_invalid_certs)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+    `INSERT INTO accounts (id, name, server_url, username, password, server_type, icon, emoji, calendar_home_url, principal_url, last_sync, is_active, sort_order, accept_invalid_certs, auth_type, refresh_token, token_expiry)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
     [
       account.id,
       account.name,
@@ -61,6 +64,9 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
       account.isActive ? 1 : 0,
       account.sortOrder,
       account.acceptInvalidCerts ? 1 : 0,
+      account.authType ?? 'basic',
+      account.refreshToken ?? null,
+      account.tokenExpiry ?? null,
     ],
   );
 
@@ -83,8 +89,8 @@ export const updateAccount = async (
   const updated: Account = { ...existing, ...updates };
 
   await conn.execute(
-    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, icon = $6, emoji = $7, calendar_home_url = $8, principal_url = $9, last_sync = $10, is_active = $11, sort_order = $12, accept_invalid_certs = $13
-     WHERE id = $14`,
+    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, icon = $6, emoji = $7, calendar_home_url = $8, principal_url = $9, last_sync = $10, is_active = $11, sort_order = $12, accept_invalid_certs = $13, auth_type = $14, refresh_token = $15, token_expiry = $16
+     WHERE id = $17`,
     [
       updated.name,
       updated.serverUrl,
@@ -99,6 +105,9 @@ export const updateAccount = async (
       updated.isActive ? 1 : 0,
       updated.sortOrder,
       updated.acceptInvalidCerts ? 1 : 0,
+      updated.authType ?? 'basic',
+      updated.refreshToken ?? null,
+      updated.tokenExpiry ?? null,
       id,
     ],
   );

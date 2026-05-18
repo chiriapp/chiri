@@ -79,6 +79,9 @@ export const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account =>
   sortOrder: row.sort_order ?? 0,
   acceptInvalidCerts:
     row.accept_invalid_certs === null ? undefined : row.accept_invalid_certs === 1,
+  authType: (row.auth_type === 'oauth' ? 'oauth' : 'basic') as 'basic' | 'oauth',
+  refreshToken: row.refresh_token || undefined,
+  tokenExpiry: row.token_expiry || undefined,
 });
 
 export const rowToTag = (row: TagRow): Tag => ({

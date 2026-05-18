@@ -45,6 +45,9 @@ export const createAccount = async (accountData: Partial<Account>) => {
     isActive: true,
     sortOrder: accountData.sortOrder || maxExistingOrder + 100,
     acceptInvalidCerts: accountData.acceptInvalidCerts,
+    authType: accountData.authType ?? 'basic',
+    refreshToken: accountData.refreshToken,
+    tokenExpiry: accountData.tokenExpiry,
   } satisfies Account;
 
   await db.createAccount(account).catch((e) => log.error('Failed to persist account:', e));

@@ -6,29 +6,31 @@ import { loggers } from '$lib/logger';
 const log = loggers.http;
 
 /**
- * Initialises the deep link system and (in dev) shows a toast for any
- * received URL so you can verify the scheme is wired up correctly.
+ * Initialises the deep link system.
  *
- * In production this hook just boots the listener; specific OAuth handlers
- * (e.g. Fastmail) will register themselves via registerDeepLinkHandler().
+ * In development a catch-all handler toasts any unhandled URL so you can
+ * verify the scheme is wired up. Specific handlers (e.g. Fastmail OAuth)
+ * register themselves via registerDeepLinkHandler() and always win because
+ * dispatch prefers the longest matching prefix.
  */
 export const useDeepLink = () => {
   useEffect(() => {
     let cleanup: (() => void) | undefined;
 
-    // Demo handler: surface any chiri:// URL as a toast while testing.
-    // Remove (or gate on import.meta.env.DEV) once real handlers are in place.
+    // Dev-only catch-all: surfaces unhandled deep links as toasts.
     const DEMO_PREFIX = '/';
-    registerDeepLinkHandler(DEMO_PREFIX, (url) => {
-      log.info('Deep link demo handler fired', { href: url.href });
-      toastManager.show('Deep link received', url.href, 'info', 'deep-link-demo');
-    });
+    if (import.meta.env.DEV) {
+      registerDeepLinkHandler(DEMO_PREFIX, (url) => {
+        log.info('Deep link catch-all handler fired', { href: url.href });
+        toastManager.show('Deep link received', url.href, 'info', 'deep-link-demo');
+      });
+    }
 
     initDeepLink()
       .then((unlisten) => {
         cleanup = () => {
           unlisten();
-          unregisterDeepLinkHandler(DEMO_PREFIX);
+          if (import.meta.env.DEV) unregisterDeepLinkHandler(DEMO_PREFIX);
         };
       })
       .catch((err) => {
@@ -37,7 +39,7 @@ export const useDeepLink = () => {
 
     return () => {
       cleanup?.();
-      unregisterDeepLinkHandler(DEMO_PREFIX);
+      if (import.meta.env.DEV) unregisterDeepLinkHandler(DEMO_PREFIX);
     };
   }, []);
 };

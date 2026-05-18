@@ -41,7 +41,9 @@ const dispatch = async (rawUrl: string) => {
     log.warn('Received malformed deep link URL', { url: rawUrl });
     return;
   }
-  for (const [prefix, handler] of handlers) {
+  // Match longest prefix first so specific handlers win over catch-all ones.
+  const sorted = [...handlers.entries()].sort((a, b) => b[0].length - a[0].length);
+  for (const [prefix, handler] of sorted) {
     if (parsed.pathname.startsWith(prefix)) {
       handler(parsed);
       return;
