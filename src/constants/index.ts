@@ -22,7 +22,7 @@ export const MODAL_SIZE_CLASSES = {
   xl: 'max-w-xl',
 } as const;
 
-export const JUST_NOW_SYNC_TEXT_MS_THRESHOLD = 10000;
+export const JUST_NOW_SYNC_TEXT_MS_THRESHOLD = 60000;
 
 export const DEFAULT_SORT_CONFIG = {
   mode: 'manual' as const satisfies SortMode,

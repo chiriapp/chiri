@@ -59,8 +59,8 @@ const getSyncTooltip = (
   if (lastSyncTime) {
     const when = formatDistanceToNow(lastSyncTime, { addSuffix: true });
     const sourceLabel = lastSyncSource ? SYNC_SOURCE_LABELS[lastSyncSource] : null;
-    const suffix = showJustNow ? 'just now' : when;
-    return sourceLabel ? `Last synced ${suffix} ${sourceLabel}` : `Last synced ${suffix}`;
+    const time = showJustNow ? 'just now' : when;
+    return sourceLabel ? `Last synced ${sourceLabel} ${time}` : `Last synced ${time}`;
   }
   return `Sync with ${pluralize(accountCount, 'server')} (${syncShortcut})`;
 };
