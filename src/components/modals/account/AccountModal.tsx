@@ -7,6 +7,7 @@ import { useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { CredentialsForm } from '$components/modals/account/CredentialsForm';
+import { FastmailOAuthStep } from '$components/modals/account/FastmailOAuthStep';
 import type {
   QuickConnectFlowHandle,
   QuickConnectLoginStep,
@@ -27,9 +28,15 @@ import type { CalDAVConfig } from '$utils/mobileconfig';
 
 const log = loggers.account;
 
-type Step = 'pick-type' | 'connect-method' | 'quick-connect' | 'credentials';
+type Step = 'pick-type' | 'connect-method' | 'quick-connect' | 'credentials' | 'fastmail-oauth';
 
 const QUICK_CONNECT_SERVER_TYPES = new Set<ServerType>(['nextcloud', 'rustical']);
+const OAUTH_SERVER_TYPES = new Set<ServerType>(['fastmail']);
+/** All server types that go through the connect-method chooser step */
+const CONNECT_METHOD_SERVER_TYPES = new Set<ServerType>([
+  ...QUICK_CONNECT_SERVER_TYPES,
+  ...OAUTH_SERVER_TYPES,
+]);
 
 interface AccountModalProps {
   account: Account | null;
@@ -112,7 +119,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
       setServerUrl('');
     }
     setNavDirection('forward');
-    setStep(QUICK_CONNECT_SERVER_TYPES.has(type) ? 'connect-method' : 'credentials');
+    setStep(CONNECT_METHOD_SERVER_TYPES.has(type) ? 'connect-method' : 'credentials');
   };
 
   const handleBack = () => {
@@ -121,7 +128,13 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     setTestedConnectionId(null);
     setTestedCalendars([]);
     setNavDirection('back');
-    setStep(QUICK_CONNECT_SERVER_TYPES.has(serverType) ? 'connect-method' : 'pick-type');
+    // credentials back-destination: connect-method for types that go through it, otherwise pick-type
+    setStep(CONNECT_METHOD_SERVER_TYPES.has(serverType) ? 'connect-method' : 'pick-type');
+  };
+
+  const handleBackFromOAuth = () => {
+    setNavDirection('back');
+    setStep('connect-method');
   };
 
   const handleBackToTypePicker = () => {
@@ -479,7 +492,9 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             ? handleBack
             : step === 'quick-connect'
               ? handleBackFromQuickConnect
-              : handleBackToTypePicker
+              : step === 'fastmail-oauth'
+                ? handleBackFromOAuth
+                : handleBackToTypePicker // connect-method goes back to pick-type
         }
       >
         <ArrowLeft className="w-4 h-4" />
@@ -559,7 +574,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               type="button"
               onClick={() => {
                 setNavDirection('forward');
-                setStep('quick-connect');
+                setStep(OAUTH_SERVER_TYPES.has(serverType) ? 'fastmail-oauth' : 'quick-connect');
               }}
               className="group w-full flex items-center gap-4 px-4 py-4 text-left rounded-xl border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700/50 hover:border-surface-300 dark:hover:border-surface-500 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
@@ -568,7 +583,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
               </div>
               <div className="min-w-0">
                 <div className="text-sm font-semibold text-surface-800 dark:text-surface-200">
-                  Login via server URL
+                  {OAUTH_SERVER_TYPES.has(serverType) ? 'Log in with OAuth' : 'Login via server URL'}
                 </div>
                 <div className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
                   Authenticate through your browser
@@ -592,7 +607,9 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                   Manually add credentials
                 </div>
                 <div className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
-                  Enter your username and password
+                  {OAUTH_SERVER_TYPES.has(serverType)
+                    ? 'Enter your username and app password'
+                    : 'Enter your username and password'}
                 </div>
               </div>
             </button>
@@ -608,6 +625,8 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
             onConnectStateChange={setQuickConnectButtonState}
           />
         )}
+
+        {step === 'fastmail-oauth' && <FastmailOAuthStep onSuccess={onClose} />}
 
         {step === 'credentials' && (
           <CredentialsForm

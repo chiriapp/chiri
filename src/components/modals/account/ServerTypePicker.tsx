@@ -25,7 +25,7 @@ const CATEGORIES: ServerTypeCategory[] = [
     icon: <Cloud className="size-5" />,
     iconBg: 'bg-semantic-info/15 text-semantic-info',
     servers: [
-      { value: 'fastmail', label: 'Fastmail' },
+      { value: 'fastmail', label: 'Fastmail', description: 'Supports OAuth' },
       { value: 'fruux', label: 'fruux' },
       { value: 'mailbox', label: 'Mailbox.org' },
       { value: 'migadu', label: 'Migadu' },
