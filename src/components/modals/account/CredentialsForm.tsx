@@ -221,9 +221,7 @@ export const CredentialsForm = ({
           htmlFor="password"
           className="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1"
         >
-          {serverType === 'fastmail' || serverType === 'runbox' || serverType === 'purelymail'
-            ? 'App Password'
-            : 'Password'}
+          {serverType === 'fastmail' ? 'App Password' : 'Password'}
         </label>
         <ComposedInput
           id="password"
@@ -233,7 +231,7 @@ export const CredentialsForm = ({
           placeholder={
             account
               ? '(unchanged)'
-              : serverType === 'fastmail' || serverType === 'runbox' || serverType === 'purelymail'
+              : serverType === 'fastmail'
                 ? 'Enter app password'
                 : 'Enter password'
           }
