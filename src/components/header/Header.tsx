@@ -47,6 +47,7 @@ const getSyncTooltip = (
   syncingCalendarName: string | null,
   syncProgress: { current: number; total: number } | null,
   lastSyncSource: string | null,
+  accountCount: number,
 ): string => {
   if (disableSync) return 'Add an account to be able to use sync';
   if (isOffline) return 'Cannot sync while offline';
@@ -60,7 +61,7 @@ const getSyncTooltip = (
     const suffix = showJustNow ? 'just now' : when;
     return sourceLabel ? `Last synced ${suffix} ${sourceLabel}` : `Last synced ${suffix}`;
   }
-  return `Sync with server (${syncShortcut})`;
+  return `Sync with ${accountCount > 1 ? 'servers' : 'server'} (${syncShortcut})`;
 };
 
 // Extracted helper: get sync button class
@@ -225,6 +226,7 @@ export const Header = ({
                 syncingCalendarName,
                 syncProgress,
                 lastSyncSource,
+                accounts.length,
               )}
               position="bottom"
             >
