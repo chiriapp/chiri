@@ -335,34 +335,39 @@ export const isConnected = (accountId: string): boolean => {
 };
 
 export const reconnect = async (account: Account): Promise<void> => {
-  if (!account.serverUrl || !account.username) {
+  if (!account.caldav) {
+    throw new Error('Cannot reconnect a local account');
+  }
+
+  const { caldav } = account;
+
+  if (!caldav.serverUrl || !caldav.username) {
     throw new Error('Missing account credentials');
   }
 
-  if (account.authType === 'oauth') {
-    // for OAuth accounts the 'password' column holds the current access token;
-    // proactively refresh if the token is expired (or within 60 s of expiry)
-    let accessToken = account.password;
+  if (caldav.authType === 'oauth') {
+    let accessToken = caldav.password;
 
-    if (account.tokenExpiry) {
-      const expiresAt = new Date(account.tokenExpiry).getTime();
+    if (caldav.tokenExpiry) {
+      const expiresAt = new Date(caldav.tokenExpiry).getTime();
       const now = Date.now();
       const bufferMs = 60 * 1000;
 
-      if (now >= expiresAt - bufferMs && account.refreshToken) {
-        // lazy import to avoid a circular-dependency chain at module init time
+      if (now >= expiresAt - bufferMs && caldav.refreshToken) {
         const { refreshFastmailToken } = await import('$lib/auth/fastmail');
         const { updateAccount } = await import('$lib/store/accounts');
         try {
-          const fresh = await refreshFastmailToken(account.refreshToken);
+          const fresh = await refreshFastmailToken(caldav.refreshToken);
           accessToken = fresh.accessToken;
           updateAccount(account.id, {
-            password: fresh.accessToken,
-            refreshToken: fresh.refreshToken,
-            tokenExpiry: fresh.tokenExpiry,
+            caldav: {
+              ...caldav,
+              password: fresh.accessToken,
+              refreshToken: fresh.refreshToken,
+              tokenExpiry: fresh.tokenExpiry,
+            },
           });
         } catch (e) {
-          // refresh failed, try with the existing token anyway
           console.warn('[CalDAV] Token refresh failed, retrying with existing token:', e);
         }
       }
@@ -370,30 +375,30 @@ export const reconnect = async (account: Account): Promise<void> => {
 
     await connectWithBearer(
       account.id,
-      account.serverUrl,
-      account.username,
+      caldav.serverUrl,
+      caldav.username,
       accessToken,
-      account.serverType ?? 'generic',
-      account.calendarHomeUrl,
-      account.principalUrl,
-      account.acceptInvalidCerts,
+      caldav.serverType ?? 'generic',
+      caldav.calendarHomeUrl,
+      caldav.principalUrl,
+      caldav.acceptInvalidCerts,
     );
     return;
   }
 
-  if (!account.password) {
+  if (!caldav.password) {
     throw new Error('Missing account password');
   }
 
   await connect(
     account.id,
-    account.serverUrl,
-    account.username,
-    account.password,
-    account.serverType ?? 'generic',
-    account.calendarHomeUrl,
-    account.principalUrl,
-    account.acceptInvalidCerts,
+    caldav.serverUrl,
+    caldav.username,
+    caldav.password,
+    caldav.serverType ?? 'generic',
+    caldav.calendarHomeUrl,
+    caldav.principalUrl,
+    caldav.acceptInvalidCerts,
   );
 };
 

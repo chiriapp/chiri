@@ -34,19 +34,23 @@ export interface TaskRow {
 export interface AccountRow {
   id: string;
   name: string;
+  icon: string | null;
+  emoji: string | null;
+  last_sync: string | null;
+  is_active: number;
+  sort_order: number | null;
+}
+
+export interface CaldavConfigRow {
+  account_id: string;
   server_url: string;
   username: string;
   password: string;
   server_type: string | null;
-  icon: string | null;
-  emoji: string | null;
   calendar_home_url: string | null;
   principal_url: string | null;
-  last_sync: string | null;
-  is_active: number;
-  sort_order: number | null;
   accept_invalid_certs: number | null;
-  auth_type: string | null;
+  auth_type: string;
   refresh_token: string | null;
   token_expiry: string | null;
 }

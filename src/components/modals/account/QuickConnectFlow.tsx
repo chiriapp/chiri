@@ -165,10 +165,13 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
         await createAccountMutation.mutateAsync({
           id: accountId,
           name: `${config.label} (${credentials.loginName})`,
-          serverUrl: credentials.server,
-          username: credentials.loginName,
-          password: credentials.appPassword,
-          serverType,
+          caldav: {
+            serverUrl: credentials.server,
+            username: credentials.loginName,
+            password: credentials.appPassword,
+            serverType,
+            authType: 'basic',
+          },
         });
 
         if (calendars && calendars.length > 0) {

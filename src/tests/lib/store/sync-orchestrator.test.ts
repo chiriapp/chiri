@@ -137,6 +137,13 @@ const testAccount = {
   id: 'acct-1',
   name: 'Test Account',
   calendars: [testCalendar],
+  caldav: {
+    serverUrl: 'https://server/',
+    username: 'user',
+    password: 'pass',
+    serverType: 'generic' as const,
+    authType: 'basic' as const,
+  },
 };
 
 const queryClient = { invalidateQueries: vi.fn() } as unknown as Parameters<

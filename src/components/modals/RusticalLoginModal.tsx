@@ -108,10 +108,13 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
       await createAccountMutation.mutateAsync({
         id: accountId,
         name: `RustiCal (${credentials.loginName})`,
-        serverUrl: credentials.server,
-        username: credentials.loginName,
-        password: credentials.appPassword,
-        serverType: 'rustical',
+        caldav: {
+          serverUrl: credentials.server,
+          username: credentials.loginName,
+          password: credentials.appPassword,
+          serverType: 'rustical',
+          authType: 'basic',
+        },
       });
 
       // Add all discovered calendars to the account

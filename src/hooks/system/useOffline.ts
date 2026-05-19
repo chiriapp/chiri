@@ -30,18 +30,19 @@ const tryUrl = async (url: string, signal: AbortSignal): Promise<boolean> => {
  * 3. No accounts configured → go straight to tiebreaker.
  */
 const checkConnectivity = async (controller: AbortController, tiebreakerEnabled: boolean) => {
-  const accounts = getAllAccounts().filter((a) => a.isActive);
+  const accounts = getAllAccounts().filter((a) => a.isActive && a.caldav);
 
   for (const account of accounts) {
+    const serverUrl = account.caldav!.serverUrl;
     try {
-      if (await tryUrl(account.serverUrl, controller.signal)) {
-        log.debug(`Reachable: ${account.serverUrl}`);
+      if (await tryUrl(serverUrl, controller.signal)) {
+        log.debug(`Reachable: ${serverUrl}`);
         return true;
       }
-      log.debug(`Unreachable: ${account.serverUrl}`);
+      log.debug(`Unreachable: ${serverUrl}`);
     } catch (_) {
       if (controller.signal.aborted) throw new Error('Aborted');
-      log.debug(`Probe failed: ${account.serverUrl}`);
+      log.debug(`Probe failed: ${serverUrl}`);
     }
   }
 

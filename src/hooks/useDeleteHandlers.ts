@@ -79,11 +79,12 @@ export const useDeleteHandlers = () => {
     const account = accounts.find((a) => a.id === accountId);
     const calendar = account?.calendars.find((c) => c.id === calendarId);
 
-    const isVikunja = account?.serverType === 'vikunja' || calendar?.url.includes('/dav/projects/');
+    const isVikunja =
+      account?.caldav?.serverType === 'vikunja' || calendar?.url.includes('/dav/projects/');
     const projectId = calendar?.url.match(/\/dav\/projects\/(\d+)/)?.[1];
     const vikunjaDeleteUrl =
       isVikunja && projectId
-        ? `${account?.serverUrl.replace(/\/$/, '')}/projects/${projectId}/settings/delete`
+        ? `${account?.caldav?.serverUrl.replace(/\/$/, '')}/projects/${projectId}/settings/delete`
         : undefined;
 
     if (isVikunja || confirmBeforeDeleteCalendar) {

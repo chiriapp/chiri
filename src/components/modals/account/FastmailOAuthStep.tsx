@@ -68,14 +68,16 @@ export const FastmailOAuthStep = ({ onSuccess }: FastmailOAuthStepProps) => {
         {
           id: accountId,
           name: `${displayName || username} (Fastmail)`,
-          serverUrl: FASTMAIL_CALDAV_URL,
-          username,
-          password: accessToken,
-          serverType: 'fastmail',
           icon: 'user',
-          authType: 'oauth',
-          refreshToken,
-          tokenExpiry,
+          caldav: {
+            serverUrl: FASTMAIL_CALDAV_URL,
+            username,
+            password: accessToken,
+            serverType: 'fastmail',
+            authType: 'oauth',
+            refreshToken,
+            tokenExpiry,
+          },
         },
         {
           onSuccess: async (newAccount) => {

@@ -2,18 +2,24 @@ import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import { rowToAccount, rowToCalendar } from '$lib/database/converters';
 import { getUIState } from '$lib/database/ui';
 import type { Account } from '$types';
-import type { AccountRow, CalendarRow } from '$types/database';
+import type { AccountRow, CaldavConfigRow, CalendarRow } from '$types/database';
 import { generateUUID } from '$utils/misc';
 
 export const getAllAccounts = async (conn: DatabasePlugin) => {
   const accountRows = await conn.select<AccountRow[]>(
     'SELECT * FROM accounts ORDER BY sort_order ASC',
   );
+  const caldavRows = await conn.select<CaldavConfigRow[]>('SELECT * FROM caldav_configs');
   const calendarRows = await conn.select<CalendarRow[]>(
     'SELECT * FROM calendars ORDER BY sort_order ASC',
   );
+
   const calendars = calendarRows.map(rowToCalendar);
-  return accountRows.map((row) => rowToAccount(row, calendars));
+  const caldavByAccountId = new Map(caldavRows.map((r) => [r.account_id, r]));
+
+  return accountRows.map((row) =>
+    rowToAccount(row, calendars, caldavByAccountId.get(row.id)),
+  );
 };
 
 export const getAccountById = async (conn: DatabasePlugin, id: string) => {
@@ -30,45 +36,47 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
   const account: Account = {
     id: accountData.id ?? generateUUID(),
     name: accountData.name ?? 'New Account',
-    serverUrl: accountData.serverUrl ?? '',
-    username: accountData.username ?? '',
-    password: accountData.password ?? '',
-    serverType: accountData.serverType,
     icon: accountData.icon,
     emoji: accountData.emoji,
-    calendarHomeUrl: accountData.calendarHomeUrl,
-    principalUrl: accountData.principalUrl,
     calendars: [],
     isActive: true,
     sortOrder: accountData.sortOrder || maxOrder + 100,
-    authType: accountData.authType ?? 'basic',
-    refreshToken: accountData.refreshToken,
-    tokenExpiry: accountData.tokenExpiry,
+    caldav: accountData.caldav ?? null,
   };
 
   await conn.execute(
-    `INSERT INTO accounts (id, name, server_url, username, password, server_type, icon, emoji, calendar_home_url, principal_url, last_sync, is_active, sort_order, accept_invalid_certs, auth_type, refresh_token, token_expiry)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+    `INSERT INTO accounts (id, name, icon, emoji, last_sync, is_active, sort_order)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
       account.id,
       account.name,
-      account.serverUrl,
-      account.username,
-      account.password,
-      account.serverType || null,
       account.icon || null,
       account.emoji || null,
-      account.calendarHomeUrl || null,
-      account.principalUrl || null,
       account.lastSync ? account.lastSync.toISOString() : null,
       account.isActive ? 1 : 0,
       account.sortOrder,
-      account.acceptInvalidCerts ? 1 : 0,
-      account.authType ?? 'basic',
-      account.refreshToken ?? null,
-      account.tokenExpiry ?? null,
     ],
   );
+
+  if (account.caldav) {
+    await conn.execute(
+      `INSERT INTO caldav_configs (account_id, server_url, username, password, server_type, calendar_home_url, principal_url, accept_invalid_certs, auth_type, refresh_token, token_expiry)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [
+        account.id,
+        account.caldav.serverUrl,
+        account.caldav.username,
+        account.caldav.password,
+        account.caldav.serverType || null,
+        account.caldav.calendarHomeUrl || null,
+        account.caldav.principalUrl || null,
+        account.caldav.acceptInvalidCerts ? 1 : 0,
+        account.caldav.authType ?? 'basic',
+        account.caldav.refreshToken ?? null,
+        account.caldav.tokenExpiry ?? null,
+      ],
+    );
+  }
 
   const uiState = await getUIState(conn);
   if (!uiState.activeAccountId) {
@@ -89,28 +97,40 @@ export const updateAccount = async (
   const updated: Account = { ...existing, ...updates };
 
   await conn.execute(
-    `UPDATE accounts SET name = $1, server_url = $2, username = $3, password = $4, server_type = $5, icon = $6, emoji = $7, calendar_home_url = $8, principal_url = $9, last_sync = $10, is_active = $11, sort_order = $12, accept_invalid_certs = $13, auth_type = $14, refresh_token = $15, token_expiry = $16
-     WHERE id = $17`,
+    `UPDATE accounts SET name = $1, icon = $2, emoji = $3, last_sync = $4, is_active = $5, sort_order = $6
+     WHERE id = $7`,
     [
       updated.name,
-      updated.serverUrl,
-      updated.username,
-      updated.password,
-      updated.serverType || null,
       updated.icon || null,
       updated.emoji || null,
-      updated.calendarHomeUrl || null,
-      updated.principalUrl || null,
       updated.lastSync ? updated.lastSync.toISOString() : null,
       updated.isActive ? 1 : 0,
       updated.sortOrder,
-      updated.acceptInvalidCerts ? 1 : 0,
-      updated.authType ?? 'basic',
-      updated.refreshToken ?? null,
-      updated.tokenExpiry ?? null,
       id,
     ],
   );
+
+  if (updated.caldav) {
+    await conn.execute(
+      `INSERT OR REPLACE INTO caldav_configs (account_id, server_url, username, password, server_type, calendar_home_url, principal_url, accept_invalid_certs, auth_type, refresh_token, token_expiry)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [
+        id,
+        updated.caldav.serverUrl,
+        updated.caldav.username,
+        updated.caldav.password,
+        updated.caldav.serverType || null,
+        updated.caldav.calendarHomeUrl || null,
+        updated.caldav.principalUrl || null,
+        updated.caldav.acceptInvalidCerts ? 1 : 0,
+        updated.caldav.authType ?? 'basic',
+        updated.caldav.refreshToken ?? null,
+        updated.caldav.tokenExpiry ?? null,
+      ],
+    );
+  } else if (existing.caldav && !updated.caldav) {
+    await conn.execute('DELETE FROM caldav_configs WHERE account_id = $1', [id]);
+  }
 
   return updated;
 };

@@ -44,9 +44,9 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
 
   const account = accounts.find((a) => a.id === accountId);
   const isVikunja =
-    account?.serverType === 'vikunja' ||
+    account?.caldav?.serverType === 'vikunja' ||
     account?.calendars.some((c) => c.url.includes('/dav/projects'));
-  const serverBaseUrl = account?.serverUrl.replace(/\/$/, '');
+  const serverBaseUrl = account?.caldav?.serverUrl.replace(/\/$/, '');
   const createProjectUrl = serverBaseUrl ? `${serverBaseUrl}/projects/new` : null;
   const editProjectUrl = (() => {
     if (!serverBaseUrl || !calendar) return null;

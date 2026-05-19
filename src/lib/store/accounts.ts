@@ -18,14 +18,18 @@ export const getAccountById = (id: string) => {
 export const createAccount = async (accountData: Partial<Account>) => {
   const data = dataStore.load();
 
-  const serverUrl = accountData.serverUrl ?? '';
-  const username = accountData.username ?? '';
-  const duplicate = data.accounts.find(
-    (a) =>
-      a.serverUrl.replace(/\/$/, '') === serverUrl.replace(/\/$/, '') && a.username === username,
-  );
-  if (duplicate) {
-    throw new Error(`An account with the same credentials already exists: ${duplicate.name}.`);
+  if (accountData.caldav) {
+    const serverUrl = accountData.caldav.serverUrl;
+    const username = accountData.caldav.username;
+    const duplicate = data.accounts.find(
+      (a) =>
+        a.caldav &&
+        a.caldav.serverUrl.replace(/\/$/, '') === serverUrl.replace(/\/$/, '') &&
+        a.caldav.username === username,
+    );
+    if (duplicate) {
+      throw new Error(`An account with the same credentials already exists: ${duplicate.name}.`);
+    }
   }
 
   const maxExistingOrder = data.accounts.reduce((max, a) => Math.max(max, a.sortOrder), 0);
@@ -33,21 +37,12 @@ export const createAccount = async (accountData: Partial<Account>) => {
   const account: Account = {
     id: accountData.id ?? generateUUID(),
     name: accountData.name ?? 'New Account',
-    serverUrl: accountData.serverUrl ?? '',
-    username: accountData.username ?? '',
-    password: accountData.password ?? '',
-    serverType: accountData.serverType,
     icon: accountData.icon,
     emoji: accountData.emoji,
-    calendarHomeUrl: accountData.calendarHomeUrl,
-    principalUrl: accountData.principalUrl,
     calendars: [],
     isActive: true,
     sortOrder: accountData.sortOrder || maxExistingOrder + 100,
-    acceptInvalidCerts: accountData.acceptInvalidCerts,
-    authType: accountData.authType ?? 'basic',
-    refreshToken: accountData.refreshToken,
-    tokenExpiry: accountData.tokenExpiry,
+    caldav: accountData.caldav ?? null,
   } satisfies Account;
 
   await db.createAccount(account).catch((e) => log.error('Failed to persist account:', e));
@@ -86,12 +81,11 @@ export const deleteAccount = (id: string) => {
   const deletedAccount = data.accounts.find((acc) => acc.id === id);
   const deletedCalendarIds = deletedAccount?.calendars.map((c) => c.id) ?? [];
 
-  // Delete the app password on the server (only Nextcloud for now)
-  if (deletedAccount?.serverType === 'nextcloud') {
+  if (deletedAccount?.caldav?.serverType === 'nextcloud') {
     deleteNextcloudAppPassword(
-      deletedAccount.serverUrl,
-      deletedAccount.username,
-      deletedAccount.password,
+      deletedAccount.caldav.serverUrl,
+      deletedAccount.caldav.username,
+      deletedAccount.caldav.password,
     )
       .then(() => log.info('Nextcloud app password deleted for account', { accountId: id }))
       .catch((e) => log.warn('Failed to delete Nextcloud app password:', e));

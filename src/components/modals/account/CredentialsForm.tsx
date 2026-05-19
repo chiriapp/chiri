@@ -252,7 +252,7 @@ export const CredentialsForm = ({
         onPrincipalUrlChange={onPrincipalUrlChange}
         calendarHomeUrl={calendarHomeUrl}
         onCalendarHomeUrlChange={onCalendarHomeUrlChange}
-        initialOpen={!!account?.calendarHomeUrl || !!account?.principalUrl}
+        initialOpen={!!account?.caldav?.calendarHomeUrl || !!account?.caldav?.principalUrl}
       />
 
       {error && (

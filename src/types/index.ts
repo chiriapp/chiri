@@ -162,29 +162,29 @@ export type ServerType =
   | 'rustical'
   | 'vikunja';
 
-export interface Account {
-  id: string;
-  name: string;
+export interface CaldavConfig {
   serverUrl: string;
   username: string;
-  /** For basic auth: the user's password. For OAuth: the current access token. */
   password: string;
-  serverType?: ServerType;
-  icon?: string;
-  emoji?: string;
+  serverType: ServerType;
   calendarHomeUrl?: string;
   principalUrl?: string;
   acceptInvalidCerts?: boolean;
+  authType: 'basic' | 'oauth';
+  refreshToken?: string;
+  tokenExpiry?: string;
+}
+
+export interface Account {
+  id: string;
+  name: string;
+  icon?: string;
+  emoji?: string;
   calendars: Calendar[];
   lastSync?: Date;
   isActive: boolean;
   sortOrder: number;
-  /** Auth mechanism: 'basic' (default) or 'oauth' (bearer token via OAuth 2.0 + PKCE) */
-  authType?: 'basic' | 'oauth';
-  /** OAuth refresh token, only set when authType === 'oauth' */
-  refreshToken?: string;
-  /** ISO timestamp of access token expiry, only set when authType === 'oauth' */
-  tokenExpiry?: string;
+  caldav: CaldavConfig | null;
 }
 
 export interface SortConfig {

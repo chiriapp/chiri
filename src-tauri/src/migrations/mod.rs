@@ -19,6 +19,7 @@ mod v018_account_principal_url;
 mod v019_webdav_push;
 mod v020_account_icon;
 mod v021_oauth_tokens;
+mod v022_caldav_config_table;
 
 use tauri_plugin_sql::Migration;
 
@@ -43,6 +44,7 @@ pub use v018_account_principal_url::migration as migration_v018;
 pub use v019_webdav_push::migration as migration_v019;
 pub use v020_account_icon::migration as migration_v020;
 pub use v021_oauth_tokens::migration as migration_v021;
+pub use v022_caldav_config_table::migration as migration_v022;
 
 /// Returns all database migrations for the application
 pub fn get_migrations() -> Vec<Migration> {
@@ -68,5 +70,6 @@ pub fn get_migrations() -> Vec<Migration> {
         migration_v019(),
         migration_v020(),
         migration_v021(),
+        migration_v022(),
     ]
 }

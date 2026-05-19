@@ -104,10 +104,13 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
       await createAccountMutation.mutateAsync({
         id: accountId,
         name: `Nextcloud (${credentials.loginName})`,
-        serverUrl: credentials.server,
-        username: credentials.loginName,
-        password: credentials.appPassword,
-        serverType: 'nextcloud',
+        caldav: {
+          serverUrl: credentials.server,
+          username: credentials.loginName,
+          password: credentials.appPassword,
+          serverType: 'nextcloud',
+          authType: 'basic',
+        },
       });
 
       // Add all discovered calendars to the account

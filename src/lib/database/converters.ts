@@ -1,5 +1,21 @@
-import type { Account, Calendar, Priority, ServerType, Tag, Task, TaskStatus } from '$types';
-import type { AccountRow, CalendarRow, ReminderRow, TagRow, TaskRow } from '$types/database';
+import type {
+  Account,
+  CaldavConfig,
+  Calendar,
+  Priority,
+  ServerType,
+  Tag,
+  Task,
+  TaskStatus,
+} from '$types';
+import type {
+  AccountRow,
+  CaldavConfigRow,
+  CalendarRow,
+  ReminderRow,
+  TagRow,
+  TaskRow,
+} from '$types/database';
 
 export const rowToTask = (row: TaskRow): Task => {
   const status =
@@ -62,26 +78,34 @@ export const rowToCalendar = (row: CalendarRow): Calendar => ({
   pushVapidKey: row.push_vapid_key || undefined,
 });
 
-export const rowToAccount = (row: AccountRow, calendars: Calendar[]): Account => ({
-  id: row.id,
-  name: row.name,
+export const rowToCaldavConfig = (row: CaldavConfigRow): CaldavConfig => ({
   serverUrl: row.server_url,
   username: row.username,
   password: row.password,
-  serverType: (row.server_type as ServerType) || undefined,
-  icon: row.icon || undefined,
-  emoji: row.emoji || undefined,
+  serverType: (row.server_type as ServerType) || 'generic',
   calendarHomeUrl: row.calendar_home_url || undefined,
   principalUrl: row.principal_url || undefined,
+  acceptInvalidCerts:
+    row.accept_invalid_certs === null ? undefined : row.accept_invalid_certs === 1,
+  authType: row.auth_type === 'oauth' ? 'oauth' : 'basic',
+  refreshToken: row.refresh_token || undefined,
+  tokenExpiry: row.token_expiry || undefined,
+});
+
+export const rowToAccount = (
+  row: AccountRow,
+  calendars: Calendar[],
+  caldavRow?: CaldavConfigRow,
+): Account => ({
+  id: row.id,
+  name: row.name,
+  icon: row.icon || undefined,
+  emoji: row.emoji || undefined,
   calendars: calendars.filter((c) => c.accountId === row.id),
   lastSync: row.last_sync ? new Date(row.last_sync) : undefined,
   isActive: row.is_active === 1,
   sortOrder: row.sort_order ?? 0,
-  acceptInvalidCerts:
-    row.accept_invalid_certs === null ? undefined : row.accept_invalid_certs === 1,
-  authType: (row.auth_type === 'oauth' ? 'oauth' : 'basic') as 'basic' | 'oauth',
-  refreshToken: row.refresh_token || undefined,
-  tokenExpiry: row.token_expiry || undefined,
+  caldav: caldavRow ? rowToCaldavConfig(caldavRow) : null,
 });
 
 export const rowToTag = (row: TagRow): Tag => ({

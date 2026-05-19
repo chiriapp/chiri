@@ -59,17 +59,19 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const [icon, setIcon] = useState(() => account?.icon || 'user');
   const [emoji, setEmoji] = useState(() => account?.emoji || '');
   const [serverUrl, setServerUrl] = useState(
-    () => preloadedConfig?.serverUrl || account?.serverUrl || '',
+    () => preloadedConfig?.serverUrl || account?.caldav?.serverUrl || '',
   );
   const [username, setUsername] = useState(
-    () => preloadedConfig?.username || account?.username || '',
+    () => preloadedConfig?.username || account?.caldav?.username || '',
   );
   const [password, setPassword] = useState(() => preloadedConfig?.password || '');
   const [serverType, setServerType] = useState<ServerType>(
-    () => preloadedConfig?.serverType || account?.serverType || 'generic',
+    () => preloadedConfig?.serverType || account?.caldav?.serverType || 'generic',
   );
-  const [calendarHomeUrl, setCalendarHomeUrl] = useState(() => account?.calendarHomeUrl || '');
-  const [principalUrl, setPrincipalUrl] = useState(() => account?.principalUrl || '');
+  const [calendarHomeUrl, setCalendarHomeUrl] = useState(
+    () => account?.caldav?.calendarHomeUrl || '',
+  );
+  const [principalUrl, setPrincipalUrl] = useState(() => account?.caldav?.principalUrl || '');
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testSuccess, setTestSuccess] = useState(false);
@@ -86,7 +88,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   const quickConnectRef = useRef<QuickConnectFlowHandle>(null);
 
   const [acceptInvalidCerts, setAcceptInvalidCerts] = useState(
-    () => account?.acceptInvalidCerts ?? false,
+    () => account?.caldav?.acceptInvalidCerts ?? false,
   );
 
   // Reset test state when credentials change
@@ -235,16 +237,18 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
   };
 
   const connectWithCertHandling = async (accountId: string, effectivePassword: string) => {
+    const isOAuth = account?.caldav?.authType === 'oauth';
     const tryConnect = (withInvalidCerts?: boolean) =>
       CalDAVClient.connect(
         accountId,
         serverUrl,
         username,
-        effectivePassword,
+        isOAuth ? '' : effectivePassword,
         serverType,
         calendarHomeUrl.trim() || undefined,
         principalUrl.trim() || undefined,
         withInvalidCerts,
+        isOAuth ? effectivePassword : undefined,
       );
 
     try {
@@ -286,10 +290,14 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     setIsTesting(true);
 
     try {
-      const effectivePassword = password || account?.password;
+      const effectivePassword = password || account?.caldav?.password;
 
       if (!effectivePassword) {
-        throw new Error('Password is required to test connection');
+        throw new Error(
+          account?.caldav?.authType === 'oauth'
+            ? 'Access token missing, try reconnecting via OAuth'
+            : 'Password is required to test connection',
+        );
       }
 
       if (!serverUrl.trim() || !username.trim()) {
@@ -345,13 +353,18 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
         name,
         icon,
         emoji,
-        serverUrl,
-        username,
-        password: effectivePassword || account!.password,
-        serverType,
-        calendarHomeUrl: calendarHomeUrl.trim() || undefined,
-        principalUrl: principalUrl.trim() || undefined,
-        acceptInvalidCerts: acceptInvalidCerts || undefined,
+        caldav: {
+          serverUrl,
+          username,
+          password: effectivePassword || account!.caldav!.password,
+          serverType,
+          calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+          principalUrl: principalUrl.trim() || undefined,
+          acceptInvalidCerts: acceptInvalidCerts || undefined,
+          authType: account!.caldav!.authType,
+          refreshToken: account!.caldav!.refreshToken,
+          tokenExpiry: account!.caldav!.tokenExpiry,
+        },
       },
     });
 
@@ -397,12 +410,15 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
         name,
         icon,
         emoji,
-        serverUrl,
-        username,
-        password: effectivePassword,
-        serverType,
-        calendarHomeUrl: calendarHomeUrl.trim() || undefined,
-        acceptInvalidCerts: acceptInvalidCerts || undefined,
+        caldav: {
+          serverUrl,
+          username,
+          password: effectivePassword,
+          serverType,
+          calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+          acceptInvalidCerts: acceptInvalidCerts || undefined,
+          authType: 'basic',
+        },
       },
       {
         onSuccess: async (newAccount) => {
@@ -444,7 +460,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     setIsLoading(true);
 
     try {
-      const effectivePassword = password || account?.password;
+      const effectivePassword = password || account?.caldav?.password;
 
       if (account) {
         const didUpdate = await updateExistingAccount(effectivePassword);
@@ -532,7 +548,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
                 testSuccess ||
                 !serverUrl.trim() ||
                 !username.trim() ||
-                (!password.trim() && !account?.password)
+                (!password.trim() && !account?.caldav?.password)
               }
               loading={isTesting}
             >

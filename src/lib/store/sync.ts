@@ -147,6 +147,7 @@ export const reconnectAccounts = async (): Promise<Set<string>> => {
   const accounts = getAllAccounts();
   const failedAccountIds = new Set<string>();
   for (const account of accounts) {
+    if (!account.caldav) continue;
     if (!CalDAVClient.isConnected(account.id)) {
       try {
         await CalDAVClient.reconnect(account);
@@ -532,6 +533,7 @@ export const performFullSync = async (
 
   // sync calendars for each account (add/remove/update calendars)
   for (const account of freshAccounts) {
+    if (!account.caldav) continue;
     if (!getAccountById(account.id)) continue;
     if (failedAccountIds.has(account.id)) continue;
     try {
@@ -559,13 +561,14 @@ export const performFullSync = async (
 
   // build flat list of calendars to sync for progress tracking
   const calendarsToSync = freshAccounts
-    .filter((a) => getAccountById(a.id) && !failedAccountIds.has(a.id))
+    .filter((a) => a.caldav && getAccountById(a.id) && !failedAccountIds.has(a.id))
     .flatMap((a) => a.calendars);
   const total = calendarsToSync.length;
 
   // sync tasks for each calendar
   let current = 0;
   for (const account of freshAccounts) {
+    if (!account.caldav) continue;
     if (!getAccountById(account.id)) continue;
     if (failedAccountIds.has(account.id)) continue;
     for (const calendar of account.calendars) {
