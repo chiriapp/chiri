@@ -9,7 +9,6 @@ import { dataStore } from '$lib/store';
 import {
   createAccount,
   deleteAccount,
-  getAccountById,
   getAllAccounts,
   updateAccount,
 } from '$lib/store/accounts';
@@ -34,28 +33,6 @@ export const useAccounts = () => {
   return useQuery({
     queryKey: queryKeys.accounts.all,
     queryFn: () => getAllAccounts(),
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to get a single account by ID
- */
-export const useAccount = (id: string | null) => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return dataStore.subscribe(() => {
-      if (id) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.accounts.byId(id) });
-      }
-    });
-  }, [queryClient, id]);
-
-  return useQuery({
-    queryKey: queryKeys.accounts.byId(id || ''),
-    queryFn: () => (id ? getAccountById(id) : undefined),
-    enabled: !!id,
     staleTime: Infinity,
   });
 };

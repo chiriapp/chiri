@@ -8,8 +8,7 @@ import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
 import { moveItem } from '$lib/store/reorder';
 import { reorderTags } from '$lib/store/reorder/tags';
-import { createTag, deleteTag, getAllTags, getTagById, updateTag } from '$lib/store/tags';
-import { getTasksByTag } from '$lib/store/tasks';
+import { createTag, deleteTag, getAllTags, updateTag } from '$lib/store/tags';
 import type { Tag } from '$types';
 
 /**
@@ -27,50 +26,6 @@ export const useTags = () => {
   return useQuery({
     queryKey: queryKeys.tags.all,
     queryFn: () => getAllTags(),
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to get a single tag by ID
- */
-export const useTag = (id: string | null) => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return dataStore.subscribe(() => {
-      if (id) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tags.byId(id) });
-      }
-    });
-  }, [queryClient, id]);
-
-  return useQuery({
-    queryKey: queryKeys.tags.byId(id || ''),
-    queryFn: () => (id ? getTagById(id) : undefined),
-    enabled: !!id,
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to get tasks by tag
- */
-export const useTasksByTag = (tagId: string | null) => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return dataStore.subscribe(() => {
-      if (tagId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byTag(tagId) });
-      }
-    });
-  }, [queryClient, tagId]);
-
-  return useQuery({
-    queryKey: queryKeys.tasks.byTag(tagId || ''),
-    queryFn: () => (tagId ? getTasksByTag(tagId) : []),
-    enabled: !!tagId,
     staleTime: Infinity,
   });
 };

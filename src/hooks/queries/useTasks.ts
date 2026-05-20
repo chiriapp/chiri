@@ -11,28 +11,17 @@ import { getFilteredTasks, getSortedTasks } from '$lib/store/filters';
 import { addReminder, removeReminder, updateReminder } from '$lib/store/reminders';
 import { reorderTaskList, reorderTasks } from '$lib/store/reorder/tasks';
 import {
-  addSubtask,
-  deleteSubtask,
-  toggleSubtaskComplete,
-  updateSubtask,
-} from '$lib/store/subtasks';
-import {
   addTagToTask,
-  countChildren,
   createTask,
   deleteTask,
-  exportTaskAndChildren,
-  getAllDescendants,
   getAllTasks,
   getChildTasks,
   getTaskById,
-  getTasksByCalendar,
   removeTagFromTask,
-  setTaskParent,
   toggleTaskComplete,
   updateTask,
 } from '$lib/store/tasks';
-import type { SortConfig, Task } from '$types';
+import type { Task } from '$types';
 import type { FlattenedTask } from '$types/store';
 
 /**
@@ -81,61 +70,6 @@ export const useFilteredTasks = () => {
   return useQuery({
     queryKey: ['filteredTasks'],
     queryFn: () => getFilteredTasks(),
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to get sorted tasks
- */
-export const useSortedTasks = (tasks: Task[], sortConfig?: SortConfig) => {
-  return useQuery({
-    queryKey: ['sortedTasks', tasks.map((t) => t.id), sortConfig],
-    queryFn: () => getSortedTasks(tasks, sortConfig),
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to get a single task by ID
- */
-export const useTask = (id: string | null) => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return dataStore.subscribe(() => {
-      if (id) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byId(id) });
-      }
-    });
-  }, [queryClient, id]);
-
-  return useQuery({
-    queryKey: queryKeys.tasks.byId(id || ''),
-    queryFn: () => (id ? getTaskById(id) : undefined),
-    enabled: !!id,
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to get tasks by calendar
- */
-export const useTasksByCalendar = (calendarId: string | null) => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return dataStore.subscribe(() => {
-      if (calendarId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byCalendar(calendarId) });
-      }
-    });
-  }, [queryClient, calendarId]);
-
-  return useQuery({
-    queryKey: queryKeys.tasks.byCalendar(calendarId || ''),
-    queryFn: () => (calendarId ? getTasksByCalendar(calendarId) : []),
-    enabled: !!calendarId,
     staleTime: Infinity,
   });
 };
@@ -246,44 +180,6 @@ export const useToggleTaskComplete = () => {
 };
 
 /**
- * Hook to set task parent
- */
-export const useSetTaskParent = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({
-      taskId,
-      parentUid,
-    }: {
-      taskId: string;
-      parentUid: string | undefined;
-    }) => {
-      const task = getTaskById(taskId);
-      if (task) {
-        if (task.parentUid) {
-          await db.logTaskChange(task.parentUid, 'subtask', task.title, null);
-        }
-        if (parentUid) {
-          await db.logTaskChange(parentUid, 'subtask', null, task.title);
-        }
-      }
-      setTaskParent(taskId, parentUid);
-      return { oldParentUid: task?.parentUid, newParentUid: parentUid };
-    },
-    onSuccess: ({ oldParentUid, newParentUid }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
-      if (oldParentUid) {
-        queryClient.invalidateQueries({ queryKey: ['taskHistory', oldParentUid] });
-      }
-      if (newParentUid) {
-        queryClient.invalidateQueries({ queryKey: ['taskHistory', newParentUid] });
-      }
-    },
-  });
-};
-
-/**
  * Hook to reorder tasks
  */
 export const useReorderTasks = () => {
@@ -350,67 +246,6 @@ export const useReorderTasks = () => {
       if (newParentUid) {
         queryClient.invalidateQueries({ queryKey: ['taskHistory', newParentUid] });
       }
-    },
-  });
-};
-
-export const useAddSubtask = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ taskId, title }: { taskId: string; title: string }) => addSubtask(taskId, title),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
-    },
-  });
-};
-
-export const useUpdateSubtask = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      taskId,
-      subtaskId,
-      updates,
-    }: {
-      taskId: string;
-      subtaskId: string;
-      updates: { title?: string; completed?: boolean };
-    }) => {
-      updateSubtask(taskId, subtaskId, updates);
-      return Promise.resolve();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
-    },
-  });
-};
-
-export const useDeleteSubtask = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ taskId, subtaskId }: { taskId: string; subtaskId: string }) => {
-      deleteSubtask(taskId, subtaskId);
-      return Promise.resolve();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
-    },
-  });
-};
-
-export const useToggleSubtaskComplete = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ taskId, subtaskId }: { taskId: string; subtaskId: string }) => {
-      toggleSubtaskComplete(taskId, subtaskId);
-      return Promise.resolve();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
     },
   });
 };
@@ -530,41 +365,5 @@ export const useUpdateReminder = () => {
         queryClient.invalidateQueries({ queryKey: ['taskHistory', task.uid] });
       }
     },
-  });
-};
-
-/**
- * Hook to count children of a task
- */
-export const useCountChildren = (parentUid: string | undefined) => {
-  return useQuery({
-    queryKey: ['countChildren', parentUid || ''],
-    queryFn: () => (parentUid ? countChildren(parentUid) : 0),
-    enabled: !!parentUid,
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to get all descendants
- */
-export const useAllDescendants = (parentUid: string | undefined) => {
-  return useQuery({
-    queryKey: ['allDescendants', parentUid || ''],
-    queryFn: () => (parentUid ? getAllDescendants(parentUid) : []),
-    enabled: !!parentUid,
-    staleTime: Infinity,
-  });
-};
-
-/**
- * Hook to export task and children
- */
-export const useExportTaskAndChildren = (taskId: string | null) => {
-  return useQuery({
-    queryKey: ['exportTask', taskId || ''],
-    queryFn: () => (taskId ? exportTaskAndChildren(taskId) : null),
-    enabled: !!taskId,
-    staleTime: Infinity,
   });
 };
