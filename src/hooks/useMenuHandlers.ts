@@ -7,6 +7,7 @@ import {
   useSetActiveCalendar,
   useSetActiveTag,
   useSetAllTasksView,
+  useSetRecentlyDeletedView,
   useSetSelectedTask,
   useSetShowCompletedTasks,
   useSetShowUnstartedTasks,
@@ -57,6 +58,7 @@ export const useMenuHandlers = (
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveTagMutation = useSetActiveTag();
   const setAllTasksViewMutation = useSetAllTasksView();
+  const setRecentlyDeletedViewMutation = useSetRecentlyDeletedView();
   const { toggleSidebarCollapsed } = useSettingsStore();
   const { confirmAndDelete } = useConfirmTaskDelete();
   const deleteAccountMutation = useDeleteAccount();
@@ -199,19 +201,21 @@ export const useMenuHandlers = (
   }, [toggleSidebarCollapsed]);
 
   const handleDeleteTask = useCallback(async () => {
+    if (uiState?.activeView === 'recently-deleted') return;
     const selectedTaskId = uiState?.selectedTaskId ?? null;
     if (selectedTaskId) {
       await confirmAndDelete(selectedTaskId);
     }
-  }, [uiState?.selectedTaskId, confirmAndDelete]);
+  }, [uiState?.activeView, uiState?.selectedTaskId, confirmAndDelete]);
 
   type ListItem =
     | { type: 'all' }
     | { type: 'calendar'; accountId: string; calendarId: string }
-    | { type: 'tag'; tagId: string };
+    | { type: 'tag'; tagId: string }
+    | { type: 'recently-deleted' };
 
   const orderedLists = useMemo((): ListItem[] => {
-    const items: ListItem[] = [{ type: 'all' }];
+    const items: ListItem[] = [{ type: 'all' }, { type: 'recently-deleted' }];
     for (const account of accounts) {
       for (const cal of account.calendars) {
         items.push({ type: 'calendar', accountId: account.id, calendarId: cal.id });
@@ -225,8 +229,12 @@ export const useMenuHandlers = (
 
   const activeCalendarId = uiState?.activeCalendarId ?? null;
   const activeTagId = uiState?.activeTagId ?? null;
+  const activeView = uiState?.activeView ?? 'tasks';
 
   const currentListIndex = useMemo(() => {
+    if (activeView === 'recently-deleted') {
+      return orderedLists.findIndex((item) => item.type === 'recently-deleted');
+    }
     if (activeTagId !== null) {
       return orderedLists.findIndex((item) => item.type === 'tag' && item.tagId === activeTagId);
     }
@@ -236,7 +244,7 @@ export const useMenuHandlers = (
       );
     }
     return 0;
-  }, [orderedLists, activeCalendarId, activeTagId]);
+  }, [orderedLists, activeCalendarId, activeTagId, activeView]);
 
   const activateListItem = useCallback(
     (item: ListItem) => {
@@ -246,8 +254,10 @@ export const useMenuHandlers = (
       } else if (item.type === 'calendar') {
         setActiveAccountMutation.mutate(item.accountId);
         setActiveCalendarMutation.mutate(item.calendarId);
-      } else {
+      } else if (item.type === 'tag') {
         setActiveTagMutation.mutate(item.tagId);
+      } else {
+        setRecentlyDeletedViewMutation.mutate();
       }
     },
     [
@@ -255,6 +265,7 @@ export const useMenuHandlers = (
       setActiveAccountMutation,
       setActiveCalendarMutation,
       setActiveTagMutation,
+      setRecentlyDeletedViewMutation,
     ],
   );
 

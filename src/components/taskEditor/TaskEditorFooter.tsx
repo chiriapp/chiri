@@ -25,6 +25,12 @@ export const TaskEditorFooter = ({ task, timeFormat }: TaskEditorFooterProps) =>
             Modified: {formatDate(new Date(task.modifiedAt), true)}{' '}
             {formatTime(new Date(task.modifiedAt), timeFormat)}
           </div>
+          {task.deletedAt && (
+            <div>
+              Deleted: {formatDate(new Date(task.deletedAt), true)}{' '}
+              {formatTime(new Date(task.deletedAt), timeFormat)}
+            </div>
+          )}
         </div>
         <Tooltip content="History" position="top">
           <button

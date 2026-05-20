@@ -145,6 +145,16 @@ class Database {
     this.notify();
   }
 
+  async restoreTask(id: string, restoreChildren?: boolean): Promise<void> {
+    await taskOps.restoreTask(await this.conn(), id, restoreChildren);
+    this.notify();
+  }
+
+  async permanentlyDeleteTask(id: string, deleteChildren?: boolean): Promise<void> {
+    await taskOps.permanentlyDeleteTask(await this.conn(), id, deleteChildren);
+    this.notify();
+  }
+
   async toggleTaskComplete(id: string): Promise<void> {
     await taskOps.toggleTaskComplete(await this.conn(), id);
     this.notify();
@@ -198,6 +208,11 @@ class Database {
 
   async setAllTasksView(): Promise<void> {
     await uiOps.setAllTasksView(await this.conn());
+    this.notify();
+  }
+
+  async setRecentlyDeletedView(): Promise<void> {
+    await uiOps.setRecentlyDeletedView(await this.conn());
     this.notify();
   }
 

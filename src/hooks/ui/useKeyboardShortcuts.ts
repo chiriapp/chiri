@@ -10,6 +10,7 @@ import {
   useSetActiveTag,
   useSetAllTasksView,
   useSetEditorOpen,
+  useSetRecentlyDeletedView,
   useSetSearchQuery,
   useSetSelectedTask,
   useSetShowCompletedTasks,
@@ -115,6 +116,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   const selectedTaskId = uiState?.selectedTaskId ?? null;
   const activeCalendarId = uiState?.activeCalendarId ?? null;
   const activeTagId = uiState?.activeTagId ?? null;
+  const activeView = uiState?.activeView ?? 'tasks';
   const showCompletedTasks = uiState?.showCompletedTasks ?? true;
   const showUnstartedTasks = uiState?.showUnstartedTasks ?? true;
   const sortConfig = uiState?.sortConfig ?? DEFAULT_SORT_CONFIG;
@@ -126,6 +128,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveTagMutation = useSetActiveTag();
   const setAllTasksViewMutation = useSetAllTasksView();
+  const setRecentlyDeletedViewMutation = useSetRecentlyDeletedView();
   const { confirmAndDelete } = useConfirmTaskDelete();
   const { isOpen: isConfirmDialogOpen } = useConfirmDialog();
   const { isAnyModalOpen } = useModalState();
@@ -136,7 +139,9 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
     const sortedTopLevel = getSortedTasks(topLevelTasks, sortConfig);
 
     const getFilteredChildTasks = (parentUid: string) => {
-      const children = getChildTasks(parentUid);
+      const children = getChildTasks(parentUid).filter((task) =>
+        activeView === 'recently-deleted' ? !!task.deletedAt : !task.deletedAt,
+      );
       if (!showCompletedTasks) {
         return children.filter(
           (task) => task.status !== 'completed' && task.status !== 'cancelled',
@@ -148,7 +153,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
     return flattenTasks(sortedTopLevel, getFilteredChildTasks, (tasks) =>
       getSortedTasks(tasks, sortConfig),
     );
-  }, [filteredTasks, sortConfig, showCompletedTasks]);
+  }, [filteredTasks, sortConfig, showCompletedTasks, activeView]);
 
   const handleNewTask = useCallback(() => {
     createTaskMutation.mutate(
@@ -174,16 +179,18 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   }, []);
 
   const handleDelete = useCallback(async () => {
+    if (activeView === 'recently-deleted') return;
     if (selectedTaskId) {
       await confirmAndDelete(selectedTaskId);
     }
-  }, [selectedTaskId, confirmAndDelete]);
+  }, [activeView, selectedTaskId, confirmAndDelete]);
 
   const handleToggleComplete = useCallback(() => {
+    if (activeView === 'recently-deleted') return;
     if (selectedTaskId) {
       toggleTaskCompleteMutation.mutate(selectedTaskId);
     }
-  }, [selectedTaskId, toggleTaskCompleteMutation]);
+  }, [activeView, selectedTaskId, toggleTaskCompleteMutation]);
 
   const handleEscape = useCallback(() => {
     setSearchQueryMutation.mutate('');
@@ -223,10 +230,11 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   type ListItem =
     | { type: 'all' }
     | { type: 'calendar'; accountId: string; calendarId: string }
-    | { type: 'tag'; tagId: string };
+    | { type: 'tag'; tagId: string }
+    | { type: 'recently-deleted' };
 
   const orderedLists = useMemo((): ListItem[] => {
-    const items: ListItem[] = [{ type: 'all' }];
+    const items: ListItem[] = [{ type: 'all' }, { type: 'recently-deleted' }];
     for (const account of accounts) {
       for (const cal of account.calendars) {
         items.push({ type: 'calendar', accountId: account.id, calendarId: cal.id });
@@ -239,6 +247,9 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   }, [accounts, tags]);
 
   const currentListIndex = useMemo(() => {
+    if (activeView === 'recently-deleted') {
+      return orderedLists.findIndex((item) => item.type === 'recently-deleted');
+    }
     if (activeTagId !== null) {
       return orderedLists.findIndex((item) => item.type === 'tag' && item.tagId === activeTagId);
     }
@@ -248,7 +259,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       );
     }
     return 0;
-  }, [orderedLists, activeCalendarId, activeTagId]);
+  }, [orderedLists, activeCalendarId, activeTagId, activeView]);
 
   const activateListItem = useCallback(
     (item: ListItem) => {
@@ -258,8 +269,10 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       } else if (item.type === 'calendar') {
         setActiveAccountMutation.mutate(item.accountId);
         setActiveCalendarMutation.mutate(item.calendarId);
-      } else {
+      } else if (item.type === 'tag') {
         setActiveTagMutation.mutate(item.tagId);
+      } else {
+        setRecentlyDeletedViewMutation.mutate();
       }
     },
     [
@@ -267,6 +280,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       setActiveAccountMutation,
       setActiveCalendarMutation,
       setActiveTagMutation,
+      setRecentlyDeletedViewMutation,
     ],
   );
 

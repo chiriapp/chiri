@@ -10,18 +10,34 @@ const priorityOrder: Record<Priority, number> = {
 
 export const getFilteredTasks = () => {
   const data = dataStore.load();
-  const { searchQuery, showCompletedTasks, showUnstartedTasks, activeCalendarId, activeTagId } =
-    data.ui;
+  const {
+    activeView,
+    searchQuery,
+    showCompletedTasks,
+    showUnstartedTasks,
+    activeCalendarId,
+    activeTagId,
+  } = data.ui;
 
   return data.tasks.filter((task) => {
+    if (activeView === 'recently-deleted') {
+      if (!task.deletedAt) return false;
+    } else if (task.deletedAt) {
+      return false;
+    }
+
     // Filter by tag
-    if (activeTagId !== null) {
+    if (activeView !== 'recently-deleted' && activeTagId !== null) {
       if (!(task.tags ?? []).includes(activeTagId)) {
         return false;
       }
     } else {
       // Filter by calendar (null means "All Tasks" view - show all)
-      if (activeCalendarId !== null && task.calendarId !== activeCalendarId) {
+      if (
+        activeView !== 'recently-deleted' &&
+        activeCalendarId !== null &&
+        task.calendarId !== activeCalendarId
+      ) {
         return false;
       }
     }
@@ -50,7 +66,10 @@ export const getFilteredTasks = () => {
         return true;
       }
       // Check child tasks (subtasks)
-      const childTasks = data.tasks.filter((t) => t.parentUid === task.uid);
+      const childTasks = data.tasks.filter((t) => {
+        if (t.parentUid !== task.uid) return false;
+        return activeView === 'recently-deleted' ? !!t.deletedAt : !t.deletedAt;
+      });
       return childTasks.some((child) => child.title.toLowerCase().includes(query));
     }
 

@@ -33,10 +33,7 @@ export const exportSettings = (state: SettingsState): string => {
   return JSON.stringify(exportData, null, 2);
 };
 
-export const importSettings = (
-  json: string,
-  defaultState: SettingsState,
-): SettingsState | null => {
+export const importSettings = (json: string, defaultState: SettingsState): SettingsState | null => {
   try {
     const data = JSON.parse(json);
     if (data.version !== 1) {
@@ -57,7 +54,7 @@ export const importSettings = (
       'syncOnReconnect',
       'showCompletedByDefault',
       'confirmBeforeDeletion',
-      'confirmBeforeDelete',
+      'confirmBeforePermanentDelete',
       'confirmBeforeDeleteCalendar',
       'confirmBeforeDeleteAccount',
       'confirmBeforeDeleteTag',
@@ -109,6 +106,7 @@ export const importSettings = (
       'windowDecorationsMode',
       'enablePush',
       'ntfyServerUrl',
+      'hasSeenRecentlyDeletedToast',
     ];
 
     const newState: Partial<SettingsState> = {};

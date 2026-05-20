@@ -66,7 +66,7 @@ const pushUnsyncedTasks = async (
   calendarId: string,
 ) => {
   const localCalendarTasks = getTasksByCalendar(calendarId);
-  const unsyncedTasks = localCalendarTasks.filter((t) => !t.synced);
+  const unsyncedTasks = localCalendarTasks.filter((t) => !t.synced && !t.deletedAt);
 
   for (const task of unsyncedTasks) {
     try {
@@ -506,7 +506,7 @@ export const syncCalendarTasks = async (
     // the server already removed the resource, and queuing a DELETE could accidentally
     // destroy a resource that was repurposed (e.g. fruux reassigns the UID on the same href).
     for (const localTask of updatedLocalTasks) {
-      if (localTask.synced && !remoteUids.has(localTask.uid)) {
+      if (!localTask.deletedAt && localTask.synced && !remoteUids.has(localTask.uid)) {
         removeLocalTask(localTask.id);
       }
     }

@@ -1,6 +1,7 @@
 import Download from 'lucide-react/icons/download';
 import Inbox from 'lucide-react/icons/inbox';
 import Settings from 'lucide-react/icons/settings';
+import Trash2 from 'lucide-react/icons/trash-2';
 import { Tooltip } from '$components/Tooltip';
 import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
@@ -11,6 +12,7 @@ interface SidebarCollapsedViewProps {
   tags: Tag[];
   activeCalendarId: string | null;
   activeTagId: string | null;
+  activeView: 'tasks' | 'recently-deleted';
   contextMenu: { type: string; id: string } | null;
   showCollapsedContent: boolean;
   localSectionCollapsed: boolean;
@@ -18,6 +20,7 @@ interface SidebarCollapsedViewProps {
   tagsSectionCollapsed: boolean;
   updateAvailable?: boolean;
   onAllTasks: () => void;
+  onRecentlyDeleted: () => void;
   onSelectCalendar: (accountId: string, calendarId: string) => void;
   onSelectTag: (tagId: string) => void;
   onContextMenu: (
@@ -35,6 +38,7 @@ export const SidebarCollapsedView = ({
   tags,
   activeCalendarId,
   activeTagId,
+  activeView,
   contextMenu,
   showCollapsedContent,
   localSectionCollapsed,
@@ -42,6 +46,7 @@ export const SidebarCollapsedView = ({
   tagsSectionCollapsed,
   updateAvailable,
   onAllTasks,
+  onRecentlyDeleted,
   onSelectCalendar,
   onSelectTag,
   onContextMenu,
@@ -57,12 +62,26 @@ export const SidebarCollapsedView = ({
           type="button"
           onClick={onAllTasks}
           className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-            activeCalendarId === null && activeTagId === null
+            activeView === 'tasks' && activeCalendarId === null && activeTagId === null
               ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
               : 'text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
           }`}
         >
           <Inbox className="w-5 h-5" />
+        </button>
+      </Tooltip>
+
+      <Tooltip content="Recently Deleted" position="right">
+        <button
+          type="button"
+          onClick={onRecentlyDeleted}
+          className={`p-2 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+            activeView === 'recently-deleted'
+              ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
+              : 'text-surface-500 dark:text-surface-400 hover:bg-surface-200 dark:hover:bg-surface-700'
+          }`}
+        >
+          <Trash2 className="w-5 h-5" />
         </button>
       </Tooltip>
 

@@ -78,7 +78,7 @@ export interface SettingsState {
   syncOnReconnect: boolean;
   showCompletedByDefault: boolean;
   confirmBeforeDeletion: boolean;
-  confirmBeforeDelete: boolean;
+  confirmBeforePermanentDelete: boolean;
   confirmBeforeDeleteCalendar: boolean;
   confirmBeforeDeleteAccount: boolean;
   confirmBeforeDeleteTag: boolean;
@@ -139,6 +139,7 @@ export interface SettingsState {
   windowDecorationsMode: WindowDecorationsMode;
   enablePush: boolean;
   ntfyServerUrl: string;
+  hasSeenRecentlyDeletedToast: boolean;
 }
 
 export interface SettingsActions {
@@ -153,7 +154,7 @@ export interface SettingsActions {
   setSyncOnReconnect: (enabled: boolean) => void;
   setShowCompletedByDefault: (show: boolean) => void;
   setConfirmBeforeDeletion: (confirm: boolean) => void;
-  setConfirmBeforeDelete: (confirm: boolean) => void;
+  setConfirmBeforePermanentDelete: (confirm: boolean) => void;
   setConfirmBeforeDeleteCalendar: (confirm: boolean) => void;
   setConfirmBeforeDeleteAccount: (confirm: boolean) => void;
   setConfirmBeforeDeleteTag: (confirm: boolean) => void;
@@ -215,6 +216,7 @@ export interface SettingsActions {
   setWindowDecorationsMode: (mode: WindowDecorationsMode) => void;
   setEnablePush: (enabled: boolean) => void;
   setNtfyServerUrl: (url: string) => void;
+  setHasSeenRecentlyDeletedToast: (seen: boolean) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;
   resetSettings: () => void;

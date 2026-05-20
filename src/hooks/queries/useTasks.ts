@@ -17,7 +17,9 @@ import {
   getAllTasks,
   getChildTasks,
   getTaskById,
+  permanentlyDeleteTask,
   removeTagFromTask,
+  restoreTask,
   toggleTaskComplete,
   updateTask,
 } from '$lib/store/tasks';
@@ -145,6 +147,55 @@ export const useDeleteTask = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
       if (deletedTask?.parentUid) {
         queryClient.invalidateQueries({ queryKey: ['taskHistory', deletedTask.parentUid] });
+      }
+    },
+  });
+};
+
+/**
+ * Hook to restore a deleted task
+ */
+export const useRestoreTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      restoreChildren = true,
+    }: {
+      id: string;
+      restoreChildren?: boolean;
+    }) => {
+      restoreTask(id, restoreChildren);
+      return getTaskById(id);
+    },
+    onSuccess: (task) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      queryClient.invalidateQueries({ queryKey: ['filteredTasks'] });
+      if (task?.uid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', task.uid] });
+      }
+    },
+  });
+};
+
+/**
+ * Hook to permanently delete a task
+ */
+export const usePermanentDeleteTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, deleteChildren = true }: { id: string; deleteChildren?: boolean }) => {
+      const task = getTaskById(id);
+      permanentlyDeleteTask(id, deleteChildren);
+      return task;
+    },
+    onSuccess: (task) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      queryClient.invalidateQueries({ queryKey: ['filteredTasks'] });
+      if (task?.parentUid) {
+        queryClient.invalidateQueries({ queryKey: ['taskHistory', task.parentUid] });
       }
     },
   });

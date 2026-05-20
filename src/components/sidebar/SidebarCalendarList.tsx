@@ -2,12 +2,13 @@ import {
   closestCenter,
   DndContext,
   type DragEndEvent,
+  type Modifier,
   PointerSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { SidebarCalendarItem } from '$components/sidebar/SidebarCalendarItem';
 import { getFallbackItemColor } from '$constants/colorSchemes';
 import { useReorderCalendars } from '$hooks/queries/useAccounts';
@@ -42,9 +43,27 @@ export const SidebarCalendarList = ({
   const reorderMutation = useReorderCalendars();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const [isAnyCalendarDragging, setIsAnyCalendarDragging] = useState(false);
+  const calendarDragBoundsRef = useRef<HTMLDivElement>(null);
 
   const getTaskCount = (calendarId: string) =>
     tasks.filter((t) => t.calendarId === calendarId && isActiveTask(t)).length;
+
+  const restrictCalendarDragToList = useCallback<Modifier>(({ draggingNodeRect, transform }) => {
+    const bounds = calendarDragBoundsRef.current?.getBoundingClientRect();
+    if (!bounds || !draggingNodeRect) return transform;
+
+    return {
+      ...transform,
+      x: Math.min(
+        Math.max(transform.x, bounds.left - draggingNodeRect.left),
+        bounds.right - draggingNodeRect.right,
+      ),
+      y: Math.min(
+        Math.max(transform.y, bounds.top - draggingNodeRect.top),
+        bounds.bottom - draggingNodeRect.bottom,
+      ),
+    };
+  }, []);
 
   const sortedCalendars = (() => {
     const cals = [...account.calendars];
@@ -100,29 +119,33 @@ export const SidebarCalendarList = ({
     };
 
     return (
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={() => setIsAnyCalendarDragging(true)}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={sortedCalendars.map((c) => c.id)}
-          strategy={verticalListSortingStrategy}
+      <div ref={calendarDragBoundsRef}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictCalendarDragToList]}
+          onDragStart={() => setIsAnyCalendarDragging(true)}
+          onDragEnd={handleDragEnd}
+          onDragCancel={() => setIsAnyCalendarDragging(false)}
         >
-          {sortedCalendars.map((calendar) => (
-            <SidebarCalendarItem key={calendar.id} {...sharedItemProps(calendar)} sortable />
-          ))}
-        </SortableContext>
-      </DndContext>
+          <SortableContext
+            items={sortedCalendars.map((c) => c.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            {sortedCalendars.map((calendar) => (
+              <SidebarCalendarItem key={calendar.id} {...sharedItemProps(calendar)} sortable />
+            ))}
+          </SortableContext>
+        </DndContext>
+      </div>
     );
   }
 
   return (
-    <>
+    <div ref={calendarDragBoundsRef}>
       {sortedCalendars.map((calendar) => (
         <SidebarCalendarItem key={calendar.id} {...sharedItemProps(calendar)} />
       ))}
-    </>
+    </div>
   );
 };

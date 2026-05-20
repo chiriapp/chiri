@@ -66,8 +66,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (confirm: boolean) => settingsStore.setConfirmBeforeDeletion(confirm),
     [],
   );
-  const setConfirmBeforeDelete = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDelete(confirm),
+  const setConfirmBeforePermanentDelete = useCallback(
+    (confirm: boolean) => settingsStore.setConfirmBeforePermanentDelete(confirm),
     [],
   );
   const setConfirmBeforeDeleteCalendar = useCallback(
@@ -289,6 +289,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   );
   const setEnablePush = useCallback((enabled: boolean) => settingsStore.setEnablePush(enabled), []);
   const setNtfyServerUrl = useCallback((url: string) => settingsStore.setNtfyServerUrl(url), []);
+  const setHasSeenRecentlyDeletedToast = useCallback(
+    (seen: boolean) => settingsStore.setHasSeenRecentlyDeletedToast(seen),
+    [],
+  );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
   const resetSettings = useCallback(() => settingsStore.resetSettings(), []);
@@ -307,7 +311,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSyncOnReconnect,
     setShowCompletedByDefault,
     setConfirmBeforeDeletion,
-    setConfirmBeforeDelete,
+    setConfirmBeforePermanentDelete,
     setConfirmBeforeDeleteCalendar,
     setConfirmBeforeDeleteAccount,
     setConfirmBeforeDeleteTag,
@@ -367,6 +371,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setWindowDecorationsMode,
     setEnablePush,
     setNtfyServerUrl,
+    setHasSeenRecentlyDeletedToast,
     exportSettings,
     importSettings,
     resetSettings,

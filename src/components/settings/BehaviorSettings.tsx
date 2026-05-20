@@ -8,8 +8,8 @@ export const BehaviorSettings = () => {
   const {
     confirmBeforeDeletion,
     setConfirmBeforeDeletion,
-    confirmBeforeDelete,
-    setConfirmBeforeDelete,
+    confirmBeforePermanentDelete,
+    setConfirmBeforePermanentDelete,
     confirmBeforeDeleteCalendar,
     setConfirmBeforeDeleteCalendar,
     confirmBeforeDeleteAccount,
@@ -49,10 +49,10 @@ export const BehaviorSettings = () => {
         <label className="flex items-center justify-between p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
-              Confirm before deleting
+              Confirm non-task deletions
             </p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              Ask for confirmation before any deletion
+              Ask before deleting accounts, calendars, and tags
             </p>
           </div>
           <input
@@ -93,28 +93,38 @@ export const BehaviorSettings = () => {
                   className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
                 />
               </label>
-              <label className="flex items-center justify-between">
-                <p className="text-sm text-surface-600 dark:text-surface-400">Tasks</p>
-                <input
-                  type="checkbox"
-                  checked={confirmBeforeDelete}
-                  onChange={(e) => setConfirmBeforeDelete(e.target.checked)}
-                  className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
-                />
-              </label>
             </div>
           </div>
         )}
 
         <div className="border-t border-surface-200 dark:border-surface-700" />
 
+        <label className="flex items-center justify-between p-4">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              Confirm before permanently deleting tasks
+            </p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              Ask before removing tasks from Recently Deleted
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={confirmBeforePermanentDelete}
+            onChange={(e) => setConfirmBeforePermanentDelete(e.target.checked)}
+            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
+          />
+        </label>
+
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
         <div className="flex items-center justify-between gap-4 p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
-              Deleting a task with subtasks
+              When a deleted task has subtasks
             </p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              What happens to its subtasks
+              Choose whether subtasks move with it or stay in your lists
             </p>
           </div>
           <AppSelect
@@ -122,7 +132,7 @@ export const BehaviorSettings = () => {
             onChange={(e) => setDeleteSubtasksWithParent(e.target.value as SubtaskDeletionBehavior)}
             className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0"
           >
-            <option value="delete">Delete subtasks</option>
+            <option value="delete">Move subtasks too</option>
             <option value="keep">Keep subtasks</option>
           </AppSelect>
         </div>

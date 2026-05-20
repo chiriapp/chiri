@@ -11,6 +11,7 @@ import type { DataChangeListener, DataStore, UIState } from '$types/store';
 const log = loggers.dataStore;
 
 export const defaultUIState: UIState = {
+  activeView: 'tasks',
   activeAccountId: null,
   activeCalendarId: null,
   activeTagId: null,

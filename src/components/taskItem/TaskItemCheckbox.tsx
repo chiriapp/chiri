@@ -9,6 +9,7 @@ interface TaskItemCheckboxProps {
   checkmarkColor: string;
   useAccentColor: boolean;
   onClick: (e: React.MouseEvent) => void;
+  disabled?: boolean;
 }
 
 export const TaskItemCheckbox = ({
@@ -17,6 +18,7 @@ export const TaskItemCheckbox = ({
   checkmarkColor,
   useAccentColor,
   onClick,
+  disabled = false,
 }: TaskItemCheckboxProps) => {
   const isCompleted = status === 'completed' || flashComplete;
   const isCancelled = status === 'cancelled';
@@ -32,6 +34,20 @@ export const TaskItemCheckbox = ({
   const getClassName = () => {
     const base =
       'w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
+    const disabledClass = disabled ? 'cursor-not-allowed opacity-70' : '';
+    if (disabled) {
+      if (isCompleted)
+        return `${base} ${disabledClass} ${
+          useAccentColor
+            ? 'bg-primary-500 border-primary-500'
+            : 'bg-status-completed border-status-completed'
+        }`;
+      if (isCancelled)
+        return `${base} ${disabledClass} bg-status-cancelled border-status-cancelled`;
+      if (isInProcess)
+        return `${base} ${disabledClass} bg-status-in-process border-status-in-process`;
+      return `${base} ${disabledClass} border-surface-300 dark:border-surface-600`;
+    }
     if (isCompleted)
       return `${base} ${
         useAccentColor
@@ -44,7 +60,13 @@ export const TaskItemCheckbox = ({
   };
 
   return (
-    <button type="button" onClick={onClick} aria-label={getTitle()} className={getClassName()}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={disabled ? 'Unavailable for deleted task' : getTitle()}
+      className={getClassName()}
+      disabled={disabled}
+    >
       {isCompleted && (
         <Check
           className={`w-4 h-4 ${!useAccentColor ? 'text-surface-900' : ''}`}

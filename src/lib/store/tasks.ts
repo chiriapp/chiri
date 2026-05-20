@@ -175,6 +175,10 @@ export const getAllTasks = () => {
   return dataStore.load().tasks;
 };
 
+export const getDeletedTasks = () => {
+  return dataStore.load().tasks.filter((t) => t.deletedAt);
+};
+
 export const getTaskById = (id: string) => {
   return dataStore.load().tasks.find((t) => t.id === id);
 };
@@ -409,11 +413,86 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
 
   dataStore.save({
     ...data,
-    tasks: updatedTasks.filter((t) => !tasksToDelete.includes(t.id)),
+    tasks: updatedTasks.map((t) =>
+      tasksToDelete.includes(t.id) ? { ...t, deletedAt: new Date(), modifiedAt: new Date() } : t,
+    ),
     pendingDeletions: newPendingDeletions,
     ui: {
       ...data.ui,
       selectedTaskId: tasksToDelete.includes(data.ui.selectedTaskId ?? '')
+        ? null
+        : data.ui.selectedTaskId,
+    },
+  });
+};
+
+export const restoreTask = (id: string, restoreChildren: boolean = true) => {
+  const data = dataStore.load();
+  const task = data.tasks.find((t) => t.id === id);
+  if (!task) return;
+
+  const getAllDescendantIds = (parentUid: string): string[] => {
+    const children = data.tasks.filter((t) => t.parentUid === parentUid);
+    const childIds = children.map((c) => c.id);
+    const descendantIds = children.flatMap((c) => getAllDescendantIds(c.uid));
+    return [...childIds, ...descendantIds];
+  };
+
+  const taskIdsToRestore = restoreChildren ? [id, ...getAllDescendantIds(task.uid)] : [id];
+  const tasksToRestore = data.tasks.filter((t) => taskIdsToRestore.includes(t.id));
+  const restoredUids = new Set(tasksToRestore.map((t) => t.uid));
+
+  db.restoreTask(id, restoreChildren).catch((e) => log.error('Failed to persist task restore:', e));
+
+  dataStore.save({
+    ...data,
+    tasks: data.tasks.map((t) =>
+      taskIdsToRestore.includes(t.id)
+        ? {
+            ...t,
+            deletedAt: undefined,
+            href: undefined,
+            etag: undefined,
+            synced: false,
+            modifiedAt: new Date(),
+          }
+        : t,
+    ),
+    pendingDeletions: data.pendingDeletions.filter((d) => !restoredUids.has(d.uid)),
+  });
+};
+
+export const permanentlyDeleteTask = (id: string, deleteChildren: boolean = true) => {
+  const data = dataStore.load();
+  const task = data.tasks.find((t) => t.id === id);
+  if (!task) return;
+
+  db.permanentlyDeleteTask(id, deleteChildren).catch((e) =>
+    log.error('Failed to persist permanent task deletion:', e),
+  );
+
+  const getAllDescendantIds = (parentUid: string): string[] => {
+    const children = data.tasks.filter((t) => t.parentUid === parentUid);
+    const childIds = children.map((c) => c.id);
+    const descendantIds = children.flatMap((c) => getAllDescendantIds(c.uid));
+    return [...childIds, ...descendantIds];
+  };
+
+  const taskIdsToDelete = deleteChildren ? [id, ...getAllDescendantIds(task.uid)] : [id];
+  const updatedTasks = !deleteChildren
+    ? data.tasks.map((t) =>
+        t.parentUid === task.uid
+          ? { ...t, parentUid: undefined, modifiedAt: new Date(), synced: false }
+          : t,
+      )
+    : data.tasks;
+
+  dataStore.save({
+    ...data,
+    tasks: updatedTasks.filter((t) => !taskIdsToDelete.includes(t.id)),
+    ui: {
+      ...data.ui,
+      selectedTaskId: taskIdsToDelete.includes(data.ui.selectedTaskId ?? '')
         ? null
         : data.ui.selectedTaskId,
     },
@@ -430,7 +509,9 @@ export const removeLocalTask = (id: string) => {
   const task = data.tasks.find((t) => t.id === id);
   if (!task) return;
 
-  db.deleteTask(id, true).catch((e) => log.error('Failed to persist local task removal:', e));
+  db.permanentlyDeleteTask(id, true).catch((e) =>
+    log.error('Failed to persist local task removal:', e),
+  );
 
   const getAllDescendantIds = (parentUid: string): string[] => {
     const children = data.tasks.filter((t) => t.parentUid === parentUid);

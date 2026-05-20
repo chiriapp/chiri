@@ -95,6 +95,7 @@ export interface Task {
   dueDateAllDay?: boolean; // if true, dueDate is all-day (no time component)
   createdAt: Date;
   modifiedAt: Date;
+  deletedAt?: Date;
 
   // reminders
   reminders?: Reminder[];
@@ -198,7 +199,6 @@ export interface AppSettings {
   defaultSortDirection: SortDirection;
   showCompletedTasks: boolean;
   showUnstartedTasks: boolean;
-  confirmBeforeDelete: boolean;
 }
 
 export type SettingsCategory = 'tasks' | 'app' | 'accounts' | 'misc';

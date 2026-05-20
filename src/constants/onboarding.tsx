@@ -11,7 +11,7 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     title: 'Welcome to Chiri!',
     description: (
       <div className="space-y-3">
-        <p>A cross-platform CalDAV task management app.</p>
+        <p>A cross-platform task management app with CalDAV sync.</p>
 
         <p className="text-sm text-surface-500 dark:text-surface-400">
           Note: This app is in active development and may contain bugs. Please report issues on
@@ -29,9 +29,9 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     ),
   },
   {
-    title: 'Connect your CalDAV account',
+    title: 'Get started',
     description:
-      'Add your CalDAV account to manage and sync tasks. Almost every server implementation is supported.',
+      'Connect a CalDAV account to sync tasks across devices, or use Chiri locally to keep everything on this device.',
     icon: <User className="w-12 h-12 text-primary-500" />,
     illustration: (
       <div className="flex items-center justify-center gap-4 py-6">
@@ -39,8 +39,10 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
           <User className="w-8 h-8 text-semantic-info" />
         </div>
         <ArrowRight className="w-6 h-6 text-surface-400" />
-        <div className="w-16 h-16 rounded-2xl bg-semantic-success/15 flex items-center justify-center">
-          <Calendar className="w-8 h-8 text-semantic-success" />
+        <div className="flex flex-col gap-2">
+          <div className="w-16 h-16 rounded-2xl bg-semantic-success/15 flex items-center justify-center">
+            <Calendar className="w-8 h-8 text-semantic-success" />
+          </div>
         </div>
       </div>
     ),

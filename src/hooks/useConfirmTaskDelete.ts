@@ -1,73 +1,54 @@
 import { useCallback } from 'react';
-import { useDeleteTask, useTasks } from '$hooks/queries/useTasks';
-import { useConfirmDialog } from '$hooks/store/useConfirmDialog';
+import { useDeleteTask, usePermanentDeleteTask, useTasks } from '$hooks/queries/useTasks';
+import { useSetRecentlyDeletedView } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { pluralize } from '$utils/misc';
+import { toastManager } from '$hooks/ui/useToast';
 
 export const useConfirmTaskDelete = () => {
-  const { confirmBeforeDeletion, confirmBeforeDelete, deleteSubtasksWithParent } =
+  const { deleteSubtasksWithParent, hasSeenRecentlyDeletedToast, setHasSeenRecentlyDeletedToast } =
     useSettingsStore();
   const { data: tasks = [] } = useTasks();
   const deleteTaskMutation = useDeleteTask();
-  const { confirm, close } = useConfirmDialog();
+  const permanentDeleteTaskMutation = usePermanentDeleteTask();
+  const setRecentlyDeletedViewMutation = useSetRecentlyDeletedView();
 
   const confirmAndDelete = useCallback(
     async (taskId: string | null | undefined) => {
       if (!taskId) return false;
 
-      // Find the task and count its descendants
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return false;
 
-      // Count all descendants recursively
-      const countAllDescendants = (parentUid: string): number => {
-        const children = tasks.filter((t) => t.parentUid === parentUid);
-        return children.reduce((acc, child) => acc + 1 + countAllDescendants(child.uid), 0);
-      };
-
-      const descendantCount = countAllDescendants(task.uid);
       const deleteChildren = deleteSubtasksWithParent === 'delete';
+      const isUntitledLocalDraft = !task.title.trim() && !task.href;
 
-      // skip confirmation for untitled (newly created) tasks
-      const isUntitledTask = !task.title || task.title.trim() === '';
-      if (isUntitledTask || !confirmBeforeDeletion || !confirmBeforeDelete) {
-        deleteTaskMutation.mutate({ id: taskId, deleteChildren });
-        close();
+      if (isUntitledLocalDraft) {
+        permanentDeleteTaskMutation.mutate({ id: taskId, deleteChildren: true });
         return true;
       }
 
-      // Customize message based on whether task has subtasks
-      let message = 'Delete this task? This cannot be undone.';
-      if (descendantCount > 0) {
-        if (deleteChildren) {
-          message = `This task has ${descendantCount} ${pluralize(descendantCount, 'subtask')} that will also be deleted. This cannot be undone.`;
-        } else {
-          message = `This task has ${descendantCount} ${pluralize(descendantCount, 'subtask')} that will be kept. This cannot be undone.`;
-        }
-      }
-
-      const confirmed = await confirm({
-        title: 'Delete task',
-        subtitle: task.title ?? 'Untitled task',
-        message,
-        confirmLabel: 'Delete',
-        cancelLabel: 'Cancel',
-        destructive: true,
-      });
-
-      if (!confirmed) return false;
-
       deleteTaskMutation.mutate({ id: taskId, deleteChildren });
-      close();
+      if (!hasSeenRecentlyDeletedToast) {
+        setHasSeenRecentlyDeletedToast(true);
+        toastManager.info(
+          'Moved to Recently Deleted',
+          "Deleted tasks live in the sidebar's Recently Deleted view until you restore or permanently delete them.",
+          'recently-deleted-intro',
+          {
+            label: 'View',
+            onClick: () => setRecentlyDeletedViewMutation.mutate(),
+          },
+        );
+      }
       return true;
     },
     [
-      confirmBeforeDeletion,
-      confirmBeforeDelete,
       deleteSubtasksWithParent,
       deleteTaskMutation,
-      confirm,
-      close,
+      hasSeenRecentlyDeletedToast,
+      permanentDeleteTaskMutation,
+      setHasSeenRecentlyDeletedToast,
+      setRecentlyDeletedViewMutation,
       tasks,
     ],
   );

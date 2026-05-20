@@ -125,6 +125,7 @@ const buildTaskInsertParams = (task: Task): unknown[] => [
   task.dueDateAllDay ? 1 : 0,
   task.createdAt.toISOString(),
   task.modifiedAt.toISOString(),
+  task.deletedAt ? task.deletedAt.toISOString() : null,
   task.reminders && task.reminders.length > 0 ? JSON.stringify(task.reminders) : null,
   task.parentUid || null,
   task.isCollapsed ? 1 : 0,
@@ -182,11 +183,11 @@ export const createTask = async (conn: DatabasePlugin, taskData: Partial<Task>) 
     `INSERT INTO tasks (
       id, uid, etag, href, title, description, completed, completed_at,
       tags, category_id, priority, start_date, start_date_all_day,
-      due_date, due_date_all_day, created_at, modified_at, reminders,
+      due_date, due_date_all_day, created_at, modified_at, deleted_at, reminders,
       parent_uid, is_collapsed, sort_order, account_id,
       calendar_id, synced, local_only, url, status, percent_complete,
       rrule, repeat_from
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30)`,
+    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)`,
     buildTaskInsertParams(task),
   );
 
@@ -212,6 +213,7 @@ const buildTaskUpdateParams = (task: Task, id: string): unknown[] => [
   task.dueDate ? task.dueDate.toISOString() : null,
   task.dueDateAllDay ? 1 : 0,
   task.modifiedAt.toISOString(),
+  task.deletedAt ? task.deletedAt.toISOString() : null,
   task.reminders && task.reminders.length > 0 ? JSON.stringify(task.reminders) : null,
   task.parentUid || null,
   task.isCollapsed ? 1 : 0,
@@ -259,12 +261,12 @@ export const updateTask = async (conn: DatabasePlugin, id: string, updates: Part
       uid=$1, etag=$2, href=$3, title=$4, description=$5,
       completed=$6, completed_at=$7, tags=$8, category_id=$9,
       priority=$10, start_date=$11, start_date_all_day=$12,
-      due_date=$13, due_date_all_day=$14, modified_at=$15,
-      reminders=$16, parent_uid=$17, is_collapsed=$18,
-      sort_order=$19, account_id=$20, calendar_id=$21, synced=$22,
-      local_only=$23, url=$24, status=$25, percent_complete=$26,
-      rrule=$27, repeat_from=$28
-     WHERE id=$29`,
+      due_date=$13, due_date_all_day=$14, modified_at=$15, deleted_at=$16,
+      reminders=$17, parent_uid=$18, is_collapsed=$19,
+      sort_order=$20, account_id=$21, calendar_id=$22, synced=$23,
+      local_only=$24, url=$25, status=$26, percent_complete=$27,
+      rrule=$28, repeat_from=$29
+     WHERE id=$30`,
     buildTaskUpdateParams(merged, id),
   );
 
@@ -292,6 +294,70 @@ export const deleteTask = async (conn: DatabasePlugin, id: string, deleteChildre
       [t.uid, t.href, t.accountId, t.calendarId],
     );
   }
+
+  if (!deleteChildren) {
+    await conn.execute(
+      'UPDATE tasks SET parent_uid = NULL, modified_at = $1, synced = 0 WHERE parent_uid = $2',
+      [new Date().toISOString(), task.uid],
+    );
+  }
+
+  const placeholders = toDelete.map((_, i) => `$${i + 2}`).join(', ');
+  await conn.execute(
+    `UPDATE tasks SET deleted_at = $1, modified_at = $1 WHERE id IN (${placeholders})`,
+    [new Date().toISOString(), ...toDelete],
+  );
+
+  const uiState = await getUIState(conn);
+  if (toDelete.includes(uiState.selectedTaskId || '')) {
+    await setSelectedTask(conn, null);
+  }
+};
+
+export const restoreTask = async (conn: DatabasePlugin, id: string, restoreChildren = true) => {
+  const task = await getTaskById(conn, id);
+  if (!task) return;
+
+  const getAllDescendantIds = async (parentUid: string): Promise<string[]> => {
+    const children = await getChildTasks(conn, parentUid);
+    const childIds = children.map((ch) => ch.id);
+    const nested = await Promise.all(children.map((ch) => getAllDescendantIds(ch.uid)));
+    return [...childIds, ...nested.flat()];
+  };
+
+  const descendantIds = await getAllDescendantIds(task.uid);
+  const toRestore = restoreChildren ? [id, ...descendantIds] : [id];
+  const tasks = await Promise.all(toRestore.map((tid) => getTaskById(conn, tid)));
+  const now = new Date().toISOString();
+  const placeholders = toRestore.map((_, i) => `$${i + 1}`).join(', ');
+
+  await conn.execute(
+    `UPDATE tasks SET deleted_at = NULL, href = NULL, etag = NULL, synced = 0, modified_at = $${toRestore.length + 1} WHERE id IN (${placeholders})`,
+    [...toRestore, now],
+  );
+
+  for (const t of tasks.filter((t): t is Task => !!t)) {
+    await conn.execute('DELETE FROM pending_deletions WHERE uid = $1', [t.uid]);
+  }
+};
+
+export const permanentlyDeleteTask = async (
+  conn: DatabasePlugin,
+  id: string,
+  deleteChildren = true,
+) => {
+  const task = await getTaskById(conn, id);
+  if (!task) return;
+
+  const getAllDescendantIds = async (parentUid: string): Promise<string[]> => {
+    const children = await getChildTasks(conn, parentUid);
+    const childIds = children.map((ch) => ch.id);
+    const nested = await Promise.all(children.map((ch) => getAllDescendantIds(ch.uid)));
+    return [...childIds, ...nested.flat()];
+  };
+
+  const descendantIds = await getAllDescendantIds(task.uid);
+  const toDelete = deleteChildren ? [id, ...descendantIds] : [id];
 
   if (!deleteChildren) {
     await conn.execute(

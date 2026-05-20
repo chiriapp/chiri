@@ -16,6 +16,7 @@ export interface PendingDeletion {
 }
 
 export interface UIState {
+  activeView: 'tasks' | 'recently-deleted';
   activeAccountId: string | null;
   activeCalendarId: string | null;
   activeTagId: string | null;

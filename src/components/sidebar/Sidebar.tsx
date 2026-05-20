@@ -1,4 +1,5 @@
 import Inbox from 'lucide-react/icons/inbox';
+import Trash2 from 'lucide-react/icons/trash-2';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AccountModal } from '$components/modals/account/AccountModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
@@ -22,6 +23,7 @@ import {
   useSetActiveCalendar,
   useSetActiveTag,
   useSetAllTasksView,
+  useSetRecentlyDeletedView,
   useUIState,
 } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
@@ -66,6 +68,7 @@ export const Sidebar = ({
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveTagMutation = useSetActiveTag();
   const setAllTasksViewMutation = useSetAllTasksView();
+  const setRecentlyDeletedViewMutation = useSetRecentlyDeletedView();
 
   const { handleDeleteAccount, handleDeleteTag, handleDeleteCalendar } = useDeleteHandlers();
   const { syncCalendar, syncingCalendarId } = useSyncQuery();
@@ -73,6 +76,7 @@ export const Sidebar = ({
 
   const activeCalendarId = uiState?.activeCalendarId ?? null;
   const activeTagId = uiState?.activeTagId ?? null;
+  const activeView = uiState?.activeView ?? 'tasks';
   const { isAnyModalOpen } = useModalState();
   const {
     expandedAccountIds,
@@ -233,7 +237,10 @@ export const Sidebar = ({
   }, [accounts, createAccountMutation]);
 
   const getTotalActiveTaskCount = () =>
-    tasks.filter((t) => t.status !== 'completed' && t.status !== 'cancelled').length;
+    tasks.filter((t) => !t.deletedAt && t.status !== 'completed' && t.status !== 'cancelled')
+      .length;
+
+  const getDeletedTaskCount = () => tasks.filter((t) => t.deletedAt).length;
 
   return (
     <>
@@ -271,7 +278,7 @@ export const Sidebar = ({
                   setActiveAccountMutation.mutate(null);
                 }}
                 className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                  activeCalendarId === null && activeTagId === null
+                  activeView === 'tasks' && activeCalendarId === null && activeTagId === null
                     ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
                     : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
                 }`}
@@ -279,6 +286,22 @@ export const Sidebar = ({
                 <Inbox className="w-4 h-4 shrink-0" />
                 <span className="flex-1 text-left">All Tasks</span>
                 <span className="text-xs">{getTotalActiveTaskCount()}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setRecentlyDeletedViewMutation.mutate();
+                }}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  activeView === 'recently-deleted'
+                    ? 'bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100'
+                    : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-200 dark:hover:bg-surface-700' : ''}`
+                }`}
+              >
+                <Trash2 className="w-4 h-4 shrink-0" />
+                <span className="flex-1 text-left">Recently Deleted</span>
+                <span className="text-xs">{getDeletedTaskCount()}</span>
               </button>
 
               <SidebarLocalList
@@ -354,6 +377,7 @@ export const Sidebar = ({
             tags={tags}
             activeCalendarId={activeCalendarId}
             activeTagId={activeTagId}
+            activeView={activeView}
             contextMenu={contextMenu}
             showCollapsedContent={showCollapsedContent}
             localSectionCollapsed={localSectionCollapsed}
@@ -363,6 +387,9 @@ export const Sidebar = ({
             onAllTasks={() => {
               setAllTasksViewMutation.mutate();
               setActiveAccountMutation.mutate(null);
+            }}
+            onRecentlyDeleted={() => {
+              setRecentlyDeletedViewMutation.mutate();
             }}
             onSelectCalendar={(accountId, calendarId) => {
               setActiveAccountMutation.mutate(accountId);

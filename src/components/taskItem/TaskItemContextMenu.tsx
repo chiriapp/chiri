@@ -17,8 +17,9 @@ import { MoveToCalendarModal } from '$components/modals/MoveToCalendarModal';
 import { SubtaskModal } from '$components/modals/SubtaskModal';
 import { PRIORITIES } from '$constants/priority';
 import { useAccounts } from '$hooks/queries/useAccounts';
-import { useCreateTask, useUpdateTask } from '$hooks/queries/useTasks';
+import { useCreateTask, useRestoreTask, useUpdateTask } from '$hooks/queries/useTasks';
 import { useSetSelectedTask } from '$hooks/queries/useUIState';
+import { useConfirmPermanentTaskDelete } from '$hooks/useConfirmPermanentTaskDelete';
 import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
 import { exportTaskAndChildren } from '$lib/store/tasks';
 import type { Priority, Task, TaskStatus } from '$types';
@@ -41,8 +42,10 @@ export const TaskItemContextMenu = ({
   const { data: accounts = [] } = useAccounts();
   const updateTaskMutation = useUpdateTask();
   const createTaskMutation = useCreateTask();
+  const restoreTaskMutation = useRestoreTask();
   const setSelectedTaskMutation = useSetSelectedTask();
   const { confirmAndDelete } = useConfirmTaskDelete();
+  const { confirmAndDeletePermanently } = useConfirmPermanentTaskDelete();
 
   const [showExportModal, setShowExportModal] = useState(false);
   const [showSubtaskModal, setShowSubtaskModal] = useState(false);
@@ -75,6 +78,16 @@ export const TaskItemContextMenu = ({
   const handleDelete = async () => {
     setContextMenu(null);
     await confirmAndDelete(task.id);
+  };
+
+  const handleRestore = () => {
+    restoreTaskMutation.mutate({ id: task.id });
+    setContextMenu(null);
+  };
+
+  const handlePermanentDelete = async () => {
+    setContextMenu(null);
+    await confirmAndDeletePermanently(task.id);
   };
 
   const handleExport = () => {
@@ -191,83 +204,108 @@ export const TaskItemContextMenu = ({
             className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 my-1 z-50 min-w-50 animate-scale-in"
             style={{ left: contextMenu.x, top: contextMenu.y }}
           >
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedTaskMutation.mutate(task.id);
-                setContextMenu(null);
-              }}
-              className={`${menuItemClass} rounded-t-md`}
-            >
-              <Edit2 className="w-4 h-4" />
-              Edit
-            </button>
+            {task.deletedAt ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleRestore}
+                  className={`${menuItemClass} rounded-t-md`}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Restore
+                </button>
 
-            <div className="border-t border-surface-200 dark:border-surface-700" />
-            <button
-              type="button"
-              onMouseEnter={handleStatusMouseEnter}
-              onMouseLeave={handleStatusMouseLeave}
-              className={menuItemClass}
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="flex-1 text-left">Set status</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <button
+                  type="button"
+                  onClick={handlePermanentDelete}
+                  className="w-full rounded-b-md flex items-center gap-2 px-3 py-2 text-sm text-semantic-error hover:bg-semantic-error/15 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete permanently
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedTaskMutation.mutate(task.id);
+                    setContextMenu(null);
+                  }}
+                  className={`${menuItemClass} rounded-t-md`}
+                >
+                  <Edit2 className="w-4 h-4" />
+                  Edit
+                </button>
 
-            <div className="border-t border-surface-200 dark:border-surface-700" />
-            <button
-              type="button"
-              onClick={() => {
-                setIsMenuHidden(true);
-                setShowMoveToCalendarModal(true);
-              }}
-              className={menuItemClass}
-            >
-              <CalendarMove className="w-4 h-4" />
-              Move to calendar
-            </button>
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <button
+                  type="button"
+                  onMouseEnter={handleStatusMouseEnter}
+                  onMouseLeave={handleStatusMouseLeave}
+                  className={menuItemClass}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="flex-1 text-left">Set status</span>
+                  <ChevronRight className="w-3 h-3" />
+                </button>
 
-            <div className="border-t border-surface-200 dark:border-surface-700" />
-            <button
-              type="button"
-              onMouseEnter={handlePriorityMouseEnter}
-              onMouseLeave={handlePriorityMouseLeave}
-              className={menuItemClass}
-            >
-              <Flag className="w-4 h-4" />
-              <span className="flex-1 text-left">Change priority</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuHidden(true);
+                    setShowMoveToCalendarModal(true);
+                  }}
+                  className={menuItemClass}
+                >
+                  <CalendarMove className="w-4 h-4" />
+                  Move to calendar
+                </button>
 
-            <div className="border-t border-surface-200 dark:border-surface-700" />
-            <button
-              type="button"
-              onClick={() => {
-                setIsMenuHidden(true);
-                setShowSubtaskModal(true);
-              }}
-              className={menuItemClass}
-            >
-              <ListPlus className="w-4 h-4" />
-              Add subtask
-            </button>
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <button
+                  type="button"
+                  onMouseEnter={handlePriorityMouseEnter}
+                  onMouseLeave={handlePriorityMouseLeave}
+                  className={menuItemClass}
+                >
+                  <Flag className="w-4 h-4" />
+                  <span className="flex-1 text-left">Change priority</span>
+                  <ChevronRight className="w-3 h-3" />
+                </button>
 
-            <div className="border-t border-surface-200 dark:border-surface-700" />
-            <button type="button" onClick={handleExport} className={menuItemClass}>
-              <Share2 className="w-4 h-4" />
-              Export
-            </button>
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuHidden(true);
+                    setShowSubtaskModal(true);
+                  }}
+                  className={menuItemClass}
+                >
+                  <ListPlus className="w-4 h-4" />
+                  Add subtask
+                </button>
 
-            <div className="border-t border-surface-200 dark:border-surface-700" />
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="w-full rounded-b-md flex items-center gap-2 px-3 py-2 text-sm text-semantic-error hover:bg-semantic-error/15 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete
-            </button>
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <button type="button" onClick={handleExport} className={menuItemClass}>
+                  <Share2 className="w-4 h-4" />
+                  Export
+                </button>
+
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className="w-full rounded-b-md flex items-center gap-2 px-3 py-2 text-sm text-semantic-error hover:bg-semantic-error/15 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              </>
+            )}
           </div>
 
           {priorityFlyoutPos && (

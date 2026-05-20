@@ -24,6 +24,7 @@ import {
   useAddTagToTask,
   useRemoveReminder,
   useRemoveTagFromTask,
+  useRestoreTask,
   useUpdateReminder,
   useUpdateTask,
 } from '$hooks/queries/useTasks';
@@ -31,10 +32,12 @@ import { useSetEditorOpen } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { useConfirmPermanentTaskDelete } from '$hooks/useConfirmPermanentTaskDelete';
 import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
 import type { Task, TaskStatus } from '$types';
 import type { EditorFieldKey } from '$types/settings';
 import { getContrastTextColor } from '$utils/color';
+import { formatDate, formatTime } from '$utils/date';
 import { hasOpenModalElements } from '$utils/misc';
 
 interface TaskEditorProps {
@@ -50,6 +53,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   const addReminderMutation = useAddReminder();
   const removeReminderMutation = useRemoveReminder();
   const updateReminderMutation = useUpdateReminder();
+  const restoreTaskMutation = useRestoreTask();
   const { data: tags = [] } = useTags();
   const { data: accounts = [] } = useAccounts();
   const {
@@ -61,6 +65,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
     useAccentColorForCheckboxes,
   } = useSettingsStore();
   const { confirmAndDelete } = useConfirmTaskDelete();
+  const { confirmAndDeletePermanently } = useConfirmPermanentTaskDelete();
 
   const checkmarkColor = getContrastTextColor(accentColor);
 
@@ -202,6 +207,66 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
       setEditorOpenMutation.mutate(false);
     }
   };
+
+  const handleRestore = () => {
+    restoreTaskMutation.mutate({ id: task.id });
+    setEditorOpenMutation.mutate(false);
+  };
+
+  const handlePermanentDelete = async () => {
+    const deleted = await confirmAndDeletePermanently(task.id);
+    if (deleted) {
+      setEditorOpenMutation.mutate(false);
+    }
+  };
+
+  if (task.deletedAt) {
+    return (
+      <div className="flex flex-col h-full bg-white dark:bg-surface-900" ref={editorContainerRef}>
+        <TaskEditorHeader
+          onDelete={handleDelete}
+          onClose={() => setEditorOpenMutation.mutate(false)}
+          isDeleted
+          onRestore={handleRestore}
+          onDeletePermanently={handlePermanentDelete}
+        />
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 overscroll-contain">
+          <div>
+            <div className="text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+              Title
+            </div>
+            <div className="px-3 py-3 bg-surface-100 dark:bg-surface-800 rounded-lg text-sm font-medium text-surface-700 dark:text-surface-300 whitespace-pre-wrap">
+              {task.title || 'Untitled task'}
+            </div>
+          </div>
+
+          {task.description && (
+            <div>
+              <div className="text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+                Description
+              </div>
+              <div className="px-3 py-3 bg-surface-100 dark:bg-surface-800 rounded-lg text-sm text-surface-700 dark:text-surface-300 whitespace-pre-wrap">
+                {task.description}
+              </div>
+            </div>
+          )}
+
+          <div>
+            <div className="text-sm font-medium text-surface-600 dark:text-surface-400 mb-2">
+              Deleted
+            </div>
+            <div className="px-3 py-3 bg-surface-100 dark:bg-surface-800 rounded-lg text-sm text-surface-700 dark:text-surface-300">
+              {formatDate(new Date(task.deletedAt), true)}{' '}
+              {formatTime(new Date(task.deletedAt), timeFormat)}
+            </div>
+          </div>
+        </div>
+
+        <TaskEditorFooter task={task} timeFormat={timeFormat} />
+      </div>
+    );
+  }
 
   const editorFieldRenderers: Record<EditorFieldKey, () => React.ReactNode> = {
     status: () =>

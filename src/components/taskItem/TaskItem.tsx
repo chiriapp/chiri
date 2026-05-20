@@ -120,6 +120,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
 
   const handleCheckboxClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (task.deletedAt) return;
     if (task.rrule && task.status !== 'completed') {
       setFlashComplete(true);
       flashTimerRef.current = setTimeout(() => setFlashComplete(false), 600);
@@ -202,6 +203,7 @@ export const TaskItem = ({ task, depth, ancestorIds, isDragEnabled, isOverlay }:
             checkmarkColor={checkmarkColor}
             useAccentColor={useAccentColorForCheckboxes}
             onClick={handleCheckboxClick}
+            disabled={!!task.deletedAt}
           />
         </div>
 

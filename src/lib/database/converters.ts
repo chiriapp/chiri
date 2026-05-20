@@ -41,6 +41,7 @@ export const rowToTask = (row: TaskRow): Task => {
     dueDateAllDay: row.due_date_all_day === null ? undefined : row.due_date_all_day === 1,
     createdAt: new Date(row.created_at),
     modifiedAt: new Date(row.modified_at),
+    deletedAt: row.deleted_at ? new Date(row.deleted_at) : undefined,
     reminders: row.reminders
       ? JSON.parse(row.reminders).map((r: ReminderRow) => ({
           ...r,

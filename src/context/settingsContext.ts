@@ -46,7 +46,8 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      const loadedState = { ...defaultState, ...parsed.state };
+      const { confirmBeforeDelete: _confirmBeforeDelete, ...storedState } = parsed.state ?? {};
+      const loadedState = { ...defaultState, ...storedState };
 
       // Migrate old number[] quickTimePresets to object format
       if (Array.isArray(loadedState.quickTimePresets)) {
@@ -191,7 +192,8 @@ export const settingsStore = {
   setShowCompletedByDefault: (showCompletedByDefault: boolean) =>
     setState({ showCompletedByDefault }),
   setConfirmBeforeDeletion: (confirmBeforeDeletion: boolean) => setState({ confirmBeforeDeletion }),
-  setConfirmBeforeDelete: (confirmBeforeDelete: boolean) => setState({ confirmBeforeDelete }),
+  setConfirmBeforePermanentDelete: (confirmBeforePermanentDelete: boolean) =>
+    setState({ confirmBeforePermanentDelete }),
   setConfirmBeforeDeleteCalendar: (confirmBeforeDeleteCalendar: boolean) =>
     setState({ confirmBeforeDeleteCalendar }),
   setConfirmBeforeDeleteAccount: (confirmBeforeDeleteAccount: boolean) =>
@@ -315,6 +317,8 @@ export const settingsStore = {
     setState({ windowDecorationsMode }),
   setEnablePush: (enablePush: boolean) => setState({ enablePush }),
   setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),
+  setHasSeenRecentlyDeletedToast: (hasSeenRecentlyDeletedToast: boolean) =>
+    setState({ hasSeenRecentlyDeletedToast }),
 
   exportSettings: () => exportSettings(state),
 

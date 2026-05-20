@@ -20,6 +20,7 @@ import {
   setAllTasksView,
   setCalendarSortConfig,
   setEditorOpen,
+  setRecentlyDeletedView,
   setSearchQuery,
   setSelectedTask,
   setShowCompletedTasks,
@@ -207,6 +208,24 @@ export const useSetAllTasksView = () => {
   return useMutation({
     mutationFn: () => {
       setAllTasksView();
+      return Promise.resolve();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['uiState'] });
+      queryClient.invalidateQueries({ queryKey: ['filteredTasks'] });
+    },
+  });
+};
+
+/**
+ * Hook to set recently deleted view
+ */
+export const useSetRecentlyDeletedView = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => {
+      setRecentlyDeletedView();
       return Promise.resolve();
     },
     onSuccess: () => {

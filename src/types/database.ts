@@ -18,6 +18,7 @@ export interface TaskRow {
   due_date_all_day: number | null; // Nullable in database schema
   created_at: string;
   modified_at: string;
+  deleted_at: string | null;
   reminders: string | null;
   parent_uid: string | null;
   is_collapsed: number | null; // Nullable in database schema (DEFAULT 0)
@@ -96,6 +97,7 @@ export interface UIStateRow {
   active_calendar_id: string | null;
   active_tag_id: string | null;
   selected_task_id: string | null;
+  active_view: string | null;
   search_query: string;
   sort_mode: string;
   sort_direction: string;

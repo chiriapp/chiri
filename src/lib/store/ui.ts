@@ -29,7 +29,7 @@ export const setActiveAccount = (id: string | null) => {
 
   dataStore.save({
     ...data,
-    ui: { ...data.ui, activeAccountId: id, activeCalendarId: null },
+    ui: { ...data.ui, activeView: 'tasks', activeAccountId: id, activeCalendarId: null },
   });
 };
 
@@ -53,6 +53,7 @@ export const setActiveCalendar = (id: string | null) => {
     ...data,
     ui: {
       ...data.ui,
+      activeView: 'tasks',
       activeCalendarId: id,
       activeTagId: null,
       selectedTaskId: null,
@@ -79,6 +80,7 @@ export const setActiveTag = (id: string | null) => {
     ...data,
     ui: {
       ...data.ui,
+      activeView: 'tasks',
       activeTagId: id,
       activeCalendarId: null,
       selectedTaskId: null,
@@ -96,6 +98,28 @@ export const setAllTasksView = () => {
     ...data,
     ui: {
       ...data.ui,
+      activeView: 'tasks',
+      activeCalendarId: null,
+      activeTagId: null,
+      selectedTaskId: null,
+      isEditorOpen: false,
+    },
+  });
+};
+
+export const setRecentlyDeletedView = () => {
+  const data = dataStore.load();
+
+  db.setRecentlyDeletedView().catch((e) =>
+    log.error('Failed to persist recently deleted view:', e),
+  );
+
+  dataStore.save({
+    ...data,
+    ui: {
+      ...data.ui,
+      activeView: 'recently-deleted',
+      activeAccountId: null,
       activeCalendarId: null,
       activeTagId: null,
       selectedTaskId: null,

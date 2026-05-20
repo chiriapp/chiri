@@ -20,6 +20,7 @@ import type { UIStateRow } from '$types/database';
 import type { UIState } from '$types/store';
 
 export const DEFAULT_UI_STATE: UIState = {
+  activeView: 'tasks',
   activeAccountId: null,
   activeCalendarId: null,
   activeTagId: null,
@@ -34,12 +35,13 @@ export const DEFAULT_UI_STATE: UIState = {
   isEditorOpen: false,
 };
 
-export const getUIState = async (conn: DatabasePlugin) => {
+export const getUIState = async (conn: DatabasePlugin): Promise<UIState> => {
   const rows = await conn.select<UIStateRow[]>('SELECT * FROM ui_state WHERE id = 1');
   if (rows.length === 0) return DEFAULT_UI_STATE;
 
   const row = rows[0];
   return {
+    activeView: row.active_view === 'recently-deleted' ? 'recently-deleted' : 'tasks',
     activeAccountId: row.active_account_id,
     activeCalendarId: row.active_calendar_id,
     activeTagId: row.active_tag_id,
@@ -69,28 +71,35 @@ export const getUIState = async (conn: DatabasePlugin) => {
 
 export const setActiveAccount = async (conn: DatabasePlugin, id: string | null) => {
   await conn.execute(
-    'UPDATE ui_state SET active_account_id = $1, active_calendar_id = NULL WHERE id = 1',
+    "UPDATE ui_state SET active_view = 'tasks', active_account_id = $1, active_calendar_id = NULL WHERE id = 1",
     [id],
   );
 };
 
 export const setActiveCalendar = async (conn: DatabasePlugin, id: string | null) => {
   await conn.execute(
-    'UPDATE ui_state SET active_calendar_id = $1, active_tag_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1',
+    "UPDATE ui_state SET active_view = 'tasks', active_calendar_id = $1, active_tag_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1",
     [id],
   );
 };
 
 export const setActiveTag = async (conn: DatabasePlugin, id: string | null) => {
   await conn.execute(
-    'UPDATE ui_state SET active_tag_id = $1, active_calendar_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1',
+    "UPDATE ui_state SET active_view = 'tasks', active_tag_id = $1, active_calendar_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1",
     [id],
   );
 };
 
 export const setAllTasksView = async (conn: DatabasePlugin) => {
   await conn.execute(
-    'UPDATE ui_state SET active_calendar_id = NULL, active_tag_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1',
+    "UPDATE ui_state SET active_view = 'tasks', active_calendar_id = NULL, active_tag_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1",
+    [],
+  );
+};
+
+export const setRecentlyDeletedView = async (conn: DatabasePlugin) => {
+  await conn.execute(
+    "UPDATE ui_state SET active_view = 'recently-deleted', active_account_id = NULL, active_calendar_id = NULL, active_tag_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1",
     [],
   );
 };

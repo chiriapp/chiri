@@ -19,7 +19,7 @@ export const defaultState: SettingsState = {
   syncOnReconnect: true,
   showCompletedByDefault: true,
   confirmBeforeDeletion: true,
-  confirmBeforeDelete: true,
+  confirmBeforePermanentDelete: true,
   confirmBeforeDeleteCalendar: true,
   confirmBeforeDeleteAccount: true,
   confirmBeforeDeleteTag: true,
@@ -119,4 +119,5 @@ export const defaultState: SettingsState = {
   windowDecorationsMode: 'auto',
   enablePush: false,
   ntfyServerUrl: 'https://ntfy.sh',
+  hasSeenRecentlyDeletedToast: false,
 };
