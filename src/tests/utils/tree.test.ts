@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Task } from '$types';
-import { calculateNewPositions, type FlattenedTask, flattenTasks } from '$utils/tree';
+import type { FlattenedTask } from '$types/store';
+import { calculateNewPositions, flattenTasks } from '$utils/tree';
 import { makeFlattenedTask } from '../fixtures';
 
 const task = (id: string, uid: string, overrides: Partial<FlattenedTask> = {}): FlattenedTask =>

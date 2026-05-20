@@ -40,12 +40,7 @@ export interface DataStore {
 
 export type DataChangeListener = () => void;
 
-export interface FlattenedTask {
-  id: string;
-  uid: string;
-  title: string;
-  depth: number;
-  parentUid?: string;
+export interface FlattenedTask extends Task {
   ancestorIds: string[];
-  sortOrder: number;
+  depth: number;
 }

@@ -12,25 +12,7 @@
  */
 
 import { DOMParser, type Element, type Node } from '@xmldom/xmldom';
-
-export interface HttpResponse {
-  status: number;
-  headers: Record<string, string>;
-  body: string;
-}
-
-export interface CalDAVCredentials {
-  username: string;
-  password: string;
-  bearerToken?: string;
-  acceptInvalidCerts?: boolean;
-}
-
-export interface MultiStatusResponse {
-  href: string;
-  status: string;
-  props: Record<string, string | null>;
-}
+import type { CalDAVCredentials, HttpResponse, MultiStatusResponse } from '$lib/tauriHttp';
 
 const authHeader = (credentials: CalDAVCredentials): string =>
   credentials.bearerToken

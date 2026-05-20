@@ -1,12 +1,5 @@
 import type { Task } from '$types';
-
-/**
- * extended task type with ancestor information for flat list rendering
- */
-export interface FlattenedTask extends Task {
-  ancestorIds: string[];
-  depth: number;
-}
+import type { FlattenedTask } from '$types/store';
 
 /**
  * flatten a tree of tasks into a single array suitable for dnd-kit SortableContext

@@ -33,7 +33,7 @@ import {
   updateTask,
 } from '$lib/store/tasks';
 import type { SortConfig, Task } from '$types';
-import type { FlattenedTask } from '$utils/tree';
+import type { FlattenedTask } from '$types/store';
 
 /**
  * Hook to get sorted children of a task, reactive to any task store changes.

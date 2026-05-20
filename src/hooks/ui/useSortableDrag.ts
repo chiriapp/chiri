@@ -9,7 +9,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { TASK_LIST_INDENT_SHIFT_SIZE } from '$constants';
 import { useReorderTasks } from '$hooks/queries/useTasks';
-import type { FlattenedTask } from '$utils/tree';
+import type { FlattenedTask } from '$types/store';
 
 export const truncateName = (name: string, maxLength = 20) => {
   if (name.length <= maxLength) return name;
