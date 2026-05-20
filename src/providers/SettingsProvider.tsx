@@ -1,5 +1,5 @@
 import { type ReactNode, useCallback, useSyncExternalStore } from 'react';
-import { SettingsContext, type SettingsStore, settingsStore } from '$context/settingsContext';
+import { SettingsContext, settingsStore } from '$context/settingsContext';
 import type {
   DateFormat,
   DefaultDateOffset,
@@ -16,6 +16,7 @@ import type {
   EditorFieldKey,
   EditorFieldVisibility,
   QuickTimePresets,
+  SettingsStore,
   TaskBadgeKey,
   TaskBadgeVisibility,
   TaskListDensity,
