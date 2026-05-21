@@ -3,6 +3,8 @@ import Check from 'lucide-react/icons/check';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Cloud from 'lucide-react/icons/cloud';
 import { useEffect, useRef, useState } from 'react';
+import { getFallbackItemColor } from '$constants/colorSchemes';
+import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
 import type { DestinationStepProps } from '$types/import';
 
 interface CalendarOption {
@@ -19,6 +21,7 @@ export const DestinationStep = ({
   selectedCalendarId,
   onSelect,
 }: DestinationStepProps) => {
+  const resolveAccent = useAccentColorResolver();
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<{
     top: number;
@@ -44,6 +47,9 @@ export const DestinationStep = ({
   const selectedOption = calendarOptions.find(
     (opt) => opt.accountId === selectedAccountId && opt.calendarId === selectedCalendarId,
   );
+  const selectedCalendarColor = selectedOption
+    ? resolveAccent(selectedOption.calendarColor ?? getFallbackItemColor())
+    : getFallbackItemColor();
 
   // Group calendars by account for display
   const groupedOptions = accounts.map((account) => ({
@@ -161,7 +167,7 @@ export const DestinationStep = ({
             <div className="flex items-center gap-2 min-w-0">
               <div
                 className="w-3 h-3 rounded-full shrink-0"
-                style={{ backgroundColor: selectedOption.calendarColor || '#3b82f6' }}
+                style={{ backgroundColor: selectedCalendarColor }}
               />
               <span className="truncate text-surface-800 dark:text-surface-200">
                 {selectedOption.calendarName}
@@ -203,6 +209,7 @@ export const DestinationStep = ({
                 {calendars.map((cal) => {
                   const isSelected =
                     selectedAccountId === account.id && selectedCalendarId === cal.id;
+                  const calendarColor = resolveAccent(cal.color ?? getFallbackItemColor());
                   return (
                     <button
                       key={cal.id}
@@ -218,7 +225,7 @@ export const DestinationStep = ({
                     >
                       <div
                         className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: cal.color || '#3b82f6' }}
+                        style={{ backgroundColor: calendarColor }}
                       />
                       <span className="truncate flex-1">{cal.displayName}</span>
                       {isSelected && <Check className="w-4 h-4 text-primary-500 shrink-0" />}

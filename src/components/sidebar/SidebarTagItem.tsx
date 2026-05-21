@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
+import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
 import type { Tag } from '$types';
 
 export interface SidebarTagItemProps {
@@ -26,12 +27,13 @@ export const SidebarTagItem = ({
   onSelect,
   onContextMenu,
 }: SidebarTagItemProps) => {
+  const resolveAccent = useAccentColorResolver();
   const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
     id: tag.id,
     disabled: !sortable,
   });
   const TagIcon = getIconByName(tag.icon ?? 'tag');
-  const tagColor = tag.color ?? getFallbackItemColor();
+  const tagColor = resolveAccent(tag.color ?? getFallbackItemColor());
   const transformStr =
     sortable && transform
       ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX}) scaleY(${transform.scaleY})`

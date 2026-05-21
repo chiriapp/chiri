@@ -10,6 +10,7 @@ import { TaskItemSubtaskProgressBadge } from '$components/taskItem/badges/TaskIt
 import { TaskItemTagBadge } from '$components/taskItem/badges/TaskItemTagBadge';
 import { TaskItemURLBadge } from '$components/taskItem/badges/TaskItemURLBadge';
 import { getFallbackItemColor } from '$constants/colorSchemes';
+import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
 import { getAllTags } from '$lib/store/tags';
 import { countChildren, getChildTasks } from '$lib/store/tasks';
 import type { Account, Tag, Task } from '$types';
@@ -41,6 +42,7 @@ export const TaskItemBadges = ({
   badgeVisibility,
   badgeOrder,
 }: TaskItemBadgesProps) => {
+  const resolveAccent = useAccentColorResolver();
   const allChildTasks = getChildTasks(task.uid);
   const hiddenChildCount = !showCompletedTasks
     ? allChildTasks.filter((c) => c.status === 'completed' || c.status === 'cancelled').length
@@ -52,7 +54,7 @@ export const TaskItemBadges = ({
   const childCount = countChildren(task.uid);
   const allCalendars = accounts.flatMap((a) => a.calendars);
   const calendar = allCalendars.find((c) => c.id === task.calendarId);
-  const calendarColor = calendar?.color ?? getFallbackItemColor();
+  const calendarColor = resolveAccent(calendar?.color ?? getFallbackItemColor());
   const showCalendar = activeCalendarId === null && calendar;
   const isUnstarted = task.startDate && new Date(task.startDate) > new Date();
   const startDateDisplay = isUnstarted && task.startDate ? formatStartDate(task.startDate) : null;

@@ -12,6 +12,7 @@ import { useCallback, useRef, useState } from 'react';
 import { SidebarCalendarItem } from '$components/sidebar/SidebarCalendarItem';
 import { getFallbackItemColor } from '$constants/colorSchemes';
 import { useReorderCalendars } from '$hooks/queries/useAccounts';
+import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
 import type { Account, Calendar, CalendarSortConfig, Task } from '$types';
 
 interface SidebarCalendarListProps {
@@ -41,6 +42,7 @@ export const SidebarCalendarList = ({
   onSelectCalendar,
 }: SidebarCalendarListProps) => {
   const reorderMutation = useReorderCalendars();
+  const resolveAccent = useAccentColorResolver();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const [isAnyCalendarDragging, setIsAnyCalendarDragging] = useState(false);
   const calendarDragBoundsRef = useRef<HTMLDivElement>(null);
@@ -91,7 +93,7 @@ export const SidebarCalendarList = ({
 
   const sharedItemProps = (calendar: Calendar) => {
     const isActive = activeCalendarId === calendar.id;
-    const calendarColor = calendar.color ?? getFallbackItemColor();
+    const calendarColor = resolveAccent(calendar.color ?? getFallbackItemColor());
     return {
       calendar,
       isActive,

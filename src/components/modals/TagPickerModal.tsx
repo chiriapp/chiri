@@ -3,7 +3,9 @@ import Search from 'lucide-react/icons/search';
 import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
+import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
+import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
 import type { Tag } from '$types';
 
 interface TagPickerModalProps {
@@ -27,6 +29,7 @@ export const TagPickerModal = ({
   noTagsExist,
   initialQuery = '',
 }: TagPickerModalProps) => {
+  const resolveAccent = useAccentColorResolver();
   const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   const filteredTags = useMemo(() => {
@@ -90,6 +93,7 @@ export const TagPickerModal = ({
               <div className="space-y-1">
                 {filteredTags.map((tag) => {
                   const TagIcon = getIconByName(tag.icon || 'tag');
+                  const tagColor = resolveAccent(tag.color ?? getFallbackItemColor());
                   return (
                     <button
                       type="button"
@@ -98,11 +102,11 @@ export const TagPickerModal = ({
                       className="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
                     >
                       {tag.emoji ? (
-                        <span className="text-xs leading-none" style={{ color: tag.color }}>
+                        <span className="text-xs leading-none" style={{ color: tagColor }}>
                           {tag.emoji}
                         </span>
                       ) : (
-                        <TagIcon className="w-4 h-4" style={{ color: tag.color }} />
+                        <TagIcon className="w-4 h-4" style={{ color: tagColor }} />
                       )}
                       <span className="text-surface-700 dark:text-surface-300">{tag.name}</span>
                     </button>
