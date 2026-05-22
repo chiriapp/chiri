@@ -26,8 +26,8 @@ interface SidebarCalendarListProps {
   onSelectCalendar: (accountId: string, calendarId: string) => void;
 }
 
-const isActiveTask = (t: { status: string }) =>
-  t.status !== 'completed' && t.status !== 'cancelled';
+const isActiveTask = (task: Task) =>
+  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 export const SidebarCalendarList = ({
   account,
