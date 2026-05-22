@@ -3,8 +3,7 @@ import Check from 'lucide-react/icons/check';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Cloud from 'lucide-react/icons/cloud';
 import { useEffect, useRef, useState } from 'react';
-import { getFallbackItemColor } from '$constants/colorSchemes';
-import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
+import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { DestinationStepProps } from '$types/import';
 
 interface CalendarOption {
@@ -22,6 +21,7 @@ export const DestinationStep = ({
   onSelect,
 }: DestinationStepProps) => {
   const resolveAccent = useAccentColorResolver();
+  const resolvedAccentColor = useResolvedAccentColor();
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState<{
     top: number;
@@ -48,8 +48,10 @@ export const DestinationStep = ({
     (opt) => opt.accountId === selectedAccountId && opt.calendarId === selectedCalendarId,
   );
   const selectedCalendarColor = selectedOption
-    ? resolveAccent(selectedOption.calendarColor ?? getFallbackItemColor())
-    : getFallbackItemColor();
+    ? selectedOption.calendarColor
+      ? resolveAccent(selectedOption.calendarColor)
+      : resolvedAccentColor
+    : resolvedAccentColor;
 
   // Group calendars by account for display
   const groupedOptions = accounts.map((account) => ({
@@ -209,7 +211,7 @@ export const DestinationStep = ({
                 {calendars.map((cal) => {
                   const isSelected =
                     selectedAccountId === account.id && selectedCalendarId === cal.id;
-                  const calendarColor = resolveAccent(cal.color ?? getFallbackItemColor());
+                  const calendarColor = cal.color ? resolveAccent(cal.color) : resolvedAccentColor;
                   return (
                     <button
                       key={cal.id}

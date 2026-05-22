@@ -1,6 +1,5 @@
-import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
-import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
+import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Account } from '$types';
 
 export type CalendarEntry = Account['calendars'][number] & { accountName: string };
@@ -13,8 +12,9 @@ interface MoveToCalendarOptionProps {
 
 export const MoveToCalendarOption = ({ cal, onMove, onClose }: MoveToCalendarOptionProps) => {
   const resolveAccent = useAccentColorResolver();
+  const resolvedAccentColor = useResolvedAccentColor();
   const CalIcon = getIconByName(cal.icon || 'calendar');
-  const calendarColor = resolveAccent(cal.color ?? getFallbackItemColor());
+  const calendarColor = cal.color ? resolveAccent(cal.color) : resolvedAccentColor;
   return (
     <button
       type="button"

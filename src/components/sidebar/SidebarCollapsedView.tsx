@@ -3,7 +3,6 @@ import Inbox from 'lucide-react/icons/inbox';
 import Settings from 'lucide-react/icons/settings';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { Tooltip } from '$components/Tooltip';
-import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Account, Filter, Tag } from '$types';
@@ -144,7 +143,9 @@ export const SidebarCollapsedView = ({
               {account.calendars.map((calendar) => {
                 const CalendarIcon = getIconByName(calendar.icon ?? 'calendar');
                 const isActive = activeCalendarId === calendar.id;
-                const calendarColor = resolveAccent(calendar.color ?? getFallbackItemColor());
+                const calendarColor = calendar.color
+                  ? resolveAccent(calendar.color)
+                  : resolvedAccentColor;
                 return (
                   <Tooltip key={calendar.id} content={calendar.displayName} position="right">
                     <button
@@ -183,7 +184,7 @@ export const SidebarCollapsedView = ({
         tags.map((tag) => {
           const isActive = activeTagId === tag.id;
           const TagIcon = getIconByName(tag.icon ?? 'tag');
-          const tagColor = resolveAccent(tag.color ?? getFallbackItemColor());
+          const tagColor = tag.color ? resolveAccent(tag.color) : resolvedAccentColor;
           return (
             <Tooltip key={tag.id} content={tag.name} position="right">
               <button

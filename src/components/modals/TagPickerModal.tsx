@@ -3,9 +3,8 @@ import Search from 'lucide-react/icons/search';
 import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
-import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
+import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Tag } from '$types';
 
 interface TagPickerModalProps {
@@ -30,6 +29,7 @@ export const TagPickerModal = ({
   initialQuery = '',
 }: TagPickerModalProps) => {
   const resolveAccent = useAccentColorResolver();
+  const resolvedAccentColor = useResolvedAccentColor();
   const [searchQuery, setSearchQuery] = useState(initialQuery);
 
   const filteredTags = useMemo(() => {
@@ -93,7 +93,7 @@ export const TagPickerModal = ({
               <div className="space-y-1">
                 {filteredTags.map((tag) => {
                   const TagIcon = getIconByName(tag.icon || 'tag');
-                  const tagColor = resolveAccent(tag.color ?? getFallbackItemColor());
+                  const tagColor = tag.color ? resolveAccent(tag.color) : resolvedAccentColor;
                   return (
                     <button
                       type="button"

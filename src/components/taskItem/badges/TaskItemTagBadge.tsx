@@ -1,6 +1,5 @@
-import { getFallbackItemColor } from '$constants/colorSchemes';
 import { getIconByName } from '$constants/icons';
-import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
+import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Tag } from '$types';
 
 export const TaskItemTagBadge = ({
@@ -11,8 +10,9 @@ export const TaskItemTagBadge = ({
   onTagClick: (tagId: string) => void;
 }) => {
   const resolveAccent = useAccentColorResolver();
+  const resolvedAccentColor = useResolvedAccentColor();
   const TagIcon = getIconByName(tag.icon || 'tag');
-  const tagColor = resolveAccent(tag.color ?? getFallbackItemColor());
+  const tagColor = tag.color ? resolveAccent(tag.color) : resolvedAccentColor;
   return (
     <button
       type="button"

@@ -10,9 +10,8 @@ import {
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useCallback, useRef, useState } from 'react';
 import { SidebarCalendarItem } from '$components/sidebar/SidebarCalendarItem';
-import { getFallbackItemColor } from '$constants/colorSchemes';
 import { useReorderCalendars } from '$hooks/queries/useAccounts';
-import { useAccentColorResolver } from '$hooks/ui/useResolvedAccentColor';
+import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Account, Calendar, CalendarSortConfig, Task } from '$types';
 
 interface SidebarCalendarListProps {
@@ -43,6 +42,7 @@ export const SidebarCalendarList = ({
 }: SidebarCalendarListProps) => {
   const reorderMutation = useReorderCalendars();
   const resolveAccent = useAccentColorResolver();
+  const resolvedAccentColor = useResolvedAccentColor();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const [isAnyCalendarDragging, setIsAnyCalendarDragging] = useState(false);
   const calendarDragBoundsRef = useRef<HTMLDivElement>(null);
@@ -93,7 +93,7 @@ export const SidebarCalendarList = ({
 
   const sharedItemProps = (calendar: Calendar) => {
     const isActive = activeCalendarId === calendar.id;
-    const calendarColor = resolveAccent(calendar.color ?? getFallbackItemColor());
+    const calendarColor = calendar.color ? resolveAccent(calendar.color) : resolvedAccentColor;
     return {
       calendar,
       isActive,
