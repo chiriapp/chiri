@@ -35,7 +35,7 @@ export const SidebarFiltersList = ({
     tasks.filter((task) => isActiveTask(task) && matchesFilter(task, filter)).length;
 
   return (
-    <div className="mb-1 relative">
+    <div className="relative">
       {/* biome-ignore lint/a11y/useSemanticElements: Section header toggle div contains icon+text layout that button element can't replicate */}
       <div
         onClick={onToggle}
@@ -69,9 +69,9 @@ export const SidebarFiltersList = ({
       </div>
 
       <div
-        className={`grid motion-safe:transition-[grid-template-rows] motion-safe:duration-200 motion-safe:ease-in-out ${collapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'}`}
+        className={`grid motion-safe:transition-[grid-template-rows] motion-safe:duration-200 motion-safe:ease-in-out ${collapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'} pt-1`}
       >
-        <div className="overflow-hidden">
+        <div className="overflow-hidden space-y-1">
           {filters.length === 0 ? (
             <div className="px-3 py-1 text-sm text-surface-500 dark:text-surface-400">
               No filters. Click + to add one.

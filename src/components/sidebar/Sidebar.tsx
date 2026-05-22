@@ -292,7 +292,7 @@ export const Sidebar = ({
           <div
             className={`flex-1 flex flex-col min-h-0 motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           >
-            <div className="flex-1 flex flex-col gap-2.5 overflow-y-auto overscroll-contain px-2 py-2">
+            <div className="flex-1 flex flex-col gap-2 overflow-y-auto overscroll-contain px-2 py-2">
               <button
                 type="button"
                 onClick={() => {

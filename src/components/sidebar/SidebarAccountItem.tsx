@@ -127,7 +127,7 @@ export const SidebarAccountItem = ({
 
       {!isDragging && (
         <div
-          className={`grid motion-safe:transition-[grid-template-rows] motion-safe:duration-200 motion-safe:ease-in-out ${expandedAccounts.has(account.id) ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+          className={`grid motion-safe:transition-[grid-template-rows] motion-safe:duration-200 motion-safe:ease-in-out ${expandedAccounts.has(account.id) ? 'grid-rows-[1fr] pt-1' : 'grid-rows-[0fr]'}`}
         >
           <div className="overflow-hidden min-h-0">
             <SidebarCalendarList
