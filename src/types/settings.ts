@@ -76,7 +76,6 @@ export interface SettingsState {
   syncInterval: number;
   syncOnStartup: boolean;
   syncOnReconnect: boolean;
-  showCompletedByDefault: boolean;
   confirmBeforeDeletion: boolean;
   confirmBeforePermanentDelete: boolean;
   confirmBeforeDeleteCalendar: boolean;
@@ -155,7 +154,6 @@ export interface SettingsActions {
   setSyncInterval: (interval: number) => void;
   setSyncOnStartup: (enabled: boolean) => void;
   setSyncOnReconnect: (enabled: boolean) => void;
-  setShowCompletedByDefault: (show: boolean) => void;
   setConfirmBeforeDeletion: (confirm: boolean) => void;
   setConfirmBeforePermanentDelete: (confirm: boolean) => void;
   setConfirmBeforeDeleteCalendar: (confirm: boolean) => void;

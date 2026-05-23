@@ -17,7 +17,6 @@ export const defaultState: SettingsState = {
   syncInterval: 5,
   syncOnStartup: true,
   syncOnReconnect: true,
-  showCompletedByDefault: true,
   confirmBeforeDeletion: true,
   confirmBeforePermanentDelete: true,
   confirmBeforeDeleteCalendar: true,

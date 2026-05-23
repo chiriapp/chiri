@@ -189,8 +189,6 @@ export const settingsStore = {
   setSyncInterval: (syncInterval: number) => setState({ syncInterval }),
   setSyncOnStartup: (syncOnStartup: boolean) => setState({ syncOnStartup }),
   setSyncOnReconnect: (syncOnReconnect: boolean) => setState({ syncOnReconnect }),
-  setShowCompletedByDefault: (showCompletedByDefault: boolean) =>
-    setState({ showCompletedByDefault }),
   setConfirmBeforeDeletion: (confirmBeforeDeletion: boolean) => setState({ confirmBeforeDeletion }),
   setConfirmBeforePermanentDelete: (confirmBeforePermanentDelete: boolean) =>
     setState({ confirmBeforePermanentDelete }),

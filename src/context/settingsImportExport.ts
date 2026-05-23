@@ -52,7 +52,6 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'syncInterval',
       'syncOnStartup',
       'syncOnReconnect',
-      'showCompletedByDefault',
       'confirmBeforeDeletion',
       'confirmBeforePermanentDelete',
       'confirmBeforeDeleteCalendar',

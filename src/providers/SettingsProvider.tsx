@@ -58,10 +58,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (enabled: boolean) => settingsStore.setSyncOnReconnect(enabled),
     [],
   );
-  const setShowCompletedByDefault = useCallback(
-    (show: boolean) => settingsStore.setShowCompletedByDefault(show),
-    [],
-  );
   const setConfirmBeforeDeletion = useCallback(
     (confirm: boolean) => settingsStore.setConfirmBeforeDeletion(confirm),
     [],
@@ -321,7 +317,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSyncInterval,
     setSyncOnStartup,
     setSyncOnReconnect,
-    setShowCompletedByDefault,
     setConfirmBeforeDeletion,
     setConfirmBeforePermanentDelete,
     setConfirmBeforeDeleteCalendar,
