@@ -45,6 +45,9 @@ const CONNECT_METHOD_SERVER_TYPES = new Set<ServerType>([
   ...OAUTH_SERVER_TYPES,
 ]);
 
+const getServerTypeLabel = (type: ServerType) =>
+  SERVER_TYPE_OPTIONS.find((o) => o.value === type)?.label ?? type;
+
 interface AccountModalProps {
   account: Account | null;
   onClose: () => void;
@@ -123,12 +126,20 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
 
   const handleSelectServerType = (type: ServerType) => {
     setServerType(type);
-    const predefined = getPredefinedServerUrl(type);
-    if (predefined) {
-      setServerUrl(predefined);
-    } else {
-      setServerUrl('');
-    }
+    setName(getServerTypeLabel(type));
+    setIcon('user');
+    setEmoji('');
+    setServerUrl(getPredefinedServerUrl(type) ?? '');
+    setUsername('');
+    setPassword('');
+    setCalendarHomeUrl('');
+    setPrincipalUrl('');
+    setSetupError(null);
+    setSetupNotice(null);
+    setTestSuccess(false);
+    setTestedConnectionId(null);
+    setTestedCalendars([]);
+    setAcceptInvalidCerts(false);
     setNavDirection('forward');
     setStep(CONNECT_METHOD_SERVER_TYPES.has(type) ? 'connect-method' : 'credentials');
   };
@@ -143,7 +154,6 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
     // credentials back-destination: connect-method for types that go through it, otherwise pick-type
     setStep(CONNECT_METHOD_SERVER_TYPES.has(serverType) ? 'connect-method' : 'pick-type');
   };
-
 
   const handleBackFromOAuth = () => {
     setNavDirection('back');
