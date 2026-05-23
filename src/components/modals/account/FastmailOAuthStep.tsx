@@ -170,7 +170,7 @@ export const FastmailOAuthStep = ({ onSuccess }: FastmailOAuthStepProps) => {
         type="button"
         onClick={handleConnect}
         disabled={isLoading}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-60 disabled:cursor-not-allowed text-primary-contrast font-semibold text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
       >
         {isLoading ? (
           <>
