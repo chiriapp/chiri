@@ -2,7 +2,13 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ErrorBoundary } from '$components/ErrorBoundary';
-import { forceShowWindow, initializeApp, showBootstrapError, showWindow } from '$lib/bootstrap';
+import {
+  forceShowWindow,
+  initializeApp,
+  shouldShowWindowOnStartup,
+  showBootstrapError,
+  showWindow,
+} from '$lib/bootstrap';
 import { loggers } from '$lib/logger';
 import { queryClient } from '$lib/queryClient';
 import { ConfirmDialogProvider } from '$providers/ConfirmDialogProvider';
@@ -46,7 +52,9 @@ const renderApp = () => {
 const bootstrap = async () => {
   await initializeApp();
   renderApp();
-  await showWindow();
+  if (await shouldShowWindowOnStartup()) {
+    await showWindow();
+  }
 };
 
 await bootstrap().catch(async (error) => {

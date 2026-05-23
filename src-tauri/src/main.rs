@@ -103,6 +103,7 @@ fn main() {
             macos::login_item::disable_macos_launch_at_login,
             macos::login_item::enable_macos_launch_at_login,
             macos::login_item::get_macos_launch_at_login_status,
+            macos::login_item::was_macos_launched_as_login_item,
             macos::menu::apply_macos_menu_fixes,
             notifications::manager::send_notification_with_actions,
             notifications::manager::send_simple_notification,
@@ -125,6 +126,7 @@ fn main() {
             // messages follow the same format as the rest of the app logs.
             #[cfg(target_os = "macos")]
             {
+                macos::login_item::capture_launch_context();
                 macos::app_nap::disable_app_nap();
             }
 

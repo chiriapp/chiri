@@ -113,6 +113,7 @@ export interface SettingsState {
   filtersSectionCollapsed: boolean;
   tagsSectionCollapsed: boolean;
   systemTrayAppliedValue: boolean;
+  showWindowOnLoginLaunch: boolean;
   confirmBeforeQuit: boolean;
   confirmBeforeQuitAppliedValue: boolean;
   defaultAllDayReminderHour: number;
@@ -191,6 +192,7 @@ export interface SettingsActions {
   toggleTagsSectionCollapsed: () => void;
   setEnableSystemTray: (enabled: boolean) => void;
   setSystemTrayAppliedValue: (value: boolean) => void;
+  setShowWindowOnLoginLaunch: (show: boolean) => void;
   setCheckForUpdatesAutomatically: (enabled: boolean) => void;
   setConfirmBeforeQuit: (confirm: boolean) => void;
   setConfirmBeforeQuitAppliedValue: (value: boolean) => void;

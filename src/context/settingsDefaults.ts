@@ -53,6 +53,7 @@ export const defaultState: SettingsState = {
   tagsSectionCollapsed: false,
   enableSystemTray: true,
   systemTrayAppliedValue: true,
+  showWindowOnLoginLaunch: false,
   checkForUpdatesAutomatically: true,
   confirmBeforeQuit: true,
   confirmBeforeQuitAppliedValue: true,

@@ -22,7 +22,12 @@ fn compile_macos_ffi() {
         .flag("-Wno-unguarded-availability-new")
         .compile("macos_ffi");
 
-    for framework in ["Foundation", "ServiceManagement", "UserNotifications"] {
+    for framework in [
+        "ApplicationServices",
+        "Foundation",
+        "ServiceManagement",
+        "UserNotifications",
+    ] {
         println!("cargo:rustc-link-lib=framework={framework}");
     }
 }

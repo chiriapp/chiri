@@ -3,6 +3,9 @@ mod imp {
     use std::ffi::CStr;
     use std::os::raw::{c_char, c_int};
     use std::ptr;
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    static LAUNCHED_DURING_LOGIN: AtomicBool = AtomicBool::new(false);
 
     #[link(name = "macos_ffi", kind = "static")]
     extern "C" {
@@ -10,6 +13,7 @@ mod imp {
         fn chiri_macos_login_item_enable(error: *mut *mut c_char) -> c_int;
         fn chiri_macos_login_item_disable(error: *mut *mut c_char) -> c_int;
         fn chiri_macos_login_item_free_string(value: *mut c_char);
+        fn chiri_macos_was_launched_as_login_item() -> c_int;
     }
 
     fn status_name(status: c_int) -> &'static str {
@@ -58,6 +62,17 @@ mod imp {
     pub fn disable() -> Result<String, String> {
         run_login_item_update(chiri_macos_login_item_disable)
     }
+
+    pub fn was_launched_as_login_item() -> bool {
+        LAUNCHED_DURING_LOGIN.load(Ordering::Relaxed)
+    }
+
+    pub fn capture_launch_context() {
+        LAUNCHED_DURING_LOGIN.store(
+            unsafe { chiri_macos_was_launched_as_login_item() != 0 },
+            Ordering::Relaxed,
+        );
+    }
 }
 
 #[cfg(not(target_os = "macos"))]
@@ -73,6 +88,16 @@ mod imp {
     pub fn disable() -> Result<String, String> {
         Err("Native login items are only available on macOS.".to_string())
     }
+
+    pub fn was_launched_as_login_item() -> bool {
+        false
+    }
+
+    pub fn capture_launch_context() {}
+}
+
+pub fn capture_launch_context() {
+    imp::capture_launch_context();
 }
 
 #[tauri::command]
@@ -88,4 +113,9 @@ pub async fn enable_macos_launch_at_login() -> Result<String, String> {
 #[tauri::command]
 pub async fn disable_macos_launch_at_login() -> Result<String, String> {
     imp::disable()
+}
+
+#[tauri::command]
+pub async fn was_macos_launched_as_login_item() -> bool {
+    imp::was_launched_as_login_item()
 }

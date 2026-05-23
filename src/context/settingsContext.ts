@@ -267,6 +267,8 @@ export const settingsStore = {
   setEnableSystemTray: (enableSystemTray: boolean) => setState({ enableSystemTray }),
   setSystemTrayAppliedValue: (systemTrayAppliedValue: boolean) =>
     setState({ systemTrayAppliedValue }),
+  setShowWindowOnLoginLaunch: (showWindowOnLoginLaunch: boolean) =>
+    setState({ showWindowOnLoginLaunch }),
   setCheckForUpdatesAutomatically: (checkForUpdatesAutomatically: boolean) =>
     setState({ checkForUpdatesAutomatically }),
   setConfirmBeforeQuit: (confirmBeforeQuit: boolean) => setState({ confirmBeforeQuit }),

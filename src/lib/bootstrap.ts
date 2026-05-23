@@ -3,6 +3,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { settingsStore } from '$context/settingsContext';
+import { preloadAutostartState } from '$hooks/system/useAutostart';
 import { db } from '$lib/database';
 import { createBootstrapErrorUI } from '$lib/errorUI';
 import { initLogger, loggers } from '$lib/logger';
@@ -25,6 +26,11 @@ export const initializeApp = async () => {
   log.debug('Initializing data store...');
   await dataStore.initialize();
   log.debug('Data store initialized');
+
+  log.debug('Reading launch-at-login status...');
+  await preloadAutostartState().catch((error) => {
+    log.warn('Failed to preload launch-at-login status:', error);
+  });
 
   // initialize system tray based on settings
   log.debug('Initializing system tray...');
@@ -101,6 +107,39 @@ export const showWindow = async (delay: number = 200): Promise<void> => {
       resolve();
     }, delay);
   });
+};
+
+export const shouldShowWindowOnStartup = async (): Promise<boolean> => {
+  if (!isMacPlatform()) {
+    return true;
+  }
+
+  const launchedAtLogin = await invoke<boolean>('was_macos_launched_as_login_item').catch(
+    (error) => {
+      log.warn('Failed to detect macOS login-item launch:', error);
+      return false;
+    },
+  );
+
+  if (!launchedAtLogin) {
+    log.debug('Showing window for normal app launch');
+    return true;
+  }
+
+  const enableSystemTray = settingsStore.getState().enableSystemTray;
+  if (!enableSystemTray) {
+    log.info('Showing window for login-item launch because system tray is disabled');
+    return true;
+  }
+
+  const showWindowOnLoginLaunch = settingsStore.getState().showWindowOnLoginLaunch;
+  if (showWindowOnLoginLaunch) {
+    log.info('Showing window for login-item launch because startup window setting is enabled');
+    return true;
+  }
+
+  log.info('Keeping window hidden for macOS login-item launch');
+  return false;
 };
 
 /**

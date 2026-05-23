@@ -197,6 +197,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (value: boolean) => settingsStore.setSystemTrayAppliedValue(value),
     [],
   );
+  const setShowWindowOnLoginLaunch = useCallback(
+    (show: boolean) => settingsStore.setShowWindowOnLoginLaunch(show),
+    [],
+  );
   const setCheckForUpdatesAutomatically = useCallback(
     (enabled: boolean) => settingsStore.setCheckForUpdatesAutomatically(enabled),
     [],
@@ -350,6 +354,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     toggleTagsSectionCollapsed,
     setEnableSystemTray,
     setSystemTrayAppliedValue,
+    setShowWindowOnLoginLaunch,
     setCheckForUpdatesAutomatically,
     setConfirmBeforeQuit,
     setConfirmBeforeQuitAppliedValue,

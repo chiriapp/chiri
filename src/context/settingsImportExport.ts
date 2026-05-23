@@ -87,6 +87,7 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'tagsSectionCollapsed',
       'enableSystemTray',
       'systemTrayAppliedValue',
+      'showWindowOnLoginLaunch',
       'checkForUpdatesAutomatically',
       'confirmBeforeQuit',
       'confirmBeforeQuitAppliedValue',

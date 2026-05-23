@@ -16,6 +16,8 @@ export const SystemSettings = () => {
     setEnableSystemTray,
     systemTrayAppliedValue,
     setSystemTrayAppliedValue,
+    showWindowOnLoginLaunch,
+    setShowWindowOnLoginLaunch,
     windowDecorationsMode,
     windowDecorationsAppliedValue,
     setWindowDecorationsMode,
@@ -25,7 +27,8 @@ export const SystemSettings = () => {
   const isLinux = isLinuxPlatform();
 
   const systemTrayChanged = enableSystemTray !== systemTrayAppliedValue;
-  const windowDecorationsChanged = isLinux && windowDecorationsMode !== windowDecorationsAppliedValue;
+  const windowDecorationsChanged =
+    isLinux && windowDecorationsMode !== windowDecorationsAppliedValue;
   const restartRequired = systemTrayChanged || windowDecorationsChanged;
 
   const handleSystemTrayChange = (checked: boolean) => {
@@ -73,6 +76,24 @@ export const SystemSettings = () => {
             checked={autostart.enabled ?? false}
             disabled={autostart.enabled === null || autostart.pending}
             onChange={(e) => autostart.setEnabled(e.target.checked)}
+            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0 disabled:opacity-50"
+          />
+        </label>
+
+        <label className="flex items-center justify-between p-4 pt-0">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              Start quietly in tray at login
+            </p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              Hide the main window when Chiri starts automatically. Requires system tray.
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={!showWindowOnLoginLaunch}
+            disabled={autostart.enabled !== true || !enableSystemTray}
+            onChange={(e) => setShowWindowOnLoginLaunch(!e.target.checked)}
             className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0 disabled:opacity-50"
           />
         </label>

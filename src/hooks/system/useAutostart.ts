@@ -64,6 +64,14 @@ const setPluginAutostart = async (enabled: boolean): Promise<AutostartState> => 
   };
 };
 
+const loadAutostartState = async (): Promise<AutostartState> =>
+  isMacPlatform() ? loadMacAutostartState() : loadPluginAutostartState();
+
+export const preloadAutostartState = async (): Promise<AutostartState> => {
+  cachedAutostartState = await loadAutostartState();
+  return cachedAutostartState;
+};
+
 export const useAutostart = () => {
   const [enabled, setEnabled] = useState<boolean | null>(cachedAutostartState?.enabled ?? null);
   const [pending, setPending] = useState(false);
@@ -79,9 +87,9 @@ export const useAutostart = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const loadAutostartState = async () => {
+    const loadInitialAutostartState = async () => {
       try {
-        const state = isMac ? await loadMacAutostartState() : await loadPluginAutostartState();
+        const state = await preloadAutostartState();
         if (isMounted) {
           setAutostartState(state);
         }
@@ -96,12 +104,12 @@ export const useAutostart = () => {
       }
     };
 
-    loadAutostartState();
+    loadInitialAutostartState();
 
     return () => {
       isMounted = false;
     };
-  }, [isMac, setAutostartState]);
+  }, [setAutostartState]);
 
   const setAutostartEnabled = useCallback(
     async (checked: boolean) => {
