@@ -477,29 +477,29 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
               </button>
               {expandedSections.notifications && (
                 <div className="px-4 pb-4 space-y-2">
-                  <label
-                    className={`flex items-center justify-between p-2 rounded-lg bg-surface-50 dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors ${
-                      macPermissionPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                    }`}
-                  >
-                    <div>
+                  <div className="p-2 rounded-lg bg-surface-50 dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors">
+                    <label
+                      className={`flex items-center justify-between ${
+                        macPermissionPending ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                      }`}
+                    >
                       <span className="text-sm text-surface-900 dark:text-surface-100">
                         Desktop notifications
                       </span>
-                      {macPermissionPending && (
-                        <p className="text-xs text-semantic-warning mt-1">
-                          Notification permission is required first.
-                        </p>
-                      )}
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={notifications}
-                      onChange={(e) => setNotifications(e.target.checked)}
-                      disabled={macPermissionPending}
-                      className="w-5 h-5 rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed"
-                    />
-                  </label>
+                      <input
+                        type="checkbox"
+                        checked={notifications}
+                        onChange={(e) => setNotifications(e.target.checked)}
+                        disabled={macPermissionPending}
+                        className="w-5 h-5 rounded-sm border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 cursor-pointer disabled:cursor-not-allowed"
+                      />
+                    </label>
+                    {macPermissionPending && (
+                      <p className="text-xs text-semantic-warning mt-1">
+                        Notification permission is required first.
+                      </p>
+                    )}
+                  </div>
 
                   <label className="flex items-center justify-between p-2 rounded-lg bg-surface-50 dark:bg-surface-800 cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors">
                     <span className="text-sm text-surface-900 dark:text-surface-100">

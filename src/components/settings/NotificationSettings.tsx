@@ -56,28 +56,30 @@ export const NotificationSettings = () => {
       </h3>
 
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
-        <label
-          className={`flex items-center justify-between p-4 ${macPermissionPending ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">Enable notifications</p>
-            <p className="text-xs text-surface-500 dark:text-surface-400">
-              Get notified for task reminders and overdue tasks
-            </p>
-            {macPermissionPending && (
-              <p className="text-xs text-semantic-warning mt-1">
-                Notification permission is required, use the controls below to grant it.
+        <div className="p-4">
+          <label
+            className={`flex items-center justify-between ${macPermissionPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <div>
+              <p className="text-sm text-surface-700 dark:text-surface-300">Enable notifications</p>
+              <p className="text-xs text-surface-500 dark:text-surface-400">
+                Get notified for task reminders and overdue tasks
               </p>
-            )}
-          </div>
-          <input
-            type="checkbox"
-            checked={notifications}
-            onChange={(e) => setNotifications(e.target.checked)}
-            disabled={macPermissionPending}
-            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden disabled:cursor-not-allowed"
-          />
-        </label>
+            </div>
+            <input
+              type="checkbox"
+              checked={notifications}
+              onChange={(e) => setNotifications(e.target.checked)}
+              disabled={macPermissionPending}
+              className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden disabled:cursor-not-allowed"
+            />
+          </label>
+          {macPermissionPending && (
+            <p className="text-xs text-semantic-warning mt-1">
+              Notification permission is required, use the controls below to grant it.
+            </p>
+          )}
+        </div>
 
         {notifications && (
           <div className="px-4 pb-4">
