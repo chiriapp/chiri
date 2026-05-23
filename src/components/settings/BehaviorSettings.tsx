@@ -22,15 +22,13 @@ export const BehaviorSettings = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">Behavior</h3>
+      <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">Deletion</h3>
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <label className="flex items-center justify-between p-4">
           <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">
-              Confirm non-task deletions
-            </p>
+            <p className="text-sm text-surface-700 dark:text-surface-300">Deletion confirmations</p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              Ask before deleting accounts, calendars, and tags
+              Ask before deleting non-task items
             </p>
           </div>
           <input
@@ -45,7 +43,12 @@ export const BehaviorSettings = () => {
           <div className="px-4 pb-4">
             <div className="space-y-3 pl-4 border-l-2 border-surface-200 dark:border-surface-600">
               <label className="flex items-center justify-between">
-                <p className="text-sm text-surface-600 dark:text-surface-400">Accounts</p>
+                <div>
+                  <p className="text-sm text-surface-600 dark:text-surface-400">Accounts</p>
+                  <p className="text-xs text-surface-500 dark:text-surface-400">
+                    Removes CalDAV accounts and server tasks from Chiri
+                  </p>
+                </div>
                 <input
                   type="checkbox"
                   checked={confirmBeforeDeleteAccount}
@@ -54,7 +57,12 @@ export const BehaviorSettings = () => {
                 />
               </label>
               <label className="flex items-center justify-between">
-                <p className="text-sm text-surface-600 dark:text-surface-400">Calendars</p>
+                <div>
+                  <p className="text-sm text-surface-600 dark:text-surface-400">Calendars</p>
+                  <p className="text-xs text-surface-500 dark:text-surface-400">
+                    Deletes local and CalDAV calendars, as well as their tasks
+                  </p>
+                </div>
                 <input
                   type="checkbox"
                   checked={confirmBeforeDeleteCalendar}
@@ -63,7 +71,12 @@ export const BehaviorSettings = () => {
                 />
               </label>
               <label className="flex items-center justify-between">
-                <p className="text-sm text-surface-600 dark:text-surface-400">Tags</p>
+                <div>
+                  <p className="text-sm text-surface-600 dark:text-surface-400">Tags</p>
+                  <p className="text-xs text-surface-500 dark:text-surface-400">
+                    Leaves tagged tasks untouched
+                  </p>
+                </div>
                 <input
                   type="checkbox"
                   checked={confirmBeforeDeleteTag}
@@ -114,9 +127,10 @@ export const BehaviorSettings = () => {
             <option value="keep">Keep subtasks</option>
           </AppSelect>
         </div>
+      </div>
 
-        <div className="border-t border-surface-200 dark:border-surface-700" />
-
+      <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">Sidebar</h3>
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <label className="flex items-center justify-between p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
