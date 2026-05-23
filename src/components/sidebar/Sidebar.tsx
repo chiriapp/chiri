@@ -33,14 +33,13 @@ import {
   useUIState,
 } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { useGlobalContextMenuClose } from '$hooks/ui/useGlobalContextMenu';
+import { CLOSE_CONTEXT_MENUS_EVENT, useContextMenuDismissal } from '$hooks/ui/useContextMenu';
 import { usePrefersReducedMotion } from '$hooks/ui/usePrefersReducedMotion';
 import { useSidebarResize } from '$hooks/ui/useSidebarResize';
 import { useDeleteHandlers } from '$hooks/useDeleteHandlers';
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account, Calendar } from '$types';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
-import { clampToViewport } from '$utils/misc';
 
 interface SidebarProps {
   onOpenSettings?: () => void;
@@ -234,9 +233,8 @@ export const Sidebar = ({
       return;
     }
 
-    document.dispatchEvent(new CustomEvent('closeAllContextMenus'));
-    const { x, y } = clampToViewport(e.clientX, e.clientY);
-    setContextMenu({ type, id, accountId, x, y });
+    document.dispatchEvent(new CustomEvent(CLOSE_CONTEXT_MENUS_EVENT));
+    setContextMenu({ type, id, accountId, x: e.clientX, y: e.clientY });
   };
 
   const handleCloseContextMenu = useCallback(() => {
@@ -245,7 +243,7 @@ export const Sidebar = ({
   }, []);
 
   // register for global context menu close
-  useGlobalContextMenuClose(handleCloseContextMenu, contextMenu !== null);
+  useContextMenuDismissal(handleCloseContextMenu, contextMenu !== null);
 
   const handleAddLocalCalendar = useCallback(async () => {
     let localAccount = accounts.find((a) => !a.caldav);

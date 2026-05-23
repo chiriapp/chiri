@@ -19,6 +19,7 @@ import { PRIORITIES } from '$constants/priority';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useCreateTask, useRestoreTask, useUpdateTask } from '$hooks/queries/useTasks';
 import { useSetSelectedTask } from '$hooks/queries/useUIState';
+import { useContextMenuPosition } from '$hooks/ui/useContextMenu';
 import { useConfirmPermanentTaskDelete } from '$hooks/useConfirmPermanentTaskDelete';
 import { useConfirmTaskDelete } from '$hooks/useConfirmTaskDelete';
 import { exportTaskAndChildren } from '$lib/store/tasks';
@@ -46,6 +47,7 @@ export const TaskItemContextMenu = ({
   const setSelectedTaskMutation = useSetSelectedTask();
   const { confirmAndDelete } = useConfirmTaskDelete();
   const { confirmAndDeletePermanently } = useConfirmPermanentTaskDelete();
+  const { menuRef, position } = useContextMenuPosition(contextMenu);
 
   const [showExportModal, setShowExportModal] = useState(false);
   const [showSubtaskModal, setShowSubtaskModal] = useState(false);
@@ -200,9 +202,10 @@ export const TaskItemContextMenu = ({
           />
 
           <div
+            ref={menuRef}
             data-context-menu-content
-            className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 my-1 z-50 min-w-50 animate-scale-in"
-            style={{ left: contextMenu.x, top: contextMenu.y }}
+            className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-50 animate-scale-in"
+            style={{ left: position.left, top: position.top }}
           >
             {task.deletedAt ? (
               <>

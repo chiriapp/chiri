@@ -4,6 +4,7 @@ import { SidebarAccountsContextMenu } from '$components/sidebar/SidebarAccountsC
 import { SidebarCalendarContextMenu } from '$components/sidebar/SidebarCalendarContextMenu';
 import { SidebarFilterItemContextMenu } from '$components/sidebar/SidebarFilterItemContextMenu';
 import { SidebarTagItemContextMenu } from '$components/sidebar/SidebarTagItemContextMenu';
+import { useContextMenuPosition } from '$hooks/ui/useContextMenu';
 import type { Account } from '$types';
 
 interface ContextMenuState {
@@ -55,6 +56,8 @@ export const SidebarContextMenu = ({
   onExpandAll,
   onCollapseAll,
 }: SidebarContextMenuProps) => {
+  const { menuRef, position } = useContextMenuPosition(contextMenu);
+
   return createPortal(
     <>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: Context menu backdrop for closing on outside click */}
@@ -71,9 +74,10 @@ export const SidebarContextMenu = ({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: Context menu container uses stopPropagation to prevent backdrop close */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: Context menu container uses stopPropagation to prevent backdrop close */}
       <div
+        ref={menuRef}
         data-context-menu-content
         className="fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 animate-scale-in min-w-24"
-        style={{ left: contextMenu.x, top: contextMenu.y }}
+        style={{ left: position.left, top: position.top }}
         onClick={(e: React.MouseEvent) => e.stopPropagation()}
       >
         {contextMenu.type === 'account' && (
