@@ -28,7 +28,7 @@ export const ConnectionsSettings = ({ accounts: allAccounts }: ConnectionsSettin
   const accounts = allAccounts.filter((a) => a.caldav);
   const deleteAccountMutation = useDeleteAccount();
   const { confirm, close } = useConfirmDialog();
-  const { confirmBeforeDeleteAccount } = useSettingsStore();
+  const { confirmBeforeDeletion, confirmBeforeDeleteAccount } = useSettingsStore();
   const { hasConnection } = useConnectionStore();
   const { data: tasks = [] } = useTasks();
 
@@ -47,7 +47,7 @@ export const ConnectionsSettings = ({ accounts: allAccounts }: ConnectionsSettin
   }, [accounts, tasks]);
 
   const handleDeleteAccount = async (account: { id: string; name: string }) => {
-    if (confirmBeforeDeleteAccount) {
+    if (confirmBeforeDeletion && confirmBeforeDeleteAccount) {
       const confirmed = await confirm({
         title: 'Remove account',
         subtitle: account.name,

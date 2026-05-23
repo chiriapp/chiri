@@ -21,8 +21,12 @@ const log = loggers.deleteHandlers;
 export const useDeleteHandlers = () => {
   const queryClient = useQueryClient();
   const { confirm, setLoading, setError, close } = useConfirmDialog();
-  const { confirmBeforeDeleteAccount, confirmBeforeDeleteCalendar, confirmBeforeDeleteTag } =
-    useSettingsStore();
+  const {
+    confirmBeforeDeletion,
+    confirmBeforeDeleteAccount,
+    confirmBeforeDeleteCalendar,
+    confirmBeforeDeleteTag,
+  } = useSettingsStore();
 
   const deleteAccountMutation = useDeleteAccount();
   const deleteTagMutation = useDeleteTag();
@@ -33,7 +37,7 @@ export const useDeleteHandlers = () => {
    */
   const handleDeleteAccount = async (accountId: string, accounts: Account[]) => {
     const account = accounts.find((a) => a.id === accountId);
-    if (confirmBeforeDeleteAccount) {
+    if (confirmBeforeDeletion && confirmBeforeDeleteAccount) {
       const confirmed = await confirm({
         title: 'Remove account',
         subtitle: account?.name,
@@ -53,7 +57,7 @@ export const useDeleteHandlers = () => {
    */
   const handleDeleteTag = async (tagId: string, tags: Tag[]) => {
     const tag = tags.find((t) => t.id === tagId);
-    if (confirmBeforeDeleteTag) {
+    if (confirmBeforeDeletion && confirmBeforeDeleteTag) {
       const confirmed = await confirm({
         title: 'Delete tag',
         subtitle: tag?.name,
@@ -101,7 +105,7 @@ export const useDeleteHandlers = () => {
         }
       : undefined;
 
-    if (isVikunja || confirmBeforeDeleteCalendar) {
+    if (isVikunja || (confirmBeforeDeletion && confirmBeforeDeleteCalendar)) {
       const confirmed = await confirm({
         title: 'Delete calendar',
         subtitle: calendar?.displayName,
