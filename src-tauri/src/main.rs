@@ -76,6 +76,10 @@ fn main() {
         }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
         .plugin(logging::build_logging_plugin().build())
         .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_process::init())
@@ -96,6 +100,9 @@ fn main() {
             linux::desktop::is_gnome_desktop,
             linux::fs::read_file_bytes,
             linux::window_decorations::set_window_decorations,
+            macos::login_item::disable_macos_launch_at_login,
+            macos::login_item::enable_macos_launch_at_login,
+            macos::login_item::get_macos_launch_at_login_status,
             macos::menu::apply_macos_menu_fixes,
             notifications::manager::send_notification_with_actions,
             notifications::manager::send_simple_notification,

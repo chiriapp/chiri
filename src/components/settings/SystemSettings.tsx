@@ -3,12 +3,14 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import { AppSelect } from '$components/AppSelect';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
+import { useAutostart } from '$hooks/system/useAutostart';
 import { usePlatform } from '$hooks/system/usePlatform';
 import type { WindowDecorationsMode } from '$types/settings';
 import { isLinuxPlatform } from '$utils/platform';
 
 export const SystemSettings = () => {
   const { isGNOME } = usePlatform();
+  const autostart = useAutostart();
   const {
     enableSystemTray,
     setEnableSystemTray,
@@ -53,6 +55,33 @@ export const SystemSettings = () => {
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">System</h3>
       <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
+        <label className="flex items-center justify-between p-4">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">Launch at login</p>
+            <p className="text-xs text-surface-500 dark:text-surface-400">
+              Start Chiri automatically when you sign in
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={autostart.enabled ?? false}
+            disabled={autostart.enabled === null || autostart.pending}
+            onChange={(e) => autostart.setEnabled(e.target.checked)}
+            className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0 disabled:opacity-50"
+          />
+        </label>
+
+        {autostart.error && (
+          <div className="px-4 pb-4">
+            <div className="flex gap-2 rounded-lg bg-semantic-error/10 p-3 border border-semantic-error/30">
+              <AlertTriangle className="w-4 h-4 text-semantic-error shrink-0 mt-0.5" />
+              <p className="text-xs text-semantic-error">{autostart.error}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="border-t border-surface-200 dark:border-surface-700" />
+
         <label className="flex items-center justify-between p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">Enable system tray</p>
