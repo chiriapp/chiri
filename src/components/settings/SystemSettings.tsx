@@ -17,12 +17,16 @@ export const SystemSettings = () => {
     systemTrayAppliedValue,
     setSystemTrayAppliedValue,
     windowDecorationsMode,
+    windowDecorationsAppliedValue,
     setWindowDecorationsMode,
+    setWindowDecorationsAppliedValue,
   } = useSettingsStore();
 
   const isLinux = isLinuxPlatform();
 
   const systemTrayChanged = enableSystemTray !== systemTrayAppliedValue;
+  const windowDecorationsChanged = isLinux && windowDecorationsMode !== windowDecorationsAppliedValue;
+  const restartRequired = systemTrayChanged || windowDecorationsChanged;
 
   const handleSystemTrayChange = (checked: boolean) => {
     setEnableSystemTray(checked);
@@ -36,6 +40,7 @@ export const SystemSettings = () => {
     if (mode !== 'auto') {
       try {
         await invoke('set_window_decorations', { enabled: mode === 'on' });
+        setWindowDecorationsAppliedValue(mode);
       } catch (error) {
         console.error('Failed to apply window decorations override:', error);
       }
@@ -45,6 +50,7 @@ export const SystemSettings = () => {
   const handleRestart = async () => {
     try {
       setSystemTrayAppliedValue(enableSystemTray);
+      setWindowDecorationsAppliedValue(windowDecorationsMode);
       await relaunch();
     } catch (error) {
       console.error('Failed to relaunch app:', error);
@@ -145,7 +151,7 @@ export const SystemSettings = () => {
           </>
         )}
 
-        {systemTrayChanged && (
+        {restartRequired && (
           <>
             <div className="border-t border-surface-200 dark:border-surface-700" />
             <div className="flex items-center justify-between gap-4 px-4 py-3 bg-surface-100 dark:bg-surface-700/50">

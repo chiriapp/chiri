@@ -49,6 +49,7 @@ export const initializeApp = async () => {
       log.error('Failed to apply window decorations override:', error);
     }
   }
+  settingsStore.setWindowDecorationsAppliedValue(decorationsMode);
 
   log.debug('Getting UI state...');
   const uiState = await db.getUIState();

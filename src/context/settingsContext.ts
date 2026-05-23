@@ -317,6 +317,8 @@ export const settingsStore = {
     setState({ connectivityCheckInterval }),
   setWindowDecorationsMode: (windowDecorationsMode: WindowDecorationsMode) =>
     setState({ windowDecorationsMode }),
+  setWindowDecorationsAppliedValue: (windowDecorationsAppliedValue: WindowDecorationsMode) =>
+    setState({ windowDecorationsAppliedValue }),
   setEnablePush: (enablePush: boolean) => setState({ enablePush }),
   setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),
   setHasSeenRecentlyDeletedToast: (hasSeenRecentlyDeletedToast: boolean) =>

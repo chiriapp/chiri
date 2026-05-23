@@ -138,6 +138,7 @@ export interface SettingsState {
   connectivityCheckUrl: string;
   connectivityCheckInterval: number;
   windowDecorationsMode: WindowDecorationsMode;
+  windowDecorationsAppliedValue: WindowDecorationsMode;
   enablePush: boolean;
   ntfyServerUrl: string;
   hasSeenRecentlyDeletedToast: boolean;
@@ -216,6 +217,7 @@ export interface SettingsActions {
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;
   setWindowDecorationsMode: (mode: WindowDecorationsMode) => void;
+  setWindowDecorationsAppliedValue: (mode: WindowDecorationsMode) => void;
   setEnablePush: (enabled: boolean) => void;
   setNtfyServerUrl: (url: string) => void;
   setHasSeenRecentlyDeletedToast: (seen: boolean) => void;

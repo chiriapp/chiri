@@ -291,6 +291,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (mode: WindowDecorationsMode) => settingsStore.setWindowDecorationsMode(mode),
     [],
   );
+  const setWindowDecorationsAppliedValue = useCallback(
+    (mode: WindowDecorationsMode) => settingsStore.setWindowDecorationsAppliedValue(mode),
+    [],
+  );
   const setEnablePush = useCallback((enabled: boolean) => settingsStore.setEnablePush(enabled), []);
   const setNtfyServerUrl = useCallback((url: string) => settingsStore.setNtfyServerUrl(url), []);
   const setHasSeenRecentlyDeletedToast = useCallback(
@@ -374,6 +378,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setConnectivityCheckUrl,
     setConnectivityCheckInterval,
     setWindowDecorationsMode,
+    setWindowDecorationsAppliedValue,
     setEnablePush,
     setNtfyServerUrl,
     setHasSeenRecentlyDeletedToast,
