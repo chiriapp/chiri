@@ -6,6 +6,7 @@ import Search from 'lucide-react/icons/search';
 import SlidersHorizontal from 'lucide-react/icons/sliders-horizontal';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { HeaderSortDirectionButton } from '$components/header/HeaderSortDirectionButton';
 import { HeaderSortOptionButton } from '$components/header/HeaderSortOptionsButton';
 import { HeaderViewMenuCheckbox } from '$components/header/HeaderViewMenuCheckbox';
@@ -125,6 +126,7 @@ export const Header = ({
   const [showViewMenu, setShowViewMenu] = useState(false);
   const [showJustNow, setShowJustNow] = useState(false);
   const justSyncedRef = useRef(false);
+  const viewMenuButtonRef = useRef<HTMLButtonElement>(null);
   const lastNonManualDirectionRef = useRef<SortDirection>(sortConfig.direction);
   const metaKey = getMetaKeyLabel();
   const modifierJoiner = getModifierJoiner();
@@ -249,6 +251,7 @@ export const Header = ({
           <div className="relative">
             <Tooltip content="View options" position="bottom">
               <button
+                ref={viewMenuButtonRef}
                 type="button"
                 onClick={() => setShowViewMenu(!showViewMenu)}
                 className={`flex items-center border border-transparent gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
@@ -263,52 +266,49 @@ export const Header = ({
             </Tooltip>
 
             {showViewMenu && (
-              <>
-                {/* biome-ignore lint/a11y/noStaticElementInteractions: View menu backdrop for closing on outside click */}
-                {/* biome-ignore lint/a11y/useKeyWithClickEvents: View menu backdrop for closing on outside click */}
-                <div className="fixed inset-0 z-40" onClick={() => setShowViewMenu(false)} />
-                <div
-                  data-context-menu-content
-                  className="absolute right-0 top-full mt-1 bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 z-50 min-w-60 animate-scale-in"
-                >
-                  <div className="px-3 py-2 border-b border-surface-200 dark:border-surface-700">
-                    <HeaderViewMenuCheckbox
-                      label="Show completed"
-                      checked={showCompletedTasks}
-                      onClick={() => setShowCompletedTasksMutation.mutate(!showCompletedTasks)}
-                    />
-                    <HeaderViewMenuCheckbox
-                      label="Show unstarted"
-                      checked={showUnstartedTasks}
-                      onClick={() => setShowUnstartedTasksMutation.mutate(!showUnstartedTasks)}
-                    />
-                  </div>
-
-                  <div className="py-2">
-                    <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                      Sort By
-                    </div>
-                    {SORT_OPTIONS.map((option) => (
-                      <HeaderSortOptionButton
-                        key={option.value}
-                        option={option}
-                        isActive={sortConfig.mode === option.value}
-                        onClick={() => handleSortChange(option.value)}
-                      />
-                    ))}
-                  </div>
-
-                  <div className="pt-2 border-t border-surface-200 dark:border-surface-700">
-                    <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                      Sort Direction
-                    </div>
-                    <HeaderSortDirectionButton
-                      sortConfig={sortConfig}
-                      onToggle={toggleSortDirection}
-                    />
-                  </div>
+              <FloatingDropdownFrame
+                anchorRef={viewMenuButtonRef}
+                onClose={closeViewMenu}
+                dropdownClassName="z-50 min-w-60"
+                dataAttribute="data-context-menu-content"
+              >
+                <div className="px-3 py-2 border-b border-surface-200 dark:border-surface-700">
+                  <HeaderViewMenuCheckbox
+                    label="Show completed"
+                    checked={showCompletedTasks}
+                    onClick={() => setShowCompletedTasksMutation.mutate(!showCompletedTasks)}
+                  />
+                  <HeaderViewMenuCheckbox
+                    label="Show unstarted"
+                    checked={showUnstartedTasks}
+                    onClick={() => setShowUnstartedTasksMutation.mutate(!showUnstartedTasks)}
+                  />
                 </div>
-              </>
+
+                <div className="py-2">
+                  <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                    Sort By
+                  </div>
+                  {SORT_OPTIONS.map((option) => (
+                    <HeaderSortOptionButton
+                      key={option.value}
+                      option={option}
+                      isActive={sortConfig.mode === option.value}
+                      onClick={() => handleSortChange(option.value)}
+                    />
+                  ))}
+                </div>
+
+                <div className="pt-2 border-t border-surface-200 dark:border-surface-700">
+                  <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                    Sort Direction
+                  </div>
+                  <HeaderSortDirectionButton
+                    sortConfig={sortConfig}
+                    onToggle={toggleSortDirection}
+                  />
+                </div>
+              </FloatingDropdownFrame>
             )}
           </div>
 

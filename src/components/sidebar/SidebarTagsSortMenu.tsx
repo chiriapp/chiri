@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
+import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { SidebarSortDirectionButton } from '$components/sidebar/SidebarSortDirectionButton';
-import { SidebarSortMenuFrame } from '$components/sidebar/SidebarSortMenuFrame';
 import { TAG_SORT_OPTIONS } from '$constants';
 import { useSetTagSortConfig } from '$hooks/queries/useUIState';
 import type { TagSortConfig } from '$types';
@@ -30,7 +30,11 @@ export const SidebarTagsSortMenu = ({
   };
 
   return (
-    <SidebarSortMenuFrame anchorRef={anchorRef} onClose={onClose}>
+    <FloatingDropdownFrame
+      anchorRef={anchorRef}
+      onClose={onClose}
+      dataAttribute="data-context-menu-content"
+    >
       <div className="py-2">
         <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
           Sort By
@@ -61,6 +65,6 @@ export const SidebarTagsSortMenu = ({
           onToggle={toggleSortDirection}
         />
       </div>
-    </SidebarSortMenuFrame>
+    </FloatingDropdownFrame>
   );
 };

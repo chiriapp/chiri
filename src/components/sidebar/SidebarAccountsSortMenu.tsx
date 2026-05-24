@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
+import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { SidebarSortDirectionButton } from '$components/sidebar/SidebarSortDirectionButton';
-import { SidebarSortMenuFrame } from '$components/sidebar/SidebarSortMenuFrame';
 import { ACCOUNT_SORT_OPTIONS, CALENDAR_SORT_OPTIONS } from '$constants';
 import { useSetAccountSortConfig, useSetCalendarSortConfig } from '$hooks/queries/useUIState';
 import type { AccountSortConfig, CalendarSortConfig } from '$types';
@@ -44,7 +44,11 @@ export const SidebarAccountsSortMenu = ({
   };
 
   return (
-    <SidebarSortMenuFrame anchorRef={anchorRef} onClose={onClose}>
+    <FloatingDropdownFrame
+      anchorRef={anchorRef}
+      onClose={onClose}
+      dataAttribute="data-context-menu-content"
+    >
       <div className="py-2">
         <div className="px-3 pb-1 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
           Accounts
@@ -94,6 +98,6 @@ export const SidebarAccountsSortMenu = ({
           onToggle={toggleCalendarSortDirection}
         />
       </div>
-    </SidebarSortMenuFrame>
+    </FloatingDropdownFrame>
   );
 };
