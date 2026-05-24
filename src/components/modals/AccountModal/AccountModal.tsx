@@ -6,14 +6,14 @@ import KeyRound from 'lucide-react/icons/key-round';
 import { useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { CredentialsForm } from '$components/modals/account/CredentialsForm';
-import { FastmailOAuthStep } from '$components/modals/account/FastmailOAuthStep';
+import { CredentialsForm } from '$components/modals/AccountModal/CredentialsForm';
+import { FastmailOAuthStep } from '$components/modals/AccountModal/FastmailOAuthStep';
 import type {
   QuickConnectFlowHandle,
   QuickConnectLoginStep,
-} from '$components/modals/account/QuickConnectFlow';
-import { QuickConnectFlow } from '$components/modals/account/QuickConnectFlow';
-import { ServerTypePicker } from '$components/modals/account/ServerTypePicker';
+} from '$components/modals/AccountModal/QuickConnectFlow';
+import { QuickConnectFlow } from '$components/modals/AccountModal/QuickConnectFlow';
+import { ServerTypePicker } from '$components/modals/AccountModal/ServerTypePicker';
 import { getPredefinedServerUrl, SERVER_TYPE_OPTIONS } from '$constants/settings';
 import { useAddCalendar, useCreateAccount, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useConfirmDialog } from '$hooks/store/useConfirmDialog';

@@ -2,7 +2,7 @@ import Search from 'lucide-react/icons/search';
 import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { MoveToCalendarOption } from '$components/modals/MoveToCalendarOption';
+import { MoveToCalendarOption } from '$components/modals/MoveToCalendar/MoveToCalendarOption';
 import type { Account, Task } from '$types';
 
 interface MoveToCalendarModalProps {

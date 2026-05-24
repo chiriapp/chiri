@@ -1,7 +1,7 @@
 import Inbox from 'lucide-react/icons/inbox';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AccountModal } from '$components/modals/account/AccountModal';
+import { AccountModal } from '$components/modals/AccountModal/AccountModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { FilterModal } from '$components/modals/FilterModal';
