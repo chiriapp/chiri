@@ -107,6 +107,7 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'windowDecorationsMode',
       'windowDecorationsAppliedValue',
       'enablePush',
+      'pushProvider',
       'ntfyServerUrl',
       'hasSeenRecentlyDeletedToast',
     ];

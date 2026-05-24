@@ -15,6 +15,7 @@ import type {
 } from '$types';
 import type { AccentColor, Theme } from '$types/color';
 import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
+import type { PushProviderId } from '$types/push';
 import type {
   EditorFieldKey,
   EditorFieldVisibility,
@@ -320,6 +321,7 @@ export const settingsStore = {
   setWindowDecorationsAppliedValue: (windowDecorationsAppliedValue: WindowDecorationsMode) =>
     setState({ windowDecorationsAppliedValue }),
   setEnablePush: (enablePush: boolean) => setState({ enablePush }),
+  setPushProvider: (pushProvider: PushProviderId) => setState({ pushProvider }),
   setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),
   setHasSeenRecentlyDeletedToast: (hasSeenRecentlyDeletedToast: boolean) =>
     setState({ hasSeenRecentlyDeletedToast }),

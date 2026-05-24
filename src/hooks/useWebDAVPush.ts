@@ -5,7 +5,7 @@
  * Connects incoming push messages to calendar sync operations.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { loggers } from '$lib/logger';
@@ -13,10 +13,14 @@ import {
   enablePushForCalendar,
   findCalendarByTopic,
   initializePushManager,
+  isPushProviderAvailable,
+  type PushProviderConfig,
   restorePushListeners,
+  stopAllPushSubscriptions,
 } from '$lib/push';
-import { checkNtfyAvailability, stopAllSubscriptions } from '$lib/push/ntfyProvider';
+import { createNtfyProviderConfig } from '$lib/push/ntfyProvider';
 import type { Calendar } from '$types';
+import { NTFY_DIRECT_PROVIDER_ID } from '$types/push';
 
 const log = loggers.sync;
 
@@ -35,10 +39,20 @@ interface UseWebDAVPushProps {
  */
 export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushProps) => {
   const { data: accounts = [] } = useAccounts();
-  const { enablePush } = useSettingsStore();
+  const { enablePush, pushProvider, ntfyServerUrl } = useSettingsStore();
+  const pushProviderConfig = useMemo<PushProviderConfig>(
+    () => ({
+      providerId: pushProvider,
+      ntfyConfig:
+        pushProvider === NTFY_DIRECT_PROVIDER_ID
+          ? createNtfyProviderConfig(ntfyServerUrl)
+          : undefined,
+    }),
+    [pushProvider, ntfyServerUrl],
+  );
   const initializedRef = useRef(false);
   const restoreCompletedRef = useRef(false);
-  const lastSyncTimeProcessedRef = useRef<Date | null>(null);
+  const lastPushSetupKeyRef = useRef<string | null>(null);
   const accountsRef = useRef(accounts);
 
   // Keep accounts ref in sync
@@ -84,18 +98,16 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     if (!lastSyncTime) return;
 
     // Skip if we've already processed this sync
-    if (
-      lastSyncTimeProcessedRef.current &&
-      lastSyncTime.getTime() === lastSyncTimeProcessedRef.current.getTime()
-    ) {
+    const pushSetupKey = `${lastSyncTime.getTime()}|${pushProviderConfig.providerId}|${pushProviderConfig.ntfyConfig?.serverUrl ?? ''}`;
+    if (lastPushSetupKeyRef.current === pushSetupKey) {
       return;
     }
 
     const subscribeToPushEnabledCalendars = async () => {
-      // Check ntfy availability first
-      const ntfyAvailable = await checkNtfyAvailability();
-      if (!ntfyAvailable) {
-        log.warn('ntfy server not available, skipping push subscriptions');
+      // Check provider availability first
+      const providerAvailable = await isPushProviderAvailable(pushProviderConfig);
+      if (!providerAvailable) {
+        log.warn('Push provider not available, skipping push subscriptions');
         return;
       }
 
@@ -107,7 +119,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
           }
 
           try {
-            const success = await enablePushForCalendar(account.id, calendar);
+            const success = await enablePushForCalendar(account.id, calendar, pushProviderConfig);
             if (success) {
               log.info(`Push enabled for calendar: ${calendar.displayName}`);
             }
@@ -118,11 +130,11 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
       }
 
       // Mark this sync time as processed
-      lastSyncTimeProcessedRef.current = lastSyncTime;
+      lastPushSetupKeyRef.current = pushSetupKey;
     };
 
     subscribeToPushEnabledCalendars();
-  }, [enablePush, lastSyncTime]); // Trigger after each successful sync
+  }, [enablePush, lastSyncTime, pushProviderConfig]); // Trigger after each successful sync
 
   // Restore push listeners on app startup (for existing subscriptions)
   useEffect(() => {
@@ -143,7 +155,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      stopAllSubscriptions();
+      stopAllPushSubscriptions();
     };
   }, []);
 

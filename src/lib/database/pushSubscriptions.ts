@@ -1,6 +1,10 @@
 import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import type { PushSubscriptionRow } from '$types/database';
-import type { PushSubscription } from '$types/push';
+import {
+  LINUX_UNIFIED_PUSH_PROVIDER_ID,
+  NTFY_DIRECT_PROVIDER_ID,
+  type PushSubscription,
+} from '$types/push';
 
 /**
  * Convert database row to PushSubscription
@@ -11,6 +15,11 @@ const rowToSubscription = (row: PushSubscriptionRow): PushSubscription => ({
   accountId: row.account_id,
   registrationUrl: row.registration_url,
   pushResource: row.push_resource,
+  providerId:
+    row.provider_id === LINUX_UNIFIED_PUSH_PROVIDER_ID
+      ? LINUX_UNIFIED_PUSH_PROVIDER_ID
+      : NTFY_DIRECT_PROVIDER_ID,
+  providerToken: row.provider_token || undefined,
   expiresAt: new Date(row.expires_at),
   createdAt: new Date(row.created_at),
 });
@@ -62,14 +71,16 @@ export const upsertPushSubscription = async (
   subscription: PushSubscription,
 ): Promise<void> => {
   await conn.execute(
-    `INSERT OR REPLACE INTO push_subscriptions (id, calendar_id, account_id, registration_url, push_resource, expires_at, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    `INSERT OR REPLACE INTO push_subscriptions (id, calendar_id, account_id, registration_url, push_resource, provider_id, provider_token, expires_at, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
     [
       subscription.id,
       subscription.calendarId,
       subscription.accountId,
       subscription.registrationUrl,
       subscription.pushResource,
+      subscription.providerId,
+      subscription.providerToken || null,
       subscription.expiresAt.toISOString(),
       subscription.createdAt.toISOString(),
     ],

@@ -14,19 +14,47 @@ import { registerPushSubscription, unregisterPushSubscription } from '$lib/calda
 import { log } from '$lib/caldav/utils';
 import { db } from '$lib/database';
 import {
-  createNtfySubscription,
-  getWebPushSubscription,
-  isListening,
-  type PushMessageHandler,
-  removeNtfySubscription,
-  restoreNtfySubscription,
-  startListening,
-  stopListening,
+  createLinuxUnifiedPushProviderSubscription,
+  isLinuxUnifiedPushProviderAvailable,
+  removeLinuxUnifiedPushProviderSubscription,
+  restoreLinuxUnifiedPushProviderSubscription,
+  startLinuxUnifiedPushProviderListening,
+  stopAllLinuxUnifiedPushProviderListeners,
+  stopLinuxUnifiedPushProviderListening,
+} from '$lib/push/linuxUnifiedPushProvider';
+import {
+  createNtfyProviderSubscription,
+  isNtfyProviderAvailable,
+  isNtfyProviderPushResource,
+  type NtfyProviderConfig,
+  removeNtfyProviderSubscription,
+  restoreNtfyProviderSubscription,
+  startNtfyProviderListening,
+  stopAllNtfyProviderListeners,
+  stopNtfyProviderListening,
 } from '$lib/push/ntfyProvider';
 import { queryClient, queryKeys } from '$lib/queryClient';
 import type { Calendar } from '$types';
-import type { PushStatus, PushSubscription, PushTrigger, WebPushSubscription } from '$types/push';
+import {
+  LINUX_UNIFIED_PUSH_PROVIDER_ID,
+  NTFY_DIRECT_PROVIDER_ID,
+  type PushEndpointSubscription,
+  type PushMessageHandler,
+  type PushProviderId,
+  type PushStatus,
+  type PushSubscription,
+  type PushTrigger,
+} from '$types/push';
 import { generateUUID } from '$utils/misc';
+
+export interface PushProviderConfig {
+  providerId: PushProviderId;
+  ntfyConfig?: NtfyProviderConfig;
+}
+
+const DEFAULT_PUSH_PROVIDER_CONFIG: PushProviderConfig = {
+  providerId: NTFY_DIRECT_PROVIDER_ID,
+};
 
 /**
  * Default subscription expiration request (3 days)
@@ -87,31 +115,83 @@ const invalidatePushCaches = (calendarId?: string) => {
   }
 };
 
+const removeSubscriptionFromCaches = (subscription: PushSubscription) => {
+  const removeById = (subscriptions: PushSubscription[] | undefined) =>
+    subscriptions?.filter((item) => item.id !== subscription.id);
+
+  queryClient.setQueryData<PushSubscription[]>(queryKeys.pushSubscriptions.all, removeById);
+  queryClient.setQueryData<PushSubscription[]>(
+    queryKeys.pushSubscriptions.byCalendar(subscription.calendarId),
+    removeById,
+  );
+};
+
 /**
  * Generate Web Push subscription details for a calendar
  *
- * Creates an ntfy subscription and returns the Web Push subscription
+ * Creates a provider subscription and returns the Web Push subscription
  * details needed for CalDAV push registration.
  */
 export const createWebPushSubscription = async (
   calendar: Calendar,
-): Promise<WebPushSubscription | null> => {
+  providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+): Promise<PushEndpointSubscription | null> => {
   try {
-    // Create ntfy subscription (generates key pair and topic)
-    await createNtfySubscription(calendar);
-
-    // Get the Web Push subscription details
-    const webPushDetails = getWebPushSubscription(calendar.id);
-    if (!webPushDetails) {
-      log.error(`Failed to get Web Push details for calendar ${calendar.displayName}`);
-      return null;
+    if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
+      return await createLinuxUnifiedPushProviderSubscription(calendar);
     }
 
-    return webPushDetails;
+    return await createNtfyProviderSubscription(calendar, providerConfig.ntfyConfig);
   } catch (error) {
     log.error(`Failed to create Web Push subscription for ${calendar.displayName}:`, error);
     return null;
   }
+};
+
+export const isPushProviderAvailable = async (
+  providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+): Promise<boolean> => {
+  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
+    return await isLinuxUnifiedPushProviderAvailable();
+  }
+
+  return await isNtfyProviderAvailable(providerConfig.ntfyConfig);
+};
+
+const subscriptionMatchesProvider = (
+  subscription: PushSubscription,
+  providerConfig: PushProviderConfig,
+): boolean => {
+  if (subscription.providerId !== providerConfig.providerId) return false;
+
+  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
+    return !!subscription.providerToken;
+  }
+
+  return providerConfig.ntfyConfig
+    ? isNtfyProviderPushResource(subscription.pushResource, providerConfig.ntfyConfig)
+    : true;
+};
+
+const restoreProviderSubscription = async (
+  subscription: PushSubscription,
+  calendar: Calendar,
+  providerConfig: PushProviderConfig,
+): Promise<boolean> => {
+  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
+    return await restoreLinuxUnifiedPushProviderSubscription(subscription, calendar);
+  }
+
+  return await restoreNtfyProviderSubscription(subscription, calendar);
+};
+
+const removeProviderSubscription = async (subscription: PushSubscription): Promise<void> => {
+  if (subscription.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
+    await removeLinuxUnifiedPushProviderSubscription(subscription);
+    return;
+  }
+
+  removeNtfyProviderSubscription(subscription);
 };
 
 /**
@@ -120,6 +200,7 @@ export const createWebPushSubscription = async (
 export const subscribeCalendarToPush = async (
   accountId: string,
   calendar: Calendar,
+  providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
 ): Promise<PushSubscription | null> => {
   // Check if calendar supports push
   if (!calendar.pushSupported || !calendar.pushTopic) {
@@ -130,7 +211,9 @@ export const subscribeCalendarToPush = async (
   // Check if we already have a valid subscription (use cached data)
   const existingSubscriptions = await getCalendarSubscriptions(calendar.id);
   const validSubscription = existingSubscriptions.find(
-    (sub) => sub.expiresAt > new Date(Date.now() + RENEWAL_THRESHOLD_HOURS * 60 * 60 * 1000),
+    (sub) =>
+      sub.expiresAt > new Date(Date.now() + RENEWAL_THRESHOLD_HOURS * 60 * 60 * 1000) &&
+      subscriptionMatchesProvider(sub, providerConfig),
   );
 
   if (validSubscription) {
@@ -145,8 +228,30 @@ export const subscribeCalendarToPush = async (
   }
   const conn = getConnection(accountId);
 
+  const mismatchedSubscriptions = existingSubscriptions.filter(
+    (sub) => sub.expiresAt > new Date() && !subscriptionMatchesProvider(sub, providerConfig),
+  );
+
+  for (const subscription of mismatchedSubscriptions) {
+    try {
+      await unregisterPushSubscription(subscription.registrationUrl, conn.credentials);
+    } catch (error) {
+      log.warn('Failed to unregister push subscription from previous push provider:', error);
+    }
+
+    await removeProviderSubscription(subscription);
+    await db.deletePushSubscription(subscription.id);
+  }
+
+  if (mismatchedSubscriptions.length > 0) {
+    invalidatePushCaches(calendar.id);
+    log.info(
+      `Removed ${mismatchedSubscriptions.length} push subscription(s) for ${calendar.displayName} from a previous push provider`,
+    );
+  }
+
   // Create Web Push subscription (requires UnifiedPush integration)
-  const webPushSubscription = await createWebPushSubscription(calendar);
+  const webPushSubscription = await createWebPushSubscription(calendar, providerConfig);
   if (!webPushSubscription) {
     log.warn(`Failed to create Web Push subscription for ${calendar.displayName}`);
     return null;
@@ -179,6 +284,8 @@ export const subscribeCalendarToPush = async (
     accountId,
     registrationUrl: registration.registrationUrl,
     pushResource: webPushSubscription.pushResource,
+    providerId: webPushSubscription.providerId,
+    providerToken: webPushSubscription.providerToken,
     expiresAt: registration.expires,
     createdAt: new Date(),
   };
@@ -311,25 +418,28 @@ export const getPushStatus = async (calendars: Calendar[]): Promise<PushStatus> 
   };
 };
 
-/**
- * Start listening for push messages on a calendar's subscription
- *
- * This connects to the ntfy SSE endpoint to receive real-time push messages.
- */
-export const startPushListening = (calendarId: string) => {
+export const startPushListeningForSubscription = (
+  subscription: PushSubscription,
+  providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+) => {
   if (!globalMessageHandler) {
     log.warn('Push message handler not set - call initializePushManager first');
     return false;
   }
 
-  return startListening(calendarId, globalMessageHandler);
+  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
+    return startLinuxUnifiedPushProviderListening(subscription, globalMessageHandler);
+  }
+
+  return startNtfyProviderListening(subscription, globalMessageHandler);
 };
 
 /**
  * Stop listening for push messages on a calendar
  */
 export const stopPushListening = (calendarId: string) => {
-  stopListening(calendarId);
+  stopNtfyProviderListening(calendarId);
+  stopLinuxUnifiedPushProviderListening(calendarId);
 };
 
 /**
@@ -347,38 +457,55 @@ export const initializePushManager = (onPushMessage: PushMessageHandler) => {
  * Subscribe and start listening for a calendar
  *
  * This is a convenience function that:
- * 1. Creates the ntfy subscription
+ * 1. Creates the provider subscription
  * 2. Registers with the CalDAV server
  * 3. Starts listening for messages
  */
-export const enablePushForCalendar = async (accountId: string, calendar: Calendar) => {
-  // Skip if already listening
-  if (isListening(calendar.id)) {
-    const subscriptions = await getCalendarSubscriptions(calendar.id);
-    const validSubscription = subscriptions.find(
-      (sub) => sub.expiresAt > new Date(Date.now() + RENEWAL_THRESHOLD_HOURS * 60 * 60 * 1000),
-    );
+export const enablePushForCalendar = async (
+  accountId: string,
+  calendar: Calendar,
+  providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+) => {
+  const subscriptions = await getCalendarSubscriptions(calendar.id);
+  const validSubscription = subscriptions.find(
+    (sub) =>
+      sub.expiresAt > new Date(Date.now() + RENEWAL_THRESHOLD_HOURS * 60 * 60 * 1000) &&
+      subscriptionMatchesProvider(sub, providerConfig),
+  );
 
-    if (validSubscription) {
-      log.debug(`Already listening for calendar ${calendar.displayName}`);
-      return true;
+  if (validSubscription) {
+    const restored = await restoreProviderSubscription(validSubscription, calendar, providerConfig);
+    if (restored) {
+      return startPushListeningForSubscription(validSubscription, providerConfig);
     }
 
-    log.info(
-      `Calendar ${calendar.displayName} is listening without valid subscription; re-registering`,
+    log.warn(
+      `Failed to restore push provider subscription for ${calendar.displayName}; recreating it`,
     );
-    stopPushListening(calendar.id);
-    removeNtfySubscription(calendar.id);
+
+    if (isConnected(accountId)) {
+      try {
+        const conn = getConnection(accountId);
+        await unregisterPushSubscription(validSubscription.registrationUrl, conn.credentials);
+      } catch (error) {
+        log.warn('Failed to unregister stale push subscription from server:', error);
+      }
+    }
+
+    await removeProviderSubscription(validSubscription);
+    await db.deletePushSubscription(validSubscription.id);
+    removeSubscriptionFromCaches(validSubscription);
+    invalidatePushCaches(calendar.id);
   }
 
   // Subscribe to push
-  const subscription = await subscribeCalendarToPush(accountId, calendar);
+  const subscription = await subscribeCalendarToPush(accountId, calendar, providerConfig);
   if (!subscription) {
     return false;
   }
 
   // Start listening
-  const listening = startPushListening(calendar.id);
+  const listening = startPushListeningForSubscription(subscription, providerConfig);
   if (!listening) {
     log.warn(`Push subscribed but not listening for ${calendar.displayName}`);
   }
@@ -395,8 +522,11 @@ export const disablePushForCalendar = async (accountId: string, calendarId: stri
   // Stop listening first
   stopPushListening(calendarId);
 
-  // Remove ntfy subscription
-  removeNtfySubscription(calendarId);
+  // Remove provider subscription
+  const subscriptions = await getCalendarSubscriptions(calendarId);
+  for (const subscription of subscriptions) {
+    await removeProviderSubscription(subscription);
+  }
 
   // Unsubscribe from server
   await unsubscribeCalendarFromPush(accountId, calendarId);
@@ -405,7 +535,7 @@ export const disablePushForCalendar = async (accountId: string, calendarId: stri
 /**
  * Restore push listening for all active subscriptions
  *
- * Should be called on app startup to reconnect to ntfy for
+ * Should be called on app startup to reconnect provider listeners for
  * calendars that still have valid push subscriptions.
  */
 export const restorePushListeners = async (calendars: Calendar[]) => {
@@ -431,26 +561,19 @@ export const restorePushListeners = async (calendars: Calendar[]) => {
       continue;
     }
 
-    // Skip if already listening
-    if (isListening(calendar.id)) {
-      log.debug(`Already listening for calendar ${calendar.displayName}`);
-      continue;
-    }
-
-    // Restore the ntfy subscription using the existing push resource URL
-    // (not createNtfySubscription which would generate a new topic)
+    // Restore the provider subscription using the existing push resource URL.
     try {
-      const ntfySub = await restoreNtfySubscription(
-        calendar.id,
-        subscription.pushResource,
-        calendar.displayName,
-      );
-      if (!ntfySub) {
-        log.warn(`Failed to restore ntfy subscription for ${calendar.displayName}`);
+      const restoredProvider = await restoreProviderSubscription(subscription, calendar, {
+        providerId: subscription.providerId,
+      });
+      if (!restoredProvider) {
+        log.warn(`Failed to restore push provider subscription for ${calendar.displayName}`);
         continue;
       }
 
-      if (startPushListening(calendar.id)) {
+      if (
+        startPushListeningForSubscription(subscription, { providerId: subscription.providerId })
+      ) {
         restored++;
         log.info(`Restored push listener for ${calendar.displayName}`);
       }
@@ -460,4 +583,9 @@ export const restorePushListeners = async (calendars: Calendar[]) => {
   }
 
   return restored;
+};
+
+export const stopAllPushSubscriptions = (): void => {
+  stopAllNtfyProviderListeners();
+  stopAllLinuxUnifiedPushProviderListeners();
 };

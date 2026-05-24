@@ -92,6 +92,7 @@ fn main() {
                 .add_migrations("sqlite:chiri.db", db_migrations)
                 .build(),
         )
+        .manage(linux::unifiedpush::UnifiedPushState::default())
         .invoke_handler(tauri::generate_handler![
             force_quit,
             http_client::caldav_request,
@@ -99,6 +100,9 @@ fn main() {
             install_type::should_disable_updates,
             linux::desktop::is_gnome_desktop,
             linux::fs::read_file_bytes,
+            linux::unifiedpush::linux_unifiedpush_available,
+            linux::unifiedpush::linux_unifiedpush_register,
+            linux::unifiedpush::linux_unifiedpush_unregister,
             linux::window_decorations::set_window_decorations,
             macos::login_item::disable_macos_launch_at_login,
             macos::login_item::enable_macos_launch_at_login,

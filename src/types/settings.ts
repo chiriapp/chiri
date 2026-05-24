@@ -11,6 +11,7 @@ import type {
   TimeFormat,
 } from '$types';
 import type { AccentColor, Theme } from '$types/color';
+import type { PushProviderId } from '$types/push';
 
 export type TaskListDensity = 'comfortable' | 'compact';
 
@@ -140,6 +141,7 @@ export interface SettingsState {
   windowDecorationsMode: WindowDecorationsMode;
   windowDecorationsAppliedValue: WindowDecorationsMode;
   enablePush: boolean;
+  pushProvider: PushProviderId;
   ntfyServerUrl: string;
   hasSeenRecentlyDeletedToast: boolean;
 }
@@ -219,6 +221,7 @@ export interface SettingsActions {
   setWindowDecorationsMode: (mode: WindowDecorationsMode) => void;
   setWindowDecorationsAppliedValue: (mode: WindowDecorationsMode) => void;
   setEnablePush: (enabled: boolean) => void;
+  setPushProvider: (provider: PushProviderId) => void;
   setNtfyServerUrl: (url: string) => void;
   setHasSeenRecentlyDeletedToast: (seen: boolean) => void;
   exportSettings: () => string;

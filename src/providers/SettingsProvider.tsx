@@ -12,6 +12,7 @@ import type {
   TimeFormat,
 } from '$types';
 import type { AccentColor, Theme } from '$types/color';
+import type { PushProviderId } from '$types/push';
 import type {
   EditorFieldKey,
   EditorFieldVisibility,
@@ -296,6 +297,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
   const setEnablePush = useCallback((enabled: boolean) => settingsStore.setEnablePush(enabled), []);
+  const setPushProvider = useCallback(
+    (provider: PushProviderId) => settingsStore.setPushProvider(provider),
+    [],
+  );
   const setNtfyServerUrl = useCallback((url: string) => settingsStore.setNtfyServerUrl(url), []);
   const setHasSeenRecentlyDeletedToast = useCallback(
     (seen: boolean) => settingsStore.setHasSeenRecentlyDeletedToast(seen),
@@ -380,6 +385,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setWindowDecorationsMode,
     setWindowDecorationsAppliedValue,
     setEnablePush,
+    setPushProvider,
     setNtfyServerUrl,
     setHasSeenRecentlyDeletedToast,
     exportSettings,

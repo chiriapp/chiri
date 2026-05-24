@@ -161,6 +161,8 @@ export interface PushSubscriptionRow {
   account_id: string;
   registration_url: string;
   push_resource: string;
+  provider_id: string | null;
+  provider_token: string | null;
   expires_at: string;
   created_at: string;
 }

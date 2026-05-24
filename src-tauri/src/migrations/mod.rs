@@ -23,6 +23,7 @@ mod v022_caldav_config_table;
 mod v023_recently_deleted;
 mod v024_saved_filters;
 mod v025_filter_preset_id;
+mod v026_push_provider_metadata;
 
 use tauri_plugin_sql::Migration;
 
@@ -51,6 +52,7 @@ pub use v022_caldav_config_table::migration as migration_v022;
 pub use v023_recently_deleted::migration as migration_v023;
 pub use v024_saved_filters::migration as migration_v024;
 pub use v025_filter_preset_id::migration as migration_v025;
+pub use v026_push_provider_metadata::migration as migration_v026;
 
 /// Returns all database migrations for the application
 pub fn get_migrations() -> Vec<Migration> {
@@ -80,5 +82,6 @@ pub fn get_migrations() -> Vec<Migration> {
         migration_v023(),
         migration_v024(),
         migration_v025(),
+        migration_v026(),
     ]
 }

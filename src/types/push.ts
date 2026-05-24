@@ -1,4 +1,16 @@
 /**
+ * Push endpoint provider used to receive Web Push-compatible messages.
+ */
+export const NTFY_DIRECT_PROVIDER_ID = 'ntfy-direct';
+export const LINUX_UNIFIED_PUSH_PROVIDER_ID = 'linux-unifiedpush';
+export type PushProviderId = typeof NTFY_DIRECT_PROVIDER_ID | typeof LINUX_UNIFIED_PUSH_PROVIDER_ID;
+
+/**
+ * Callback fired when a local push provider receives a message for a calendar.
+ */
+export type PushMessageHandler = (calendarId: string, message: string) => void;
+
+/**
  * Supported push transports
  */
 export type PushTransport = 'web-push';
@@ -29,6 +41,10 @@ export interface PushSubscription {
   registrationUrl: string;
   /** Push service endpoint URL */
   pushResource: string;
+  /** Local provider used to create/listen to this push resource */
+  providerId: PushProviderId;
+  /** Provider-specific registration token, if the provider needs one */
+  providerToken?: string;
   /** When the subscription expires */
   expiresAt: Date;
   /** When the subscription was created locally */
@@ -47,6 +63,14 @@ export interface WebPushSubscription {
   authSecret: string;
   /** Content encoding (currently only aes128gcm) */
   contentEncoding: 'aes128gcm';
+}
+
+/**
+ * Web Push subscription plus local provider metadata needed for restore.
+ */
+export interface PushEndpointSubscription extends WebPushSubscription {
+  providerId: PushProviderId;
+  providerToken?: string;
 }
 
 /**

@@ -35,7 +35,8 @@ cms = "0.3.0-pre.2"
 der = { version = "0.8", features = ["ber"] }
 dirs = "5.0"
 user-notify = "0.4.1"
-tokio = { version = "1", features = ["sync"] }
+tokio = { version = "1", features = ["sync", "time"] }
+zbus = { version = "5.15.0", default-features = false, features = ["tokio"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 tauri-plugin-http = { version = "2", default-features = false, features = ["native-tls"] }

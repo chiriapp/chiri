@@ -6,6 +6,7 @@ import {
 } from '$constants';
 import { getDefaultAccentColor } from '$constants/colorSchemes';
 import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
+import { NTFY_DIRECT_PROVIDER_ID } from '$types/push';
 import type { SettingsState } from '$types/settings';
 
 const defaultAccentColor = getDefaultAccentColor();
@@ -120,6 +121,7 @@ export const defaultState: SettingsState = {
   windowDecorationsMode: 'auto',
   windowDecorationsAppliedValue: 'auto',
   enablePush: false,
+  pushProvider: NTFY_DIRECT_PROVIDER_ID,
   ntfyServerUrl: 'https://ntfy.sh',
   hasSeenRecentlyDeletedToast: false,
 };

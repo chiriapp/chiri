@@ -1,25 +1,27 @@
 /**
- * UnifiedPush Provider Interface
+ * ntfy push provider.
  *
- * Provides push message reception for WebDAV Push on desktop.
- * Uses ntfy (https://ntfy.sh) as the UnifiedPush distributor.
- *
- * Architecture:
- * 1. Client generates ECDH key pair for message encryption
- * 2. Client subscribes to ntfy topic, gets push endpoint URL
- * 3. Client registers endpoint with CalDAV server
- * 4. Server sends encrypted push messages to ntfy
- * 5. ntfy forwards messages to client (via SSE/WebSocket)
- * 6. Client decrypts messages and triggers sync
+ * Provides WebDAV Push message reception through an ntfy UnifiedPush endpoint.
  */
 
 import { log } from '$lib/caldav/utils';
+import {
+  base64UrlEncode,
+  generateWebPushKeyPair,
+  type WebPushKeyPair,
+} from '$lib/push/webPushKeys';
 import type { Calendar } from '$types';
+import {
+  NTFY_DIRECT_PROVIDER_ID,
+  type PushEndpointSubscription,
+  type PushMessageHandler,
+  type PushSubscription,
+} from '$types/push';
 
 /**
- * ntfy server configuration
+ * ntfy server configuration.
  */
-export interface NtfyConfig {
+export interface NtfyProviderConfig {
   /** ntfy server URL (default: https://ntfy.sh) */
   serverUrl: string;
   /**
@@ -29,232 +31,189 @@ export interface NtfyConfig {
   topicPrefix: string;
 }
 
-const DEFAULT_NTFY_CONFIG: NtfyConfig = {
-  serverUrl: 'https://ntfy.sh',
+export const DEFAULT_NTFY_SERVER_URL = 'https://ntfy.sh';
+const DEFAULT_NTFY_PROVIDER_CONFIG: NtfyProviderConfig = {
+  serverUrl: DEFAULT_NTFY_SERVER_URL,
   topicPrefix: 'up',
 };
 
-/**
- * Web Push key pair for message encryption
- */
-export interface WebPushKeyPair {
-  /** Public key (base64url, uncompressed P-256) */
-  publicKey: string;
-  /** Private key (base64url) - kept locally for decryption */
-  privateKey: string;
-  /** Authentication secret (base64url) */
-  authSecret: string;
-}
+export const normalizeNtfyProviderServerUrl = (serverUrl?: string | null): string => {
+  const trimmed = serverUrl?.trim();
+  if (!trimmed) return DEFAULT_NTFY_SERVER_URL;
+
+  const withProtocol = /^[a-z][a-z\d+\-.]*:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const url = new URL(withProtocol);
+    url.hash = '';
+    url.search = '';
+    url.pathname = url.pathname.replace(/\/+$/, '');
+
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    return DEFAULT_NTFY_SERVER_URL;
+  }
+};
+
+export const createNtfyProviderConfig = (serverUrl?: string | null): NtfyProviderConfig => ({
+  ...DEFAULT_NTFY_PROVIDER_CONFIG,
+  serverUrl: normalizeNtfyProviderServerUrl(serverUrl),
+});
+
+const joinNtfyUrl = (serverUrl: string, path: string): string =>
+  `${serverUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
+
+export const getNtfyProviderSseUrl = (endpoint: string): string => joinNtfyUrl(endpoint, 'sse');
+
+export const isNtfyProviderPushResource = (
+  pushResource: string,
+  config: NtfyProviderConfig,
+): boolean => {
+  try {
+    const pushUrl = new URL(pushResource);
+    const serverUrl = new URL(config.serverUrl);
+    const serverPath = serverUrl.pathname.replace(/\/+$/, '');
+    const pathMatches =
+      serverPath === '' ||
+      serverPath === '/' ||
+      pushUrl.pathname === serverPath ||
+      pushUrl.pathname.startsWith(`${serverPath}/`);
+
+    return pushUrl.origin === serverUrl.origin && pathMatches;
+  } catch {
+    return false;
+  }
+};
 
 /**
- * Active push subscription with ntfy
+ * Active local ntfy subscription state.
  */
-export interface NtfySubscription {
+interface NtfyProviderSubscription {
   /** ntfy topic */
   topic: string;
   /** Full push endpoint URL */
   endpoint: string;
-  /** Key pair for encryption */
+  /** Key pair for Web Push registration */
   keyPair: WebPushKeyPair;
   /** EventSource for receiving messages */
   eventSource?: EventSource;
 }
 
-// Store active subscriptions
-const activeSubscriptions = new Map<string, NtfySubscription>();
+const activeNtfyProviderSubscriptions = new Map<string, NtfyProviderSubscription>();
 let receivedMessageCount = 0;
 let lastMessageAt: Date | null = null;
 
-/**
- * Generate a Web Push key pair using the Web Crypto API
- *
- * This generates:
- * - P-256 ECDH key pair for message encryption
- * - Random auth secret for additional authentication
- */
-export const generateWebPushKeyPair = async (): Promise<WebPushKeyPair> => {
-  // Generate P-256 ECDH key pair
-  const keyPair = await crypto.subtle.generateKey(
-    {
-      name: 'ECDH',
-      namedCurve: 'P-256',
-    },
-    true, // extractable
-    ['deriveBits'],
-  );
-
-  // Export public key in raw format (uncompressed point)
-  const publicKeyBuffer = await crypto.subtle.exportKey('raw', keyPair.publicKey);
-  const publicKey = base64UrlEncode(new Uint8Array(publicKeyBuffer));
-
-  // Export private key in PKCS8 format
-  const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
-  const privateKey = base64UrlEncode(new Uint8Array(privateKeyBuffer));
-
-  // Generate random auth secret (16 bytes)
-  const authSecretBuffer = crypto.getRandomValues(new Uint8Array(16));
-  const authSecret = base64UrlEncode(authSecretBuffer);
-
-  return {
-    publicKey,
-    privateKey,
-    authSecret,
-  };
-};
-
-/**
- * Base64URL encode without padding
- */
-const base64UrlEncode = (data: Uint8Array): string => {
-  const base64 = btoa(String.fromCharCode(...data));
-  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-};
-
-/**
- * Base64URL decode
- */
-export const base64UrlDecode = (str: string): Uint8Array => {
-  const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  const padding = '='.repeat((4 - (base64.length % 4)) % 4);
-  const binaryString = atob(base64 + padding);
-  return Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
-};
-
-/**
- * Generate a unique ntfy topic for a calendar
- */
-const generateNtfyTopic = (config: NtfyConfig = DEFAULT_NTFY_CONFIG): string => {
+const generateNtfyProviderTopic = (
+  config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG,
+): string => {
   // ntfy's UnifiedPush subscriber-based rate limiting expects topics that:
   // - start with "up"
   // - are exactly 14 chars long
-  // See ntfy server constants: unifiedPushTopicPrefix="up", unifiedPushTopicLength=14
-  const randomBytes = crypto.getRandomValues(new Uint8Array(9)); // 9 bytes -> 12 base64url chars
+  const randomBytes = crypto.getRandomValues(new Uint8Array(9));
   const suffix = base64UrlEncode(randomBytes).slice(0, 12);
   return `${config.topicPrefix}${suffix}`;
 };
 
-/**
- * Create an ntfy subscription for a calendar
- */
-export const createNtfySubscription = async (
+const createActiveNtfyProviderSubscription = async (
   calendar: Calendar,
-  config: NtfyConfig = DEFAULT_NTFY_CONFIG,
-): Promise<NtfySubscription> => {
-  // Check if already subscribed
-  const existing = activeSubscriptions.get(calendar.id);
+  config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG,
+): Promise<NtfyProviderSubscription> => {
+  const existing = activeNtfyProviderSubscriptions.get(calendar.id);
   if (existing) {
     log.debug(`Already subscribed to ntfy for calendar ${calendar.displayName}`);
     return existing;
   }
 
-  // Generate key pair
   const keyPair = await generateWebPushKeyPair();
+  const topic = generateNtfyProviderTopic(config);
+  const endpoint = joinNtfyUrl(config.serverUrl, topic);
 
-  // Generate unique topic
-  const topic = generateNtfyTopic(config);
-  const endpoint = `${config.serverUrl}/${topic}`;
-
-  const subscription: NtfySubscription = {
+  const subscription: NtfyProviderSubscription = {
     topic,
     endpoint,
     keyPair,
   };
 
-  activeSubscriptions.set(calendar.id, subscription);
+  activeNtfyProviderSubscriptions.set(calendar.id, subscription);
   log.info(`Created ntfy subscription for ${calendar.displayName}: ${endpoint}`);
 
   return subscription;
 };
 
 /**
- * Restore an ntfy subscription for a calendar using existing endpoint
- *
- * Used on app startup to reconnect to ntfy for existing push subscriptions.
- * Unlike createNtfySubscription, this uses the existing push resource URL
- * that's stored in the database rather than generating a new topic.
- *
- * Note: We don't have the original key pair, so we generate new ones.
- * This is fine because we're just listening for messages, not decrypting.
- * The CalDAV server sends the push message to ntfy, and ntfy just forwards
- * the raw message to us (ntfy doesn't do Web Push encryption).
+ * Create an ntfy provider subscription for CalDAV registration.
  */
-export const restoreNtfySubscription = async (
-  calendarId: string,
-  pushResource: string,
-  calendarDisplayName: string,
-): Promise<NtfySubscription | null> => {
-  // Check if already subscribed
-  const existing = activeSubscriptions.get(calendarId);
-  if (existing) {
-    log.debug(`Already subscribed to ntfy for calendar ${calendarDisplayName}`);
-    return existing;
-  }
-
-  // Parse topic from push resource URL (e.g., "https://ntfy.sh/chiri-push-xyz" -> "chiri-push-xyz")
-  let topic: string;
-  try {
-    const url = new URL(pushResource);
-    topic = url.pathname.slice(1); // Remove leading slash
-  } catch {
-    log.error(`Invalid push resource URL: ${pushResource}`);
-    return null;
-  }
-
-  // Generate new key pair (not used for listening, but required for the structure)
-  const keyPair = await generateWebPushKeyPair();
-
-  const subscription: NtfySubscription = {
-    topic,
-    endpoint: pushResource,
-    keyPair,
-  };
-
-  activeSubscriptions.set(calendarId, subscription);
-  log.info(`Restored ntfy subscription for ${calendarDisplayName}: ${pushResource}`);
-
-  return subscription;
+export const createNtfyProviderSubscription = async (
+  calendar: Calendar,
+  config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG,
+): Promise<PushEndpointSubscription | null> => {
+  await createActiveNtfyProviderSubscription(calendar, config);
+  return getNtfyProviderEndpointSubscription(calendar.id);
 };
 
 /**
- * Check if a calendar is currently listening for push messages
+ * Restore an ntfy provider subscription using an existing push endpoint.
  */
-export const isListening = (calendarId: string): boolean => {
-  const subscription = activeSubscriptions.get(calendarId);
+export const restoreNtfyProviderSubscription = async (
+  subscription: PushSubscription,
+  calendar: Calendar,
+): Promise<boolean> => {
+  const existing = activeNtfyProviderSubscriptions.get(subscription.calendarId);
+  if (existing) {
+    log.debug(`Already subscribed to ntfy for calendar ${calendar.displayName}`);
+    return true;
+  }
+
+  let topic: string;
+  try {
+    const url = new URL(subscription.pushResource);
+    topic = url.pathname.slice(1);
+  } catch {
+    log.error(`Invalid push resource URL: ${subscription.pushResource}`);
+    return false;
+  }
+
+  const keyPair = await generateWebPushKeyPair();
+  const ntfySubscription: NtfyProviderSubscription = {
+    topic,
+    endpoint: subscription.pushResource,
+    keyPair,
+  };
+
+  activeNtfyProviderSubscriptions.set(subscription.calendarId, ntfySubscription);
+  log.info(`Restored ntfy subscription for ${calendar.displayName}: ${subscription.pushResource}`);
+
+  return true;
+};
+
+export const isNtfyProviderListening = (calendarId: string): boolean => {
+  const subscription = activeNtfyProviderSubscriptions.get(calendarId);
   return !!subscription?.eventSource;
 };
 
 /**
- * Message handler callback type
+ * Start listening for push messages on an ntfy provider subscription.
  */
-export type PushMessageHandler = (calendarId: string, message: string) => void;
-
-/**
- * Start listening for push messages on an ntfy subscription
- *
- * Uses Server-Sent Events (SSE) for real-time message delivery.
- */
-export const startListening = (
-  calendarId: string,
+export const startNtfyProviderListening = (
+  subscription: PushSubscription,
   onMessage: PushMessageHandler,
-  config: NtfyConfig = DEFAULT_NTFY_CONFIG,
 ): boolean => {
-  const subscription = activeSubscriptions.get(calendarId);
-  if (!subscription) {
-    log.warn(`No subscription found for calendar ${calendarId}`);
+  const ntfySubscription = activeNtfyProviderSubscriptions.get(subscription.calendarId);
+  if (!ntfySubscription) {
+    log.warn(`No subscription found for calendar ${subscription.calendarId}`);
     return false;
   }
 
-  if (subscription.eventSource) {
-    log.debug(`Already listening for calendar ${calendarId}`);
+  if (ntfySubscription.eventSource) {
+    log.debug(`Already listening for calendar ${subscription.calendarId}`);
     return true;
   }
 
-  // Connect to ntfy via SSE
-  const sseUrl = `${config.serverUrl}/${subscription.topic}/sse`;
+  const sseUrl = getNtfyProviderSseUrl(ntfySubscription.endpoint);
   const eventSource = new EventSource(sseUrl);
 
   eventSource.onopen = () => {
-    log.info(`Connected to ntfy SSE for topic ${subscription.topic}`);
+    log.info(`Connected to ntfy SSE for topic ${ntfySubscription.topic}`);
   };
 
   eventSource.onmessage = async (event) => {
@@ -262,52 +221,33 @@ export const startListening = (
       const data = JSON.parse(event.data);
       const messageLength = typeof data.message === 'string' ? data.message.length : 0;
       log.debug(
-        `ntfy SSE event received (type=${data.event}, topic=${data.topic ?? subscription.topic}, encoding=${data.encoding ?? 'plain'}, messageBytes=${messageLength})`,
+        `ntfy SSE event received (type=${data.event}, topic=${data.topic ?? ntfySubscription.topic}, encoding=${data.encoding ?? 'plain'}, messageBytes=${messageLength})`,
       );
 
-      // ntfy message events can be:
-      // - Plain text messages: { event: 'message', message: '...' }
-      // - Binary/attachment messages: { event: 'message', attachment: {...} }
-      // - Keepalive: { event: 'keepalive' }
-      // - Open: { event: 'open' }
       if (data.event === 'message') {
         receivedMessageCount++;
         lastMessageAt = new Date();
-        log.info(`Received push message for calendar ${calendarId}`);
+        log.info(`Received push message for calendar ${subscription.calendarId}`);
 
-        // For Web Push encrypted messages, the payload might be in:
-        // - data.message (base64 if binary)
-        // - data.attachment (binary attachment)
-        // - data.encoding (indicates encoding, e.g., 'base64')
-        //
-        // For now, we trigger sync on ANY message receipt.
-        // The mere receipt of a message indicates server-side changes.
-        // Decryption of the actual content (topic, sync-token) would be nice
-        // but is not required - the sync will discover the changes anyway.
         const messageContent =
           data.message || data.attachment?.name || 'WebDAV Push message received';
-        onMessage(calendarId, messageContent);
+        onMessage(subscription.calendarId, messageContent);
       }
     } catch (error) {
       log.warn('Failed to parse ntfy message:', error);
-      // Even if we can't parse, we received something - might be malformed push
     }
   };
 
   eventSource.onerror = (error) => {
-    log.error(`ntfy SSE error for topic ${subscription.topic}:`, error);
-    // EventSource will automatically reconnect
+    log.error(`ntfy SSE error for topic ${ntfySubscription.topic}:`, error);
   };
 
-  subscription.eventSource = eventSource;
+  ntfySubscription.eventSource = eventSource;
   return true;
 };
 
-/**
- * Stop listening for push messages
- */
-export const stopListening = (calendarId: string): void => {
-  const subscription = activeSubscriptions.get(calendarId);
+export const stopNtfyProviderListening = (calendarId: string): void => {
+  const subscription = activeNtfyProviderSubscriptions.get(calendarId);
   if (subscription?.eventSource) {
     subscription.eventSource.close();
     subscription.eventSource = undefined;
@@ -315,37 +255,24 @@ export const stopListening = (calendarId: string): void => {
   }
 };
 
-/**
- * Remove an ntfy subscription
- */
-export const removeNtfySubscription = (calendarId: string): void => {
-  stopListening(calendarId);
-  activeSubscriptions.delete(calendarId);
-  log.info(`Removed ntfy subscription for calendar ${calendarId}`);
+export const removeNtfyProviderSubscription = (subscription: PushSubscription): void => {
+  stopNtfyProviderListening(subscription.calendarId);
+  activeNtfyProviderSubscriptions.delete(subscription.calendarId);
+  log.info(`Removed ntfy subscription for calendar ${subscription.calendarId}`);
 };
 
-/**
- * Get the push endpoint URL for a calendar's subscription
- */
-export const getPushEndpoint = (calendarId: string): string | null => {
-  return activeSubscriptions.get(calendarId)?.endpoint ?? null;
+export const getNtfyProviderPushEndpoint = (calendarId: string): string | null => {
+  return activeNtfyProviderSubscriptions.get(calendarId)?.endpoint ?? null;
 };
 
-/**
- * Get the Web Push subscription details needed for CalDAV registration
- */
-export const getWebPushSubscription = (
+export const getNtfyProviderEndpointSubscription = (
   calendarId: string,
-): {
-  pushResource: string;
-  subscriptionPublicKey: string;
-  authSecret: string;
-  contentEncoding: 'aes128gcm';
-} | null => {
-  const subscription = activeSubscriptions.get(calendarId);
+): PushEndpointSubscription | null => {
+  const subscription = activeNtfyProviderSubscriptions.get(calendarId);
   if (!subscription) return null;
 
   return {
+    providerId: NTFY_DIRECT_PROVIDER_ID,
     pushResource: subscription.endpoint,
     subscriptionPublicKey: subscription.keyPair.publicKey,
     authSecret: subscription.keyPair.authSecret,
@@ -353,11 +280,8 @@ export const getWebPushSubscription = (
   };
 };
 
-/**
- * Check if ntfy is available and reachable
- */
-export const checkNtfyAvailability = async (
-  config: NtfyConfig = DEFAULT_NTFY_CONFIG,
+export const isNtfyProviderAvailable = async (
+  config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG,
 ): Promise<boolean> => {
   try {
     const response = await fetch(`${config.serverUrl}/v1/health`, {
@@ -370,37 +294,28 @@ export const checkNtfyAvailability = async (
   }
 };
 
-/**
- * Get count of active subscriptions
- */
-export const getActiveSubscriptionCount = (): number => {
-  return activeSubscriptions.size;
+export const getNtfyProviderActiveSubscriptionCount = (): number => {
+  return activeNtfyProviderSubscriptions.size;
 };
 
-/**
- * Push diagnostics for debug UI/logging
- */
-export interface PushDiagnostics {
+export interface NtfyProviderDiagnostics {
   activeSubscriptions: number;
   receivedMessages: number;
   lastMessageAt: Date | null;
 }
 
-export const getPushDiagnostics = (): PushDiagnostics => {
+export const getNtfyProviderDiagnostics = (): NtfyProviderDiagnostics => {
   return {
-    activeSubscriptions: activeSubscriptions.size,
+    activeSubscriptions: activeNtfyProviderSubscriptions.size,
     receivedMessages: receivedMessageCount,
     lastMessageAt,
   };
 };
 
-/**
- * Stop all active subscriptions
- */
-export const stopAllSubscriptions = (): void => {
-  for (const calendarId of activeSubscriptions.keys()) {
-    stopListening(calendarId);
+export const stopAllNtfyProviderListeners = (): void => {
+  for (const calendarId of activeNtfyProviderSubscriptions.keys()) {
+    stopNtfyProviderListening(calendarId);
   }
-  activeSubscriptions.clear();
+  activeNtfyProviderSubscriptions.clear();
   log.info('Stopped all ntfy subscriptions');
 };
