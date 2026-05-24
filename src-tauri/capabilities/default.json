@@ -33,6 +33,7 @@
     "notification:default",
     "sql:default",
     "sql:allow-execute",
+    "core:app:allow-set-dock-visibility",
     "process:default",
     "core:window:allow-set-focus",
     "os:default",
