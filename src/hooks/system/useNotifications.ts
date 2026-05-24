@@ -3,7 +3,6 @@ import { differenceInSeconds, isPast } from 'date-fns';
 import { useCallback, useEffect, useRef } from 'react';
 import { useTasks, useToggleTaskComplete } from '$hooks/queries/useTasks';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { clearSnoozed, getSnoozedTasks, setSnoozed } from '$hooks/store/useSnoozedTasksStore';
 import { loggers } from '$lib/logger';
 import {
   checkNotificationPermission,
@@ -12,6 +11,7 @@ import {
   requestNotificationPermission,
   sendNotification,
 } from '$lib/notifications';
+import { getTaskSnoozeStatus, snoozeTaskFor } from '$lib/notifications/snoozes';
 import type { Task } from '$types';
 
 const log = loggers.notifications;
@@ -67,24 +67,6 @@ const isInQuietHours = (
   return quietHoursStart <= quietHoursEnd
     ? hour >= quietHoursStart && hour < quietHoursEnd
     : hour >= quietHoursStart || hour < quietHoursEnd;
-};
-
-// Helper: Check snooze status and return whether task just unsnoozed
-const checkSnoozeStatus = (
-  taskId: string,
-  now: Date,
-  snoozedTasks: Map<string, number>,
-): { isSnoozed: boolean; justUnsnoozed: boolean } => {
-  const snoozeUntil = snoozedTasks.get(taskId);
-  if (!snoozeUntil) return { isSnoozed: false, justUnsnoozed: false };
-
-  if (now.getTime() < snoozeUntil) {
-    return { isSnoozed: true, justUnsnoozed: false };
-  }
-
-  // Snooze expired, remove it
-  snoozedTasks.delete(taskId);
-  return { isSnoozed: false, justUnsnoozed: true };
 };
 
 // Helper: Process reminders for a task
@@ -225,16 +207,11 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
   const toggleTaskCompleteMutation = useToggleTaskComplete();
   const notifiedTasksRef = useRef<Set<string>>(new Set());
   const notifiedRemindersRef = useRef<Set<string>>(new Set());
-  const snoozedTasksRef = useRef(getSnoozedTasks());
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Helper function to handle snoozing a task
   const handleSnoozeTask = useCallback((taskId: string, durationMinutes: number) => {
-    const snoozeUntil = new Date();
-    snoozeUntil.setMinutes(snoozeUntil.getMinutes() + durationMinutes);
-    const until = snoozeUntil.getTime();
-    snoozedTasksRef.current.set(taskId, until);
-    setSnoozed(taskId, until);
+    snoozeTaskFor(taskId, durationMinutes);
 
     clearSnoozeKeys(taskId, notifiedRemindersRef.current, notifiedTasksRef.current);
     log.info(`Snoozed notification for task: ${taskId} for ${durationMinutes} minutes`);
@@ -257,8 +234,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
       for (const task of tasks) {
         if (task.completed) continue;
 
-        const snoozeStatus = checkSnoozeStatus(task.id, now, snoozedTasksRef.current);
-        if (snoozeStatus.justUnsnoozed) clearSnoozed(task.id);
+        const snoozeStatus = getTaskSnoozeStatus(task.id, now.getTime());
         if (snoozeStatus.isSnoozed) continue;
 
         let justUnsnoozed = snoozeStatus.justUnsnoozed;

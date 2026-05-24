@@ -1,10 +1,10 @@
 import BellOff from 'lucide-react/icons/bell-off';
 import X from 'lucide-react/icons/x';
-import { clearSnoozed, useSnoozedUntil } from '$hooks/store/useSnoozedTasksStore';
+import { useTaskSnooze } from '$lib/notifications/snoozes';
 import { formatTime } from '$utils/date';
 
 export const TaskItemSnoozedBadge = ({ taskId }: { taskId: string }) => {
-  const until = useSnoozedUntil(taskId);
+  const { until, clear } = useTaskSnooze(taskId);
 
   if (!until || until <= Date.now()) return null;
 
@@ -16,7 +16,7 @@ export const TaskItemSnoozedBadge = ({ taskId }: { taskId: string }) => {
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          clearSnoozed(taskId);
+          clear();
         }}
         className="ml-0.5 rounded hover:bg-semantic-warning/20"
         aria-label="Cancel snooze"
