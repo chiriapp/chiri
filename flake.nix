@@ -104,6 +104,15 @@
             ++ linuxDevDeps;
 
           shellHook = ''
+            ${pkgs.lib.optionalString pkgs.stdenv.isDarwin ''
+              export CC="${pkgs.clang.cc}/bin/clang"
+              export CXX="${pkgs.clang.cc}/bin/clang++"
+              export CFLAGS_aarch64_apple_darwin="-isysroot ${pkgs.apple-sdk_14}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+              export CXXFLAGS_aarch64_apple_darwin="-isysroot ${pkgs.apple-sdk_14}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+              export CFLAGS_x86_64_apple_darwin="-isysroot ${pkgs.apple-sdk_14}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+              export CXXFLAGS_x86_64_apple_darwin="-isysroot ${pkgs.apple-sdk_14}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+            ''}
+
             echo "Chiri dev environment"
             echo ""
             echo "commands:"
