@@ -1,15 +1,23 @@
 import X from 'lucide-react/icons/x';
-import type { ReactNode } from 'react';
+import type { DragEventHandler, ReactNode } from 'react';
 import { ModalBackdrop } from '$components/ModalBackdrop';
 import { MODAL_SIZE_CLASSES } from '$constants';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
 import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 
+interface ModalWrapperBackdropProps {
+  onDrop?: DragEventHandler<HTMLDivElement>;
+  onDragOver?: DragEventHandler<HTMLDivElement>;
+  onDragLeave?: DragEventHandler<HTMLDivElement>;
+}
+
 interface ModalWrapperProps {
   isOpen?: boolean;
   onClose: () => void;
-  title?: string;
-  description?: string;
+  title?: ReactNode;
+  description?: ReactNode;
+  /** Optional content rendered before the title, e.g. a back button. */
+  headerLeft?: ReactNode;
   children: ReactNode;
   /** Footer content - rendered in a flex container with gap-3. Use footerLeft for split layouts. */
   footer?: ReactNode;
@@ -20,6 +28,8 @@ interface ModalWrapperProps {
   zIndex?: 'z-50' | 'z-60' | 'z-70';
   contentPadding?: boolean;
   contentOverflow?: 'hidden' | 'auto';
+  handleEscapeKey?: boolean;
+  backdropProps?: ModalWrapperBackdropProps;
   className?: string;
 }
 
@@ -28,6 +38,7 @@ export const ModalWrapper = ({
   onClose,
   title,
   description,
+  headerLeft,
   children,
   footer,
   footerLeft,
@@ -36,17 +47,19 @@ export const ModalWrapper = ({
   zIndex = 'z-50',
   contentPadding = true,
   contentOverflow = contentPadding ? 'auto' : 'hidden',
+  handleEscapeKey = true,
+  backdropProps,
   className,
 }: ModalWrapperProps) => {
   const focusTrapRef = useFocusTrap(isOpen);
 
   // Handle ESC key to close modal
-  useModalEscapeKey(onClose, { enabled: isOpen && !preventClose });
+  useModalEscapeKey(onClose, { enabled: isOpen && !preventClose && handleEscapeKey });
 
   if (!isOpen) return null;
 
   return (
-    <ModalBackdrop className="p-4 cursor-default" zIndex={zIndex}>
+    <ModalBackdrop className="p-4 cursor-default" zIndex={zIndex} {...backdropProps}>
       <div
         ref={focusTrapRef}
         role="dialog"
@@ -55,13 +68,18 @@ export const ModalWrapper = ({
       >
         {title && (
           <div className="bg-white dark:bg-surface-800 border-b border-surface-200 dark:border-surface-700 p-4 shrink-0 flex items-center justify-between rounded-t-xl">
-            <div>
-              <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
-                {title}
-              </h2>
-              {description && (
-                <p className="text-sm text-surface-600 dark:text-surface-400 mt-1">{description}</p>
-              )}
+            <div className="flex min-w-0 items-center gap-3">
+              {headerLeft}
+              <div className="min-w-0">
+                <h2 className="text-lg font-semibold text-surface-900 dark:text-surface-100">
+                  {title}
+                </h2>
+                {description && (
+                  <p className="text-sm text-surface-600 dark:text-surface-400 mt-1">
+                    {description}
+                  </p>
+                )}
+              </div>
             </div>
             {!preventClose && (
               <button

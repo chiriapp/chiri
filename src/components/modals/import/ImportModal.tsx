@@ -2,16 +2,15 @@ import Check from 'lucide-react/icons/check';
 import ChevronLeft from 'lucide-react/icons/chevron-left';
 import Loader2 from 'lucide-react/icons/loader-2';
 import Upload from 'lucide-react/icons/upload';
-import X from 'lucide-react/icons/x';
 import { useCallback, useEffect, useState } from 'react';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { DestinationStep } from '$components/modals/import/DestinationStep';
 import { FileUploadStep } from '$components/modals/import/FileUploadStep';
 import { ReviewStep } from '$components/modals/import/ReviewStep';
 import { StepIndicator } from '$components/modals/import/StepIndicator';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useCreateTask } from '$hooks/queries/useTasks';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import { parseIcsFile, parseJsonTasksFile } from '$lib/ical/import';
 import { loggers } from '$lib/logger';
 import type { Calendar, Task } from '$types';
@@ -45,8 +44,6 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   const [importSuccess, setImportSuccess] = useState(false);
   const [isDraggingInDropZone, setIsDraggingInDropZone] = useState(false);
 
-  const focusTrapRef = useFocusTrap(isOpen);
-
   // Get all calendars and find selected calendar
   const allCalendars: Calendar[] = accounts.flatMap((account) => account.calendars);
   const hasAccounts = accounts.length > 0;
@@ -62,29 +59,6 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
       }
     }
   }, [isOpen, hasAccounts, selectedAccountId, accounts]);
-
-  // Handle ESC key - uses handleClose which is defined below
-  // Note: useModalEscapeKey is called conditionally via the enabled option
-  useModalEscapeKey(
-    () => {
-      // Reset all state on close
-      setStep('upload');
-      setParsedTasks([]);
-      setFileName('');
-      setError('');
-      setParseErrors([]);
-      setImportSuccess(false);
-      setImportProgress(0);
-      setIsImporting(false);
-      setIsDraggingInDropZone(false);
-
-      // Clear App's drag state if user was dragging when modal closed
-      onFileDrop?.();
-
-      onClose();
-    },
-    { enabled: isOpen && !isImporting },
-  );
 
   // Reset state when modal closes (including via parent setting isOpen to false)
   useEffect(() => {
@@ -376,45 +350,79 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   const showDropZoneHighlight = isDraggingInDropZone && step === 'upload';
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Modal backdrop requires drag handlers for file drop functionality
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-60 animate-fade-in"
-      onDrop={handleModalDrop}
-      onDragOver={handleModalDragOver}
-      onDragLeave={handleModalDragLeave}
-    >
-      <div
-        ref={focusTrapRef}
-        className="relative bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-lg mx-4 animate-scale-in max-h-[90vh] flex flex-col"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 shrink-0">
-          <div className="flex items-center gap-3">
-            {step !== 'upload' && !isImporting && !importSuccess && (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="p-1.5 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors"
-                aria-label="Go back"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-            )}
-            <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">
-              Import Tasks
-            </h2>
-          </div>
+    <ModalWrapper
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Import Tasks"
+      zIndex="z-60"
+      className="max-w-lg"
+      contentPadding={false}
+      preventClose={isImporting}
+      backdropProps={{
+        onDrop: handleModalDrop,
+        onDragOver: handleModalDragOver,
+        onDragLeave: handleModalDragLeave,
+      }}
+      headerLeft={
+        step !== 'upload' && !isImporting && !importSuccess ? (
           <button
             type="button"
-            onClick={handleClose}
-            disabled={isImporting}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors disabled:opacity-50"
-            aria-label="Close"
+            onClick={handleBack}
+            className="p-1.5 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+            aria-label="Go back"
           >
-            <X className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5" />
           </button>
+        ) : undefined
+      }
+      footerLeft={
+        <div className="text-sm text-surface-500 dark:text-surface-400">
+          {parsedTasks.length > 0 && step !== 'review' && (
+            <span>
+              {parsedTasks.length} {pluralize(parsedTasks.length, 'task')} selected
+            </span>
+          )}
         </div>
+      }
+      footer={
+        <>
+          {!importSuccess && (
+            <ModalButton variant="ghost" onClick={handleClose} disabled={isImporting}>
+              Cancel
+            </ModalButton>
+          )}
 
+          {step !== 'review' ? (
+            <ModalButton onClick={handleNext} disabled={!canProceed()}>
+              Continue
+            </ModalButton>
+          ) : (
+            <ModalButton
+              onClick={handleImport}
+              disabled={isImporting || importSuccess || parsedTasks.length === 0}
+            >
+              {importSuccess ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Imported!
+                </>
+              ) : isImporting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4" />
+                  Import {parsedTasks.length} {pluralize(parsedTasks.length, 'Task')}
+                </>
+              )}
+            </ModalButton>
+          )}
+        </>
+      }
+    >
+      <div className="flex h-full min-h-0 flex-col">
         {/* Step Indicator */}
         <div className="px-4 py-3 border-b border-surface-100 dark:border-surface-700/50 shrink-0">
           <StepIndicator
@@ -458,66 +466,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
             />
           )}
         </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between gap-2 p-4 border-t border-surface-200 dark:border-surface-700 shrink-0">
-          <div className="text-sm text-surface-500 dark:text-surface-400">
-            {parsedTasks.length > 0 && step !== 'review' && (
-              <span>
-                {parsedTasks.length} {pluralize(parsedTasks.length, 'task')} selected
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {!importSuccess && (
-              <button
-                type="button"
-                onClick={handleClose}
-                disabled={isImporting}
-                className="px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors disabled:opacity-50 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-              >
-                Cancel
-              </button>
-            )}
-
-            {step !== 'review' ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                disabled={!canProceed()}
-                className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
-              >
-                Continue
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleImport}
-                disabled={isImporting || importSuccess || parsedTasks.length === 0}
-                className="px-4 py-2 text-sm bg-primary-600 text-primary-contrast rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 focus-visible:ring-inset"
-              >
-                {importSuccess ? (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Imported!
-                  </>
-                ) : isImporting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4" />
-                    Import {parsedTasks.length} {pluralize(parsedTasks.length, 'Task')}
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-        </div>
       </div>
-    </div>
+    </ModalWrapper>
   );
 };

@@ -1,21 +1,10 @@
-import Loader2 from 'lucide-react/icons/loader-2';
 import AlertTriangle from 'lucide-react/icons/triangle-alert';
-import X from 'lucide-react/icons/x';
 import { type ReactNode, useEffect, useState } from 'react';
-import { ModalBackdrop } from '$components/ModalBackdrop';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 import type { ConfirmNotice } from '$context/confirmDialogContext';
 
-const getButtonClasses = (isDestructive: boolean, isPrimary: boolean) => {
-  if (isDestructive) {
-    return 'bg-semantic-error hover:opacity-90 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error text-primary-contrast';
-  }
-
-  if (isPrimary) {
-    return 'bg-primary-600 hover:bg-primary-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-700 text-primary-contrast';
-  }
-
-  return 'border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500';
-};
+type ConfirmButtonVariant = 'primary' | 'secondary' | 'destructive';
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -57,7 +46,18 @@ export const ConfirmDialogModal = ({
   onCancel,
 }: ConfirmDialogProps) => {
   const [remainingSeconds, setRemainingSeconds] = useState(delayConfirmSeconds || 0);
-  const isConfirmDisabled = remainingSeconds > 0;
+  const isDelayActive = remainingSeconds > 0;
+  const isConfirmDisabled = isDelayActive || isLoading || disableConfirm;
+  const confirmVariant: ConfirmButtonVariant = destructive
+    ? 'destructive'
+    : alternateLabel
+      ? 'secondary'
+      : 'primary';
+  const alternateVariant: ConfirmButtonVariant = alternateDestructive
+    ? 'destructive'
+    : destructive
+      ? 'secondary'
+      : 'primary';
 
   // Countdown timer
   useEffect(() => {
@@ -95,56 +95,47 @@ export const ConfirmDialogModal = ({
   if (!isOpen) return null;
 
   return (
-    <ModalBackdrop zIndex="z-[70]" onClose={onCancel}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
-        aria-describedby="confirm-dialog-description"
-        className="relative bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in"
-      >
-        <div className="flex items-start justify-between p-4 border-b border-surface-200 dark:border-surface-700 rounded-t-xl">
-          <div className="flex-1 min-w-0">
-            <h2
-              id="confirm-dialog-title"
-              className="text-lg font-semibold text-surface-900 dark:text-surface-100"
-            >
-              {title}
-            </h2>
-            {subtitle && (
-              <p
-                id="confirm-dialog-subtitle"
-                className="text-sm text-surface-700 dark:text-surface-300 mt-1 truncate"
-              >
-                {subtitle}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="shrink-0 ml-3 text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 p-1 rounded transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
-            aria-label="Close"
+    <ModalWrapper
+      isOpen={isOpen}
+      onClose={onCancel}
+      title={title}
+      description={subtitle}
+      size="sm"
+      zIndex="z-70"
+      handleEscapeKey={false}
+      footer={
+        <>
+          <ModalButton variant="secondary" onClick={onCancel} disabled={isLoading}>
+            {cancelLabel}
+          </ModalButton>
+          {alternateLabel && onAlternate && (
+            <ModalButton variant={alternateVariant} onClick={onAlternate} disabled={isLoading}>
+              {alternateLabel}
+            </ModalButton>
+          )}
+          <ModalButton
+            variant={confirmVariant}
+            onClick={onConfirm}
+            disabled={isConfirmDisabled}
+            loading={isLoading}
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
+            {isDelayActive ? `${confirmLabel} (${remainingSeconds}s)` : confirmLabel}
+          </ModalButton>
+        </>
+      }
+    >
+      <div className="space-y-4">
         {message && (
-          <div className="p-4">
-            <div
-              id="confirm-dialog-description"
-              className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed"
-            >
-              {message}
-            </div>
+          <div
+            id="confirm-dialog-description"
+            className="text-sm text-surface-600 dark:text-surface-400 leading-relaxed"
+          >
+            {message}
           </div>
         )}
 
         {notice && (
-          <div
-            className={`mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300${message ? '' : ' mt-4'}`}
-          >
+          <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300">
             <AlertTriangle className="mt-px size-3.5 shrink-0 text-semantic-info" />
             <span>
               {notice.message}{' '}
@@ -164,42 +155,12 @@ export const ConfirmDialogModal = ({
         )}
 
         {error && (
-          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-error/30 bg-semantic-error/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300">
+          <div className="flex gap-2 rounded-lg border border-semantic-error/30 bg-semantic-error/10 px-3 py-2 text-xs text-surface-700 dark:text-surface-300">
             <AlertTriangle className="mt-px size-3.5 shrink-0 text-semantic-error" />
             <span>{error}</span>
           </div>
         )}
-
-        <div className="px-4 pb-4 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium rounded-lg border border-surface-200 dark:border-surface-700 text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500"
-          >
-            {cancelLabel}
-          </button>
-          {alternateLabel && onAlternate && (
-            <button
-              type="button"
-              onClick={onAlternate}
-              disabled={isLoading}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${getButtonClasses(alternateDestructive, !alternateDestructive && !destructive)} disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {alternateLabel}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={isConfirmDisabled || isLoading || disableConfirm}
-            className={`px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${getButtonClasses(destructive, !alternateLabel)} disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
-          >
-            {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {isConfirmDisabled ? `${confirmLabel} (${remainingSeconds}s)` : confirmLabel}
-          </button>
-        </div>
       </div>
-    </ModalBackdrop>
+    </ModalWrapper>
   );
 };

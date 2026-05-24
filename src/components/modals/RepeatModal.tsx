@@ -1,14 +1,11 @@
 import Calendar from 'lucide-react/icons/calendar';
 import CalendarPlus from 'lucide-react/icons/calendar-plus';
-import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
-import { ModalBackdrop } from '$components/ModalBackdrop';
 import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import { formatDate } from '$utils/date';
 import {
   buildRRule,
@@ -190,9 +187,6 @@ export const RepeatModal = ({
     }
   }
 
-  const focusTrapRef = useFocusTrap(isOpen);
-  useModalEscapeKey(onClose);
-
   if (!isOpen) return null;
 
   const update = (patch: Partial<RepeatUIState>) => {
@@ -236,23 +230,27 @@ export const RepeatModal = ({
   ];
 
   return (
-    <ModalBackdrop zIndex="z-60">
-      <div
-        ref={focusTrapRef}
-        className="bg-white dark:bg-surface-800 rounded-xl shadow-xl w-full max-w-sm animate-scale-in flex flex-col max-h-[90vh] relative"
+    <>
+      <ModalWrapper
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Repeat"
+        size="sm"
+        zIndex="z-60"
+        contentPadding={false}
+        contentOverflow="auto"
+        footer={
+          <>
+            <ModalButton variant="ghost" onClick={onClose}>
+              Cancel
+            </ModalButton>
+            <ModalButton onClick={handleDone} disabled={isDoneDisabled}>
+              Done
+            </ModalButton>
+          </>
+        }
       >
-        <div className="flex items-center justify-between p-4 border-b border-surface-200 dark:border-surface-700 shrink-0">
-          <h2 className="text-lg font-semibold text-surface-800 dark:text-surface-200">Repeat</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="p-4 space-y-4 overflow-y-auto">
+        <div className="p-4 space-y-4">
           <AppSelect
             value={ui.freq}
             onChange={(e) => {
@@ -439,16 +437,7 @@ export const RepeatModal = ({
             </div>
           )}
         </div>
-
-        <div className="flex justify-end gap-3 p-4 border-t border-surface-200 dark:border-surface-700 shrink-0">
-          <ModalButton variant="ghost" onClick={onClose}>
-            Cancel
-          </ModalButton>
-          <ModalButton onClick={handleDone} disabled={isDoneDisabled}>
-            Done
-          </ModalButton>
-        </div>
-      </div>
+      </ModalWrapper>
 
       {showUntilPicker && (
         <DatePickerModal
@@ -476,6 +465,6 @@ export const RepeatModal = ({
           hideTimeControls
         />
       )}
-    </ModalBackdrop>
+    </>
   );
 };

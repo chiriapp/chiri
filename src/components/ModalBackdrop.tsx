@@ -1,8 +1,11 @@
-import type { ReactNode } from 'react';
+import type { DragEventHandler, ReactNode } from 'react';
 
 interface ModalBackdropProps {
   children: ReactNode;
   onClose?: () => void;
+  onDrop?: DragEventHandler<HTMLDivElement>;
+  onDragOver?: DragEventHandler<HTMLDivElement>;
+  onDragLeave?: DragEventHandler<HTMLDivElement>;
   className?: string;
   zIndex?: string;
   /** Whether clicking the backdrop closes the modal. Default: false */
@@ -17,14 +20,21 @@ interface ModalBackdropProps {
 export const ModalBackdrop = ({
   children,
   onClose,
+  onDrop,
+  onDragOver,
+  onDragLeave,
   className = '',
   zIndex = 'z-50',
   closeOnBackdropClick = false,
 }: ModalBackdropProps) => {
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: Import modals need drag handlers on the backdrop to prevent browser file navigation.
     <div
       role="presentation"
       className={`fixed inset-0 ${zIndex} flex items-center justify-center animate-fade-in ${className}`}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
     >
       {/* Backdrop button - accessible interactive element */}
       <button
