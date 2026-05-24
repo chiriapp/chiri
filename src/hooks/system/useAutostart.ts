@@ -54,7 +54,7 @@ const disableMacAutostart = async (): Promise<AutostartState> => {
         return 'disabled' as MacLaunchAtLoginStatus;
       }
       throw error;
-    }
+    },
   );
   return getMacAutostartState(status);
 };
@@ -144,7 +144,7 @@ export const useAutostart = () => {
         setPending(false);
       }
     },
-    [enabled, isMac, setAutostartState]
+    [enabled, isMac, setAutostartState],
   );
 
   return {

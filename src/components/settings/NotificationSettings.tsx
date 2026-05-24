@@ -197,9 +197,7 @@ export const NotificationSettings = () => {
           <div className="px-4 pb-4">
             <div className="space-y-3 pl-4 border-l-2 border-surface-200 dark:border-surface-600">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-surface-600 dark:text-surface-400">
-                  Notification time
-                </p>
+                <p className="text-sm text-surface-600 dark:text-surface-400">Notification time</p>
                 <button
                   type="button"
                   onClick={() => setAllDayReminderModalOpen(true)}

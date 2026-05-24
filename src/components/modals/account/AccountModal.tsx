@@ -615,10 +615,7 @@ export const AccountModal = ({ account, onClose, preloadedConfig }: AccountModal
         ) : undefined
       }
     >
-      <div
-        key={step}
-        className={`h-full overflow-y-auto ${stepAnimationClass}`}
-      >
+      <div key={step} className={`h-full overflow-y-auto ${stepAnimationClass}`}>
         {step === 'pick-type' && <ServerTypePicker onSelect={handleSelectServerType} />}
 
         {step === 'connect-method' && (
