@@ -53,6 +53,7 @@ export const UpdateModal = ({
       <ModalWrapper
         onClose={onClose}
         title="Update Available"
+        zIndex="z-60"
         footerLeft={
           <ModalButton variant="ghost" onClick={onDismiss} disabled={isDownloading}>
             Remind me later

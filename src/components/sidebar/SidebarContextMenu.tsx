@@ -5,6 +5,7 @@ import { SidebarCalendarContextMenu } from '$components/sidebar/SidebarCalendarC
 import { SidebarFilterItemContextMenu } from '$components/sidebar/SidebarFilterItemContextMenu';
 import { SidebarTagItemContextMenu } from '$components/sidebar/SidebarTagItemContextMenu';
 import { useContextMenuPosition } from '$hooks/ui/useContextMenu';
+import { useDismissableLayer } from '$hooks/ui/useDismissableLayer';
 import type { Account } from '$types';
 
 interface ContextMenuState {
@@ -57,6 +58,10 @@ export const SidebarContextMenu = ({
   onCollapseAll,
 }: SidebarContextMenuProps) => {
   const { menuRef, position } = useContextMenuPosition(contextMenu);
+  useDismissableLayer({
+    type: 'context-menu',
+    onEscape: onClose,
+  });
 
   return createPortal(
     <>

@@ -18,7 +18,6 @@ import { SidebarAccountsSortMenu } from '$components/sidebar/SidebarAccountsSort
 import { Tooltip } from '$components/Tooltip';
 import { useReorderAccounts } from '$hooks/queries/useAccounts';
 import { useAccountSortConfig, useCalendarSortConfig } from '$hooks/queries/useUIState';
-import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { Account, Task } from '$types';
 
 interface SidebarAccountsListProps {
@@ -72,7 +71,6 @@ export const SidebarAccountsList = ({
   );
 
   const closeSortMenu = useCallback(() => setShowSortMenu(false), []);
-  useEscapeKey(closeSortMenu, { enabled: showSortMenu });
 
   const sortedAccounts = (() => {
     const sorted = [...accounts];

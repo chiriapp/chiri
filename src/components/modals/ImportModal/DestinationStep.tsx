@@ -3,6 +3,7 @@ import Check from 'lucide-react/icons/check';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Cloud from 'lucide-react/icons/cloud';
 import { useEffect, useRef, useState } from 'react';
+import { useDismissableLayer } from '$hooks/ui/useDismissableLayer';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { DestinationStepProps } from '$types/import';
 
@@ -83,6 +84,13 @@ export const DestinationStep = ({
   const closeDropdown = () => {
     setIsOpen(false);
   };
+
+  useDismissableLayer({
+    enabled: isOpen,
+    type: 'dropdown',
+    priority: 70,
+    onEscape: closeDropdown,
+  });
 
   const toggleDropdown = () => {
     if (isOpen) {

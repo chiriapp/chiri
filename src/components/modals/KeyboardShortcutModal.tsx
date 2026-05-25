@@ -2,7 +2,6 @@ import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import { useEffect, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { KeyboardShortcut } from '$types';
 import { formatShortcut, shortcutsConflict } from '$utils/keyboard';
 
@@ -42,22 +41,19 @@ export const KeyboardShortcutModal = ({
     }
   }, [isOpen, shortcut]);
 
-  useModalEscapeKey(
-    () => {
-      if (pendingShortcut) {
-        setPendingShortcut(null);
-      } else {
-        onClose();
-      }
-    },
-    { enabled: isOpen },
-  );
+  const handleEscape = () => {
+    if (pendingShortcut) {
+      setPendingShortcut(null);
+    } else {
+      onClose();
+    }
+  };
 
   const handleKeyCapture = (e: React.KeyboardEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Escape is handled by useModalEscapeKey
+    // Escape is handled by the modal layer.
     if (e.key === 'Escape') {
       return;
     }
@@ -110,6 +106,7 @@ export const KeyboardShortcutModal = ({
       description={shortcut?.description}
       zIndex="z-60"
       preventClose
+      onEscape={handleEscape}
       footer={
         <>
           <ModalButton variant="secondary" onClick={onClose}>

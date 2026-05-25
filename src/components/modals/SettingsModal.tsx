@@ -119,6 +119,7 @@ export const SettingsModal = ({ onClose, initialCategory, initialSubtab }: Setti
       isOpen={true}
       onClose={isChildModalOpen ? () => {} : onClose}
       title="Settings"
+      zIndex="z-60"
       className="max-w-3xl max-h-[75vh]"
       contentPadding={false}
     >

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { hasOpenModalElements } from '$utils/misc';
+import { useDismissableLayerState } from '$context/dismissableLayerContext';
 
 export const CLOSE_CONTEXT_MENUS_EVENT = 'closeAllContextMenus';
 
@@ -62,6 +62,8 @@ export const useContextMenuPosition = (contextMenu: ContextMenuPoint) => {
 };
 
 export const useContextMenuDismissal = (onClose: () => void, isOpen: boolean) => {
+  const { isAnyModalOpen } = useDismissableLayerState();
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -70,7 +72,7 @@ export const useContextMenuDismissal = (onClose: () => void, isOpen: boolean) =>
       if (target.closest('[data-context-menu-content]')) {
         return;
       }
-      if (hasOpenModalElements()) {
+      if (isAnyModalOpen) {
         return;
       }
       onClose();
@@ -80,31 +82,17 @@ export const useContextMenuDismissal = (onClose: () => void, isOpen: boolean) =>
       onClose();
     };
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      if (hasOpenModalElements()) {
-        return;
-      }
-
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      onClose();
-    };
-
     const timeoutId = setTimeout(() => {
       document.addEventListener('click', handleGlobalClick, true);
-      document.addEventListener('keydown', handleKeyDown, true);
       document.addEventListener(CLOSE_CONTEXT_MENUS_EVENT, handleCustomEvent);
     }, 0);
 
     return () => {
       clearTimeout(timeoutId);
       document.removeEventListener('click', handleGlobalClick, true);
-      document.removeEventListener('keydown', handleKeyDown, true);
       document.removeEventListener(CLOSE_CONTEXT_MENUS_EVENT, handleCustomEvent);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, isAnyModalOpen]);
 };
 
 /**

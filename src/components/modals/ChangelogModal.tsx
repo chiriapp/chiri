@@ -35,6 +35,7 @@ export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalPr
     <ModalWrapper
       onClose={onClose}
       title={`What's new in ${version}`}
+      zIndex="z-60"
       className="max-w-2xl max-h-[80vh]"
       footerLeft={
         <ModalButton

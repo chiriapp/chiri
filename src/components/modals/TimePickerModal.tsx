@@ -158,7 +158,7 @@ export const TimePickerModal = ({
   if (!isOpen) return null;
 
   return (
-    <ModalWrapper size="sm" onClose={onClose} title={title} description={description}>
+    <ModalWrapper size="sm" onClose={onClose} title={title} description={description} zIndex="z-70">
       <div className="flex items-center justify-center gap-2">
         {/* Hour control */}
         <div className="flex flex-col items-center gap-1">

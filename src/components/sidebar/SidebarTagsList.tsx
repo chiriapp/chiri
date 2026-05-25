@@ -17,7 +17,6 @@ import { SidebarTagsSortMenu } from '$components/sidebar/SidebarTagsSortMenu';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderTags } from '$hooks/queries/useTags';
 import { useTagSortConfig } from '$hooks/queries/useUIState';
-import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { Tag, Task } from '$types';
 
 interface SidebarTagsListProps {
@@ -62,7 +61,6 @@ export const SidebarTagsList = ({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const closeSortMenu = useCallback(() => setShowSortMenu(false), []);
-  useEscapeKey(closeSortMenu, { enabled: showSortMenu });
 
   const getTagTaskCount = (tagId: string) =>
     tasks.filter((t) => (t.tags || []).includes(tagId) && isActiveTask(t)).length;

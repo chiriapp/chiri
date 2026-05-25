@@ -48,7 +48,13 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
   };
 
   return (
-    <ModalWrapper onClose={onClose} title="Task Actions" description={task.title} size="md">
+    <ModalWrapper
+      onClose={onClose}
+      title="Task Actions"
+      description={task.title}
+      size="md"
+      zIndex="z-60"
+    >
       <div className="flex flex-col gap-2">
         <button
           type="button"

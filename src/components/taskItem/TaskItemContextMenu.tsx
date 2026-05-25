@@ -21,6 +21,7 @@ import { useAccounts } from '$hooks/queries/useAccounts';
 import { useCreateTask, useRestoreTask, useUpdateTask } from '$hooks/queries/useTasks';
 import { useSetSelectedTask } from '$hooks/queries/useUIState';
 import { useContextMenuPosition } from '$hooks/ui/useContextMenu';
+import { useDismissableLayer } from '$hooks/ui/useDismissableLayer';
 import { exportTaskAndChildren } from '$lib/store/tasks';
 import type { Priority, Task, TaskStatus } from '$types';
 
@@ -180,6 +181,12 @@ export const TaskItemContextMenu = ({
     clearTimeout(statusHideTimer.current);
     onClose();
   };
+
+  useDismissableLayer({
+    enabled: !isMenuHidden,
+    type: 'context-menu',
+    onEscape: handleClose,
+  });
 
   const menuItemClass =
     'w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';

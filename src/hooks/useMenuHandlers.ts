@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { useModalState } from '$context/modalStateContext';
 import { useAccountDeletion } from '$hooks/deletion/useAccountDeletion';
 import { useCalendarDeletion } from '$hooks/deletion/useCalendarDeletion';
 import { useTaskDeletion } from '$hooks/deletion/useTaskDeletion';
@@ -65,6 +66,7 @@ export const useMenuHandlers = (
   const setAllTasksViewMutation = useSetAllTasksView();
   const setRecentlyDeletedViewMutation = useSetRecentlyDeletedView();
   const { toggleSidebarCollapsed } = useSettingsStore();
+  const { isAnyModalOpen } = useModalState();
   const { moveTaskToRecentlyDeleted } = useTaskDeletion();
   const { deleteAccount } = useAccountDeletion();
   const { deleteCalendar } = useCalendarDeletion();
@@ -116,38 +118,50 @@ export const useMenuHandlers = (
   }, [createTaskMutation, setSelectedTaskMutation]);
 
   const handleOpenSettings = useCallback(() => {
+    if (isAnyModalOpen) return;
     setSettingsInitialTab({});
     setShowSettings(true);
-  }, []);
+  }, [isAnyModalOpen]);
 
   const handleOpenImport = useCallback(() => {
+    if (isAnyModalOpen) return;
     setShowImport(true);
-  }, []);
+  }, [isAnyModalOpen]);
 
   const handleOpenAccount = useCallback(() => {
+    if (isAnyModalOpen) return;
     setEditingAccountId(null);
     setShowAccountModal(true);
-  }, []);
+  }, [isAnyModalOpen]);
 
-  const handleEditAccount = useCallback((accountId: string) => {
-    setEditingAccountId(accountId);
-    setShowAccountModal(true);
-  }, []);
+  const handleEditAccount = useCallback(
+    (accountId: string) => {
+      if (isAnyModalOpen) return;
+      setEditingAccountId(accountId);
+      setShowAccountModal(true);
+    },
+    [isAnyModalOpen],
+  );
 
   const handleOpenCreateCalendar = useCallback(
     (accountId?: string) => {
+      if (isAnyModalOpen) return;
       if (accounts.length > 0) {
         setCreateCalendarAccountId(accountId ?? accounts[0].id);
         setShowCreateCalendar(true);
       }
     },
-    [accounts],
+    [accounts, isAnyModalOpen],
   );
 
-  const handleOpenTaskActions = useCallback((taskId: string) => {
-    setTaskActionsId(taskId);
-    setShowTaskActions(true);
-  }, []);
+  const handleOpenTaskActions = useCallback(
+    (taskId: string) => {
+      if (isAnyModalOpen) return;
+      setTaskActionsId(taskId);
+      setShowTaskActions(true);
+    },
+    [isAnyModalOpen],
+  );
 
   const handleSearch = useCallback(() => {
     const searchInput = document.querySelector('[data-search-input]') as HTMLInputElement;
@@ -163,14 +177,16 @@ export const useMenuHandlers = (
   }, []);
 
   const handleOpenAbout = useCallback(() => {
+    if (isAnyModalOpen) return;
     setSettingsInitialTab({ category: 'misc', subtab: 'about' });
     setShowSettings(true);
-  }, []);
+  }, [isAnyModalOpen]);
 
   const handleOpenKeyboardShortcuts = useCallback(() => {
+    if (isAnyModalOpen) return;
     setSettingsInitialTab({ category: 'app', subtab: 'keyboard-shortcuts' });
     setShowSettings((prev) => !prev);
-  }, []);
+  }, [isAnyModalOpen]);
 
   const handleToggleCompleted = useCallback(
     (currentValue: boolean) => {
@@ -310,15 +326,23 @@ export const useMenuHandlers = (
     [onSyncCalendar],
   );
 
-  const handleEditCalendar = useCallback((calendarId: string, accountId: string) => {
-    setEditingCalendar({ calendarId, accountId });
-    setShowCalendarModal(true);
-  }, []);
+  const handleEditCalendar = useCallback(
+    (calendarId: string, accountId: string) => {
+      if (isAnyModalOpen) return;
+      setEditingCalendar({ calendarId, accountId });
+      setShowCalendarModal(true);
+    },
+    [isAnyModalOpen],
+  );
 
-  const handleExportCalendar = useCallback((calendarId: string) => {
-    setExportCalendarId(calendarId);
-    setShowExportModal(true);
-  }, []);
+  const handleExportCalendar = useCallback(
+    (calendarId: string) => {
+      if (isAnyModalOpen) return;
+      setExportCalendarId(calendarId);
+      setShowExportModal(true);
+    },
+    [isAnyModalOpen],
+  );
 
   const handleDeleteCalendar = useCallback(
     async (calendarId: string, accountId: string) => {
@@ -346,8 +370,8 @@ export const useMenuHandlers = (
   onDeleteTaskRef.current = handleDeleteTask;
   onNavPrevListRef.current = handleNavPrevList;
   onNavNextListRef.current = handleNavNextList;
-  onCheckForUpdatesRef.current = onCheckForUpdates ?? null;
-  onShowChangelogRef.current = onShowChangelog ?? null;
+  onCheckForUpdatesRef.current = isAnyModalOpen ? null : (onCheckForUpdates ?? null);
+  onShowChangelogRef.current = isAnyModalOpen ? null : (onShowChangelog ?? null);
   onRemoveAccountRef.current = handleRemoveAccount;
   onSyncCalendarRef.current = handleSyncCalendar;
   onEditCalendarRef.current = handleEditCalendar;

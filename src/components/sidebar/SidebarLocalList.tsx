@@ -2,12 +2,11 @@ import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Import from 'lucide-react/icons/import';
 import Plus from 'lucide-react/icons/plus';
-import { useCallback, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { SidebarCalendarList } from '$components/sidebar/SidebarCalendarList';
 import { SidebarLocalSortMenu } from '$components/sidebar/SidebarLocalSortMenu';
 import { Tooltip } from '$components/Tooltip';
 import { useCalendarSortConfig } from '$hooks/queries/useUIState';
-import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { Account, Task } from '$types';
 
 interface SidebarLocalListProps {
@@ -46,8 +45,7 @@ export const SidebarLocalList = ({
   const sortButtonRef = useRef<HTMLButtonElement>(null);
   const calendarSortConfig = useCalendarSortConfig();
 
-  const closeSortMenu = useCallback(() => setShowSortMenu(false), []);
-  useEscapeKey(closeSortMenu, { enabled: showSortMenu });
+  const closeSortMenu = () => setShowSortMenu(false);
 
   if (accounts.length === 0) return null;
 

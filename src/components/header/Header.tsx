@@ -4,7 +4,7 @@ import Plus from 'lucide-react/icons/plus';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Search from 'lucide-react/icons/search';
 import SlidersHorizontal from 'lucide-react/icons/sliders-horizontal';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { HeaderSortDirectionButton } from '$components/header/HeaderSortDirectionButton';
@@ -23,7 +23,6 @@ import {
   useSetSortConfig,
   useUIState,
 } from '$hooks/queries/useUIState';
-import { useEscapeKey } from '$hooks/ui/useEscapeKey';
 import type { SortDirection, SortMode } from '$types';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
 import { pluralize } from '$utils/misc';
@@ -154,9 +153,6 @@ export const Header = ({
     }
   }, [isSyncing]);
 
-  const closeViewMenu = useCallback(() => setShowViewMenu(false), []);
-  useEscapeKey(closeViewMenu, { enabled: showViewMenu });
-
   const handleNewTask = () => {
     createTaskMutation.mutate(
       { title: '' },
@@ -268,7 +264,7 @@ export const Header = ({
             {showViewMenu && (
               <FloatingDropdownFrame
                 anchorRef={viewMenuButtonRef}
-                onClose={closeViewMenu}
+                onClose={() => setShowViewMenu(false)}
                 dropdownClassName="z-50 min-w-60"
                 dataAttribute="data-context-menu-content"
               >

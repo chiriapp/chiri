@@ -73,11 +73,6 @@ export const ConfirmDialogModal = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        e.stopPropagation();
-        onCancel();
-      }
       if (e.key === 'Enter' && !isConfirmDisabled) {
         e.preventDefault();
         e.stopPropagation();
@@ -90,7 +85,7 @@ export const ConfirmDialogModal = ({
       window.removeEventListener('keydown', handleKeyDown, {
         capture: true,
       } as EventListenerOptions);
-  }, [isOpen, onCancel, onConfirm, isConfirmDisabled]);
+  }, [isOpen, onConfirm, isConfirmDisabled]);
 
   if (!isOpen) return null;
 
@@ -102,7 +97,7 @@ export const ConfirmDialogModal = ({
       description={subtitle}
       size="sm"
       zIndex="z-70"
-      handleEscapeKey={false}
+      escapeLayerType="confirm-dialog"
       footer={
         <>
           <ModalButton variant="secondary" onClick={onCancel} disabled={isLoading}>

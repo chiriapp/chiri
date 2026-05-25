@@ -14,6 +14,7 @@ import { loggers } from '$lib/logger';
 import { queryClient } from '$lib/queryClient';
 import { ConfirmDialogProvider } from '$providers/ConfirmDialogProvider';
 import { ConnectionProvider } from '$providers/ConnectionProvider';
+import { DismissableLayerProvider } from '$providers/DismissableLayerProvider';
 import { ModalStateProvider } from '$providers/ModalStateProvider';
 import { NotificationProvider } from '$providers/NotificationProvider';
 import { SettingsProvider } from '$providers/SettingsProvider';
@@ -34,12 +35,14 @@ const renderApp = () => {
             <NotificationProvider>
               <ConnectionProvider>
                 <SyncProvider>
-                  <ModalStateProvider>
-                    <ConfirmDialogProvider>
-                      <ToastProvider />
-                      <App />
-                    </ConfirmDialogProvider>
-                  </ModalStateProvider>
+                  <DismissableLayerProvider>
+                    <ModalStateProvider>
+                      <ConfirmDialogProvider>
+                        <ToastProvider />
+                        <App />
+                      </ConfirmDialogProvider>
+                    </ModalStateProvider>
+                  </DismissableLayerProvider>
                 </SyncProvider>
               </ConnectionProvider>
             </NotificationProvider>

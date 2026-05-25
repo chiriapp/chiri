@@ -46,6 +46,9 @@ const BLOCKED_IN_MODAL = new Set([
   'nav-down',
   'nav-prev-list',
   'nav-next-list',
+  'settings',
+  'keyboard-shortcuts',
+  'toggle-sidebar',
   'close', // Let modals handle Escape themselves
 ]);
 

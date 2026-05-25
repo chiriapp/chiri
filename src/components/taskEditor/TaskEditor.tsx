@@ -31,13 +31,11 @@ import {
 } from '$hooks/queries/useTasks';
 import { useSetEditorOpen } from '$hooks/queries/useUIState';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { useEscapeKey } from '$hooks/ui/useEscapeKey';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
+import { useDismissableLayer } from '$hooks/ui/useDismissableLayer';
 import { useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Task, TaskStatus } from '$types';
 import type { EditorFieldKey } from '$types/settings';
 import { getContrastTextColor } from '$utils/color';
-import { hasOpenModalElements } from '$utils/misc';
 
 interface TaskEditorProps {
   task: Task;
@@ -107,34 +105,21 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
 
   const availableTags = tags.filter((t) => !(task.tags || []).includes(t.id));
 
-  // Handle escape key to blur focused inputs
-  useEscapeKey(
-    (e) => {
-      const activeElement = document.activeElement as HTMLElement;
+  useDismissableLayer({
+    type: 'panel',
+    onEscape: () => {
+      const activeElement = document.activeElement;
 
-      // Don't handle escape if any modal is open (they should handle it first)
-      if (hasOpenModalElements()) {
-        return;
-      }
-
-      // Check if focus is on an input or textarea within the editor
       if (
         editorContainerRef.current?.contains(activeElement) &&
         (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement)
       ) {
-        // Blur the input only; stop immediate propagation so useModalEscapeKey doesn't
-        // also close the editor on this same keypress — a second Escape will close it.
-        e.preventDefault();
-        e.stopImmediatePropagation();
         activeElement.blur();
+        return;
       }
-    },
-    { capture: true },
-  );
 
-  // mark as panel so it yields to modal dialogs (closes on ESC when no input is focused)
-  useModalEscapeKey(() => setEditorOpenMutation.mutate(false), {
-    isPanel: true,
+      setEditorOpenMutation.mutate(false);
+    },
   });
 
   const handleStatusChange = (status: TaskStatus) => {

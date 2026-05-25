@@ -2,8 +2,9 @@ import X from 'lucide-react/icons/x';
 import type { DragEventHandler, ReactNode } from 'react';
 import { ModalBackdrop } from '$components/ModalBackdrop';
 import { MODAL_SIZE_CLASSES } from '$constants';
+import type { DismissableLayerType } from '$context/dismissableLayerContext';
+import { useDismissableLayer } from '$hooks/ui/useDismissableLayer';
 import { useFocusTrap } from '$hooks/ui/useFocusTrap';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 
 interface ModalWrapperBackdropProps {
   onDrop?: DragEventHandler<HTMLDivElement>;
@@ -29,9 +30,17 @@ interface ModalWrapperProps {
   contentPadding?: boolean;
   contentOverflow?: 'hidden' | 'auto';
   handleEscapeKey?: boolean;
+  onEscape?: () => void;
+  escapeLayerType?: DismissableLayerType;
   backdropProps?: ModalWrapperBackdropProps;
   className?: string;
 }
+
+const MODAL_LAYER_PRIORITIES: Record<NonNullable<ModalWrapperProps['zIndex']>, number> = {
+  'z-50': 50,
+  'z-60': 60,
+  'z-70': 70,
+};
 
 export const ModalWrapper = ({
   isOpen = true,
@@ -44,17 +53,34 @@ export const ModalWrapper = ({
   footerLeft,
   size = 'md',
   preventClose = false,
-  zIndex = 'z-50',
+  zIndex = 'z-60',
   contentPadding = true,
   contentOverflow = contentPadding ? 'auto' : 'hidden',
   handleEscapeKey = true,
+  onEscape,
+  escapeLayerType = 'modal',
   backdropProps,
   className,
 }: ModalWrapperProps) => {
   const focusTrapRef = useFocusTrap(isOpen);
+  const canHandleEscape = handleEscapeKey && (!preventClose || onEscape !== undefined);
 
-  // Handle ESC key to close modal
-  useModalEscapeKey(onClose, { enabled: isOpen && !preventClose && handleEscapeKey });
+  useDismissableLayer({
+    enabled: isOpen,
+    type: escapeLayerType,
+    priority:
+      escapeLayerType === 'modal' ? MODAL_LAYER_PRIORITIES[zIndex] : undefined,
+    escapeBehavior: canHandleEscape ? 'dismiss' : 'block',
+    onEscape: canHandleEscape
+      ? () => {
+          if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+          }
+
+          (onEscape ?? onClose)();
+        }
+      : undefined,
+  });
 
   if (!isOpen) return null;
 

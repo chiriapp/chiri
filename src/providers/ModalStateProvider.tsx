@@ -1,48 +1,28 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef } from 'react';
+import { useDismissableLayerState } from '$context/dismissableLayerContext';
 import { ModalStateContext } from '$context/modalStateContext';
-import { hasOpenModalElements } from '$utils/misc';
 
 // This provider tracks modal state and manages hover state resets
 export const ModalStateProvider = ({ children }: { children: ReactNode }) => {
-  const [isAnyModalOpen, setIsAnyModalOpen] = useState(false);
-  const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
+  const { isAnyModalOpen, isContextMenuOpen } = useDismissableLayerState();
+  const wasAnyModalOpenRef = useRef(false);
 
   useEffect(() => {
-    // Observer to detect modal elements being added/removed
-    const observer = new MutationObserver(() => {
-      // Check for modal backdrop elements with various z-index classes
-      const hasOpenModal = hasOpenModalElements();
+    if (isAnyModalOpen && !wasAnyModalOpenRef.current) {
+      document.documentElement.setAttribute('data-modal-open', 'true');
 
-      // Check for context menu elements
-      const contextMenus = document.querySelectorAll('[data-context-menu-content]');
-      const hasContextMenu = contextMenus.length > 0;
-      setIsContextMenuOpen(hasContextMenu);
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    } else if (!isAnyModalOpen && wasAnyModalOpenRef.current) {
+      document.documentElement.removeAttribute('data-modal-open');
+    }
 
-      setIsAnyModalOpen((prev) => {
-        if (hasOpenModal && !prev) {
-          // Modal opening - set data attribute for CSS
-          document.documentElement.setAttribute('data-modal-open', 'true');
+    wasAnyModalOpenRef.current = isAnyModalOpen;
+  }, [isAnyModalOpen]);
 
-          // Blur active element to remove focus ring
-          if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-          }
-        } else if (!hasOpenModal && prev) {
-          // Modal closing - remove data attribute
-          document.documentElement.removeAttribute('data-modal-open');
-        }
-
-        return hasOpenModal;
-      });
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-    });
-
+  useEffect(() => {
     return () => {
-      observer.disconnect();
       document.documentElement.removeAttribute('data-modal-open');
     };
   }, []);

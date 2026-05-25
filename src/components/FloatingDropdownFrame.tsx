@@ -1,6 +1,8 @@
 import type { ReactNode, RefObject } from 'react';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import type { DismissableLayerType } from '$context/dismissableLayerContext';
+import { useDismissableLayer } from '$hooks/ui/useDismissableLayer';
 
 interface FloatingDropdownFrameProps {
   anchorRef: RefObject<HTMLElement | null>;
@@ -14,6 +16,8 @@ interface FloatingDropdownFrameProps {
   backdropClassName?: string;
   dropdownClassName?: string;
   dataAttribute?: string;
+  closeOnEscape?: boolean;
+  layerType?: Extract<DismissableLayerType, 'dropdown' | 'context-menu'>;
 }
 
 const DEFAULT_VIEWPORT_PADDING = 8;
@@ -22,9 +26,19 @@ const DEFAULT_FALLBACK_WIDTH = 200;
 const DEFAULT_FALLBACK_HEIGHT = 260;
 const DROPDOWN_BASE_CLASS =
   'fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 animate-scale-in';
+const Z_INDEX_CLASS_PATTERN = /\bz-(\d+)\b/;
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), Math.max(min, max));
+
+const getLayerPriority = (...classNames: string[]) => {
+  for (const className of classNames) {
+    const zIndexMatch = className.match(Z_INDEX_CLASS_PATTERN);
+    if (zIndexMatch) return Number(zIndexMatch[1]);
+  }
+
+  return undefined;
+};
 
 export const FloatingDropdownFrame = ({
   anchorRef,
@@ -38,6 +52,8 @@ export const FloatingDropdownFrame = ({
   backdropClassName = 'fixed inset-0 z-40',
   dropdownClassName = 'z-50 min-w-50',
   dataAttribute,
+  closeOnEscape = true,
+  layerType = 'dropdown',
 }: FloatingDropdownFrameProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ left: viewportPadding, top: viewportPadding });
@@ -81,6 +97,13 @@ export const FloatingDropdownFrame = ({
       window.removeEventListener('scroll', updatePosition, true);
     };
   }, [updatePosition]);
+
+  useDismissableLayer({
+    type: layerType,
+    priority: getLayerPriority(dropdownClassName, backdropClassName),
+    escapeBehavior: closeOnEscape ? 'dismiss' : 'block',
+    onEscape: closeOnEscape ? onClose : undefined,
+  });
 
   const dataAttributes = dataAttribute ? { [dataAttribute]: '' } : {};
 

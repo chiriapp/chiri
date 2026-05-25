@@ -7,18 +7,6 @@ export const isVikunjaServer = (calendarHome: string) => {
 };
 
 /**
- * Check if there are any open modal elements in the DOM
- */
-export const hasOpenModalElements = () => {
-  const fixedInsetElements = document.querySelectorAll('.fixed.inset-0');
-
-  return Array.from(fixedInsetElements).some((el) => {
-    const classList = el.classList;
-    return ['z-50', 'z-60', 'z-70'].some((zClass) => classList.contains(zClass));
-  });
-};
-
-/**
  * Pluralize a word based on count
  */
 export const pluralize = (count: number, singular: string, plural?: string) => {

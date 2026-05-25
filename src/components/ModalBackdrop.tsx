@@ -24,7 +24,7 @@ export const ModalBackdrop = ({
   onDragOver,
   onDragLeave,
   className = '',
-  zIndex = 'z-50',
+  zIndex = 'z-60',
   closeOnBackdropClick = false,
 }: ModalBackdropProps) => {
   return (

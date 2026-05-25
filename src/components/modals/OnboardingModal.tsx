@@ -222,7 +222,7 @@ export const OnboardingModal = ({ onComplete, onAddAccount }: OnboardingModalPro
   );
 
   return (
-    <ModalWrapper onClose={() => {}} preventClose footer={footer}>
+    <ModalWrapper onClose={() => {}} preventClose zIndex="z-60" footer={footer}>
       <div className="w-full max-w-md mx-auto">
         <div className="flex items-center justify-center mb-6">
           <div className="flex items-center justify-center gap-2">

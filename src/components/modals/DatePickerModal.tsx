@@ -27,7 +27,6 @@ import { ModalWrapper } from '$components/ModalWrapper';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
 import { DEFAULT_TIME } from '$constants';
 import { settingsStore } from '$context/settingsContext';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { QuickTimePresets } from '$types/settings';
 import {
   createAllDayDate,
@@ -164,9 +163,6 @@ export const DatePickerModal = ({
       setSelectedTime(getSelectedTime(value, allDay));
     }
   }
-
-  useModalEscapeKey(onClose, { enabled: isOpen && !showCustomModal });
-  useModalEscapeKey(() => setShowCustomModal(false), { enabled: showCustomModal });
 
   if (!isOpen) return null;
 

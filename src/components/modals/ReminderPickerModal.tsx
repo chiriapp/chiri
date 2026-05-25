@@ -26,7 +26,6 @@ import { ModalWrapper } from '$components/ModalWrapper';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
 import { DEFAULT_TIME } from '$constants';
 import { settingsStore } from '$context/settingsContext';
-import { useModalEscapeKey } from '$hooks/ui/useModalEscapeKey';
 import type { QuickTimePresets } from '$types/settings';
 import {
   createPaddedDaysArray,
@@ -84,9 +83,6 @@ export const ReminderPickerModal = ({
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customHour, setCustomHour] = useState(0);
   const [customMinute, setCustomMinute] = useState(0);
-
-  useModalEscapeKey(onClose, { enabled: isOpen && !showCustomModal });
-  useModalEscapeKey(() => setShowCustomModal(false), { enabled: showCustomModal });
 
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   if (isOpen !== prevIsOpen) {
