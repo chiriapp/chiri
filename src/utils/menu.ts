@@ -503,13 +503,23 @@ export const createMacMenu = async (options?: {
     }),
   );
 
+  const accountItems: (Submenu | MenuItem | PredefinedMenuItem)[] = hasAccounts
+    ? [...accountSubmenus, await PredefinedMenuItem.new({ item: 'Separator' })]
+    : [
+        await MenuItem.new({
+          id: 'no-accounts-added',
+          text: 'No accounts added...',
+          enabled: false,
+        }),
+        await PredefinedMenuItem.new({ item: 'Separator' }),
+      ];
+
   const accountsSubmenu = await Submenu.new({
     text: 'Accounts',
     items: [
       syncItem,
       await PredefinedMenuItem.new({ item: 'Separator' }),
-      ...accountSubmenus,
-      ...(hasAccounts ? [await PredefinedMenuItem.new({ item: 'Separator' })] : []),
+      ...accountItems,
       await MenuItem.new({
         id: 'add-account',
         text: 'Add Account...',

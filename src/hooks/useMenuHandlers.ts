@@ -137,10 +137,12 @@ export const useMenuHandlers = (
   const handleEditAccount = useCallback(
     (accountId: string) => {
       if (isAnyModalOpen) return;
+      const account = accounts.find((a) => a.id === accountId);
+      if (!account?.caldav) return;
       setEditingAccountId(accountId);
       setShowAccountModal(true);
     },
-    [isAnyModalOpen],
+    [accounts, isAnyModalOpen],
   );
 
   const handleOpenCreateCalendar = useCallback(
@@ -314,6 +316,8 @@ export const useMenuHandlers = (
 
   const handleRemoveAccount = useCallback(
     async (accountId: string) => {
+      const account = accounts.find((a) => a.id === accountId);
+      if (!account?.caldav) return;
       await deleteAccount(accountId, accounts);
     },
     [accounts, deleteAccount],

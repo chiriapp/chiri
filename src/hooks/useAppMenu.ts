@@ -17,17 +17,19 @@ export const useAppMenu = (isSyncing?: boolean) => {
   // TODO: Figure out how to support the app menu on macOS under CEF.
   const skipMenu = isCEF();
 
+  const caldavAccounts = useMemo(() => accounts.filter((a) => a.caldav), [accounts]);
+
   const menuAccounts = useMemo(
     () =>
-      accounts.map((a) => ({
+      caldavAccounts.map((a) => ({
         id: a.id,
         name: a.name,
         calendars: a.calendars.map((c) => ({ id: c.id, displayName: c.displayName })),
       })),
-    [accounts],
+    [caldavAccounts],
   );
 
-  const caldavAccountCount = useMemo(() => accounts.filter((a) => a.caldav).length, [accounts]);
+  const caldavAccountCount = caldavAccounts.length;
 
   // update lightweight state (sort, filters, sync, editor) without a full rebuild
   useEffect(() => {
