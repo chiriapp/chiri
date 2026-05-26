@@ -1,4 +1,4 @@
-import type { ReactNode, RefObject } from 'react';
+import type { CSSProperties, ReactNode, RefObject } from 'react';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { DismissableLayerType } from '$context/dismissableLayerContext';
@@ -15,6 +15,7 @@ interface FloatingDropdownFrameProps {
   fallbackHeight?: number;
   backdropClassName?: string;
   dropdownClassName?: string;
+  dropdownStyle?: CSSProperties;
   dataAttribute?: string;
   closeOnEscape?: boolean;
   layerType?: Extract<DismissableLayerType, 'dropdown' | 'context-menu'>;
@@ -51,6 +52,7 @@ export const FloatingDropdownFrame = ({
   fallbackHeight = DEFAULT_FALLBACK_HEIGHT,
   backdropClassName = 'fixed inset-0 z-40',
   dropdownClassName = 'z-50 min-w-50',
+  dropdownStyle,
   dataAttribute,
   closeOnEscape = true,
   layerType = 'dropdown',
@@ -63,9 +65,9 @@ export const FloatingDropdownFrame = ({
     if (!anchor) return;
 
     const anchorRect = anchor.getBoundingClientRect();
-    const dropdownRect = dropdownRef.current?.getBoundingClientRect();
-    const dropdownWidth = dropdownRect?.width ?? fallbackWidth;
-    const dropdownHeight = dropdownRect?.height ?? fallbackHeight;
+    const dropdown = dropdownRef.current;
+    const dropdownWidth = dropdown?.offsetWidth ?? fallbackWidth;
+    const dropdownHeight = dropdown?.offsetHeight ?? fallbackHeight;
     const maxLeft = window.innerWidth - dropdownWidth - viewportPadding;
     const maxTop = window.innerHeight - dropdownHeight - viewportPadding;
 
@@ -118,7 +120,7 @@ export const FloatingDropdownFrame = ({
         ref={dropdownRef}
         {...dataAttributes}
         className={`${DROPDOWN_BASE_CLASS} ${dropdownClassName}`}
-        style={{ left: position.left, top: position.top }}
+        style={{ ...dropdownStyle, left: position.left, top: position.top }}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

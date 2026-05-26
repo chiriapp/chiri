@@ -4,10 +4,18 @@ import LayoutList from 'lucide-react/icons/layout-list';
 import Palette from 'lucide-react/icons/palette';
 import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import {
+  ColorSchemeSelect,
+  type ColorSchemeSelectOption,
+} from '$components/settings/ColorSchemeSelect';
 import { COLOR_SCHEMES, getColorSchemeFlavor } from '$constants/colorSchemes';
 import { THEME_OPTIONS } from '$constants/theme';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
-import { DEFAULT_COLOR_SCHEME_ID } from '$types/color';
+import {
+  type ColorSchemeDefinition,
+  type ColorSchemeFlavor,
+  DEFAULT_COLOR_SCHEME_ID,
+} from '$types/color';
 import type { TaskListDensity } from '$types/settings';
 import { resolveAccentColor, resolveEffectiveTheme } from '$utils/color';
 
@@ -22,6 +30,26 @@ const SWITCHER_ACTIVE =
   'border-surface-300 dark:border-surface-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100';
 const SWITCHER_INACTIVE =
   'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400';
+
+const MODE_LABELS = {
+  light: 'Light',
+  dark: 'Dark',
+} as const;
+
+const getModeLabel = (flavor: ColorSchemeFlavor, matchesEffectiveMode: boolean) => {
+  const label = MODE_LABELS[flavor.mode];
+  return matchesEffectiveMode ? label : `${label} only`;
+};
+
+const getPreviewFlavor = (
+  scheme: ColorSchemeDefinition,
+  activeScheme: ColorSchemeDefinition,
+  activeFlavor: ColorSchemeFlavor,
+  effectiveMode: ColorSchemeFlavor['mode'],
+) =>
+  scheme.id === activeScheme.id
+    ? activeFlavor
+    : getColorSchemeFlavor(scheme.id, null, effectiveMode);
 
 export const LookAndFeelSettings = () => {
   const {
@@ -87,6 +115,27 @@ export const LookAndFeelSettings = () => {
     }
   };
 
+  const schemeOptions: ColorSchemeSelectOption[] = COLOR_SCHEMES.map((scheme) => {
+    const previewFlavor = getPreviewFlavor(scheme, activeScheme, activeFlavor, effectiveMode);
+    const matchesEffectiveMode = scheme.flavors.some((flavor) => flavor.mode === effectiveMode);
+
+    return {
+      id: scheme.id,
+      name: scheme.name,
+      detail: previewFlavor.name,
+      modeLabel: getModeLabel(previewFlavor, matchesEffectiveMode),
+      flavor: previewFlavor,
+    };
+  });
+
+  const flavorOptions: ColorSchemeSelectOption[] = availableFlavors.map((flavor) => ({
+    id: flavor.id,
+    name: flavor.name,
+    detail: `${MODE_LABELS[flavor.mode]} flavor`,
+    modeLabel: MODE_LABELS[flavor.mode],
+    flavor,
+  }));
+
   return (
     <div className="space-y-4">
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
@@ -117,39 +166,24 @@ export const LookAndFeelSettings = () => {
           <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
             Color scheme
           </p>
-          <div className="flex flex-wrap gap-2">
-            {COLOR_SCHEMES.filter(
-              (scheme) =>
-                scheme.flavors.length === 0 || scheme.flavors.some((f) => f.mode === effectiveMode),
-            ).map((scheme) => (
-              <button
-                type="button"
-                key={scheme.id}
-                onClick={() => handleSchemeChange(scheme.id)}
-                className={`${SWITCHER_CLASS} ${colorScheme === scheme.id ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-              >
-                {scheme.name}
-              </button>
-            ))}
-          </div>
+          <ColorSchemeSelect
+            label="Color scheme"
+            value={colorScheme}
+            options={schemeOptions}
+            onChange={handleSchemeChange}
+          />
 
           {availableFlavors.length > 1 && (
-            <div className="mt-3">
+            <div className="mt-4">
               <p className="text-xs font-medium text-surface-500 dark:text-surface-400 mb-2">
                 Flavor
               </p>
-              <div className="flex flex-wrap gap-2">
-                {availableFlavors.map((flavor) => (
-                  <button
-                    type="button"
-                    key={flavor.id}
-                    onClick={() => handleFlavorChange(flavor.id)}
-                    className={`${SWITCHER_CLASS} ${activeFlavor.id === flavor.id ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-                  >
-                    {flavor.name}
-                  </button>
-                ))}
-              </div>
+              <ColorSchemeSelect
+                label="Flavor"
+                value={activeFlavor.id}
+                options={flavorOptions}
+                onChange={handleFlavorChange}
+              />
             </div>
           )}
         </div>
