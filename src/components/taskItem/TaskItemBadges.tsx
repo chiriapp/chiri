@@ -92,6 +92,7 @@ export const TaskItemBadges = ({
           calendar={calendar}
           calendarColor={calendarColor}
           onCalendarClick={onCalendarClick}
+          readOnly={!!task.deletedAt}
         />
       ) : null,
     url: () => (badgeVisibility.url && task.url ? <TaskItemURLBadge url={task.url} /> : null),
