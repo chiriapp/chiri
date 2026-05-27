@@ -58,6 +58,7 @@ export const BehaviorSettings = () => {
                   className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
                 />
               </label>
+
               <label className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-surface-600 dark:text-surface-400">Calendars</p>
@@ -72,20 +73,7 @@ export const BehaviorSettings = () => {
                   className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
                 />
               </label>
-              <label className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-surface-600 dark:text-surface-400">Tags</p>
-                  <p className="text-xs text-surface-500 dark:text-surface-400">
-                    Affects tags, leaves tasks untouched
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={confirmBeforeDeleteTag}
-                  onChange={(e) => setConfirmBeforeDeleteTag(e.target.checked)}
-                  className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
-                />
-              </label>
+
               <label className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-surface-600 dark:text-surface-400">Filters</p>
@@ -97,6 +85,20 @@ export const BehaviorSettings = () => {
                   type="checkbox"
                   checked={confirmBeforeDeleteFilter}
                   onChange={(e) => setConfirmBeforeDeleteFilter(e.target.checked)}
+                  className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
+                />
+              </label>
+              <label className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-surface-600 dark:text-surface-400">Tags</p>
+                  <p className="text-xs text-surface-500 dark:text-surface-400">
+                    Affects tags, leaves tasks untouched
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={confirmBeforeDeleteTag}
+                  onChange={(e) => setConfirmBeforeDeleteTag(e.target.checked)}
                   className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden"
                 />
               </label>
