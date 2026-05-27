@@ -18,9 +18,10 @@ type AppRuntime = tauri::Wry;
 #[cfg(feature = "cef")]
 type AppRuntime = tauri::Cef;
 
+type MenuUpdater = Box<dyn Fn(String) + Send>;
+
 // global storage for the last sync menu item updater function
-static MENU_UPDATER: LazyLock<Mutex<Option<Box<dyn Fn(String) + Send>>>> =
-    LazyLock::new(|| Mutex::new(None));
+static MENU_UPDATER: LazyLock<Mutex<Option<MenuUpdater>>> = LazyLock::new(|| Mutex::new(None));
 static SYNC_ITEM: LazyLock<Mutex<Option<MenuItem<AppRuntime>>>> =
     LazyLock::new(|| Mutex::new(None));
 static TRAY_VISIBLE: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(true));

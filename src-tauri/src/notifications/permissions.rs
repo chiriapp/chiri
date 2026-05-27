@@ -76,9 +76,9 @@ pub async fn check_notification_permission() -> Result<NotificationPermissionSta
                 return Ok(NotificationPermissionStatus { status });
             }
         }
-        return Ok(NotificationPermissionStatus {
+        Ok(NotificationPermissionStatus {
             status: "default".to_string(),
-        });
+        })
     }
 
     #[cfg(not(target_os = "macos"))]
@@ -120,7 +120,7 @@ pub async fn request_notification_permission() -> Result<NotificationPermissionR
             }
         }
         eprintln!("[Notifications] Permission request timed out after 30 seconds");
-        return Err("Request timed out".to_string());
+        Err("Request timed out".to_string())
     }
 
     #[cfg(not(target_os = "macos"))]

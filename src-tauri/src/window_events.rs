@@ -77,32 +77,31 @@ pub fn handle_focus_event<R: tauri::Runtime>(_window: &tauri::Window<R>) {
 /// This function routes window events to their appropriate handlers.
 pub fn handle_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &WindowEvent) {
     match event {
-        WindowEvent::CloseRequested { api, .. } => {
+        WindowEvent::CloseRequested { api, .. } if crate::tray::is_tray_enabled() => {
             // Handle close request with tray integration
             // When the close button is clicked:
             // - If tray is enabled: hide the window instead of closing
             // - If tray is disabled: allow normal close behavior
-            if crate::tray::is_tray_enabled() {
-                api.prevent_close();
+            api.prevent_close();
 
-                // CEF: spawn hide operation asynchronously to avoid blocking the message loop
-                #[cfg(feature = "cef")]
-                {
-                    let window = window.clone();
-                    std::thread::spawn(move || {
-                        let _ = window.hide();
-                        hide_dock_icon_if_configured(&window.app_handle());
-                    });
-                }
-
-                // Wry: can do synchronously
-                #[cfg(not(feature = "cef"))]
-                {
+            // CEF: spawn hide operation asynchronously to avoid blocking the message loop
+            #[cfg(feature = "cef")]
+            {
+                let window = window.clone();
+                std::thread::spawn(move || {
                     let _ = window.hide();
-                    hide_dock_icon_if_configured(&window.app_handle());
-                }
+                    hide_dock_icon_if_configured(window.app_handle());
+                });
+            }
+
+            // Wry: can do synchronously
+            #[cfg(not(feature = "cef"))]
+            {
+                let _ = window.hide();
+                hide_dock_icon_if_configured(window.app_handle());
             }
         }
+        WindowEvent::CloseRequested { .. } => {}
         WindowEvent::Focused(true) => {
             handle_focus_event(window);
         }

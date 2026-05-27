@@ -79,10 +79,10 @@ fn migrate_path_pair(label: &str, old: &Path, new: &Path) {
 ///
 /// Scopes migrated:
 /// - `app_local_data_dir` — chiri.db and WebView data (all platforms)
-/// - `app_config_dir`     — roaming config on Windows; ~/.config/<id> on Linux;
-///                          same as data on macOS so the guard naturally skips it
-/// - `app_log_dir`        — log files (all platforms)
-/// - `~/Library/WebKit`   — WebKit storage (macOS only; separate from App Support)
+/// - `app_config_dir` — roaming config on Windows; ~/.config/<id> on Linux;
+///   same as data on macOS so the guard naturally skips it
+/// - `app_log_dir` — log files (all platforms)
+/// - `~/Library/WebKit` — WebKit storage (macOS only; separate from App Support)
 ///
 /// Migration is non-destructive (copy, not move) and runs at most once,
 /// gated by a marker file written to app_local_data_dir on completion.

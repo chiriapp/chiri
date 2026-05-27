@@ -37,7 +37,7 @@ pub fn migrate_from_caldav_tasks<R: tauri::Runtime>(app: &tauri::App<R>) {
     let new_db_name = "chiri.db";
 
     // Migrate main app data directory
-    if let Some(app_local_data_dir) = app.path().app_local_data_dir().ok() {
+    if let Ok(app_local_data_dir) = app.path().app_local_data_dir() {
         if let Some(parent_dir) = app_local_data_dir.parent() {
             let old_app_dir = parent_dir.join(old_dir_name);
 
