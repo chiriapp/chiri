@@ -23,6 +23,9 @@ const HISTORY_FIELDS = [
   'accountId',
 ] as const;
 
+// we don't use the 'completed' field anymore so we'll want to to ignore it
+const LEGACY_HISTORY_FIELDS = new Set<string>(['completed']);
+
 const serializeHistoryValue = (value: unknown) => {
   if (value === undefined || value === null || value === '') return null;
   if (value instanceof Date) return value.toISOString();
@@ -53,6 +56,8 @@ export const logTaskChange = async (
   oldValue: string | null,
   newValue: string | null,
 ) => {
+  if (LEGACY_HISTORY_FIELDS.has(field)) return;
+
   await conn.execute(
     `INSERT INTO task_history (id, task_uid, changed_at, field, old_value, new_value)
      VALUES ($1, $2, $3, $4, $5, $6)`,
@@ -65,7 +70,7 @@ export const getTaskHistory = async (
   taskUid: string,
 ): Promise<TaskHistoryEntry[]> => {
   const rows = await conn.select<TaskHistoryRow[]>(
-    'SELECT * FROM task_history WHERE task_uid = $1 ORDER BY changed_at DESC',
+    "SELECT * FROM task_history WHERE task_uid = $1 AND field != 'completed' ORDER BY changed_at DESC",
     [taskUid],
   );
   return rows.map((row) => ({

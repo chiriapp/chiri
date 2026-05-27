@@ -24,6 +24,7 @@ mod v023_recently_deleted;
 mod v024_saved_filters;
 mod v025_filter_preset_id;
 mod v026_push_provider_metadata;
+mod v027_remove_completed_task_history;
 
 use tauri_plugin_sql::Migration;
 
@@ -53,6 +54,7 @@ pub use v023_recently_deleted::migration as migration_v023;
 pub use v024_saved_filters::migration as migration_v024;
 pub use v025_filter_preset_id::migration as migration_v025;
 pub use v026_push_provider_metadata::migration as migration_v026;
+pub use v027_remove_completed_task_history::migration as migration_v027;
 
 /// Returns all database migrations for the application
 pub fn get_migrations() -> Vec<Migration> {
@@ -83,5 +85,6 @@ pub fn get_migrations() -> Vec<Migration> {
         migration_v024(),
         migration_v025(),
         migration_v026(),
+        migration_v027(),
     ]
 }

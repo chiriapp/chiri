@@ -4,7 +4,6 @@ import AlignLeft from 'lucide-react/icons/align-left';
 import Bell from 'lucide-react/icons/bell';
 import Calendar from 'lucide-react/icons/calendar';
 import CalendarClock from 'lucide-react/icons/calendar-clock';
-import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import CornerDownRight from 'lucide-react/icons/corner-down-right';
 import Flag from 'lucide-react/icons/flag';
 import FolderSync from 'lucide-react/icons/folder-sync';
@@ -27,7 +26,6 @@ const FIELD_LABELS: Record<string, string> = {
   created: 'Created',
   title: 'Title',
   description: 'Description',
-  completed: 'Completed', // legacy - kept for old history entries
   status: 'Status',
   percentComplete: 'Progress',
   priority: 'Priority',
@@ -50,7 +48,6 @@ const FIELD_ICONS: Record<string, LucideIcon> = {
   created: Sparkles,
   title: Type,
   description: AlignLeft,
-  completed: CheckCircle2, // legacy
   status: Activity,
   percentComplete: Loader,
   priority: Flag,
@@ -83,7 +80,6 @@ const PRIORITY_LABELS: Record<string, string> = {
   none: 'None',
 };
 
-const formatCompletedField = (value: string) => (value === 'true' ? 'Completed' : 'Not completed');
 const formatStatusField = (value: string) => STATUS_LABELS[value] ?? value;
 const formatPriorityField = (value: string) => PRIORITY_LABELS[value] ?? value;
 const formatAllDayField = (value: string) => (value === 'true' ? 'All day' : 'Timed');
@@ -130,7 +126,6 @@ const formatRruleField = (value: string) => {
 
 type FieldFormatter = (value: string) => ReactNode;
 const FIELD_FORMATTERS: Record<string, FieldFormatter> = {
-  completed: formatCompletedField,
   status: formatStatusField,
   percentComplete: (v) => `${v}%`,
   priority: formatPriorityField,
