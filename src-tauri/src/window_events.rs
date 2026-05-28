@@ -84,22 +84,8 @@ pub fn handle_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: 
             // - If tray is disabled: allow normal close behavior
             api.prevent_close();
 
-            // CEF: spawn hide operation asynchronously to avoid blocking the message loop
-            #[cfg(feature = "cef")]
-            {
-                let window = window.clone();
-                std::thread::spawn(move || {
-                    let _ = window.hide();
-                    hide_dock_icon_if_configured(window.app_handle());
-                });
-            }
-
-            // Wry: can do synchronously
-            #[cfg(not(feature = "cef"))]
-            {
-                let _ = window.hide();
-                hide_dock_icon_if_configured(window.app_handle());
-            }
+            let _ = window.hide();
+            hide_dock_icon_if_configured(window.app_handle());
         }
         WindowEvent::CloseRequested { .. } => {}
         WindowEvent::Focused(true) => {

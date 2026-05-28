@@ -4,7 +4,6 @@ import { useSettingsStore } from '$context/settingsContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useUIState } from '$hooks/queries/useUIState';
 import { rebuildAppMenu, updateMenuState } from '$utils/menu';
-import { isCEF } from '$utils/platform';
 
 /**
  * hook to manage macOS app menu state synchronization
@@ -14,10 +13,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
   const { data: uiState } = useUIState();
   const { isAnyModalOpen } = useModalState();
   const { keyboardShortcuts } = useSettingsStore();
-
-  // Skip menu operations under CEF - IPC causes deadlocks
-  // TODO: Figure out how to support the app menu on macOS under CEF.
-  const skipMenu = isCEF();
 
   const caldavAccounts = useMemo(() => accounts.filter((a) => a.caldav), [accounts]);
 
@@ -35,7 +30,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
 
   // update lightweight state (sort, filters, sync, editor) without a full rebuild
   useEffect(() => {
-    if (skipMenu) return;
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
     const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
     const isEditorOpen =
@@ -61,12 +55,10 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.selectedTaskId,
     isSyncing,
     isAnyModalOpen,
-    skipMenu,
   ]);
 
   // Full rebuild when shortcuts or account list (id/name) changes
   useEffect(() => {
-    if (skipMenu) return;
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
     const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
     const isEditorOpen =
@@ -96,6 +88,5 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.selectedTaskId,
     isSyncing,
     isAnyModalOpen,
-    skipMenu,
   ]);
 };

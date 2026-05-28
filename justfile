@@ -44,14 +44,8 @@ mac-build:
   APPLE_API_KEY_PATH="$tmp_p8" \
   op run -- pnpm tauri build
 
-build-cef:
-  cd src-tauri && ./fix-libs.sh && cargo tauri build --features cef -- --no-default-features
-
 dev:
   pnpm tauri dev
-
-dev-cef:
-  cd src-tauri && ./fix-libs.sh && cargo tauri dev --features cef -- --no-default-features
 
 hash:
   ./nix/update-hashes.sh

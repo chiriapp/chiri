@@ -33,19 +33,12 @@ fn force_quit() {
     std::process::exit(0);
 }
 
-#[cfg_attr(feature = "cef", tauri::cef_entry_point)]
 fn main() {
     // On Linux, WebKitGTK 2.42+ allocates DMA-BUF buffers via GBM, which is broken
     // on NVIDIA proprietary drivers under Wayland and causes an immediate crash ("Error 71: Protocol error").
     #[cfg(target_os = "linux")]
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-    }
-
-    // Initialize default crypto provider for rustls (required for reqwest in CEF)
-    #[cfg(feature = "cef")]
-    {
-        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
     }
 
     let db_migrations = migrations::get_migrations();
@@ -189,29 +182,15 @@ fn main() {
             window_events::handle_window_event(window, event);
         });
 
-    // CEF/macOS runs without an application menu.
-    #[cfg(all(target_os = "macos", feature = "cef"))]
-    let builder = builder.enable_macos_default_menu(false);
-
-    #[cfg(not(all(target_os = "macos", feature = "cef")))]
-    let builder = builder;
-
     builder
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|_app_handle, event| {
             match event {
-                // On macOS + CEF, going through NSApplication terminate can trigger
-                // a CEF shutdown crash report even on normal quits. Exit directly.
-                #[cfg(all(target_os = "macos", feature = "cef"))]
-                RunEvent::ExitRequested { .. } => {
-                    std::process::exit(0);
-                }
-
                 // Intercept all quit requests (Cmd+Q, Dock quit, window close) so the
                 // frontend can apply double-press confirmation when enabled. The frontend
                 // calls exit(0) via tauri-plugin-process, which bypasses this handler.
-                #[cfg(all(target_os = "macos", not(feature = "cef")))]
+                #[cfg(target_os = "macos")]
                 RunEvent::ExitRequested { api, .. } => {
                     api.prevent_exit();
                     let _ = _app_handle.emit("app:quit-requested", ());

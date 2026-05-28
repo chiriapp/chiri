@@ -6,7 +6,6 @@ import { useModalState } from '$context/modalStateContext';
 import { useUIState } from '$hooks/queries/useUIState';
 import { loggers } from '$lib/logger';
 import type { SortDirection, SortMode } from '$types';
-import { isCEF } from '$utils/platform';
 
 const log = loggers.menu;
 
@@ -305,12 +304,6 @@ export const useMenuEvents = (callbacks: MenuCallbacks) => {
   const { isAnyModalOpen } = useModalState();
 
   useEffect(() => {
-    // Skip menu event listeners under CEF - menu IPC causes deadlocks
-    if (isCEF()) {
-      log.debug('Skipping menu event listeners (CEF runtime)');
-      return;
-    }
-
     const isActiveRef = { current: true };
     const unlistenCallbacks: (() => void)[] = [];
     const isBlocked: MenuEventBlocker = (event, label) => {

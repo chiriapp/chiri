@@ -9,7 +9,7 @@ import { db } from '$lib/database';
 import { initLogger, loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import { initAppMenu } from '$utils/menu';
-import { isCEF, isLinuxPlatform, isMacPlatform, isWindowsPlatform } from '$utils/platform';
+import { isLinuxPlatform, isMacPlatform, isWindowsPlatform } from '$utils/platform';
 
 const log = loggers.bootstrap;
 
@@ -95,8 +95,6 @@ export const initializeApp = async () => {
   log.debug('Loaded keyboard shortcuts');
 
   // Initialize app menu only on macOS.
-  // Skip under CEF on macOS to avoid IPC deadlock.
-  // TODO: Figure out how to support the app menu on macOS under CEF.
   const isWindows = isWindowsPlatform();
   const isMac = isMacPlatform();
 
@@ -105,23 +103,14 @@ export const initializeApp = async () => {
   } else if (!isMac) {
     log.debug('Non-macOS platform detected; skipping app menu initialization');
   } else {
-    const skipMenu = isCEF();
-    log.debug(
-      `macOS runtime check: ${skipMenu ? 'CEF detected, skipping menu' : 'WebKit detected, initializing menu'}`,
-    );
-
-    if (!skipMenu) {
-      log.debug('Initializing app menu...');
-      await initAppMenu({
-        showCompleted: uiState.showCompletedTasks,
-        sortMode,
-        shortcuts,
-      }).catch((error) => {
-        log.error('Failed to initialize app menu:', error);
-      });
-    } else {
-      log.debug('Skipping app menu initialization (macOS CEF runtime)');
-    }
+    log.debug('macOS platform detected; initializing app menu');
+    await initAppMenu({
+      showCompleted: uiState.showCompletedTasks,
+      sortMode,
+      shortcuts,
+    }).catch((error) => {
+      log.error('Failed to initialize app menu:', error);
+    });
   }
 
   log.info('Application initialization finished');

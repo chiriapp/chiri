@@ -31,9 +31,6 @@
             "rust-analyzer"
             "clippy"
           ];
-          targets = pkgs.lib.optionals pkgs.stdenv.isDarwin [
-            "x86_64-apple-darwin"
-          ];
         };
 
         # macOS-specific dependencies for dev shell
@@ -99,8 +96,6 @@
               # Build tools
               pkg-config
               openssl
-              cmake
-              ninja
 
               # Tauri dependencies
               libiconv

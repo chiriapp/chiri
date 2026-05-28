@@ -2,7 +2,6 @@
 set -euo pipefail
 
 APP_BINARY_PATH="target/release/Chiri"
-CARGO_TAURI_PATH="${CARGO_TAURI_PATH:-$HOME/.cargo/bin/cargo-tauri}"
 
 if [ -e "/usr/lib/libiconv.2.dylib" ]; then
     SYSTEM_ICONV="/usr/lib/libiconv.2.dylib"
@@ -40,4 +39,3 @@ fix_iconv_dependency() {
 
 echo "Fixing library dependencies for local macOS binaries..."
 fix_iconv_dependency "$APP_BINARY_PATH" "app binary"
-fix_iconv_dependency "$CARGO_TAURI_PATH" "cargo-tauri"

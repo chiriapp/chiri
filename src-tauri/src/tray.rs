@@ -11,12 +11,7 @@ use log::{debug, error};
 #[cfg(target_os = "macos")]
 use crate::macos::quit::is_keyboard_shortcut;
 
-// Runtime type alias - switches between Wry and Cef based on feature flag
-#[cfg(not(feature = "cef"))]
 type AppRuntime = tauri::Wry;
-
-#[cfg(feature = "cef")]
-type AppRuntime = tauri::Cef;
 
 type MenuUpdater = Box<dyn Fn(String) + Send>;
 
@@ -213,9 +208,6 @@ fn initialize_tray_impl(
                 #[cfg(target_os = "macos")]
                 {
                     if is_keyboard_shortcut() {
-                        #[cfg(feature = "cef")]
-                        let _ = app.emit("app:quit-requested", ());
-                        #[cfg(not(feature = "cef"))]
                         app.exit(0);
                     } else {
                         std::process::exit(0);
@@ -251,35 +243,7 @@ pub async fn initialize_tray(
     app_handle: tauri::AppHandle<AppRuntime>,
     enabled: bool,
 ) -> Result<(), String> {
-    #[cfg(all(target_os = "macos", feature = "cef"))]
-    {
-        let (tx, rx) = std::sync::mpsc::channel::<Result<(), String>>();
-        let app_for_main = app_handle.clone();
-
-        app_handle
-            .run_on_main_thread(move || {
-                let result = initialize_tray_impl(app_for_main, enabled);
-                let _ = tx.send(result);
-            })
-            .map_err(|e| {
-                error!(
-                    "[Tray] Failed to schedule tray initialization on main thread: {}",
-                    e
-                );
-                e.to_string()
-            })?;
-
-        let received = rx.recv().map_err(|e| {
-            error!("[Tray] Failed to receive tray initialization result: {}", e);
-            e.to_string()
-        })?;
-        return received;
-    }
-
-    #[cfg(not(all(target_os = "macos", feature = "cef")))]
-    {
-        initialize_tray_impl(app_handle, enabled)
-    }
+    initialize_tray_impl(app_handle, enabled)
 }
 
 /// get the current tray enabled state (for frontend to read on startup)

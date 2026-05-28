@@ -57,8 +57,8 @@ pub async fn send_notification(
         let bundle_id = app.config().identifier.clone();
         let pkg_name = app.package_info().name.clone();
         let pkg_name_lower = pkg_name.to_lowercase();
-        let icon_name = find_installed_icon_name(&[&bundle_id, &pkg_name, &pkg_name_lower])
-            .unwrap_or(pkg_name);
+        let icon_name =
+            find_installed_icon_name(&[&bundle_id, &pkg_name, &pkg_name_lower]).unwrap_or(pkg_name);
         notif.icon(&icon_name);
     }
 
