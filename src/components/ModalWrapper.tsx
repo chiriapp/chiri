@@ -68,8 +68,7 @@ export const ModalWrapper = ({
   useDismissableLayer({
     enabled: isOpen,
     type: escapeLayerType,
-    priority:
-      escapeLayerType === 'modal' ? MODAL_LAYER_PRIORITIES[zIndex] : undefined,
+    priority: escapeLayerType === 'modal' ? MODAL_LAYER_PRIORITIES[zIndex] : undefined,
     escapeBehavior: canHandleEscape ? 'dismiss' : 'block',
     onEscape: canHandleEscape
       ? () => {

@@ -27,8 +27,7 @@ export const useDismissableLayer = ({
     onEscape?.(event);
   });
   const hasEscapeHandler = onEscape !== undefined;
-  const resolvedEscapeBehavior =
-    escapeBehavior ?? (hasEscapeHandler ? 'dismiss' : 'block');
+  const resolvedEscapeBehavior = escapeBehavior ?? (hasEscapeHandler ? 'dismiss' : 'block');
   const resolvedPriority = priority ?? getDismissableLayerPriority(type);
 
   useEffect(() => {
