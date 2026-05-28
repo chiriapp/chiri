@@ -1,5 +1,5 @@
 import { getVersion } from '@tauri-apps/api/app';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { DragOverlay } from '$components/DragOverlay';
 import { Header } from '$components/header/Header';
@@ -19,7 +19,6 @@ import { Sidebar } from '$components/sidebar/Sidebar';
 import { TaskList } from '$components/TaskList';
 import { TaskEditor } from '$components/taskEditor/TaskEditor';
 
-import { MAX_EDITOR_WIDTH, MIN_EDITOR_WIDTH } from '$constants';
 import { useModalState } from '$context/modalStateContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
@@ -33,6 +32,7 @@ import { useNotifications } from '$hooks/system/useNotifications';
 import { useTray } from '$hooks/system/useTray';
 import { useUpdateChecker } from '$hooks/system/useUpdateChecker';
 import { useKeyboardShortcuts } from '$hooks/ui/useKeyboardShortcuts';
+import { useTaskEditorResize } from '$hooks/ui/useTaskEditorResize';
 import { useTheme } from '$hooks/ui/useTheme';
 import { toastManager } from '$hooks/ui/useToast';
 import { useAppMenu } from '$hooks/useAppMenu';
@@ -150,31 +150,7 @@ const App = () => {
     syncOnReconnect,
   } = useSettingsStore();
 
-  const [isEditorResizing, setIsEditorResizing] = useState(false);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isEditorResizing) return;
-      const newWidth = Math.min(
-        MAX_EDITOR_WIDTH,
-        Math.max(MIN_EDITOR_WIDTH, window.innerWidth - e.clientX),
-      );
-      setTaskEditorWidth(newWidth);
-    };
-    const handleMouseUp = () => {
-      setIsEditorResizing(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    };
-    if (isEditorResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isEditorResizing, setTaskEditorWidth]);
+  const { handleResizeStart: handleEditorResizeStart } = useTaskEditorResize(setTaskEditorWidth);
 
   const showOnboarding = shouldShowOnboarding({
     onboardingCompleted,
@@ -185,14 +161,17 @@ const App = () => {
   });
 
   // system tray integration (sync button, status updates)
+  const isSyncInProgress = isSyncing || syncingCalendarId !== null;
+  const hasCalDAVAccounts = accounts.some((account) => account.caldav);
+
   useTray({
-    isSyncing: isSyncing || syncingCalendarId !== null,
+    isSyncing: isSyncInProgress,
     lastSyncTime,
     onSyncRequest: handleTraySync,
   });
 
   // app menu state synchronization
-  useAppMenu(isSyncing || syncingCalendarId !== null);
+  useAppMenu(isSyncInProgress);
 
   // menu handlers and modal state
   const menuHandlers = useMenuHandlers(
@@ -255,7 +234,9 @@ const App = () => {
   const { data: uiState } = useUIState();
   const isEditorOpen = uiState?.isEditorOpen ?? false;
   const selectedTaskId = uiState?.selectedTaskId ?? null;
-  const selectedTask = tasks.find((t) => t.id === selectedTaskId);
+  const selectedTask = tasks.find((task) => task.id === selectedTaskId) ?? null;
+  const visibleTask = isEditorOpen ? selectedTask : null;
+  const isTaskEditorVisible = visibleTask !== null;
 
   // reset preloaded file when import modal closes
   const handleImportClose = useCallback(() => {
@@ -303,11 +284,11 @@ const App = () => {
 
       <main className="flex-1 flex flex-col min-w-0">
         <Header
-          isSyncing={isSyncing || syncingCalendarId !== null}
+          isSyncing={isSyncInProgress}
           syncingCalendarId={syncingCalendarId}
           syncProgress={syncProgress}
           onSync={handleHeaderSync}
-          disableSync={accounts.every((a) => !a.caldav)}
+          disableSync={!hasCalDAVAccounts}
           isOffline={isOffline}
           lastSyncTime={lastSyncTime}
           lastSyncSource={lastSyncSource}
@@ -317,28 +298,23 @@ const App = () => {
 
         <div className="flex-1 flex min-h-0 overflow-hidden">
           <div
-            className={`flex-1 flex flex-col min-w-0 min-h-0 ${isEditorOpen && selectedTask ? 'hidden lg:flex' : ''}`}
+            className={`flex-1 flex flex-col min-w-0 min-h-0 ${isTaskEditorVisible ? 'hidden lg:flex' : ''}`}
           >
             <TaskList />
           </div>
 
-          {isEditorOpen && selectedTask && (
+          {visibleTask && (
             <div
               className="relative flex-1 lg:flex-none lg:border-l border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 overflow-hidden"
               style={{ width: taskEditorWidth }}
             >
               {/* biome-ignore lint/a11y/noStaticElementInteractions: Resize handle requires mouse events for drag functionality */}
               <div
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  setIsEditorResizing(true);
-                  document.body.style.cursor = 'col-resize';
-                  document.body.style.userSelect = 'none';
-                }}
+                onMouseDown={handleEditorResizeStart}
                 className="absolute top-0 left-0 w-1 h-full cursor-col-resize hover:bg-primary-400 dark:hover:bg-primary-600 transition-colors z-10"
               />
               <TaskEditor
-                task={selectedTask}
+                task={visibleTask}
                 onOpenNotificationSettings={() => {
                   menuHandlers.setSettingsInitialTab({ category: 'app', subtab: 'notifications' });
                   menuHandlers.setShowSettings(true);
