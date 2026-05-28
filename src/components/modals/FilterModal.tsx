@@ -6,6 +6,7 @@ import { ModalWrapper } from '$components/ModalWrapper';
 import { getIconByName } from '$constants/icons';
 import { useFilters, useUpdateFilter } from '$hooks/queries/useFilters';
 import { useColorPresets } from '$hooks/ui/useColorPresets';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 
 interface FilterModalProps {
@@ -28,6 +29,7 @@ export const FilterModal = ({ filterId, onClose }: FilterModalProps) => {
   const [color, setColor] = useState(initialColor);
   const [icon, setIcon] = useState(existingFilter?.icon ?? 'list-todo');
   const [emoji, setEmoji] = useState(existingFilter?.emoji ?? '');
+  const nameInputRef = useInitialFocusRef<HTMLInputElement>();
 
   if (!existingFilter) return null;
 
@@ -78,9 +80,7 @@ export const FilterModal = ({ filterId, onClose }: FilterModalProps) => {
               color={color}
             />
             <ComposedInput
-              ref={(el) => {
-                if (el) setTimeout(() => el.focus(), 100);
-              }}
+              ref={nameInputRef}
               id="filter-name"
               type="text"
               value={name}

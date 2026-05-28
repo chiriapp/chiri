@@ -6,6 +6,7 @@ import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import {
   cancelNextcloudLogin,
   initiateNextcloudLogin,
@@ -34,6 +35,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
   const { syncAll } = useSyncQuery();
+  const serverUrlInputRef = useInitialFocusRef<HTMLInputElement>();
 
   // Cancel any active polling when modal unmounts
   useEffect(() => {
@@ -189,9 +191,7 @@ export const NextcloudLoginModal = ({ onClose, onSuccess }: NextcloudLoginModalP
             </label>
             <ComposedInput
               id="nextcloud-url"
-              ref={(el) => {
-                if (el) setTimeout(() => el.focus(), 100);
-              }}
+              ref={serverUrlInputRef}
               type="text"
               placeholder="cloud.example.com or https://cloud.example.com"
               value={serverUrl}

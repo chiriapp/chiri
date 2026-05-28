@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 
 interface SubtaskModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface SubtaskModalProps {
 
 export const SubtaskModal = ({ isOpen, onClose, onAdd }: SubtaskModalProps) => {
   const [title, setTitle] = useState('');
+  const titleInputRef = useInitialFocusRef<HTMLInputElement>();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,9 +60,7 @@ export const SubtaskModal = ({ isOpen, onClose, onAdd }: SubtaskModalProps) => {
             Subtask Title
           </label>
           <ComposedInput
-            ref={(el) => {
-              if (el) setTimeout(() => el.focus(), 100);
-            }}
+            ref={titleInputRef}
             id="subtask-title"
             type="text"
             value={title}

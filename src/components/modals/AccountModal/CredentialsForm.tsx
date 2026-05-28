@@ -1,11 +1,11 @@
 import CircleX from 'lucide-react/icons/circle-x';
 import Info from 'lucide-react/icons/info';
-import { useRef } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { AdvancedSection } from '$components/modals/AccountModal/AdvancedSection';
 import { ConnectionSuccessBanner } from '$components/modals/AccountModal/ConnectionSuccessBanner';
 import { getPredefinedServerUrl, getServerTypeDescription } from '$constants/settings';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import type { CalDAVSetupError, CalDAVSetupNotice } from '$lib/caldav/setup';
 import type { Account, ServerType } from '$types';
 
@@ -133,7 +133,7 @@ export const CredentialsForm = ({
   testedPushSupportedCount,
   onSubmit,
 }: CredentialsFormProps) => {
-  const nameInputFocusedRef = useRef(false);
+  const nameInputRef = useInitialFocusRef<HTMLInputElement>();
   const hint = SERVER_HINTS[serverType];
 
   return (
@@ -161,12 +161,7 @@ export const CredentialsForm = ({
           <ComposedInput
             id="account-name"
             type="text"
-            ref={(el) => {
-              if (el && !nameInputFocusedRef.current) {
-                nameInputFocusedRef.current = true;
-                setTimeout(() => el.focus(), 100);
-              }
-            }}
+            ref={nameInputRef}
             value={name}
             onChange={onNameChange}
             placeholder="My CalDAV Account"

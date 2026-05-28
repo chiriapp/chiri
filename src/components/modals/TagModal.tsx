@@ -7,6 +7,7 @@ import { getIconByName } from '$constants/icons';
 import { useCreateTag, useTags, useUpdateTag } from '$hooks/queries/useTags';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { useColorPresets } from '$hooks/ui/useColorPresets';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 
 interface TagModalProps {
@@ -34,6 +35,7 @@ export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
   const [color, setColor] = useState(initialColor);
   const [icon, setIcon] = useState(existingTag?.icon || 'tag');
   const [emoji, setEmoji] = useState(existingTag?.emoji || '');
+  const nameInputRef = useInitialFocusRef<HTMLInputElement>();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,9 +86,7 @@ export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
               color={color}
             />
             <ComposedInput
-              ref={(el) => {
-                if (el) setTimeout(() => el.focus(), 100);
-              }}
+              ref={nameInputRef}
               id="tag-name"
               type="text"
               value={name}

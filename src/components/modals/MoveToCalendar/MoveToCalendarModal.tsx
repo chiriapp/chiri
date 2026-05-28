@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { MoveToCalendarOption } from '$components/modals/MoveToCalendar/MoveToCalendarOption';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import type { Account, Task } from '$types';
 
 interface MoveToCalendarModalProps {
@@ -25,6 +26,7 @@ export const MoveToCalendarModal = ({
   description,
 }: MoveToCalendarModalProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useInitialFocusRef<HTMLInputElement>();
 
   const excludedCalendarIds = useMemo(() => {
     const ids = currentCalendarIds ?? (task ? [task.calendarId] : []);
@@ -69,9 +71,7 @@ export const MoveToCalendarModal = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            ref={(el) => {
-              if (el) setTimeout(() => el.focus(), 100);
-            }}
+            ref={searchInputRef}
             placeholder="Search calendars..."
             className="w-full pl-9 pr-3 py-2 text-sm text-surface-800 dark:text-surface-200 bg-surface-100 dark:bg-surface-700 border border-transparent rounded-lg focus:outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
           />

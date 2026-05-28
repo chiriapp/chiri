@@ -6,6 +6,7 @@ import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import {
   cancelNextcloudLogin,
   initiateNextcloudLogin,
@@ -34,6 +35,7 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
   const { syncAll } = useSyncQuery();
+  const serverUrlInputRef = useInitialFocusRef<HTMLInputElement>();
 
   // Cancel any active polling when modal unmounts
   useEffect(() => {
@@ -179,9 +181,7 @@ export const RusticalLoginModal = ({ onClose, onSuccess }: RusticalLoginModalPro
               RustiCal Server URL
             </label>
             <ComposedInput
-              ref={(el) => {
-                if (el) setTimeout(() => el.focus(), 100);
-              }}
+              ref={serverUrlInputRef}
               id="rustical-server-url"
               type="url"
               value={serverUrl}

@@ -8,6 +8,7 @@ import { getIconByName } from '$constants/icons';
 import { useAccounts, useAddCalendar, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { useSettingsStore } from '$hooks/store/useSettingsStore';
 import { useColorPresets } from '$hooks/ui/useColorPresets';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import { CalDAVClient } from '$lib/caldav';
 import type { Calendar } from '$types';
@@ -41,6 +42,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [warning, setWarning] = useState('');
+  const displayNameInputRef = useInitialFocusRef<HTMLInputElement>();
 
   const IconComponent = getIconByName(icon);
 
@@ -198,9 +200,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
               color={color}
             />
             <ComposedInput
-              ref={(el) => {
-                if (el) setTimeout(() => el.focus(), 100);
-              }}
+              ref={displayNameInputRef}
               id="calendar-name"
               type="text"
               value={displayName}

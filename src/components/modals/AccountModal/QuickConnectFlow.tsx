@@ -4,6 +4,7 @@ import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import {
   cancelNextcloudLogin,
   initiateNextcloudLogin,
@@ -70,6 +71,7 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
 
     const config = CONFIG[serverType];
     const isLoading = isValidating || isLoggingIn || isProcessing;
+    const serverUrlInputRef = useInitialFocusRef<HTMLInputElement>();
 
     const updateStep = (s: QuickConnectLoginStep) => {
       setLoginStep(s);
@@ -236,9 +238,7 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
           </label>
           <ComposedInput
             id="quick-connect-url"
-            ref={(el) => {
-              if (el) setTimeout(() => el.focus(), 100);
-            }}
+            ref={serverUrlInputRef}
             type="text"
             placeholder={config.urlPlaceholder}
             value={serverUrl}

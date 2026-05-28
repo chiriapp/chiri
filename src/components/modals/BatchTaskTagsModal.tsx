@@ -6,6 +6,7 @@ import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { getIconByName } from '$constants/icons';
 import { useBatchUpdateTasks } from '$hooks/queries/useTasks';
+import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Tag, Task } from '$types';
 
@@ -30,6 +31,7 @@ export const BatchTaskTagsModal = ({ isOpen, onClose, tasks, tags }: BatchTaskTa
   const batchUpdateTasksMutation = useBatchUpdateTasks();
   const resolveAccent = useAccentColorResolver();
   const resolvedAccentColor = useResolvedAccentColor();
+  const searchInputRef = useInitialFocusRef<HTMLInputElement>();
 
   const filteredTags = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -80,9 +82,7 @@ export const BatchTaskTagsModal = ({ isOpen, onClose, tasks, tags }: BatchTaskTa
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
             <input
-              ref={(el) => {
-                if (el) setTimeout(() => el.focus(), 100);
-              }}
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
