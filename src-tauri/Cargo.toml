@@ -8,7 +8,8 @@ repository = "https://github.com/chiriapp/chiri.git"
 edition = "2021"
 
 [build-dependencies]
-cc = "1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
@@ -34,6 +35,10 @@ plist = "1.7"
 cms = "0.3.0-pre.2"
 der = { version = "0.8", features = ["ber"] }
 dirs = "5.0"
+icu_calendar = "2.2"
+icu_locale = "2.2"
+iana-time-zone = "0.1"
+sys-locale = "0.3"
 user-notify = "0.4.1"
 tokio = { version = "1", features = ["sync", "time"] }
 zbus = { version = "5.15.0", default-features = false, features = ["tokio"] }
@@ -46,9 +51,6 @@ winrt-toast-reborn = "0.3.8"
 [target.'cfg(target_os = "macos")'.dependencies]
 tauri-plugin-http = { version = "2", default-features = false, features = ["native-tls", "macos-system-configuration"] }
 reqwest = { version = "0.12", features = ["native-tls"] }
-objc2 = "0.5"
-objc2-foundation = { version = "0.2", features = ["NSProcessInfo", "NSString"] }
-objc2-app-kit = { version = "0.2", features = ["NSApplication", "NSMenu", "NSMenuItem", "NSResponder", "NSEvent"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 tauri-plugin-http = { version = "2", default-features = false, features = ["rustls-tls-native-roots"] }

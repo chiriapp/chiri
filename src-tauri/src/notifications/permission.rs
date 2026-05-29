@@ -13,7 +13,7 @@ pub struct NotificationPermissionResult {
     pub status: String,
 }
 
-// macOS FFI bridge (companion: permission.m)
+// macOS FFI bridge (companion: swift/Sources/ChiriMacOSBridge/Notifications.swift)
 #[cfg(target_os = "macos")]
 extern "C" {
     fn check_notification_permission_ffi(callback: extern "C" fn(*const std::os::raw::c_char));

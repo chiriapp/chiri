@@ -5,12 +5,10 @@
 /// flow. Mirrors Chrome/Edge's "Hold ⌘Q to Quit" behaviour.
 #[cfg(target_os = "macos")]
 pub fn is_keyboard_shortcut() -> bool {
-    use objc2_app_kit::{NSApplication, NSEventType};
-    use objc2_foundation::MainThreadMarker;
-    // Menu events on macOS are delivered on the main thread — the unsafe assertion is valid.
-    let mtm = unsafe { MainThreadMarker::new_unchecked() };
-    let app = NSApplication::sharedApplication(mtm);
-    app.currentEvent()
-        .map(|e| unsafe { e.r#type() } == NSEventType::KeyDown)
-        .unwrap_or(false)
+    unsafe { chiri_macos_current_event_is_key_down() != 0 }
+}
+
+#[cfg(target_os = "macos")]
+extern "C" {
+    fn chiri_macos_current_event_is_key_down() -> std::os::raw::c_int;
 }

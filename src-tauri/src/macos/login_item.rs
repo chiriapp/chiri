@@ -7,7 +7,7 @@ mod imp {
 
     static LAUNCHED_DURING_LOGIN: AtomicBool = AtomicBool::new(false);
 
-    #[link(name = "macos_ffi", kind = "static")]
+    #[link(name = "ChiriMacOSBridge", kind = "static")]
     extern "C" {
         fn chiri_macos_login_item_status() -> c_int;
         fn chiri_macos_login_item_enable(error: *mut *mut c_char) -> c_int;
