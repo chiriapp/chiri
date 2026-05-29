@@ -62,7 +62,6 @@ export interface OnboardingStep {
 export interface ServerTypeOption {
   value: ServerType;
   label: string;
-  description: string;
 }
 
 export interface ServerTypeGroup {

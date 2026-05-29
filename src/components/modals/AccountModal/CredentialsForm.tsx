@@ -4,7 +4,7 @@ import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { AdvancedSection } from '$components/modals/AccountModal/AdvancedSection';
 import { ConnectionSuccessBanner } from '$components/modals/AccountModal/ConnectionSuccessBanner';
-import { getPredefinedServerUrl, getServerTypeDescription } from '$constants/settings';
+import { getPredefinedServerUrl } from '$constants/settings';
 import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import type { CalDAVSetupError, CalDAVSetupNotice } from '$lib/caldav/setup';
 import type { Account, ServerType } from '$types';
@@ -138,12 +138,6 @@ export const CredentialsForm = ({
 
   return (
     <form onSubmit={onSubmit} className="p-4 space-y-4">
-      <div className="flex items-center gap-2 pb-1">
-        <span className="text-sm text-surface-500 dark:text-surface-400">
-          {getServerTypeDescription(serverType)}
-        </span>
-      </div>
-
       <div>
         <label
           htmlFor="account-name"

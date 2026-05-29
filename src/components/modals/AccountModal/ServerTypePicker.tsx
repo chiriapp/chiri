@@ -7,7 +7,6 @@ import type { ServerType } from '$types';
 interface ServerTypeCard {
   value: ServerType;
   label: string;
-  description?: string;
 }
 
 interface ServerTypeCategory {
@@ -25,7 +24,7 @@ const CATEGORIES: ServerTypeCategory[] = [
     icon: <Cloud className="size-5" />,
     iconBg: 'bg-semantic-info/15 text-semantic-info',
     servers: [
-      { value: 'fastmail', label: 'Fastmail', description: 'Supports OAuth' },
+      { value: 'fastmail', label: 'Fastmail' },
       { value: 'fruux', label: 'fruux' },
       { value: 'mailbox', label: 'Mailbox.org' },
       { value: 'migadu', label: 'Migadu' },
@@ -39,14 +38,13 @@ const CATEGORIES: ServerTypeCategory[] = [
     icon: <Server className="size-5" />,
     iconBg: 'bg-primary-500/15 text-primary-500',
     servers: [
-      { value: 'baikal', label: 'Baikal', description: 'Basic & Digest auth' },
-      { value: 'nextcloud', label: 'Nextcloud', description: 'Supports quick connect' },
+      { value: 'baikal', label: 'Baikal' },
+      { value: 'nextcloud', label: 'Nextcloud' },
       { value: 'radicale', label: 'Radicale' },
-      { value: 'rustical', label: 'RustiCal', description: 'Supports quick connect' },
+      { value: 'rustical', label: 'RustiCal' },
       {
         value: 'vikunja',
         label: 'Vikunja',
-        description: 'Limited support',
       },
     ],
   },
@@ -101,11 +99,6 @@ export const ServerTypePicker = ({ onSelect }: ServerTypePickerProps) => {
                   <div className="text-sm font-medium text-surface-800 dark:text-surface-200 truncate">
                     {server.label}
                   </div>
-                  {server.description && (
-                    <div className="text-[11px] text-surface-500 dark:text-surface-400 truncate">
-                      {server.description}
-                    </div>
-                  )}
                 </div>
                 <ArrowRight className="size-3.5 shrink-0 text-surface-300 dark:text-surface-500 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors" />
               </button>
