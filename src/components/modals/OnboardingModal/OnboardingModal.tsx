@@ -1,0 +1,345 @@
+import ArrowLeft from 'lucide-react/icons/arrow-left';
+import ArrowRight from 'lucide-react/icons/arrow-right';
+import Bell from 'lucide-react/icons/bell';
+import BellOff from 'lucide-react/icons/bell-off';
+import Check from 'lucide-react/icons/check';
+import Clock from 'lucide-react/icons/clock';
+import Cloud from 'lucide-react/icons/cloud';
+import HardDrive from 'lucide-react/icons/hard-drive';
+import Sparkles from 'lucide-react/icons/sparkles';
+import { useEffect, useRef, useState } from 'react';
+import AppIcon from '$components/Icon';
+import { MacNotificationPermissionCard } from '$components/MacNotificationPermissionCard';
+import { ModalButton } from '$components/ModalButton';
+import { ModalWrapper } from '$components/ModalWrapper';
+import { ActionCard } from '$components/modals/OnboardingModal/ActionCard';
+import { OnboardingAppearanceSettings } from '$components/modals/OnboardingModal/AppearanceSettings';
+import { RegionTimeSettings } from '$components/modals/OnboardingModal/RegionTimeSettings';
+import { ToggleRow } from '$components/modals/OnboardingModal/ToggleRow';
+import { useNotificationContext } from '$context/notificationContext';
+import { useSettingsStore } from '$context/settingsContext';
+import { isMacPlatform } from '$utils/platform';
+
+interface OnboardingModalProps {
+  onAddAccount: () => void;
+}
+
+type TaskHome = 'local' | 'caldav';
+
+const STEP_COUNT = 6;
+const STEP_IDS = ['welcome', 'home', 'theme', 'region-time', 'notifications', 'ready'] as const;
+
+export const OnboardingModal = ({ onAddAccount }: OnboardingModalProps) => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [taskHome, setTaskHome] = useState<TaskHome>('caldav');
+  const appliedMacNotificationDefaultsRef = useRef(false);
+  const {
+    setOnboardingCompleted,
+    notifications,
+    setNotifications,
+    notifyReminders,
+    setNotifyReminders,
+    notifyOverdue,
+    setNotifyOverdue,
+  } = useSettingsStore();
+  const { permissionStatus, isCheckingPermission, requestPermission } = useNotificationContext();
+
+  const isMac = isMacPlatform();
+  const macPermissionPending =
+    isMac &&
+    permissionStatus !== null &&
+    permissionStatus !== 'granted' &&
+    permissionStatus !== 'provisional';
+  const isLastStep = currentStep === STEP_COUNT - 1;
+
+  useEffect(() => {
+    if (!isMac || currentStep !== 4 || appliedMacNotificationDefaultsRef.current) return;
+
+    appliedMacNotificationDefaultsRef.current = true;
+    setNotifications(false);
+    setNotifyReminders(false);
+    setNotifyOverdue(false);
+  }, [currentStep, isMac, setNotifications, setNotifyOverdue, setNotifyReminders]);
+
+  const completeOnboarding = () => {
+    setOnboardingCompleted(true);
+  };
+
+  const finishOnboarding = () => {
+    completeOnboarding();
+  };
+
+  const connectCalDAVNow = () => {
+    onAddAccount();
+  };
+
+  const handleNext = () => {
+    if (isLastStep) {
+      finishOnboarding();
+      return;
+    }
+
+    setCurrentStep((step) => Math.min(step + 1, STEP_COUNT - 1));
+  };
+
+  const handleBack = () => {
+    setCurrentStep((step) => Math.max(step - 1, 0));
+  };
+
+  const handleNotificationsChange = (enabled: boolean) => {
+    setNotifications(enabled);
+    if (!enabled) {
+      setNotifyReminders(false);
+      setNotifyOverdue(false);
+    }
+  };
+
+  const primaryLabel =
+    currentStep === 1
+      ? taskHome === 'caldav'
+        ? 'Connect account'
+        : 'Continue'
+      : isLastStep
+        ? 'Start Chiri'
+        : 'Continue';
+
+  const footerButtonClassName = 'h-9';
+  const footerLeft = (
+    <ModalButton
+      variant="secondary"
+      onClick={handleBack}
+      disabled={currentStep === 0}
+      className={`${footerButtonClassName} ${currentStep === 0 ? 'invisible pointer-events-none' : ''}`}
+      aria-hidden={currentStep === 0}
+      tabIndex={currentStep === 0 ? -1 : undefined}
+    >
+      <ArrowLeft className="h-4 w-4" />
+      Back
+    </ModalButton>
+  );
+
+  return (
+    <ModalWrapper
+      onClose={() => {}}
+      preventClose
+      zIndex="z-60"
+      className="max-w-2xl"
+      backdropClassName="bg-black/35 backdrop-blur-md"
+      footerLeft={footerLeft}
+      footer={
+        <ModalButton
+          onClick={currentStep === 1 && taskHome === 'caldav' ? connectCalDAVNow : handleNext}
+          className={footerButtonClassName}
+        >
+          {primaryLabel}
+          <ArrowRight className="h-4 w-4" />
+        </ModalButton>
+      }
+    >
+      <div className="mx-auto flex min-h-90 w-full max-w-2xl flex-col gap-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            {STEP_IDS.map((stepId, index) => (
+              <div
+                key={stepId}
+                className={`h-2 rounded-full transition-all ${
+                  index === currentStep
+                    ? 'w-8 bg-primary-500'
+                    : index < currentStep
+                      ? 'w-2 bg-primary-400'
+                      : 'w-2 bg-surface-300 dark:bg-surface-600'
+                }`}
+              />
+            ))}
+          </div>
+          <div className="rounded-lg border border-surface-200 bg-surface-50 px-3 py-1.5 text-xs font-medium text-surface-600 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-400">
+            Step {currentStep + 1} of {STEP_COUNT}
+          </div>
+        </div>
+
+        {currentStep === 0 && (
+          <div className="flex flex-1 flex-col justify-between gap-6">
+            <div className="flex flex-col gap-5">
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary-500 text-primary-contrast shadow-sm">
+                <AppIcon className="h-8 w-8" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-semibold text-surface-950 dark:text-surface-50">
+                  Welcome to Chiri
+                </h2>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-surface-600 dark:text-surface-400">
+                  A cross-platform CalDAV task management app for desktop
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-surface-200 p-3 dark:border-surface-700">
+                <HardDrive className="mb-3 h-5 w-5 text-primary-500" />
+                <div className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                  Local first
+                </div>
+              </div>
+              <div className="rounded-lg border border-surface-200 p-3 dark:border-surface-700">
+                <Cloud className="mb-3 h-5 w-5 text-primary-500" />
+                <div className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                  Sync ready
+                </div>
+              </div>
+              <div className="rounded-lg border border-surface-200 p-3 dark:border-surface-700">
+                <Sparkles className="mb-3 h-5 w-5 text-primary-500" />
+                <div className="text-sm font-medium text-surface-900 dark:text-surface-100">
+                  No fuss
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {currentStep === 1 && (
+          <div className="flex flex-1 flex-col justify-between gap-5">
+            <div>
+              <h2 className="text-2xl font-semibold text-surface-950 dark:text-surface-50">
+                Choose where tasks live
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-surface-600 dark:text-surface-400">
+                Connect your CalDAV account now, or keep tasks local and add sync later.
+              </p>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <ActionCard
+                icon={<Cloud className="h-6 w-6" />}
+                title="CalDAV sync"
+                description="Sync tasks with Nextcloud, Fastmail, Radicale, Baikal, RustiCal, or another CalDAV server."
+                selected={taskHome === 'caldav'}
+                onClick={() => setTaskHome('caldav')}
+              />
+              <ActionCard
+                icon={<HardDrive className="h-6 w-6" />}
+                title="Local-only"
+                description="Keep tasks on this device and add sync later from settings."
+                selected={taskHome === 'local'}
+                onClick={() => setTaskHome('local')}
+              />
+            </div>
+          </div>
+        )}
+
+        {currentStep === 2 && (
+          <div className="flex flex-1 flex-col justify-between gap-5">
+            <div>
+              <h2 className="text-2xl font-semibold text-surface-950 dark:text-surface-50">
+                Set the vibe
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-surface-600 dark:text-surface-400">
+                Pick the default theme and colors before Chiri opens.
+              </p>
+            </div>
+
+            <OnboardingAppearanceSettings />
+          </div>
+        )}
+
+        {currentStep === 3 && (
+          <div className="flex flex-1 flex-col justify-between gap-5">
+            <div>
+              <h2 className="text-2xl font-semibold text-surface-950 dark:text-surface-50">
+                Set your defaults
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-surface-600 dark:text-surface-400">
+                Review the date and time defaults Chiri picked up from your system.
+              </p>
+            </div>
+
+            <RegionTimeSettings />
+          </div>
+        )}
+
+        {currentStep === 4 && (
+          <div className="flex flex-1 flex-col justify-between gap-5">
+            <div>
+              <h2 className="text-2xl font-semibold text-surface-950 dark:text-surface-50">
+                Notifications
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-surface-600 dark:text-surface-400">
+                Choose how Chiri nudges you about due tasks.
+              </p>
+            </div>
+
+            {isMac && permissionStatus !== null && (
+              <MacNotificationPermissionCard
+                permissionStatus={permissionStatus}
+                isCheckingPermission={isCheckingPermission}
+                requestPermission={requestPermission}
+                density="compact"
+              />
+            )}
+
+            <section className="space-y-2 rounded-lg border border-surface-200 p-3 dark:border-surface-700">
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4 text-primary-500" />
+                <h3 className="text-sm font-semibold text-surface-900 dark:text-surface-100">
+                  Alerts
+                </h3>
+              </div>
+              <ToggleRow
+                icon={<Bell className="h-4 w-4" />}
+                label="Desktop notifications"
+                description="Allow Chiri to send system notifications."
+                checked={notifications}
+                disabled={macPermissionPending}
+                onChange={handleNotificationsChange}
+              />
+              <ToggleRow
+                icon={<BellOff className="h-4 w-4" />}
+                label="Reminder alerts"
+                description="Use reminder times saved on tasks."
+                checked={notifyReminders}
+                disabled={!notifications || macPermissionPending}
+                onChange={setNotifyReminders}
+              />
+              <ToggleRow
+                icon={<Clock className="h-4 w-4" />}
+                label="Overdue tasks"
+                description="Notify when a task's due date has passed."
+                checked={notifyOverdue}
+                disabled={!notifications || macPermissionPending}
+                onChange={setNotifyOverdue}
+              />
+            </section>
+          </div>
+        )}
+
+        {currentStep === 5 && (
+          <div className="flex flex-1 flex-col justify-between gap-6">
+            <div className="flex flex-col gap-5">
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary-500 text-primary-contrast">
+                <Check className="h-8 w-8" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-surface-950 dark:text-surface-50">
+                  Ready when you are
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-surface-600 dark:text-surface-400">
+                  Finish setup and Chiri will open straight into your local task list.
+                </p>
+              </div>
+            </div>
+            <div className="rounded-lg border border-surface-200 p-4 dark:border-surface-700">
+              <div className="flex items-center gap-3">
+                <HardDrive className="h-5 w-5 text-primary-500" />
+                <div>
+                  <div className="text-sm font-semibold text-surface-900 dark:text-surface-100">
+                    Local-only
+                  </div>
+                  <div className="mt-1 text-xs text-surface-500 dark:text-surface-400">
+                    No account needed. Sync can be added later.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </ModalWrapper>
+  );
+};

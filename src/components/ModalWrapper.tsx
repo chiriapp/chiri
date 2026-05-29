@@ -33,6 +33,7 @@ interface ModalWrapperProps {
   onEscape?: () => void;
   escapeLayerType?: DismissableLayerType;
   backdropProps?: ModalWrapperBackdropProps;
+  backdropClassName?: string;
   className?: string;
 }
 
@@ -60,6 +61,7 @@ export const ModalWrapper = ({
   onEscape,
   escapeLayerType = 'modal',
   backdropProps,
+  backdropClassName,
   className,
 }: ModalWrapperProps) => {
   const focusTrapRef = useFocusTrap(isOpen);
@@ -84,7 +86,12 @@ export const ModalWrapper = ({
   if (!isOpen) return null;
 
   return (
-    <ModalBackdrop className="p-4 cursor-default" zIndex={zIndex} {...backdropProps}>
+    <ModalBackdrop
+      className="p-4 cursor-default"
+      backdropClassName={backdropClassName}
+      zIndex={zIndex}
+      {...backdropProps}
+    >
       <div
         ref={focusTrapRef}
         role="dialog"

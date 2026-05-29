@@ -9,7 +9,7 @@ import { CalendarModal } from '$components/modals/CalendarModal';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { ImportModal } from '$components/modals/ImportModal/ImportModal';
-import { OnboardingModal } from '$components/modals/OnboardingModal';
+import { OnboardingModal } from '$components/modals/OnboardingModal/OnboardingModal';
 import { SettingsModal } from '$components/modals/SettingsModal';
 import { TaskActionsModal } from '$components/modals/TaskActionsModal';
 import { UpdateModal } from '$components/modals/UpdateModal';
@@ -404,7 +404,6 @@ const App = () => {
 
       {showOnboarding && (
         <OnboardingModal
-          onComplete={() => {}}
           onAddAccount={() => {
             menuHandlers.setEditingAccountId(null);
             menuHandlers.setAccountModalZIndex('z-70');

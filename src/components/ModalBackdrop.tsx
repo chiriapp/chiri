@@ -7,6 +7,7 @@ interface ModalBackdropProps {
   onDragOver?: DragEventHandler<HTMLDivElement>;
   onDragLeave?: DragEventHandler<HTMLDivElement>;
   className?: string;
+  backdropClassName?: string;
   zIndex?: string;
   /** Whether clicking the backdrop closes the modal. Default: false */
   closeOnBackdropClick?: boolean;
@@ -24,6 +25,7 @@ export const ModalBackdrop = ({
   onDragOver,
   onDragLeave,
   className = '',
+  backdropClassName = 'bg-black/50',
   zIndex = 'z-60',
   closeOnBackdropClick = false,
 }: ModalBackdropProps) => {
@@ -40,7 +42,7 @@ export const ModalBackdrop = ({
       <button
         type="button"
         onClick={closeOnBackdropClick ? onClose : undefined}
-        className="absolute inset-0 bg-black/50 cursor-default"
+        className={`absolute inset-0 cursor-default ${backdropClassName}`}
         aria-label="Close modal"
         tabIndex={-1}
       />

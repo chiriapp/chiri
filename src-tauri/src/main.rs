@@ -11,6 +11,7 @@ mod linux;
 mod logging;
 mod macos;
 mod notifications;
+mod preferences;
 mod schema;
 mod tray;
 mod utils;

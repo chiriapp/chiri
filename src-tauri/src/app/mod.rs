@@ -6,7 +6,9 @@ mod setup;
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_sql::Builder as SqlBuilder;
 
-use crate::{http, install, linux, logging, macos, notifications, schema, tray, utils, window};
+use crate::{
+    http, install, linux, logging, macos, notifications, preferences, schema, tray, utils, window,
+};
 
 type AppRuntime = tauri::Wry;
 
@@ -62,6 +64,7 @@ pub fn run() {
             notifications::commands::send_simple_notification,
             notifications::permission::check_notification_permission,
             notifications::permission::request_notification_permission,
+            preferences::get_system_region_preferences,
             tray::commands::get_tray_enabled,
             tray::commands::initialize_tray,
             tray::commands::set_tray_visible,

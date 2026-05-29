@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_CALENDAR_NAME } from '$constants';
 import type { Account } from '$types';
 import { shouldShowOnboarding } from '$utils/onboarding';
 import { makeCalendar, makeTask } from '../fixtures';
@@ -23,16 +22,16 @@ const baseInput = {
 };
 
 describe('shouldShowOnboarding', () => {
-  it('shows onboarding when there are no accounts', () => {
+  it('shows onboarding for an empty workspace', () => {
     expect(shouldShowOnboarding(baseInput)).toBe(true);
   });
 
-  it('shows onboarding for the generated empty local account', () => {
+  it('shows onboarding for a local-only workspace without tasks', () => {
     const account = makeAccount({
       calendars: [
         makeCalendar({
-          displayName: DEFAULT_CALENDAR_NAME,
-          url: 'local://default-calendar',
+          displayName: 'Someday',
+          url: 'local://someday',
         }),
       ],
     });
@@ -60,12 +59,12 @@ describe('shouldShowOnboarding', () => {
     expect(shouldShowOnboarding({ ...baseInput, accounts: [account] })).toBe(false);
   });
 
-  it('does not treat a local account with tasks as generated first-run data', () => {
+  it('does not show after local tasks exist', () => {
     const account = makeAccount({
       calendars: [
         makeCalendar({
-          displayName: DEFAULT_CALENDAR_NAME,
-          url: 'local://default-calendar',
+          displayName: 'Personal',
+          url: 'local://personal',
         }),
       ],
     });
