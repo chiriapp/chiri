@@ -136,7 +136,7 @@ export type ExportType = 'tasks' | 'all-calendars' | 'single-calendar';
 
 export interface KeyboardShortcut {
   id: string;
-  key: string;
+  key?: string;
   ctrl?: boolean;
   meta?: boolean;
   shift?: boolean;

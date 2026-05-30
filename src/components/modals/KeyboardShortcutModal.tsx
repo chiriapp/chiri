@@ -1,4 +1,4 @@
-import RotateCcw from 'lucide-react/icons/rotate-ccw';
+import X from 'lucide-react/icons/x';
 import { useEffect, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
@@ -21,6 +21,7 @@ export const KeyboardShortcutModal = ({
   onSave,
 }: KeyboardShortcutModalProps) => {
   const [pendingShortcut, setPendingShortcut] = useState<Partial<KeyboardShortcut> | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
   const inputRef = useRef<HTMLDivElement>(null);
   const pendingFullShortcut =
     shortcut && pendingShortcut ? { ...shortcut, ...pendingShortcut } : null;
@@ -90,11 +91,18 @@ export const KeyboardShortcutModal = ({
     }
   };
 
-  const handleReset = () => {
-    setPendingShortcut(null);
+  const handleClear = () => {
+    setPendingShortcut({
+      key: undefined,
+      meta: false,
+      ctrl: false,
+      shift: false,
+      alt: false,
+    });
   };
 
   const displayShortcut = pendingShortcut || shortcut;
+  const canClear = Boolean(displayShortcut?.key);
 
   if (!isOpen || !shortcut) return null;
 
@@ -105,8 +113,15 @@ export const KeyboardShortcutModal = ({
       title="Edit Shortcut"
       description={shortcut?.description}
       zIndex="z-60"
-      preventClose
       onEscape={handleEscape}
+      footerLeft={
+        canClear ? (
+          <ModalButton variant="ghost" onClick={handleClear}>
+            <X className="w-4 h-4" />
+            Clear shortcut
+          </ModalButton>
+        ) : undefined
+      }
       footer={
         <>
           <ModalButton variant="secondary" onClick={onClose}>
@@ -118,25 +133,32 @@ export const KeyboardShortcutModal = ({
         </>
       }
     >
-      <div className="text-center space-y-4">
-        <p className="text-sm text-surface-600 dark:text-surface-400">
-          Press the key combination you want to use
-        </p>
-
+      <div className="space-y-4">
         <div
           ref={inputRef}
           role="application"
           // biome-ignore lint/a11y/noNoninteractiveTabindex: we need to make this div focusable to capture key events, but it doesn't have typical interactive behavior
           tabIndex={0}
+          onFocus={() => setIsRecording(true)}
+          onBlur={() => setIsRecording(false)}
           onKeyDown={handleKeyCapture}
-          className={`w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border-2 border-dashed rounded-lg focus:outline-hidden focus:bg-surface-50 dark:focus:bg-surface-900 transition-colors cursor-text ${
+          className={`relative w-full h-20 flex items-center justify-center bg-surface-50 dark:bg-surface-900 border rounded-lg shadow-inner focus:outline-hidden focus:bg-white dark:focus:bg-surface-800 focus:ring-2 focus:ring-primary-500 focus:ring-inset transition-colors cursor-text ${
             conflictingShortcut
-              ? 'border-semantic-error focus:border-semantic-error'
-              : 'border-surface-300 dark:border-surface-600 focus:border-primary-500'
+              ? 'border-semantic-error focus:border-semantic-error focus:ring-semantic-error'
+              : 'border-surface-200 dark:border-surface-700 focus:border-primary-500'
           }`}
           aria-label="Press keys to set shortcut"
         >
-          {displayShortcut ? (
+          {isRecording && (
+            <span
+              className="absolute right-3 top-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-primary-600 dark:text-primary-400"
+              aria-live="polite"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-primary-500" />
+              Recording
+            </span>
+          )}
+          {displayShortcut?.key ? (
             <div className="flex items-center">
               {formatShortcut(displayShortcut)
                 .split(' + ')
@@ -158,45 +180,15 @@ export const KeyboardShortcutModal = ({
                 ))}
             </div>
           ) : (
-            <span className="text-surface-400 dark:text-surface-500 text-sm">
-              Click here and press keys...
-            </span>
+            <span className="text-surface-400 dark:text-surface-500 text-sm">No shortcut set</span>
           )}
         </div>
 
         {conflictingShortcut && (
-          <p className="text-xs text-semantic-error">
+          <p className="text-center text-xs text-semantic-error">
             Already used by {conflictingShortcut.description}.
           </p>
         )}
-
-        {pendingShortcut && (
-          <button
-            type="button"
-            onClick={handleReset}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-surface-500 hover:text-surface-700 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-          >
-            <RotateCcw className="w-3 h-3" />
-            Reset to original
-          </button>
-        )}
-
-        <div className="text-xs text-surface-500 dark:text-surface-400 space-y-1">
-          <p>
-            Press{' '}
-            <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded-sm text-surface-600 dark:text-surface-400">
-              Enter
-            </kbd>{' '}
-            to save
-          </p>
-          <p>
-            Press{' '}
-            <kbd className="px-1.5 py-0.5 bg-surface-100 dark:bg-surface-700 rounded-sm text-surface-600 dark:text-surface-400">
-              Esc
-            </kbd>{' '}
-            to cancel recording
-          </p>
-        </div>
       </div>
     </ModalWrapper>
   );

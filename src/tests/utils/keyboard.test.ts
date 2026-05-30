@@ -27,6 +27,10 @@ describe('getShortcutSignature', () => {
       getShortcutSignature(shortcut({ key: 'n', shift: true })),
     );
   });
+
+  it('returns null for removed shortcuts', () => {
+    expect(getShortcutSignature(shortcut({ key: undefined }))).toBe(null);
+  });
 });
 
 describe('shortcutsConflict', () => {
@@ -40,6 +44,10 @@ describe('shortcutsConflict', () => {
     expect(
       shortcutsConflict(shortcut({ key: 'f', meta: true }), shortcut({ key: 'f', alt: true })),
     ).toBe(false);
+  });
+
+  it('ignores removed shortcuts when checking conflicts', () => {
+    expect(shortcutsConflict(shortcut({ key: undefined }), shortcut({ key: 'f' }))).toBe(false);
   });
 });
 

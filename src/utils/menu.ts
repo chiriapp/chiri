@@ -39,7 +39,7 @@ const menuItemRefs: {
  * converts a KeyboardShortcut to Tauri accelerator format
  */
 const shortcutToAccelerator = (shortcut?: KeyboardShortcut) => {
-  if (!shortcut) return undefined;
+  if (!shortcut?.key) return undefined;
 
   const parts: string[] = [];
 
@@ -48,28 +48,30 @@ const shortcutToAccelerator = (shortcut?: KeyboardShortcut) => {
   if (shortcut.shift) parts.push('Shift');
   if (shortcut.alt) parts.push('Alt');
 
-  if (shortcut.key) {
-    // map special keys
-    const keyMap: Record<string, string> = {
-      ArrowUp: 'Up',
-      ArrowDown: 'Down',
-      ArrowLeft: 'Left',
-      ArrowRight: 'Right',
-      ' ': 'Space',
-    };
-    const key = keyMap[shortcut.key] ?? shortcut.key.toUpperCase();
-    parts.push(key);
-  }
+  // map special keys
+  const keyMap: Record<string, string> = {
+    ArrowUp: 'Up',
+    ArrowDown: 'Down',
+    ArrowLeft: 'Left',
+    ArrowRight: 'Right',
+    ' ': 'Space',
+  };
+  const key = keyMap[shortcut.key] ?? shortcut.key.toUpperCase();
+  parts.push(key);
 
   return parts.length > 0 ? parts.join('+') : undefined;
 };
 
-/**
- * gets the accelerator for a specific shortcut ID from the shortcuts array
- */
-const getAcceleratorById = (shortcuts: KeyboardShortcut[] | undefined, id: string) => {
-  if (!shortcuts) return undefined;
+const getAcceleratorOrDefault = (
+  shortcuts: KeyboardShortcut[] | undefined,
+  id: string,
+  defaultAccelerator: string,
+) => {
+  if (!shortcuts) return defaultAccelerator;
+
   const shortcut = shortcuts.find((s) => s.id === id);
+  if (!shortcut) return defaultAccelerator;
+
   return shortcutToAccelerator(shortcut);
 };
 
@@ -131,7 +133,7 @@ export const createMacMenu = async (options?: {
       await MenuItem.new({
         id: 'preferences',
         text: 'Settings...',
-        accelerator: getAcceleratorById(shortcuts, 'settings') ?? 'CmdOrCtrl+,',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'settings', 'CmdOrCtrl+,'),
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.PREFERENCES);
@@ -174,7 +176,7 @@ export const createMacMenu = async (options?: {
       await MenuItem.new({
         id: 'new-task',
         text: 'New Task',
-        accelerator: getAcceleratorById(shortcuts, 'new-task') ?? 'CmdOrCtrl+N',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'new-task', 'CmdOrCtrl+N'),
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.NEW_TASK);
@@ -231,7 +233,7 @@ export const createMacMenu = async (options?: {
       await MenuItem.new({
         id: 'search',
         text: 'Search Tasks...',
-        accelerator: getAcceleratorById(shortcuts, 'search') ?? 'CmdOrCtrl+F',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'search', 'CmdOrCtrl+F'),
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.SEARCH);
@@ -242,7 +244,7 @@ export const createMacMenu = async (options?: {
         const item = await MenuItem.new({
           id: 'delete-task',
           text: 'Delete Task',
-          accelerator: getAcceleratorById(shortcuts, 'delete') ?? 'CmdOrCtrl+Backspace',
+          accelerator: getAcceleratorOrDefault(shortcuts, 'delete', 'CmdOrCtrl+Backspace'),
           enabled: isAppActionEnabled(isEditorOpen),
           action: () => {
             emit(MENU_EVENTS.DELETE_TASK);
@@ -258,7 +260,7 @@ export const createMacMenu = async (options?: {
   const toggleCompletedItem = await CheckMenuItem.new({
     id: 'toggle-completed',
     text: 'Show Completed Tasks',
-    accelerator: getAcceleratorById(shortcuts, 'toggle-show-completed') ?? 'CmdOrCtrl+Shift+H',
+    accelerator: getAcceleratorOrDefault(shortcuts, 'toggle-show-completed', 'CmdOrCtrl+Shift+H'),
     checked: showCompleted,
     enabled: isAppActionEnabled(),
     action: () => {
@@ -270,7 +272,7 @@ export const createMacMenu = async (options?: {
   const toggleUnstartedItem = await CheckMenuItem.new({
     id: 'toggle-unstarted',
     text: 'Show Unstarted Tasks',
-    accelerator: getAcceleratorById(shortcuts, 'toggle-show-unstarted') ?? 'CmdOrCtrl+U',
+    accelerator: getAcceleratorOrDefault(shortcuts, 'toggle-show-unstarted', 'CmdOrCtrl+U'),
     checked: showUnstarted,
     enabled: isAppActionEnabled(),
     action: () => {
@@ -412,7 +414,7 @@ export const createMacMenu = async (options?: {
       await MenuItem.new({
         id: 'toggle-sidebar',
         text: 'Toggle Sidebar',
-        accelerator: getAcceleratorById(shortcuts, 'toggle-sidebar') ?? 'CmdOrCtrl+E',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'toggle-sidebar', 'CmdOrCtrl+E'),
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.TOGGLE_SIDEBAR);
@@ -430,7 +432,7 @@ export const createMacMenu = async (options?: {
   const syncItem = await MenuItem.new({
     id: 'sync',
     text: 'Sync',
-    accelerator: getAcceleratorById(shortcuts, 'sync') ?? 'CmdOrCtrl+R',
+    accelerator: getAcceleratorOrDefault(shortcuts, 'sync', 'CmdOrCtrl+R'),
     enabled: isAppActionEnabled(hasCaldavAccounts && !isSyncing),
     action: () => {
       emit(MENU_EVENTS.SYNC);
@@ -567,7 +569,7 @@ export const createMacMenu = async (options?: {
       await MenuItem.new({
         id: 'nav-prev-list',
         text: 'Previous List',
-        accelerator: getAcceleratorById(shortcuts, 'nav-prev-list') ?? 'CmdOrCtrl+[',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'nav-prev-list', 'CmdOrCtrl+['),
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.NAV_PREV_LIST);
@@ -576,7 +578,7 @@ export const createMacMenu = async (options?: {
       await MenuItem.new({
         id: 'nav-next-list',
         text: 'Next List',
-        accelerator: getAcceleratorById(shortcuts, 'nav-next-list') ?? 'CmdOrCtrl+]',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'nav-next-list', 'CmdOrCtrl+]'),
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.NAV_NEXT_LIST);
@@ -609,7 +611,7 @@ export const createMacMenu = async (options?: {
       await MenuItem.new({
         id: 'keyboard-shortcuts',
         text: 'Keyboard Shortcuts',
-        accelerator: getAcceleratorById(shortcuts, 'keyboard-shortcuts') ?? 'CmdOrCtrl+/',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'keyboard-shortcuts', 'CmdOrCtrl+/'),
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.SHOW_KEYBOARD_SHORTCUTS);

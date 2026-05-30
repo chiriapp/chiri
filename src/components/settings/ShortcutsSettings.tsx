@@ -1,4 +1,5 @@
 import Pencil from 'lucide-react/icons/pencil';
+import PencilLine from 'lucide-react/icons/pencil-line';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import { useEffect, useState } from 'react';
 import { KeyboardShortcutModal } from '$components/modals/KeyboardShortcutModal';
@@ -106,43 +107,58 @@ export const ShortcutsSettings = ({
                   {group.label}
                 </p>
                 <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden">
-                  {shortcuts.map((shortcut) => (
-                    <div
-                      key={shortcut.id}
-                      className="flex items-center justify-between py-2.5 px-3 bg-white dark:bg-surface-800 border-b border-surface-100 dark:border-surface-700 last:border-0"
-                    >
-                      <span className="text-sm text-surface-600 dark:text-surface-400">
-                        {shortcut.description}
-                      </span>
+                  {shortcuts.map((shortcut) => {
+                    return (
+                      <div
+                        key={shortcut.id}
+                        className="flex items-center justify-between gap-3 py-2.5 px-3 bg-white dark:bg-surface-800 border-b border-surface-100 dark:border-surface-700 last:border-0"
+                      >
+                        <span className="min-w-0 text-sm text-surface-600 dark:text-surface-400">
+                          {shortcut.description}
+                        </span>
 
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5">
-                          {formatShortcut(shortcut)
-                            .split(' + ')
-                            .map((key, keyIndex, arr) => (
-                              <span key={key} className="flex items-center gap-1.5">
-                                <kbd className="inline-flex items-center px-2 py-1 bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-sm text-xs font-mono leading-none text-surface-700 dark:text-surface-300">
-                                  {key}
-                                </kbd>
-                                {keyIndex < arr.length - 1 && !isMacPlatform() && (
-                                  <span className="text-xs text-surface-400">+</span>
-                                )}
-                              </span>
-                            ))}
+                        <div className="flex shrink-0 items-center gap-2">
+                          {shortcut.key ? (
+                            <>
+                              <div className="flex items-center gap-1.5">
+                                {formatShortcut(shortcut)
+                                  .split(' + ')
+                                  .map((key, keyIndex, arr) => (
+                                    <span key={key} className="flex items-center gap-1.5">
+                                      <kbd className="inline-flex items-center px-2 py-1 bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-sm text-xs font-mono leading-none text-surface-700 dark:text-surface-300">
+                                        {key}
+                                      </kbd>
+                                      {keyIndex < arr.length - 1 && !isMacPlatform() && (
+                                        <span className="text-xs text-surface-400">+</span>
+                                      )}
+                                    </span>
+                                  ))}
+                              </div>
+                              <Tooltip content="Edit shortcut" position="bottom" allowInModal>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEdit(shortcut)}
+                                  aria-label={`Edit shortcut for ${shortcut.description}`}
+                                  className="p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                                >
+                                  <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                              </Tooltip>
+                            </>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit(shortcut)}
+                              className="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium text-surface-500 hover:text-surface-700 dark:text-surface-400 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                            >
+                              <PencilLine className="w-3.5 h-3.5" />
+                              Set shortcut
+                            </button>
+                          )}
                         </div>
-                        <Tooltip content="Edit shortcut" position="bottom" allowInModal>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenEdit(shortcut)}
-                            aria-label={`Edit shortcut for ${shortcut.description}`}
-                            className="p-1.5 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                        </Tooltip>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );

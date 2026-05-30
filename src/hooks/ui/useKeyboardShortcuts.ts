@@ -88,7 +88,7 @@ const findMatchingShortcut = (
 ): { shortcut: KeyboardShortcut; handler: () => void } | null => {
   for (const shortcut of shortcuts) {
     const handler = handlers[shortcut.id];
-    if (!handler) continue;
+    if (!handler || !shortcut.key) continue;
 
     if (isModalOpen && BLOCKED_IN_MODAL.has(shortcut.id)) continue;
 
@@ -409,6 +409,8 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
 };
 
 export const getShortcutDisplay = (shortcut: KeyboardShortcut) => {
+  if (!shortcut.key) return 'Not set';
+
   const parts: string[] = [];
 
   if (shortcut.meta) {

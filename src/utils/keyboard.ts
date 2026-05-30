@@ -67,16 +67,17 @@ export const keyboardShortcutsMatch = (
 };
 
 export const formatShortcut = (shortcut: KeyboardShortcut | Partial<KeyboardShortcut>) => {
+  if (!shortcut.key) return 'Not set';
+
   const parts: string[] = [];
   if (shortcut.meta) parts.push(getMetaKeyLabel());
   if (shortcut.ctrl && !shortcut.meta) parts.push('Ctrl');
   if (shortcut.shift) parts.push(getShiftKeyLabel());
   if (shortcut.alt) parts.push(getAltKeyLabel());
-  if (shortcut.key) {
-    const keyDisplay =
-      KEY_DISPLAY_NAMES[shortcut.key] ??
-      (shortcut.key.length === 1 ? shortcut.key.toUpperCase() : shortcut.key);
-    parts.push(keyDisplay);
-  }
-  return parts.join(' + ') ?? 'Press keys...';
+  const keyDisplay =
+    KEY_DISPLAY_NAMES[shortcut.key] ??
+    (shortcut.key.length === 1 ? shortcut.key.toUpperCase() : shortcut.key);
+  parts.push(keyDisplay);
+
+  return parts.join(' + ');
 };
