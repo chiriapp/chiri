@@ -12,7 +12,7 @@ import type { DateFormat, TimeFormat } from '$types/preference';
 /**
  * Standard date format strings for consistent formatting across the app
  */
-export const DATE_FORMATS = {
+const DATE_FORMATS = {
   shortDate: 'MMM d',
   fullDateTime12: 'MMM d, yyyy h:mm a',
   fullDateTime24: 'MMM d, yyyy HH:mm',
