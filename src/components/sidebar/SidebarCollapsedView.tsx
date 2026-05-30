@@ -25,6 +25,8 @@ interface SidebarCollapsedViewProps {
   filtersSectionCollapsed: boolean;
   tagsSectionCollapsed: boolean;
   updateAvailable?: boolean;
+  importShortcut?: string;
+  settingsShortcut?: string;
   onAllTasks: () => void;
   onRecentlyDeleted: () => void;
   onSelectCalendar: (accountId: string, calendarId: string) => void;
@@ -56,6 +58,8 @@ export const SidebarCollapsedView = ({
   filtersSectionCollapsed,
   tagsSectionCollapsed,
   updateAvailable,
+  importShortcut,
+  settingsShortcut,
   onAllTasks,
   onRecentlyDeleted,
   onSelectCalendar,
@@ -68,6 +72,22 @@ export const SidebarCollapsedView = ({
 }: SidebarCollapsedViewProps) => {
   const resolveAccent = useAccentColorResolver();
   const resolvedAccentColor = useResolvedAccentColor();
+  const importTooltip = (
+    <span className="flex items-center gap-3 whitespace-nowrap">
+      <span>Import tasks...</span>
+      {importShortcut && (
+        <span className="text-xs font-normal text-white/70">{importShortcut}</span>
+      )}
+    </span>
+  );
+  const settingsTooltip = (
+    <span className="flex items-center gap-3 whitespace-nowrap">
+      <span>Settings</span>
+      {settingsShortcut && (
+        <span className="text-xs font-normal text-white/70">{settingsShortcut}</span>
+      )}
+    </span>
+  );
 
   return (
     <div
@@ -253,7 +273,7 @@ export const SidebarCollapsedView = ({
             </button>
           </Tooltip>
         )}
-        <Tooltip content="Import tasks..." position="right">
+        <Tooltip content={importTooltip} position="right">
           <button
             type="button"
             onClick={() => onOpenImport?.()}
@@ -262,7 +282,7 @@ export const SidebarCollapsedView = ({
             <Import className="w-5 h-5" />
           </button>
         </Tooltip>
-        <Tooltip content="Settings" position="right">
+        <Tooltip content={settingsTooltip} position="right">
           <button
             type="button"
             onClick={() => onOpenSettings?.()}

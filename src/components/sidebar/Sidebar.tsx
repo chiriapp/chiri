@@ -430,6 +430,8 @@ export const Sidebar = ({
             tagsSectionCollapsed={tagsSectionCollapsed}
             filtersSectionCollapsed={filtersSectionCollapsed}
             updateAvailable={updateAvailable}
+            importShortcut={importShortcut}
+            settingsShortcut={settingsShortcut}
             onAllTasks={() => {
               setAllTasksViewMutation.mutate();
               setActiveAccountMutation.mutate(null);
