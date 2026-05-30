@@ -5,6 +5,7 @@ import { useDeleteTask, usePermanentDeleteTask, useTasks } from '$hooks/queries/
 import { useSetRecentlyDeletedView } from '$hooks/queries/useUIState';
 import { toastManager } from '$hooks/ui/useToast';
 import { pluralize } from '$utils/misc';
+import { isDiscardableUntitledLocalDraft } from '$utils/taskDeletion';
 
 export const useTaskDeletion = () => {
   const {
@@ -27,9 +28,8 @@ export const useTaskDeletion = () => {
       if (!task) return false;
 
       const deleteChildren = deleteSubtasksWithParent === 'delete';
-      const isUntitledLocalDraft = !task.title.trim() && !task.href;
 
-      if (isUntitledLocalDraft) {
+      if (isDiscardableUntitledLocalDraft(task, tasks)) {
         permanentDeleteTaskMutation.mutate({ id: taskId, deleteChildren: true });
         return true;
       }
