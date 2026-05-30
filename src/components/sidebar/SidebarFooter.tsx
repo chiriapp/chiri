@@ -20,7 +20,15 @@ export const SidebarFooter = ({
   isAnyModalOpen,
 }: SidebarFooterProps) => {
   return (
-    <div className="border-t border-surface-200 dark:border-surface-700 flex flex-col justify-between p-2">
+    <div className="relative flex flex-col justify-between border-t border-surface-200 bg-surface-100 p-2 dark:border-surface-700 dark:bg-surface-900">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-linear-to-t from-surface-100 dark:from-surface-900 to-transparent"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-surface-200 dark:bg-surface-700"
+      />
       {updateAvailable && (
         <button
           type="button"
