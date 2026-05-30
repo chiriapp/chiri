@@ -15,7 +15,7 @@ export const defaultState: SettingsState = {
   theme: 'system',
   accentColor: defaultAccentColor,
   autoSync: true,
-  syncInterval: 5,
+  syncInterval: 15,
   syncOnStartup: true,
   syncOnReconnect: true,
   confirmBeforeDeletion: true,
