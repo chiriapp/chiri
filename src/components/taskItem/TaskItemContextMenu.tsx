@@ -9,16 +9,19 @@ import ListPlus from 'lucide-react/icons/list-plus';
 import Loader from 'lucide-react/icons/loader';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Share2 from 'lucide-react/icons/share-2';
+import Tag from 'lucide-react/icons/tag';
 import Trash2 from 'lucide-react/icons/trash-2';
 import type { MouseEventHandler } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { MoveToCalendarModal } from '$components/modals/MoveToCalendar/MoveToCalendarModal';
 import { SubtaskModal } from '$components/modals/SubtaskModal';
 import { PRIORITIES } from '$constants/priority';
 import { useTaskDeletion } from '$hooks/deletion/useTaskDeletion';
 import { useAccounts } from '$hooks/queries/useAccounts';
+import { useTags } from '$hooks/queries/useTags';
 import { useCreateTask, useRestoreTask, useUpdateTask } from '$hooks/queries/useTasks';
 import { useSetSelectedTask } from '$hooks/queries/useUIState';
 import { useContextMenuPosition } from '$hooks/ui/useContextMenu';
@@ -46,6 +49,7 @@ export const TaskItemContextMenu = ({
   setContextMenu,
 }: TaskItemContextMenuProps) => {
   const { data: accounts = [] } = useAccounts();
+  const { data: tags = [] } = useTags();
   const updateTaskMutation = useUpdateTask();
   const createTaskMutation = useCreateTask();
   const restoreTaskMutation = useRestoreTask();
@@ -54,6 +58,7 @@ export const TaskItemContextMenu = ({
   const { menuRef, position } = useContextMenuPosition(contextMenu);
 
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showTagsModal, setShowTagsModal] = useState(false);
   const [showSubtaskModal, setShowSubtaskModal] = useState(false);
   const [showMoveToCalendarModal, setShowMoveToCalendarModal] = useState(false);
   const [isMenuHidden, setIsMenuHidden] = useState(false);
@@ -305,6 +310,19 @@ export const TaskItemContextMenu = ({
                   type="button"
                   onClick={() => {
                     setIsMenuHidden(true);
+                    setShowTagsModal(true);
+                  }}
+                  className={menuItemClass}
+                >
+                  <Tag className="w-4 h-4" />
+                  Manage tags
+                </button>
+
+                <div className="border-t border-surface-200 dark:border-surface-700" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuHidden(true);
                     setShowSubtaskModal(true);
                   }}
                   className={menuItemClass}
@@ -414,6 +432,18 @@ export const TaskItemContextMenu = ({
             setShowExportModal(false);
             setContextMenu(null);
           }}
+        />
+      )}
+
+      {showTagsModal && (
+        <BatchTaskTagsModal
+          isOpen={showTagsModal}
+          onClose={() => {
+            setShowTagsModal(false);
+            setContextMenu(null);
+          }}
+          tasks={[task]}
+          tags={tags}
         />
       )}
 
