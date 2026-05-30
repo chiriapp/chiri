@@ -41,7 +41,7 @@ export const AppSelect = ({ className = '', children, onMouseDown, ...props }: A
   return (
     <div className={`relative ${isFullWidth ? 'block w-full' : 'inline-flex items-center'}`}>
       <select
-        className={`appearance-none px-3 py-0.5 pr-7 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 rounded-sm ${sanitizedClassName}`}
+        className={`appearance-none px-3 py-0.5 pr-7 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 rounded-md ${sanitizedClassName}`}
         onMouseDown={handleMouseDown}
         {...props}
       >
