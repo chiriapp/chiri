@@ -5,6 +5,7 @@ import Palette from 'lucide-react/icons/palette';
 import { useState } from 'react';
 import { ColorSchemeSelect, type ColorSchemeSelectOption } from '$components/ColorSchemeSelect';
 import { ComposedInput } from '$components/ComposedInput';
+import { TaskListDensityPreview } from '$components/settings/TaskListDensityPreview';
 import { COLOR_SCHEMES, getColorSchemeFlavor } from '$constants/colorSchemes';
 import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes/default';
 import { THEME_OPTIONS } from '$constants/theme';
@@ -295,10 +296,11 @@ export const LookAndFeelSettings = () => {
               </button>
             ))}
           </div>
+          <TaskListDensityPreview density={taskListDensity} />
         </div>
+      </div>
 
-        <div className="border-t border-surface-200 dark:border-surface-700" />
-
+      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
         <label className="flex items-center justify-between gap-4 p-4 cursor-pointer">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
