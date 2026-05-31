@@ -5,6 +5,7 @@ import X from 'lucide-react/icons/x';
 import { useEffect, useRef } from 'react';
 import { ComposedTextarea } from '$components/ComposedTextarea';
 import { useToggleTaskComplete } from '$hooks/queries/useTasks';
+import { consumeSelectedTaskTitleAutofocus } from '$hooks/queries/useUIState';
 import { useDebouncedTaskUpdate } from '$hooks/ui/useDebouncedTaskUpdate';
 import type { Task } from '$types';
 
@@ -51,13 +52,13 @@ export const TaskEditorTitle = ({
   const toggleTaskCompleteMutation = useToggleTaskComplete();
   const titleRef = useRef<HTMLTextAreaElement>(null);
 
-  // focus title on open if empty
+  // focus newly-created blank tasks once, without stealing focus on later visits
   useEffect(() => {
     if (readOnly) return;
-    if (!task.title && titleRef.current) {
+    if (!task.title && titleRef.current && consumeSelectedTaskTitleAutofocus(task.id)) {
       titleRef.current.focus();
     }
-  }, [readOnly, task.title]);
+  }, [readOnly, task.id, task.title]);
 
   // Auto-resize title textarea based on content
   useEffect(() => {
