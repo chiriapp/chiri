@@ -18,7 +18,7 @@ export interface UpdateInfo {
   currentVersion: string;
 }
 
-interface UpdateError {
+export interface UpdateError {
   kind: 'check' | 'download';
   title: string;
   description: string;

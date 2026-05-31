@@ -42,3 +42,49 @@ export const cleanChangelog = (text: string) =>
     .replace(/---\s*\n+##\s*📥\s*Downloads.*$/s, '')
     .replace(/\n+##\s*📥\s*Downloads.*$/s, '')
     .trim();
+
+const CHANGELOG_PREVIEW_MAX_LINES = 10;
+const CHANGELOG_PREVIEW_MAX_CHARS = 900;
+
+export const getChangelogPreview = (text: string) => {
+  const normalizedText = text.trim();
+  if (!normalizedText) return '';
+
+  const lines = normalizedText.split(/\r?\n/);
+  const previewLines: string[] = [];
+  let visibleLines = 0;
+  let charCount = 0;
+  let isInFence = false;
+
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    const countsAsVisibleLine = trimmedLine.length > 0;
+    const nextCharCount = charCount + line.length + 1;
+
+    if (
+      previewLines.length > 0 &&
+      !isInFence &&
+      ((countsAsVisibleLine && visibleLines >= CHANGELOG_PREVIEW_MAX_LINES) ||
+        nextCharCount > CHANGELOG_PREVIEW_MAX_CHARS)
+    ) {
+      break;
+    }
+
+    previewLines.push(line);
+    charCount = nextCharCount;
+
+    if (countsAsVisibleLine) {
+      visibleLines += 1;
+    }
+
+    if (/^(```|~~~)/.test(trimmedLine)) {
+      isInFence = !isInFence;
+    }
+  }
+
+  if (isInFence) {
+    previewLines.push('```');
+  }
+
+  return previewLines.join('\n').trim();
+};

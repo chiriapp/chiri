@@ -1,13 +1,13 @@
 import ArrowRight from 'lucide-react/icons/arrow-right';
-import ArrowUpCircle from 'lucide-react/icons/arrow-up-circle';
 import Download from 'lucide-react/icons/download';
+import RefreshCw from 'lucide-react/icons/refresh-cw';
 import { marked } from 'marked';
 import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
-import type { UpdateInfo } from '$hooks/system/useUpdateChecker';
-import { cleanChangelog } from '$utils/github';
+import type { UpdateError, UpdateInfo } from '$hooks/system/useUpdateChecker';
+import { cleanChangelog, getChangelogPreview } from '$utils/github';
 
 interface UpdateModalProps {
   updateInfo: UpdateInfo;
@@ -16,6 +16,7 @@ interface UpdateModalProps {
   onClose: () => void;
   isDownloading: boolean;
   downloadProgress: number;
+  error: UpdateError | null;
 }
 
 export const UpdateModal = ({
@@ -25,109 +26,148 @@ export const UpdateModal = ({
   onClose,
   isDownloading,
   downloadProgress,
+  error,
 }: UpdateModalProps) => {
   const [showChangelogModal, setShowChangelogModal] = useState(false);
 
+  const cleanedChangelog = useMemo(() => cleanChangelog(updateInfo.body ?? ''), [updateInfo.body]);
+  const changelogPreview = useMemo(() => getChangelogPreview(cleanedChangelog), [cleanedChangelog]);
+
   const changelogHtml = useMemo(() => {
-    if (!updateInfo.body) return '';
-    return marked.parse(cleanChangelog(updateInfo.body)) as string;
-  }, [updateInfo.body]);
+    if (!changelogPreview) return '';
+    return marked.parse(changelogPreview) as string;
+  }, [changelogPreview]);
 
   const hasChangelog = changelogHtml.trim().length > 0;
 
-  const releaseDate = updateInfo.date
-    ? new Date(updateInfo.date).toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
-    : null;
+  const releaseDate = useMemo(() => {
+    if (!updateInfo.date) return null;
+
+    const date = new Date(updateInfo.date);
+    if (Number.isNaN(date.getTime())) return null;
+
+    return date.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  }, [updateInfo.date]);
+
+  const boundedProgress = Math.min(100, Math.max(0, downloadProgress));
+  const primaryLabel = error?.kind === 'download' ? 'Retry download' : 'Install update';
 
   return (
     <>
       <ModalWrapper
         onClose={onClose}
-        title="Update Available"
+        title="Update available"
+        description={`Chiri ${updateInfo.version} is ready to be installed.`}
         zIndex="z-60"
-        footerLeft={
-          <ModalButton variant="ghost" onClick={onDismiss} disabled={isDownloading}>
-            Remind me later
-          </ModalButton>
-        }
+        size="lg"
+        preventClose={isDownloading}
         footer={
-          <ModalButton onClick={onDownload} disabled={isDownloading} loading={isDownloading}>
-            {!isDownloading && <Download className="w-4 h-4" />}
-            {isDownloading ? 'Downloading...' : 'Download & Install'}
-          </ModalButton>
+          <>
+            <ModalButton variant="ghost" onClick={onDismiss} disabled={isDownloading}>
+              Remind me later
+            </ModalButton>
+            <ModalButton onClick={onDownload} disabled={isDownloading} loading={isDownloading}>
+              {!isDownloading &&
+                (error?.kind === 'download' ? (
+                  <RefreshCw className="w-4 h-4" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                ))}
+              {isDownloading ? 'Downloading...' : primaryLabel}
+            </ModalButton>
+          </>
         }
       >
-        <div className="space-y-4">
-          {/* Version hero */}
-          <div className="flex items-center gap-3 p-3.5 bg-surface-100 dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700">
-            <div className="shrink-0 w-9 h-9 rounded-full bg-surface-200 dark:bg-surface-700 flex items-center justify-center">
-              <ArrowUpCircle className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+        <div className="space-y-5">
+          <section className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-sm text-surface-500 dark:text-surface-400">
+                v{updateInfo.currentVersion}
+              </span>
+              <ArrowRight className="h-3.5 w-3.5 shrink-0 text-surface-400 dark:text-surface-500" />
+              <span className="font-mono text-sm font-semibold text-surface-900 dark:text-surface-100">
+                v{updateInfo.version}
+              </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-mono text-surface-500 dark:text-surface-300">
-                  v{updateInfo.currentVersion}
-                </span>
-                <ArrowRight className="w-3.5 h-3.5 text-surface-400 dark:text-surface-300 shrink-0" />
-                <span className="text-sm font-semibold font-mono text-primary-600 dark:text-primary-400">
-                  v{updateInfo.version}
-                </span>
-              </div>
-              {releaseDate && (
-                <p className="text-xs text-surface-500 dark:text-surface-400 mt-0.5">
-                  Released {releaseDate}
-                </p>
-              )}
-            </div>
-          </div>
 
-          {/* Changelog teaser */}
-          {hasChangelog && (
-            <div>
-              <div className="relative overflow-hidden rounded-lg max-h-36">
-                <div
-                  className="text-sm prose prose-sm dark:prose-invert max-w-none px-1
-                    [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-surface-800 dark:[&_h2]:text-surface-200 [&_h2]:mt-3 [&_h2]:mb-1.5 [&_h2:first-child]:mt-0
-                    [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:text-surface-700 dark:[&_h3]:text-surface-300 [&_h3]:mt-2 [&_h3]:mb-1
-                    [&_p]:text-surface-600 dark:[&_p]:text-surface-400 [&_p]:my-1
-                    [&_ul]:list-disc [&_ul]:list-outside [&_ul]:ml-4 [&_ul]:my-1 [&_ul]:space-y-0.5 [&_ul]:text-surface-600 dark:[&_ul]:text-surface-400
-                    [&_strong]:font-semibold
-                    [&_a]:text-primary-600 dark:[&_a]:text-primary-400"
-                  // biome-ignore lint/security/noDangerouslySetInnerHtml: Markdown from trusted changelog content
-                  dangerouslySetInnerHTML={{ __html: changelogHtml }}
-                />
-                <div className="absolute bottom-0 inset-x-0 h-14 bg-linear-to-t from-white dark:from-surface-800 to-transparent pointer-events-none" />
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowChangelogModal(true)}
-                className="mt-1.5 text-xs text-primary-600 dark:text-primary-400 hover:underline"
-              >
-                Read more
-              </button>
+            {releaseDate && (
+              <p className="text-xs text-surface-500 dark:text-surface-400">
+                Released {releaseDate}
+              </p>
+            )}
+
+            <p className="max-w-xl text-sm text-surface-600 dark:text-surface-400">
+              Chiri will relaunch automatically after the update is installed.
+            </p>
+          </section>
+
+          {error && (
+            <div role="alert" className="border-l-2 border-semantic-error py-0.5 pl-3">
+              <p className="text-sm font-semibold text-semantic-error">{error.title}</p>
+              <p className="mt-1 text-xs text-semantic-error/90">{error.description}</p>
             </div>
           )}
 
-          {/* Download progress */}
           {isDownloading && (
-            <div className="space-y-1.5">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-surface-500 dark:text-surface-400">Downloading update…</span>
+            <section className="space-y-2 border-t border-surface-200 pt-4 dark:border-surface-700">
+              <div className="flex items-center justify-between gap-3 text-xs" aria-live="polite">
+                <span className="font-medium text-surface-700 dark:text-surface-300">
+                  Downloading update
+                </span>
                 <span className="font-medium tabular-nums text-surface-700 dark:text-surface-300">
-                  {Math.round(downloadProgress)}%
+                  {Math.round(boundedProgress)}%
                 </span>
               </div>
-              <div className="w-full bg-surface-200 dark:bg-surface-700 rounded-full h-1.5 overflow-hidden">
+              <div className="h-2 overflow-hidden rounded-full bg-surface-200 dark:bg-surface-700">
                 <div
-                  className="bg-primary-500 h-full rounded-full transition-all duration-300 ease-out"
-                  style={{ width: `${downloadProgress}%` }}
+                  className="h-full rounded-full bg-primary-500 transition-all duration-300 ease-out"
+                  style={{ width: `${boundedProgress}%` }}
                 />
               </div>
-            </div>
+            </section>
+          )}
+
+          {!isDownloading && (
+            <section className="border-t border-surface-200 pt-4 dark:border-surface-700">
+              <h3 className="mb-3 text-base font-semibold text-surface-800 dark:text-surface-200">
+                What's new
+              </h3>
+
+              {hasChangelog ? (
+                <>
+                  <div className="relative max-h-44 overflow-hidden">
+                    <div
+                      className="prose prose-sm max-w-none text-sm dark:prose-invert
+                    [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-sm [&_h2]:font-semibold [&_h2]:text-surface-800 [&_h2:first-child]:mt-0 dark:[&_h2]:text-surface-200
+                    [&_h3]:mb-1.5 [&_h3]:mt-3 [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:text-surface-700 dark:[&_h3]:text-surface-300
+                    [&_p]:my-1.5 [&_p]:text-surface-600 dark:[&_p]:text-surface-400
+                    [&_ul]:mb-0 [&_ul]:mt-1.5 [&_ul]:ml-4 [&_ul]:list-outside [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:text-surface-600 dark:[&_ul]:text-surface-400
+                    [&_strong]:font-semibold
+                    [&_a]:text-primary-600 hover:[&_a]:underline dark:[&_a]:text-primary-400
+                    [&_code]:rounded-sm [&_code]:bg-surface-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-xs dark:[&_code]:bg-surface-800"
+                      // biome-ignore lint/security/noDangerouslySetInnerHtml: Markdown is rendered from trusted changelog content
+                      dangerouslySetInnerHTML={{ __html: changelogHtml }}
+                    />
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-linear-to-t from-white to-transparent dark:from-surface-800" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowChangelogModal(true)}
+                    className="text-xs font-medium text-primary-600 outline-hidden hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-primary-400"
+                  >
+                    Show all
+                  </button>
+                </>
+              ) : (
+                <p className="text-sm text-surface-600 dark:text-surface-400">
+                  No release notes were published for this update.
+                </p>
+              )}
+            </section>
           )}
         </div>
       </ModalWrapper>

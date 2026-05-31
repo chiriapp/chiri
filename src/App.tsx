@@ -72,6 +72,7 @@ const App = () => {
     dismissUpdate,
     isDownloading,
     downloadProgress,
+    error: updateError,
   } = useUpdateChecker();
   const handleHeaderSync = useCallback(() => {
     syncAll({
@@ -440,6 +441,7 @@ const App = () => {
           onClose={() => setShowUpdateModal(false)}
           isDownloading={isDownloading}
           downloadProgress={downloadProgress}
+          error={updateError}
         />
       )}
     </div>
