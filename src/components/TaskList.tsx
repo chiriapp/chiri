@@ -6,6 +6,7 @@ import Plus from 'lucide-react/icons/plus';
 import SearchX from 'lucide-react/icons/search-x';
 import Trash2 from 'lucide-react/icons/trash-2';
 import type { ReactNode } from 'react';
+import { RecentlyDeletedNoticeBanner } from '$components/RecentlyDeletedNoticeBanner';
 import { TaskItem } from '$components/taskItem/TaskItem';
 import { DEFAULT_SORT_CONFIG } from '$constants';
 import { useCreateTask } from '$hooks/queries/useTasks';
@@ -132,26 +133,32 @@ export const TaskList = () => {
     );
 
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <Icon className="w-16 h-16 text-surface-300 dark:text-surface-600 mb-4" />
-        <h3 className="text-lg font-medium text-surface-700 dark:text-surface-300 mb-2">{title}</h3>
-        <p className="text-surface-500 dark:text-surface-400 mb-6 max-w-sm">{description}</p>
-        {showCreateButton && (
-          <button
-            type="button"
-            onClick={handleQuickAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-primary-contrast rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Create Task
-          </button>
-        )}
+      <div className="flex-1 flex flex-col min-h-0 overflow-y-auto p-4 overscroll-contain">
+        {isRecentlyDeleted && <RecentlyDeletedNoticeBanner />}
+        <div className="flex-1 flex flex-col items-center justify-center p-4 text-center">
+          <Icon className="w-16 h-16 text-surface-300 dark:text-surface-600 mb-4" />
+          <h3 className="text-lg font-medium text-surface-700 dark:text-surface-300 mb-2">
+            {title}
+          </h3>
+          <p className="text-surface-500 dark:text-surface-400 mb-6 max-w-sm">{description}</p>
+          {showCreateButton && (
+            <button
+              type="button"
+              onClick={handleQuickAdd}
+              className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-primary-contrast rounded-lg text-sm font-medium hover:bg-primary-600 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Create Task
+            </button>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-y-auto p-4 overscroll-contain">
+      {isRecentlyDeleted && <RecentlyDeletedNoticeBanner />}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -165,7 +172,7 @@ export const TaskList = () => {
           strategy={verticalListSortingStrategy}
           disabled={!isDragEnabled}
         >
-          <div className="space-y-1.5">
+          <div className={isRecentlyDeleted ? 'mt-4 space-y-1.5' : 'space-y-1.5'}>
             {visibleFlattenedTasks.map((task) => (
               <TaskItem
                 key={getSortableItemKey(task.id, task.parentUid)}

@@ -11,6 +11,7 @@ import { TaskEditorDescription } from '$components/taskEditor/TaskEditorDescript
 import { TaskEditorFooter } from '$components/taskEditor/TaskEditorFooter';
 import { TaskEditorHeader } from '$components/taskEditor/TaskEditorHeader';
 import { TaskEditorPriority } from '$components/taskEditor/TaskEditorPriority';
+import { TaskEditorReadOnlyNotice } from '$components/taskEditor/TaskEditorReadOnlyNotice';
 import { TaskEditorReminders } from '$components/taskEditor/TaskEditorReminders';
 import { TaskEditorRepeat } from '$components/taskEditor/TaskEditorRepeat';
 import { TaskEditorStatus } from '$components/taskEditor/TaskEditorStatus';
@@ -351,6 +352,8 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
             useAccentColorForCheckboxes={useAccentColorForCheckboxes}
             readOnly={isReadOnly}
           />
+
+          {isReadOnly && <TaskEditorReadOnlyNotice task={task} />}
 
           {renderedEditorFieldOrder.map((fieldKey) => (
             <Fragment key={fieldKey}>{editorFieldRenderers[fieldKey]()}</Fragment>
