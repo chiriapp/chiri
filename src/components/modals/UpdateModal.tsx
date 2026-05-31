@@ -7,6 +7,7 @@ import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import type { UpdateInfo } from '$hooks/system/useUpdateChecker';
+import { cleanChangelog } from '$utils/github';
 
 interface UpdateModalProps {
   updateInfo: UpdateInfo;
@@ -16,12 +17,6 @@ interface UpdateModalProps {
   isDownloading: boolean;
   downloadProgress: number;
 }
-
-const stripDownloadSection = (text: string) =>
-  text
-    .replace(/---\s*\n+##\s*📥\s*Downloads.*$/s, '')
-    .replace(/\n+##\s*📥\s*Downloads.*$/s, '')
-    .trim();
 
 export const UpdateModal = ({
   updateInfo,
@@ -35,7 +30,7 @@ export const UpdateModal = ({
 
   const changelogHtml = useMemo(() => {
     if (!updateInfo.body) return '';
-    return marked.parse(stripDownloadSection(updateInfo.body)) as string;
+    return marked.parse(cleanChangelog(updateInfo.body)) as string;
   }, [updateInfo.body]);
 
   const hasChangelog = changelogHtml.trim().length > 0;

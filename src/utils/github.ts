@@ -33,3 +33,12 @@ export const createErrorReportIssueUrl = ({
 
   return `${NEW_ISSUE_URL}?${params.toString()}`;
 };
+
+/**
+ * Remove the generated download footer from GitHub release notes.
+ */
+export const cleanChangelog = (text: string) =>
+  text
+    .replace(/---\s*\n+##\s*📥\s*Downloads.*$/s, '')
+    .replace(/\n+##\s*📥\s*Downloads.*$/s, '')
+    .trim();

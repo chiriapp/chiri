@@ -4,23 +4,13 @@ import { marked } from 'marked';
 import { useMemo } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
+import { cleanChangelog } from '$utils/github';
 
 interface ChangelogModalProps {
   version: string;
   changelog: string;
   onClose: () => void;
 }
-
-/**
- * Remove download footer from changelog
- */
-const cleanChangelog = (text: string) => {
-  // Remove the "## 📥 Downloads" section and everything after
-  return text
-    .replace(/---\s*\n+##\s*📥\s*Downloads.*$/s, '')
-    .replace(/\n+##\s*📥\s*Downloads.*$/s, '')
-    .trim();
-};
 
 export const ChangelogModal = ({ version, changelog, onClose }: ChangelogModalProps) => {
   const cleanedChangelog = cleanChangelog(changelog);

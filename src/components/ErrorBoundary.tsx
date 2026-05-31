@@ -2,7 +2,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { arch, exeExtension, locale, platform, version } from '@tauri-apps/plugin-os';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { loggers } from '$lib/logger';
-import { createErrorReportIssueUrl } from '$utils/githubIssue';
+import { createErrorReportIssueUrl } from '$utils/github';
 import { formatPlatformName } from '$utils/platform';
 import { getAppInfo } from '$utils/version';
 

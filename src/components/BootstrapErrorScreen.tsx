@@ -5,7 +5,7 @@ import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { type ReactNode, useState } from 'react';
 import { loggers } from '$lib/logger';
-import { createErrorReportIssueUrl } from '$utils/githubIssue';
+import { createErrorReportIssueUrl } from '$utils/github';
 import { formatPlatformName } from '$utils/platform';
 import { getAppInfo } from '$utils/version';
 
