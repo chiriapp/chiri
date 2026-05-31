@@ -21,18 +21,14 @@
       "~/*": ["./src/*"],
       "$components/*": ["./src/components/*"],
       "$context/*": ["./src/context/*"],
-
       "$constants": ["./src/constants/index.ts"],
       "$constants/*": ["./src/constants/*"],
-
       "$hooks/*": ["./src/hooks/*"],
       "$lib/*": ["./src/lib/*"],
       "$providers/*": ["./src/providers/*"],
       "$styles/*": ["./src/styles/*"],
-
       "$types": ["./src/types/index.ts"],
       "$types/*": ["./src/types/*"],
-
       "$utils/*": ["./src/utils/*"]
     }
   },
