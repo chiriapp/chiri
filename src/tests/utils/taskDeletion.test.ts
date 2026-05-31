@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isDiscardableUntitledLocalDraft } from '$utils/taskDeletion';
+import { RECENTLY_DELETED_RETENTION_DAYS } from '$constants';
+import {
+  getRecentlyDeletedDaysRemaining,
+  getRecentlyDeletedExpirationDate,
+  isDiscardableUntitledLocalDraft,
+  isExpiredRecentlyDeletedTask,
+} from '$utils/taskDeletion';
 import { makeTask } from '../fixtures';
 
 const createdAt = new Date('2025-01-01T00:00:00.000Z');
@@ -67,5 +73,36 @@ describe('isDiscardableUntitledLocalDraft', () => {
     });
 
     expect(isDiscardableUntitledLocalDraft(task, [task])).toBe(false);
+  });
+});
+
+describe('recently deleted retention', () => {
+  it('expires deleted tasks after the retention window', () => {
+    const now = new Date('2026-05-31T12:00:00.000Z');
+
+    expect(
+      isExpiredRecentlyDeletedTask(
+        makeTask({ deletedAt: new Date('2026-05-01T12:00:00.000Z') }),
+        now,
+      ),
+    ).toBe(true);
+    expect(
+      isExpiredRecentlyDeletedTask(
+        makeTask({ deletedAt: new Date('2026-05-02T12:00:01.000Z') }),
+        now,
+      ),
+    ).toBe(false);
+  });
+
+  it('reports the expiration date and remaining days', () => {
+    const deletedAt = new Date('2026-05-01T12:00:00.000Z');
+    const now = new Date('2026-05-21T12:00:00.000Z');
+
+    expect(getRecentlyDeletedExpirationDate(deletedAt)).toEqual(
+      new Date('2026-05-31T12:00:00.000Z'),
+    );
+    expect(getRecentlyDeletedDaysRemaining(deletedAt, now)).toBe(
+      RECENTLY_DELETED_RETENTION_DAYS - 20,
+    );
   });
 });

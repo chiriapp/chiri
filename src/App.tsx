@@ -18,7 +18,7 @@ import { OfflineBanner } from '$components/OfflineBanner';
 import { Sidebar } from '$components/sidebar/Sidebar';
 import { TaskList } from '$components/TaskList';
 import { TaskEditor } from '$components/taskEditor/TaskEditor';
-
+import { RECENTLY_DELETED_CLEANUP_INTERVAL_MS } from '$constants';
 import { useModalState } from '$context/modalStateContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
@@ -41,8 +41,7 @@ import { useAppMenu } from '$hooks/useAppMenu';
 import { useChangelog } from '$hooks/useChangelog';
 import { useMenuHandlers } from '$hooks/useMenuHandlers';
 import { useWebDAVPush } from '$hooks/useWebDAVPush';
-
-import { getTasksByCalendar } from '$lib/store/tasks';
+import { deleteExpiredRecentlyDeletedTasks, getTasksByCalendar } from '$lib/store/tasks';
 
 import { shouldShowOnboarding } from '$utils/onboarding';
 
@@ -220,6 +219,16 @@ const App = () => {
   useNotifications({
     onOpenTaskActions: menuHandlers.handleOpenTaskActions,
   });
+
+  useEffect(() => {
+    deleteExpiredRecentlyDeletedTasks();
+    const intervalId = window.setInterval(
+      deleteExpiredRecentlyDeletedTasks,
+      RECENTLY_DELETED_CLEANUP_INTERVAL_MS,
+    );
+
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useKeyboardShortcuts({
     onOpenSettings: () => {

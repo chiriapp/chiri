@@ -149,6 +149,12 @@ class Database {
     this.notify();
   }
 
+  async deleteExpiredRecentlyDeletedTasks(now?: Date): Promise<number> {
+    const count = await taskOps.deleteExpiredRecentlyDeletedTasks(await this.conn(), now);
+    if (count > 0) this.notify();
+    return count;
+  }
+
   async toggleTaskComplete(id: string): Promise<void> {
     await taskOps.toggleTaskComplete(await this.conn(), id);
     this.notify();

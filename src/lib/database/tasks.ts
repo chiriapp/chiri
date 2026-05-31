@@ -7,6 +7,7 @@ import { toAppleEpoch } from '$lib/ical/vtodo';
 import type { Task, TaskStatus } from '$types';
 import type { TaskRow } from '$types/database';
 import { generateUUID } from '$utils/misc';
+import { getRecentlyDeletedRetentionCutoff } from '$utils/taskDeletion';
 
 export const getAllTasks = async (conn: DatabasePlugin) => {
   const rows = await conn.select<TaskRow[]>('SELECT * FROM tasks');
@@ -373,6 +374,41 @@ export const permanentlyDeleteTask = async (
   if (toDelete.includes(uiState.selectedTaskId || '')) {
     await setSelectedTask(conn, null);
   }
+};
+
+export const deleteExpiredRecentlyDeletedTasks = async (
+  conn: DatabasePlugin,
+  now: Date = new Date(),
+) => {
+  const cutoff = getRecentlyDeletedRetentionCutoff(now).toISOString();
+  const expiredTasks = await conn.select<Array<{ id: string; uid: string }>>(
+    'SELECT id, uid FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at <= $1',
+    [cutoff],
+  );
+
+  if (expiredTasks.length === 0) {
+    return 0;
+  }
+
+  const ids = expiredTasks.map((task) => task.id);
+  const uids = expiredTasks.map((task) => task.uid);
+  const nowIso = new Date().toISOString();
+
+  const uidPlaceholders = uids.map((_, i) => `$${i + 1}`).join(', ');
+  await conn.execute(
+    `UPDATE tasks SET parent_uid = NULL, modified_at = $${uids.length + 1}, synced = 0 WHERE parent_uid IN (${uidPlaceholders})`,
+    [...uids, nowIso],
+  );
+
+  const idPlaceholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+  await conn.execute(`DELETE FROM tasks WHERE id IN (${idPlaceholders})`, ids);
+
+  const uiState = await getUIState(conn);
+  if (ids.includes(uiState.selectedTaskId || '')) {
+    await setSelectedTask(conn, null);
+  }
+
+  return expiredTasks.length;
 };
 
 export const toggleTaskComplete = async (conn: DatabasePlugin, id: string) => {

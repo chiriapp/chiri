@@ -8,6 +8,7 @@ import { dataStore } from '$lib/store';
 import type { DefaultDateOffset, DefaultReminderOffset, Reminder, Task } from '$types';
 import { generateUUID } from '$utils/misc';
 import { getNextOccurrence, parseRRule } from '$utils/recurrence';
+import { isExpiredRecentlyDeletedTask } from '$utils/taskDeletion';
 
 const resolveReminderOffsets = (
   offsets: DefaultReminderOffset[],
@@ -518,6 +519,40 @@ export const permanentlyDeleteTask = (id: string, deleteChildren: boolean = true
         : data.ui.selectedTaskId,
     },
   });
+};
+
+export const deleteExpiredRecentlyDeletedTasks = (now: Date = new Date()) => {
+  const data = dataStore.load();
+  const expiredTasks = data.tasks.filter((task) => isExpiredRecentlyDeletedTask(task, now));
+
+  if (expiredTasks.length === 0) {
+    return 0;
+  }
+
+  db.deleteExpiredRecentlyDeletedTasks(now).catch((e) =>
+    log.error('Failed to persist expired recently deleted cleanup:', e),
+  );
+
+  const expiredIds = new Set(expiredTasks.map((task) => task.id));
+  const expiredUids = new Set(expiredTasks.map((task) => task.uid));
+  const cleanupTime = new Date();
+
+  dataStore.save({
+    ...data,
+    tasks: data.tasks
+      .filter((task) => !expiredIds.has(task.id))
+      .map((task) =>
+        task.parentUid && expiredUids.has(task.parentUid)
+          ? { ...task, parentUid: undefined, modifiedAt: cleanupTime, synced: false }
+          : task,
+      ),
+    ui: {
+      ...data.ui,
+      selectedTaskId: expiredIds.has(data.ui.selectedTaskId ?? '') ? null : data.ui.selectedTaskId,
+    },
+  });
+
+  return expiredTasks.length;
 };
 
 /**

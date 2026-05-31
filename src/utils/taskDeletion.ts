@@ -1,4 +1,7 @@
+import { RECENTLY_DELETED_RETENTION_DAYS } from '$constants';
 import type { Task } from '$types';
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
 const hasRecoverableTaskDetails = (task: Task, allTasks: Task[]) =>
   task.description.trim().length > 0 ||
@@ -23,3 +26,17 @@ export const isDiscardableUntitledLocalDraft = (task: Task, allTasks: Task[] = [
 
   return task.createdAt.getTime() === task.modifiedAt.getTime();
 };
+
+export const getRecentlyDeletedExpirationDate = (deletedAt: Date) =>
+  new Date(deletedAt.getTime() + RECENTLY_DELETED_RETENTION_DAYS * MS_PER_DAY);
+
+export const getRecentlyDeletedRetentionCutoff = (now: Date = new Date()) =>
+  new Date(now.getTime() - RECENTLY_DELETED_RETENTION_DAYS * MS_PER_DAY);
+
+export const getRecentlyDeletedDaysRemaining = (deletedAt: Date, now: Date = new Date()) => {
+  const expiresAt = getRecentlyDeletedExpirationDate(deletedAt);
+  return Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / MS_PER_DAY));
+};
+
+export const isExpiredRecentlyDeletedTask = (task: Task, now: Date = new Date()) =>
+  !!task.deletedAt && task.deletedAt.getTime() <= getRecentlyDeletedRetentionCutoff(now).getTime();

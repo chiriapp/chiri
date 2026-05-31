@@ -60,6 +60,10 @@ class Store {
 
     this.initPromise = (async () => {
       await db.init();
+      const expiredDeletedCount = await db.deleteExpiredRecentlyDeletedTasks();
+      if (expiredDeletedCount > 0) {
+        log.info(`Cleaned up ${expiredDeletedCount} expired recently deleted tasks`);
+      }
       await this.refreshCache();
       this.initialized = true;
       log.info('Data store initialized with SQLite');
