@@ -6,6 +6,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
+import { moveItem } from '$lib/store/reorder';
+import { reorderFilters } from '$lib/store/reorder/filters';
 import {
   createFilter,
   deleteFilter,
@@ -65,6 +67,26 @@ export const useUpdateFilter = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.filters.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.filters.byId(id) });
       queryClient.invalidateQueries({ queryKey: ['filteredTasks'] });
+    },
+  });
+};
+
+export const useReorderFilters = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    onMutate: ({ activeId, overId }: { activeId: string; overId: string }) => {
+      queryClient.setQueryData<Filter[]>(queryKeys.filters.all, (filters) => {
+        if (!filters) return filters;
+        return moveItem(filters, activeId, overId) ?? filters;
+      });
+    },
+    mutationFn: ({ activeId, overId }: { activeId: string; overId: string }) => {
+      reorderFilters(activeId, overId);
+      return Promise.resolve();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.filters.all });
     },
   });
 };

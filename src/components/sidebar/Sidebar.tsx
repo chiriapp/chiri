@@ -403,6 +403,7 @@ export const Sidebar = ({
                 filters={filters}
                 tasks={tasks}
                 activeFilterId={activeFilterId}
+                contextMenu={contextMenu}
                 isAnyModalOpen={isAnyModalOpen}
                 collapsed={filtersSectionCollapsed}
                 onToggle={toggleFiltersSectionCollapsed}
