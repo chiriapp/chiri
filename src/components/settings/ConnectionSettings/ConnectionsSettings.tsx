@@ -8,7 +8,7 @@ import Trash2 from 'lucide-react/icons/trash-2';
 import User from 'lucide-react/icons/user';
 import X from 'lucide-react/icons/x';
 import { useMemo, useState } from 'react';
-import { WebDAVPushAccountStatus } from '$components/settings/WebDAVPushAccountStatus';
+import { WebDAVPushAccountStatus } from '$components/settings/ConnectionSettings/WebDAVPushAccountStatus';
 import { Tooltip } from '$components/Tooltip';
 import { useConnectionStore } from '$context/connectionContext';
 import { useAccountDeletion } from '$hooks/deletion/useAccountDeletion';

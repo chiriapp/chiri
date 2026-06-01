@@ -1,20 +1,11 @@
-import { Info, Zap, ZapOff } from 'lucide-react';
+import Info from 'lucide-react/icons/info';
 import { AppSelect } from '$components/AppSelect';
+import { WebDAVPushSettings } from '$components/settings/SyncSettings/WebDAVPushSettings';
 import { CONNECTIVITY_CHECK_INTERVAL_OPTIONS, SYNC_INTERVAL_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$context/settingsContext';
-import { useAccounts } from '$hooks/queries/useAccounts';
 import { DEFAULT_CONNECTIVITY_CHECK_URL } from '$hooks/system/useOffline';
-import { DEFAULT_NTFY_SERVER_URL } from '$lib/push/ntfyProvider';
-import {
-  LINUX_UNIFIED_PUSH_PROVIDER_ID,
-  NTFY_DIRECT_PROVIDER_ID,
-  type PushProviderId,
-} from '$types/push';
-import { isLinuxPlatform } from '$utils/platform';
 
 export const SyncSettings = () => {
-  const { data: accounts = [] } = useAccounts();
-
   const {
     autoSync,
     setAutoSync,
@@ -30,16 +21,7 @@ export const SyncSettings = () => {
     setConnectivityCheckUrl,
     connectivityCheckInterval,
     setConnectivityCheckInterval,
-    enablePush,
-    setEnablePush,
-    pushProvider,
-    setPushProvider,
-    ntfyServerUrl,
-    setNtfyServerUrl,
   } = useSettingsStore();
-  const showLinuxUnifiedPushOption =
-    isLinuxPlatform() || pushProvider === LINUX_UNIFIED_PUSH_PROVIDER_ID;
-  const showPushProviderSelect = showLinuxUnifiedPushOption;
 
   return (
     <div className="space-y-4">
@@ -122,119 +104,7 @@ export const SyncSettings = () => {
         </label>
       </div>
 
-      <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
-        WebDAV Push
-      </h3>
-      <div className="rounded-lg border border-surface-200 dark:border-surface-700 overflow-hidden bg-white dark:bg-surface-800">
-        <label className="flex items-center justify-between p-4">
-          <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">
-              Enable WebDAV Push (experimental)
-            </p>
-            <p className="text-xs text-surface-500 dark:text-surface-400">
-              Real-time sync when server sends push messages
-            </p>
-          </div>
-          <input
-            type="checkbox"
-            checked={enablePush}
-            onChange={(e) => setEnablePush(e.target.checked)}
-            className="rounded border-surface-300 dark:border-surface-600 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-none"
-          />
-        </label>
-
-        {enablePush && (
-          <>
-            {showPushProviderSelect && (
-              <>
-                <div className="border-t border-surface-200 dark:border-surface-700" />
-
-                <div className="flex items-center justify-between p-4">
-                  <div>
-                    <p className="text-sm text-surface-700 dark:text-surface-300">Push provider</p>
-                    <p className="text-xs text-surface-500 dark:text-surface-400">
-                      How Chiri receives Web Push messages locally
-                    </p>
-                  </div>
-                  <AppSelect
-                    value={pushProvider}
-                    onChange={(e) => setPushProvider(e.target.value as PushProviderId)}
-                    className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0"
-                  >
-                    <option value={NTFY_DIRECT_PROVIDER_ID}>ntfy</option>
-                    {showLinuxUnifiedPushOption && (
-                      <option value={LINUX_UNIFIED_PUSH_PROVIDER_ID}>Linux UnifiedPush</option>
-                    )}
-                  </AppSelect>
-                </div>
-              </>
-            )}
-
-            {pushProvider === NTFY_DIRECT_PROVIDER_ID && (
-              <>
-                <div className="border-t border-surface-200 dark:border-surface-700" />
-
-                <div className="p-4 space-y-2">
-                  <div>
-                    <p className="text-sm text-surface-700 dark:text-surface-300">
-                      ntfy server URL
-                    </p>
-                    <p className="text-xs text-surface-500 dark:text-surface-400">
-                      Leave blank to use ntfy.sh
-                    </p>
-                  </div>
-                  <input
-                    type="url"
-                    value={ntfyServerUrl}
-                    onChange={(e) => setNtfyServerUrl(e.target.value)}
-                    placeholder={DEFAULT_NTFY_SERVER_URL}
-                    className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
-                  />
-                </div>
-              </>
-            )}
-
-            {accounts.length > 0 && (
-              <>
-                <div className="border-t border-surface-200 dark:border-surface-700" />
-                <div className="p-4 space-y-2">
-                  <p className="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide">
-                    Account push support
-                  </p>
-                  <div className="space-y-1">
-                    {accounts.map((account) => {
-                      const supported = account.calendars.some((c) => c.pushSupported);
-                      return (
-                        <div key={account.id} className="flex items-center gap-2 text-sm">
-                          {supported ? (
-                            <Zap className="size-3.5 shrink-0 fill-current text-semantic-success" />
-                          ) : (
-                            <ZapOff className="size-3.5 shrink-0 text-surface-400 dark:text-surface-500" />
-                          )}
-                          <span
-                            className={
-                              supported
-                                ? 'text-surface-700 dark:text-surface-300'
-                                : 'text-surface-400 dark:text-surface-500'
-                            }
-                          >
-                            {account.name}
-                          </span>
-                          {!supported && (
-                            <span className="text-xs text-surface-400 dark:text-surface-500">
-                              — not supported
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
-          </>
-        )}
-      </div>
+      <WebDAVPushSettings />
 
       <h3 className="text-base font-semibold text-surface-800 dark:text-surface-200">
         Connectivity
