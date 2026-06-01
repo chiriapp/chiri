@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
+import { isLinuxPlatform } from '$utils/platform';
 
 export const usePlatform = () => {
+  const isLinux = isLinuxPlatform();
+
   const query = useQuery({
     queryKey: ['platform', 'isGnomeDesktop'],
+    enabled: isLinux,
     queryFn: async () => {
       try {
         return await invoke<boolean>('is_gnome_desktop');
@@ -18,7 +22,7 @@ export const usePlatform = () => {
   });
 
   return {
-    isGNOME: query.data ?? false,
-    isLoading: query.isPending,
+    isGNOME: isLinux && (query.data ?? false),
+    isLoading: isLinux && query.isPending,
   };
 };

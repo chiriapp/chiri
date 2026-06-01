@@ -6,16 +6,19 @@ mod setup;
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_sql::Builder as SqlBuilder;
 
-use crate::{
-    http, install, linux, logging, macos, notifications, preferences, schema, tray, utils, window,
-};
+#[cfg(target_os = "linux")]
+use crate::linux;
+#[cfg(target_os = "macos")]
+use crate::macos;
+
+use crate::{http, install, logging, notifications, preferences, schema, tray, utils, window};
 
 type AppRuntime = tauri::Wry;
 
 pub fn run() {
     setup::configure_process_environment();
 
-    tauri::Builder::default()
+    let builder = tauri::Builder::default()
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // On Linux and Windows, forward args to the deep-link plugin so
@@ -43,22 +46,36 @@ pub fn run() {
                 .add_migrations("sqlite:chiri.db", schema::get_migrations())
                 .build(),
         )
-        .manage(linux::unifiedpush::UnifiedPushState::default())
-        .manage(tray::TrayState::default())
+        .manage(tray::TrayState::default());
+
+    #[cfg(target_os = "linux")]
+    let builder = builder.manage(linux::unifiedpush::UnifiedPushState::default());
+
+    builder
         .invoke_handler(tauri::generate_handler![
             commands::force_quit,
             http::http_request,
             install::get_install_type,
             install::should_disable_updates,
+            #[cfg(target_os = "linux")]
             linux::desktop::is_gnome_desktop,
+            #[cfg(target_os = "linux")]
             linux::unifiedpush::linux_unifiedpush_available,
+            #[cfg(target_os = "linux")]
             linux::unifiedpush::linux_unifiedpush_register,
+            #[cfg(target_os = "linux")]
             linux::unifiedpush::linux_unifiedpush_unregister,
+            #[cfg(target_os = "linux")]
             linux::decorations::set_window_decorations,
+            #[cfg(target_os = "macos")]
             macos::login_item::disable_macos_launch_at_login,
+            #[cfg(target_os = "macos")]
             macos::login_item::enable_macos_launch_at_login,
+            #[cfg(target_os = "macos")]
             macos::login_item::get_macos_launch_at_login_status,
+            #[cfg(target_os = "macos")]
             macos::login_item::was_macos_launched_as_login_item,
+            #[cfg(target_os = "macos")]
             macos::menu::apply_macos_menu_fixes,
             notifications::commands::send_notification_with_actions,
             notifications::commands::send_simple_notification,
@@ -72,6 +89,7 @@ pub fn run() {
             tray::commands::update_tray_sync_time,
             utils::fs::read_file_bytes,
             utils::plist::convert_plist_to_xml,
+            #[cfg(target_os = "macos")]
             window::set_hide_dock_icon_when_window_closed,
         ])
         .setup(setup::setup_app)

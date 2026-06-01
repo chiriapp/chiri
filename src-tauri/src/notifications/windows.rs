@@ -1,8 +1,8 @@
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 use super::{
     actions,
-    types::{NotificationType, SendNotificationRequest},
+    types::{NotificationType, SendNotificationRequest, SimpleNotificationRequest},
 };
 
 /// Ensure the app notification icon is present at a stable, known path.
@@ -89,6 +89,23 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
                 notification_type.clone(),
             );
         })
+        .show(&toast)
+        .map_err(|e| e.to_string())
+}
+
+pub fn send_simple_notification(
+    app: &AppHandle,
+    request: &SimpleNotificationRequest,
+) -> Result<(), String> {
+    use winrt_toast_reborn::{Toast, ToastManager};
+
+    let app_id = app.config().identifier.clone();
+    let mut toast = Toast::new();
+    toast
+        .text1(request.title.as_str())
+        .text2(request.body.as_str());
+
+    ToastManager::new(&app_id)
         .show(&toast)
         .map_err(|e| e.to_string())
 }

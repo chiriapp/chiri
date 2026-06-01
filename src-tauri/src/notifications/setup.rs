@@ -11,6 +11,7 @@ pub fn initialize<R: tauri::Runtime>(app: &mut tauri::App<R>) {
 
     app.manage(notification_manager);
 
+    #[cfg(target_os = "windows")]
     register_windows_platform(app, &bundle_id);
 }
 
@@ -27,6 +28,3 @@ fn register_windows_platform<R: tauri::Runtime>(app: &tauri::App<R>, bundle_id: 
         ),
     }
 }
-
-#[cfg(not(target_os = "windows"))]
-fn register_windows_platform<R: tauri::Runtime>(_app: &tauri::App<R>, _bundle_id: &str) {}

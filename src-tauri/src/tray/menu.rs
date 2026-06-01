@@ -79,22 +79,18 @@ pub(in crate::tray) fn initialize(
     let tray_icon = icon::load(&app_handle)?;
     debug!("[Tray] Tray icon loaded successfully");
 
-    let mut tray_builder = TrayIconBuilder::with_id("main")
+    let tray_builder = TrayIconBuilder::with_id("main")
         .icon(tray_icon)
         .menu(&menu)
         .tooltip("Chiri");
 
     #[cfg(target_os = "macos")]
-    {
-        tray_builder = tray_builder.icon_as_template(true);
-    }
+    let tray_builder = tray_builder.icon_as_template(true);
 
     // Inside Flatpak, the default tray-icon temp path is private to the sandbox.
     // /tmp is shared with the host tray manager, so the SNI icon path resolves.
     #[cfg(target_os = "linux")]
-    {
-        tray_builder = tray_builder.temp_dir_path("/tmp");
-    }
+    let tray_builder = tray_builder.temp_dir_path("/tmp");
 
     let _tray = tray_builder
         .on_menu_event(|app, event| match event.id.as_ref() {

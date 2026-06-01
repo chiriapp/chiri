@@ -5,13 +5,10 @@ use tauri::{Manager, WindowEvent};
 #[cfg(target_os = "macos")]
 static HIDE_DOCK_ICON_WHEN_WINDOW_CLOSED: AtomicBool = AtomicBool::new(true);
 
+#[cfg(target_os = "macos")]
 #[tauri::command]
 pub fn set_hide_dock_icon_when_window_closed(enabled: bool) {
-    #[cfg(target_os = "macos")]
     HIDE_DOCK_ICON_WHEN_WINDOW_CLOSED.store(enabled, Ordering::Relaxed);
-
-    #[cfg(not(target_os = "macos"))]
-    let _ = enabled;
 }
 
 /// Show the dock icon on macOS when the window is shown
@@ -19,9 +16,6 @@ pub fn set_hide_dock_icon_when_window_closed(enabled: bool) {
 pub fn show_dock_icon<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) {
     let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
 }
-
-#[cfg(not(target_os = "macos"))]
-pub fn show_dock_icon<R: tauri::Runtime>(_app_handle: &tauri::AppHandle<R>) {}
 
 /// Hide the dock icon on macOS when the window is hidden
 #[cfg(target_os = "macos")]

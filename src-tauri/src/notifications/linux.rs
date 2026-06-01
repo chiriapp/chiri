@@ -1,8 +1,8 @@
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 
 use super::{
     actions,
-    types::{NotificationType, SendNotificationRequest},
+    types::{NotificationType, SendNotificationRequest, SimpleNotificationRequest},
 };
 
 /// Search the system hicolor icon theme for the first matching candidate name.
@@ -42,15 +42,8 @@ fn find_installed_icon_name(candidates: &[&str]) -> Option<String> {
     None
 }
 
-pub async fn send_notification(
-    app: &AppHandle,
-    request: &SendNotificationRequest,
-) -> Result<(), String> {
-    let mut notif = notify_rust::Notification::new();
-    notif
-        .summary(&request.title)
-        .body(&request.body)
-        .appname(&app.package_info().name);
+fn apply_notification_identity(app: &AppHandle, notif: &mut notify_rust::Notification) {
+    notif.appname(&app.package_info().name);
 
     // Flatpak uses the bundle ID as the icon name; other installs vary (AUR uses
     // the binary name, deb/rpm use the package name), so probe the hicolor theme.
@@ -64,6 +57,15 @@ pub async fn send_notification(
             find_installed_icon_name(&[&bundle_id, &pkg_name, &pkg_name_lower]).unwrap_or(pkg_name);
         notif.icon(&icon_name);
     }
+}
+
+pub async fn send_notification(
+    app: &AppHandle,
+    request: &SendNotificationRequest,
+) -> Result<(), String> {
+    let mut notif = notify_rust::Notification::new();
+    notif.summary(&request.title).body(&request.body);
+    apply_notification_identity(app, &mut notif);
 
     match request.notification_type {
         NotificationType::Overdue => {
@@ -101,5 +103,16 @@ pub async fn send_notification(
         });
     });
 
+    Ok(())
+}
+
+pub async fn send_simple_notification(
+    app: &AppHandle,
+    request: &SimpleNotificationRequest,
+) -> Result<(), String> {
+    let mut notif = notify_rust::Notification::new();
+    notif.summary(&request.title).body(&request.body);
+    apply_notification_identity(app, &mut notif);
+    notif.show().map_err(|e| e.to_string())?;
     Ok(())
 }

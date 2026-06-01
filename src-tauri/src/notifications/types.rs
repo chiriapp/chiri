@@ -1,9 +1,13 @@
 use serde::{Deserialize, Serialize};
 
+#[cfg(target_os = "macos")]
 pub const TASK_OVERDUE_CATEGORY: &str = "garden.chiri.Chiri.task.overdue";
+#[cfg(target_os = "macos")]
 pub const TASK_REMINDER_CATEGORY: &str = "garden.chiri.Chiri.task.reminder";
 
+#[cfg(target_os = "macos")]
 pub const USER_INFO_TASK_ID: &str = "taskId";
+#[cfg(target_os = "macos")]
 pub const USER_INFO_NOTIFICATION_TYPE: &str = "notificationType";
 
 #[derive(Debug, Serialize, Deserialize)]

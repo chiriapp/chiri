@@ -16,10 +16,7 @@ fn is_gnome() -> bool {
 /// Returns true when running on Linux/GNOME.
 #[tauri::command]
 pub async fn is_gnome_desktop() -> Result<bool, String> {
-    #[cfg(target_os = "linux")]
-    return Ok(is_gnome());
-    #[cfg(not(target_os = "linux"))]
-    Ok(false)
+    Ok(is_gnome())
 }
 
 /// Returns the appropriate tray icon theme for the current Linux desktop.

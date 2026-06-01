@@ -7,7 +7,10 @@ use super::AppRuntime;
 
 fn current_theme(app_handle: &tauri::AppHandle<AppRuntime>) -> Theme {
     #[cfg(target_os = "linux")]
-    return crate::linux::desktop::get_tray_theme();
+    {
+        let _ = app_handle;
+        crate::linux::desktop::get_tray_theme()
+    }
 
     #[cfg(not(target_os = "linux"))]
     {

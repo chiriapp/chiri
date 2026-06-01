@@ -3,6 +3,7 @@ use icu_locale::Locale;
 
 use super::locale::{locale_identifier_for_cldr, region_from_locale};
 
+#[cfg(any(target_os = "macos", target_os = "linux", test))]
 pub(super) fn start_of_week_from_sunday_based_number(value: u8) -> Option<&'static str> {
     match value {
         1 => Some("sunday"),

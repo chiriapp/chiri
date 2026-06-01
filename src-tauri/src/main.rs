@@ -9,13 +9,15 @@ mod install;
 mod legacy;
 mod linux;
 mod logging;
-mod macos;
 mod notifications;
 mod preferences;
 mod schema;
 mod tray;
 mod utils;
 mod window;
+
+#[cfg(target_os = "macos")]
+mod macos;
 
 fn main() {
     app::run();

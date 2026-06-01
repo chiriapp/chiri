@@ -104,6 +104,7 @@ fn read_windows_international_value(name: &str) -> Option<String> {
         .filter(|value| !value.is_empty())
 }
 
+#[cfg(target_os = "macos")]
 fn extract_first_u8(value: &str) -> Option<u8> {
     let digits: String = value
         .chars()
