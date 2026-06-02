@@ -1,0 +1,16 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Chiri
+GenericName=CalDAV task manager
+Comment=A cross-platform CalDAV task management app. Currently in very early alpha!
+Exec=Chiri
+Icon=Chiri
+Terminal=false
+Categories=Office;Calendar;
+Keywords=caldav;tasks;todo;calendar;productivity;reminder;sync;nextcloud;gtd;checklist;planner;organize;schedule;agenda;ical;vtodo;
+StartupWMClass=Chiri
+StartupNotify=true
+NoDisplay=true
+X-GNOME-UsesNotifications=true
+X-GNOME-SingleWindow=true
