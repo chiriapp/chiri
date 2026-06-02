@@ -5,10 +5,19 @@ import { useSettingsStore } from '$context/settingsContext';
 import { useSetAllTasksView } from '$hooks/queries/useUIState';
 import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
+import { disablePushForCalendar } from '$lib/push';
 import { deleteCalendar as storeDeleteCalendar } from '$lib/store/calendars';
 import type { Account } from '$types';
 
 const log = loggers.deleteHandlers;
+
+const disablePushBeforeCalendarDeletion = async (accountId: string, calendarId: string) => {
+  try {
+    await disablePushForCalendar(accountId, calendarId);
+  } catch (error) {
+    log.warn('Failed to disable push before deleting calendar:', error);
+  }
+};
 
 export const useCalendarDeletion = () => {
   const queryClient = useQueryClient();
@@ -64,6 +73,8 @@ export const useCalendarDeletion = () => {
       setLoading(true);
 
       try {
+        await disablePushBeforeCalendarDeletion(accountId, calendarId);
+
         if (account?.caldav) {
           await CalDAVClient.getForAccount(accountId).deleteCalendar(calendarId);
         }

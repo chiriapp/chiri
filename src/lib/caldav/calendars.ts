@@ -218,7 +218,7 @@ export const createCalendar = async (
 
   log.info('Calendar created successfully');
 
-  return {
+  const fallbackCalendar: Calendar = {
     id: calendarUrl,
     displayName,
     url: calendarUrl,
@@ -227,6 +227,23 @@ export const createCalendar = async (
     supportedComponents: ['VTODO'],
     sortOrder: 0,
   };
+
+  try {
+    const { calendars } = await discoverCalendars(conn, accountId);
+    const discoveredCalendar = calendars.find(
+      (calendar) => calendar.id === calendarUrl || calendar.url === calendarUrl,
+    );
+
+    if (discoveredCalendar) {
+      return discoveredCalendar;
+    }
+
+    log.warn(`Created calendar "${displayName}", but follow-up discovery did not return it`);
+  } catch (error) {
+    log.warn(`Failed to discover push properties for created calendar "${displayName}":`, error);
+  }
+
+  return fallbackCalendar;
 };
 
 export const probeVtodoCalendarCreation = async (

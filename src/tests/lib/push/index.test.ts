@@ -113,7 +113,7 @@ vi.mock('$lib/queryClient', () => ({
 }));
 vi.mock('$utils/misc', () => ({ generateUUID: mocks.nextUuid }));
 
-import { enablePushForCalendar, initializePushManager } from '$lib/push';
+import { disablePushForCalendar, enablePushForCalendar, initializePushManager } from '$lib/push';
 
 const calendar: Calendar = {
   id: 'calendar-1',
@@ -196,5 +196,21 @@ describe('enablePushForCalendar', () => {
     expect(mocks.startNtfyProviderListening).toHaveBeenCalledTimes(1);
     expect(mocks.getSubscriptions()).toHaveLength(1);
     expect(mocks.getSubscriptions()[0].id).toBe('uuid-1');
+  });
+
+  it('removes provider, server, and local registrations when disabling push', async () => {
+    const stored = subscription('stored');
+    mocks.setSubscriptions([stored]);
+
+    await disablePushForCalendar('account-1', calendar.id);
+
+    expect(mocks.stopNtfyProviderListening).toHaveBeenCalledWith(calendar.id);
+    expect(mocks.removeNtfyProviderSubscription).toHaveBeenCalledWith(stored);
+    expect(mocks.unregisterPushSubscription).toHaveBeenCalledWith(stored.registrationUrl, {
+      username: 'unit-tests',
+      password: 'unit-tests',
+    });
+    expect(mocks.db.deletePushSubscription).toHaveBeenCalledWith(stored.id);
+    expect(mocks.getSubscriptions()).toEqual([]);
   });
 });

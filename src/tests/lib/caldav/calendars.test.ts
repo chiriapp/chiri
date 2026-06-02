@@ -256,6 +256,33 @@ describe('createCalendar', () => {
     expect(result.displayName).toBe('tasks');
   });
 
+  it('returns push metadata from follow-up discovery when available', async () => {
+    vi.mocked(http.mkcalendar).mockResolvedValueOnce(httpOk(201));
+    vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
+    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+      multi([
+        { href: '/calendars/alice/', props: { resourcetype: 'collection' } },
+        {
+          href: '/calendars/alice/tasks/',
+          props: {
+            resourcetype: 'collection,calendar',
+            displayname: 'tasks',
+            'supported-calendar-component-set': '<comp name="VTODO"/>',
+            transports:
+              '<transports><web-push><vapid-public-key>test-vapid</vapid-public-key></web-push></transports>',
+            topic: 'test-topic',
+          },
+        },
+      ]),
+    );
+
+    const result = await createCalendar(conn, 'acct', 'tasks');
+
+    expect(result.pushSupported).toBe(true);
+    expect(result.pushTopic).toBe('test-topic');
+    expect(result.pushVapidKey).toBe('test-vapid');
+  });
+
   it('throws on non-2xx response', async () => {
     vi.mocked(http.mkcalendar).mockResolvedValueOnce(httpOk(500));
 

@@ -7,6 +7,7 @@ import { toastManager } from '$hooks/ui/useToast';
 import { CalDAVClient } from '$lib/caldav';
 import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
+import { disablePushForCalendar } from '$lib/push';
 import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
 import { getAccountById, getAllAccounts } from '$lib/store/accounts';
@@ -286,11 +287,11 @@ const getCalendarUpdates = (
 /**
  * Remove locally-deleted calendars that no longer exist on the server
  */
-const removeDeletedCalendars = (
+const removeDeletedCalendars = async (
   localCalendars: Calendar[],
   remoteCalendarIds: Set<string>,
   activeCalendarId: string | null,
-): boolean => {
+) => {
   let needsRedirectToAllTasks = false;
 
   for (const localCalendar of localCalendars) {
@@ -308,6 +309,15 @@ const removeDeletedCalendars = (
     syncLog.warn(
       `Removing ${tasks.length} tasks from calendar "${localCalendar.displayName}" locally`,
     );
+
+    try {
+      await disablePushForCalendar(localCalendar.accountId, localCalendar.id);
+    } catch (error) {
+      syncLog.warn(
+        `Failed to disable push before removing calendar "${localCalendar.displayName}" locally:`,
+        error,
+      );
+    }
 
     for (const task of tasks) {
       removeLocalTask(task.id);
@@ -411,7 +421,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
 
   // Remove calendars deleted on server and check if redirect is needed
   const currentUIState = getUIState();
-  const needsRedirectToAllTasks = removeDeletedCalendars(
+  const needsRedirectToAllTasks = await removeDeletedCalendars(
     localCalendars,
     remoteCalendarIds,
     currentUIState.activeCalendarId,

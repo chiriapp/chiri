@@ -392,6 +392,8 @@ export const unsubscribeCalendarFromPush = async (accountId: string, calendarId:
     }
 
     await db.deletePushSubscription(subscription.id);
+    runtimeVerifiedSubscriptionIds.delete(subscription.id);
+    removeSubscriptionFromCaches(subscription);
   }
 
   // Invalidate caches

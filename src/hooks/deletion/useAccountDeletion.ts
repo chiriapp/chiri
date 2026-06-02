@@ -2,7 +2,11 @@ import { useCallback } from 'react';
 import { useConfirmDialog } from '$context/confirmDialogContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useDeleteAccount } from '$hooks/queries/useAccounts';
+import { loggers } from '$lib/logger';
+import { disablePushForCalendar } from '$lib/push';
 import type { Account } from '$types';
+
+const log = loggers.deleteHandlers;
 
 export const useAccountDeletion = () => {
   const deleteAccountMutation = useDeleteAccount();
@@ -24,6 +28,16 @@ export const useAccountDeletion = () => {
           destructive: true,
         });
         if (!confirmed) return false;
+      }
+
+      if (account) {
+        for (const calendar of account.calendars) {
+          try {
+            await disablePushForCalendar(accountId, calendar.id);
+          } catch (error) {
+            log.warn('Failed to disable push before deleting account calendar:', error);
+          }
+        }
       }
 
       deleteAccountMutation.mutate(accountId);
