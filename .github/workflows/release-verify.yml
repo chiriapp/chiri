@@ -1,0 +1,168 @@
+name: 'Release verification'
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to verify, for example app-v0.9.0'
+        required: false
+        type: string
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'src-tauri/Cargo.toml'
+      - 'src-tauri/tauri.conf.json'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/release-verify.yml'
+  push:
+    branches:
+      - release
+    paths:
+      - 'package.json'
+      - 'src-tauri/Cargo.toml'
+      - 'src-tauri/tauri.conf.json'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/release-verify.yml'
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  version-consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag || github.ref }}
+
+      - name: Verify version fields
+        run: |
+          set -euo pipefail
+
+          PACKAGE_VERSION=$(jq -r '.version' package.json)
+          TAURI_VERSION=$(jq -r '.version' src-tauri/tauri.conf.json)
+          CARGO_VERSION=$(awk -F '"' '/^version = "/ { print $2; exit }' src-tauri/Cargo.toml)
+
+          echo "package.json: $PACKAGE_VERSION"
+          echo "tauri.conf.json: $TAURI_VERSION"
+          echo "Cargo.toml: $CARGO_VERSION"
+
+          if [ "$PACKAGE_VERSION" != "$TAURI_VERSION" ] || [ "$PACKAGE_VERSION" != "$CARGO_VERSION" ]; then
+            echo "::error::Version mismatch across package.json, tauri.conf.json, and Cargo.toml"
+            exit 1
+          fi
+
+          EVENT_TAG=""
+          if [ "${{ github.event_name }}" = "release" ]; then
+            EVENT_TAG="${{ github.event.release.tag_name }}"
+          elif [ -n "${{ inputs.tag }}" ]; then
+            EVENT_TAG="${{ inputs.tag }}"
+          fi
+
+          if [ -n "$EVENT_TAG" ] && [ "$EVENT_TAG" != "app-v$PACKAGE_VERSION" ]; then
+            echo "::error::Tag $EVENT_TAG does not match package version app-v$PACKAGE_VERSION"
+            exit 1
+          fi
+
+  published-assets:
+    needs: version-consistency
+    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.tag != '')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine release tag and version
+        id: release
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+          else
+            TAG="${{ inputs.tag }}"
+          fi
+
+          VERSION="${TAG#app-v}"
+          if [ "$VERSION" = "$TAG" ]; then
+            echo "::error::Release tag must use the app-v prefix"
+            exit 1
+          fi
+
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Verify expected release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' > assets.txt
+          cat assets.txt
+
+          expected_assets=(
+            "latest.json"
+            "Chiri_${VERSION}_x64-setup.exe"
+            "Chiri_${VERSION}_x64-setup.exe.sig"
+            "Chiri_${VERSION}_arm64-setup.exe"
+            "Chiri_${VERSION}_arm64-setup.exe.sig"
+            "Chiri_${VERSION}_x64_en-US.msi"
+            "Chiri_${VERSION}_x64_en-US.msi.sig"
+            "Chiri_${VERSION}_arm64_en-US.msi"
+            "Chiri_${VERSION}_arm64_en-US.msi.sig"
+            "Chiri_${VERSION}_aarch64.dmg"
+            "Chiri_${VERSION}_x64.dmg"
+            "Chiri_aarch64.app.tar.gz"
+            "Chiri_aarch64.app.tar.gz.sig"
+            "Chiri_x64.app.tar.gz"
+            "Chiri_x64.app.tar.gz.sig"
+            "Chiri_${VERSION}_amd64.deb"
+            "Chiri_${VERSION}_amd64.deb.sig"
+            "Chiri_${VERSION}_arm64.deb"
+            "Chiri_${VERSION}_arm64.deb.sig"
+            "Chiri-${VERSION}-1.x86_64.rpm"
+            "Chiri-${VERSION}-1.x86_64.rpm.sig"
+            "Chiri-${VERSION}-1.aarch64.rpm"
+            "Chiri-${VERSION}-1.aarch64.rpm.sig"
+          )
+
+          missing=0
+          for asset in "${expected_assets[@]}"; do
+            if ! grep -qxF "$asset" assets.txt; then
+              echo "::error::Missing release asset: $asset"
+              missing=1
+            fi
+          done
+
+          exit "$missing"
+
+      - name: Verify updater metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
+          VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p release-assets
+          gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern latest.json \
+            --dir release-assets \
+            --clobber
+
+          jq -e --arg version "$VERSION" '.version == $version' release-assets/latest.json
+          jq -e '.platforms | type == "object" and length > 0' release-assets/latest.json
+
+          jq -er '.platforms[]?.url' release-assets/latest.json | while IFS= read -r url; do
+            case "$url" in
+              "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/"*)
+                ;;
+              *)
+                echo "::error::Unexpected updater asset URL: $url"
+                exit 1
+                ;;
+            esac
+          done
