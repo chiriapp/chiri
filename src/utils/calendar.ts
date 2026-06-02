@@ -1,6 +1,7 @@
 type WeekStartDay = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
 
 export const DAYS_OF_WEEK_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] as const;
+const CALENDAR_GRID_CELLS = 42;
 
 const WEEK_START_MAP: Record<string, WeekStartDay> = {
   sunday: 0,
@@ -42,13 +43,15 @@ export const getMonthStartPadding = (firstDayOfMonth: number, weekStartsOn: Week
 };
 
 /**
- * Create padded days array for calendar grid
+ * Create padded days array for a stable six-row calendar grid
  * @param days - Array of dates in the month
  * @param startPadding - Number of empty cells at start
- * @returns Array with null values for padding followed by dates
+ * @returns Array with null values for padding followed by dates and trailing empty cells
  */
 export const createPaddedDaysArray = (days: Date[], startPadding: number): (Date | null)[] => {
-  return Array(startPadding).fill(null).concat(days);
+  const paddedDays = Array(startPadding).fill(null).concat(days);
+  const endPadding = Math.max(0, CALENDAR_GRID_CELLS - paddedDays.length);
+  return paddedDays.concat(Array(endPadding).fill(null));
 };
 
 /**
