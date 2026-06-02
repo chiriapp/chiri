@@ -65,9 +65,10 @@ export const SidebarAccountItem = ({
     isAccountContextMenuOpen && contextMenu.source === 'account-menu-trigger';
   const isAccountMenuButtonActive =
     isAccountMenuButtonContextMenuOpen || isAccountMenuTriggerActive;
+  const isAccountActionsActive = isAccountContextMenuOpen || isAccountMenuTriggerActive;
   const canRevealActions = !isDragging && !isAnyAccountDragging;
   const actionVisibilityClass =
-    canRevealActions && isAccountMenuButtonActive
+    canRevealActions && isAccountActionsActive
       ? 'opacity-100 pointer-events-auto'
       : `opacity-0 pointer-events-none ${
           canRevealActions
@@ -93,9 +94,11 @@ export const SidebarAccountItem = ({
           onClick={() => onToggleAccount(account.id)}
           onContextMenu={(e) => onContextMenu(e, 'account', account.id)}
           className={`flex h-8 min-w-0 flex-1 items-center gap-2 px-3 rounded-lg text-sm transition-colors cursor-pointer outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-            !isAnyModalOpen && !isAnyAccountDragging
-              ? 'hover:bg-surface-200 dark:hover:bg-surface-700'
-              : ''
+            isAccountContextMenuOpen
+              ? 'bg-surface-200 dark:bg-surface-700'
+              : !isAnyModalOpen && !isAnyAccountDragging
+                ? 'hover:bg-surface-200 dark:hover:bg-surface-700'
+                : ''
           }`}
           {...dragHandleProps}
         >
