@@ -21,7 +21,7 @@ jobs:
     name: Frontend
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Nix
         uses: cachix/install-nix-action@v25
@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Nix
         uses: cachix/install-nix-action@v25
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Nix
         uses: cachix/install-nix-action@v25

@@ -34,7 +34,7 @@ jobs:
     name: Version metadata
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.tag || github.ref }}
 
