@@ -179,6 +179,7 @@ export const Sidebar = ({
     type: 'account' | 'calendar' | 'tag' | 'filter' | 'accounts-section';
     id: string;
     accountId?: string;
+    source?: 'account-menu-trigger';
     x: number;
     y: number;
   } | null>(null);
@@ -307,9 +308,22 @@ export const Sidebar = ({
       return;
     }
 
+    const openedFromAccountMenuTrigger =
+      type === 'account' &&
+      e.target instanceof Element &&
+      e.target.closest<HTMLElement>('[data-account-menu-trigger]')?.dataset.accountMenuTrigger ===
+        id;
+
     setActiveAccountMenuTriggerId(null);
     document.dispatchEvent(new CustomEvent(CLOSE_CONTEXT_MENUS_EVENT));
-    setContextMenu({ type, id, accountId, x: e.clientX, y: e.clientY });
+    setContextMenu({
+      type,
+      id,
+      accountId,
+      source: openedFromAccountMenuTrigger ? 'account-menu-trigger' : undefined,
+      x: e.clientX,
+      y: e.clientY,
+    });
   };
 
   const handleCloseContextMenu = useCallback(() => {

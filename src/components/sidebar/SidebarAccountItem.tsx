@@ -13,7 +13,12 @@ interface SidebarAccountItemProps {
   tasks: Task[];
   expandedAccounts: Set<string>;
   activeCalendarId: string | null;
-  contextMenu: { type: string; id: string; accountId?: string } | null;
+  contextMenu: {
+    type: string;
+    id: string;
+    accountId?: string;
+    source?: 'account-menu-trigger';
+  } | null;
   isAnyModalOpen: boolean;
   isAnyAccountDragging?: boolean;
   isAccountMenuTriggerActive?: boolean;
@@ -56,7 +61,10 @@ export const SidebarAccountItem = ({
     ? ({ ...attributes, ...listeners } as React.HTMLAttributes<HTMLButtonElement>)
     : undefined;
   const isAccountContextMenuOpen = contextMenu?.type === 'account' && contextMenu.id === account.id;
-  const isAccountMenuButtonActive = isAccountContextMenuOpen || isAccountMenuTriggerActive;
+  const isAccountMenuButtonContextMenuOpen =
+    isAccountContextMenuOpen && contextMenu.source === 'account-menu-trigger';
+  const isAccountMenuButtonActive =
+    isAccountMenuButtonContextMenuOpen || isAccountMenuTriggerActive;
   const canRevealActions = !isDragging && !isAnyAccountDragging;
   const actionVisibilityClass =
     canRevealActions && isAccountMenuButtonActive
@@ -125,7 +133,7 @@ export const SidebarAccountItem = ({
             <button
               type="button"
               data-account-menu-trigger={account.id}
-              aria-expanded={isAccountContextMenuOpen}
+              aria-expanded={isAccountMenuButtonContextMenuOpen}
               aria-haspopup="menu"
               onClick={(e) => {
                 onContextMenu(e, 'account', account.id);
