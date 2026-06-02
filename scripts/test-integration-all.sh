@@ -12,7 +12,7 @@
 # in one server don't stop the rest; final exit status is the OR of all servers.
 
 set -uo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit
 
 # Restore .env.local on exit, regardless of how we got here.
 ENV_BACKUP=""
@@ -21,6 +21,7 @@ if [ -f .env.local ]; then
   cp .env.local "$ENV_BACKUP"
 fi
 
+# shellcheck disable=SC2329 # invoked by trap
 cleanup() {
   if [ -n "${SERVER_PID:-}" ]; then
     kill "$SERVER_PID" 2>/dev/null
@@ -52,8 +53,51 @@ wait_for_ready() {
   return 1
 }
 
+RESULT_NAMES=()
+RESULT_STATUSES=()
+RESULT_DURATIONS=()
+RESULT_DETAILS=()
+
+record_result() {
+  local name="$1" status="$2" duration="$3" detail="$4"
+
+  RESULT_NAMES+=("$name")
+  RESULT_STATUSES+=("$status")
+  RESULT_DURATIONS+=("$duration")
+  RESULT_DETAILS+=("$detail")
+}
+
+print_summary() {
+  echo ""
+  echo "Integration summary"
+  printf '  %-10s %-6s %8s  %s\n' "server" "status" "duration" "details"
+  printf '  %-10s %-6s %8s  %s\n' "----------" "------" "--------" "-------"
+
+  for i in "${!RESULT_NAMES[@]}"; do
+    printf '  %-10s %-6s %8ss  %s\n' \
+      "${RESULT_NAMES[$i]}" \
+      "${RESULT_STATUSES[$i]}" \
+      "${RESULT_DURATIONS[$i]}" \
+      "${RESULT_DETAILS[$i]}"
+  done
+
+  if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+    {
+      echo "## CalDAV integration"
+      echo ""
+      echo "| Server | Status | Duration | Details |"
+      echo "| --- | --- | ---: | --- |"
+      for i in "${!RESULT_NAMES[@]}"; do
+        echo "| ${RESULT_NAMES[$i]} | ${RESULT_STATUSES[$i]} | ${RESULT_DURATIONS[$i]}s | ${RESULT_DETAILS[$i]} |"
+      done
+    } >> "$GITHUB_STEP_SUMMARY"
+  fi
+}
+
 run_server() {
   local name="$1" nix_app="$2" env_block="$3" ready_url="$4" ready_auth="$5"
+  local start
+  start=$(date +%s)
 
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -70,10 +114,13 @@ run_server() {
   SERVER_PID=$!
 
   if ! wait_for_ready "$ready_url" "$ready_auth"; then
+    local duration
+    duration=$(($(date +%s) - start))
     echo "  ✗ $name failed to start (see $log)"
     kill "$SERVER_PID" 2>/dev/null
     wait "$SERVER_PID" 2>/dev/null
     SERVER_PID=""
+    record_result "$name" "FAIL" "$duration" "startup failed; log: $log"
     return 1
   fi
 
@@ -81,13 +128,22 @@ run_server() {
   set +e
   pnpm test:integration
   local status=$?
-  set -e
 
   # tear down
   kill "$SERVER_PID" 2>/dev/null
   wait "$SERVER_PID" 2>/dev/null
   SERVER_PID=""
   rm -f "$log"
+
+  local duration
+  duration=$(($(date +%s) - start))
+  if [ "$status" -eq 0 ]; then
+    echo "  ✓ $name passed in ${duration}s"
+    record_result "$name" "PASS" "$duration" "ok"
+  else
+    echo "  ✗ $name failed in ${duration}s"
+    record_result "$name" "FAIL" "$duration" "tests failed"
+  fi
 
   return $status
 }
@@ -145,7 +201,8 @@ EOF
 )" \
   "http://localhost:4000/caldav/principal/unit-tests/" "unit-tests:unit-tests" || FAIL=1
 
-echo ""
+print_summary
+
 if [ "$FAIL" -eq 0 ]; then
   echo "all servers passed ✓"
 else
