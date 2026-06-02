@@ -1,5 +1,9 @@
+import CheckCircle from 'lucide-react/icons/check-circle';
+import CircleAlert from 'lucide-react/icons/circle-alert';
+import Loader2 from 'lucide-react/icons/loader-2';
 import { AppSelect } from '$components/AppSelect';
 import { useSettingsStore } from '$context/settingsContext';
+import { usePushProviderAvailability } from '$hooks/usePushProviderAvailability';
 import { DEFAULT_NTFY_SERVER_URL } from '$lib/push/ntfyProvider';
 import {
   LINUX_UNIFIED_PUSH_PROVIDER_ID,
@@ -20,6 +24,30 @@ export const WebDAVPushSettings = () => {
   const showLinuxUnifiedPushOption =
     isLinuxPlatform() || pushProvider === LINUX_UNIFIED_PUSH_PROVIDER_ID;
   const showPushProviderSelect = showLinuxUnifiedPushOption;
+  const { availability: providerAvailability, pushProviderConfig } = usePushProviderAvailability({
+    enabled: enablePush,
+    pushProvider,
+    ntfyServerUrl,
+  });
+  const providerChecking =
+    providerAvailability.isFetching && providerAvailability.data === undefined;
+  const providerAvailable = providerAvailability.data === true;
+  const providerStatusLabel = providerChecking
+    ? 'Checking'
+    : providerAvailable
+      ? 'Available'
+      : 'Unavailable';
+  const providerStatusClass = providerChecking
+    ? 'text-semantic-info'
+    : providerAvailable
+      ? 'text-semantic-success'
+      : 'text-semantic-warning';
+  const providerName =
+    pushProvider === LINUX_UNIFIED_PUSH_PROVIDER_ID ? 'Linux UnifiedPush' : 'ntfy';
+  const providerDescription =
+    pushProvider === LINUX_UNIFIED_PUSH_PROVIDER_ID
+      ? 'Uses your system UnifiedPush distributor'
+      : `Uses ${pushProviderConfig.ntfyConfig?.serverUrl ?? DEFAULT_NTFY_SERVER_URL}`;
 
   return (
     <>
@@ -94,6 +122,29 @@ export const WebDAVPushSettings = () => {
                 </div>
               </>
             )}
+
+            <div className="border-t border-surface-200 dark:border-surface-700" />
+
+            <div className="flex items-center justify-between gap-4 p-4">
+              <div>
+                <p className="text-sm text-surface-700 dark:text-surface-300">Provider status</p>
+                <p className="text-xs text-surface-500 dark:text-surface-400">
+                  {providerName} - {providerDescription}
+                </p>
+              </div>
+              <span
+                className={`inline-flex items-center gap-1.5 text-xs font-medium shrink-0 ${providerStatusClass}`}
+              >
+                {providerChecking ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : providerAvailable ? (
+                  <CheckCircle className="size-3.5" />
+                ) : (
+                  <CircleAlert className="size-3.5" />
+                )}
+                {providerStatusLabel}
+              </span>
+            </div>
           </>
         )}
       </div>

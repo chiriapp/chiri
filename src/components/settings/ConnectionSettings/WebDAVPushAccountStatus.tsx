@@ -1,14 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
 import CircleAlert from 'lucide-react/icons/circle-alert';
 import Loader2 from 'lucide-react/icons/loader-2';
 import Zap from 'lucide-react/icons/zap';
 import ZapOff from 'lucide-react/icons/zap-off';
-import { useMemo } from 'react';
 import { useSettingsStore } from '$context/settingsContext';
-import { isPushProviderAvailable } from '$lib/push';
-import { createNtfyProviderConfig } from '$lib/push/ntfyProvider';
+import { usePushProviderAvailability } from '$hooks/usePushProviderAvailability';
 import type { Account } from '$types';
-import { NTFY_DIRECT_PROVIDER_ID, type PushProviderConfig } from '$types/push';
 
 type WebDAVPushStatusTone = 'success' | 'warning' | 'muted' | 'info';
 
@@ -91,25 +87,10 @@ const WebDAVPushStatusIcon = ({ icon }: { icon: WebDAVPushStatus['icon'] }) => {
 
 export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProps) => {
   const { enablePush, pushProvider, ntfyServerUrl } = useSettingsStore();
-  const pushProviderConfig = useMemo<PushProviderConfig>(
-    () => ({
-      providerId: pushProvider,
-      ntfyConfig:
-        pushProvider === NTFY_DIRECT_PROVIDER_ID
-          ? createNtfyProviderConfig(ntfyServerUrl)
-          : undefined,
-    }),
-    [pushProvider, ntfyServerUrl],
-  );
-  const providerAvailability = useQuery({
-    queryKey: [
-      'push-provider-availability',
-      pushProviderConfig.providerId,
-      pushProviderConfig.ntfyConfig?.serverUrl ?? '',
-    ],
-    queryFn: () => isPushProviderAvailable(pushProviderConfig),
+  const { availability: providerAvailability } = usePushProviderAvailability({
     enabled: enablePush,
-    staleTime: 60_000,
+    pushProvider,
+    ntfyServerUrl,
   });
 
   if (!enablePush) {
