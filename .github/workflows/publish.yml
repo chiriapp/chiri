@@ -131,17 +131,78 @@ jobs:
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
         id: create_release
-        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: app-v${{ steps.get_version.outputs.version }}
-          release_name: Chiri v${{ steps.get_version.outputs.version }}
-          body: ${{ steps.changelog.outputs.changelog }}
-          draft: true
-          prerelease: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.get_version.outputs.version }}
+          RELEASE_BODY: ${{ steps.changelog.outputs.changelog }}
+        run: |
+          set -euo pipefail
+
+          TAG="app-v${VERSION}"
+          RELEASE_NAME="Chiri v${VERSION}"
+
+          gh api --paginate --slurp "repos/${GITHUB_REPOSITORY}/releases" > releases.json
+          RELEASE_ID=$(jq -r --arg tag "$TAG" '[.[][] | select(.tag_name == $tag)][0].id // empty' releases.json)
+
+          if [ -n "$RELEASE_ID" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" > release.json
+
+            if [ "$(jq -r '.draft' release.json)" != "true" ]; then
+              echo "::error::Release $TAG already exists and is not a draft"
+              exit 1
+            fi
+
+            jq -n \
+              --arg name "$RELEASE_NAME" \
+              --arg body "$RELEASE_BODY" \
+              '{name: $name, body: $body, draft: true, prerelease: false}' \
+              > release-payload.json
+
+            gh api \
+              --method PATCH \
+              "repos/${GITHUB_REPOSITORY}/releases/${RELEASE_ID}" \
+              --input release-payload.json \
+              > release.json
+          else
+            jq -n \
+              --arg tag "$TAG" \
+              --arg name "$RELEASE_NAME" \
+              --arg body "$RELEASE_BODY" \
+              --arg target "$GITHUB_SHA" \
+              '{
+                tag_name: $tag,
+                target_commitish: $target,
+                name: $name,
+                body: $body,
+                draft: true,
+                prerelease: false
+              }' \
+              > release-payload.json
+
+            gh api \
+              --method POST \
+              "repos/${GITHUB_REPOSITORY}/releases" \
+              --input release-payload.json \
+              > release.json
+          fi
+
+          RELEASE_ID=$(jq -r '.id // empty' release.json)
+
+          if [ -z "$RELEASE_ID" ]; then
+            echo "::error::GitHub release ID was empty"
+            exit 1
+          fi
+
+          jq -e --arg tag "$TAG" '
+            .tag_name == $tag and
+            .draft == true and
+            .prerelease == false
+          ' release.json > /dev/null
+
+          echo "id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "Draft release ready: $TAG ($RELEASE_ID)"
 
   # second job: Build and upload artifacts for each platform
   publish-tauri:
@@ -282,4 +343,5 @@ jobs:
         with:
           # use existing release created by prepare-release job
           releaseId: ${{ needs.prepare-release.outputs.release_id }}
+          tagName: app-v${{ needs.prepare-release.outputs.version }}
           args: ${{ matrix.args }}
