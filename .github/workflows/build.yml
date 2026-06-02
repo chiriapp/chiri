@@ -54,11 +54,13 @@ jobs:
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
             label: 'Ubuntu'
-            artifact: 'ubuntu'
+            artifact: 'linux-ubuntu'
+            rpm_artifact: 'linux-fedora'
             args: ''
           - platform: 'ubuntu-22.04-arm'
             label: 'Ubuntu (ARM)'
-            artifact: 'ubuntu-arm'
+            artifact: 'linux-ubuntu-arm'
+            rpm_artifact: 'linux-fedora-arm'
             args: ''
           - platform: 'windows-latest'
             label: 'Windows'
@@ -110,14 +112,45 @@ jobs:
         with:
           args: ${{ matrix.args }} --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
-      - name: Upload build artifacts
+      - name: Upload macOS artifacts
+        if: startsWith(matrix.platform, 'macos')
         uses: actions/upload-artifact@v7
         with:
           name: Chiri-${{ matrix.artifact }}
           path: |
             src-tauri/target/**/release/bundle/**/*.dmg
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Upload Ubuntu artifacts
+        if: startsWith(matrix.platform, 'ubuntu')
+        uses: actions/upload-artifact@v7
+        with:
+          name: Chiri-${{ matrix.artifact }}
+          path: |
             src-tauri/target/**/release/bundle/**/*.deb
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Upload Fedora artifacts
+        if: startsWith(matrix.platform, 'ubuntu')
+        uses: actions/upload-artifact@v7
+        with:
+          name: Chiri-${{ matrix.rpm_artifact }}
+          path: |
             src-tauri/target/**/release/bundle/**/*.rpm
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Upload Windows artifacts
+        if: startsWith(matrix.platform, 'windows')
+        uses: actions/upload-artifact@v7
+        with:
+          name: Chiri-${{ matrix.artifact }}
+          path: |
             src-tauri/target/**/release/bundle/**/*.msi
             src-tauri/target/**/release/bundle/**/*-setup.exe
           if-no-files-found: error
