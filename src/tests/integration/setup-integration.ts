@@ -5,11 +5,15 @@
  * production CalDAV functions can run without a Tauri runtime. also stub the
  * connection store (writes are a side effect we don't care about in tests)
  */
+import { loadEnv } from 'vite';
 import { vi } from 'vitest';
 
-// CHIRI_TEST_CALDAV_* vars are loaded into process.env by Node's --env-file
-// flag (set via NODE_OPTIONS in the test:integration script). vite's env
-// loading only populates import.meta.env, not process.env
+// Vite loads .env files into import.meta.env, but these tests read process.env.
+// preserve shell-provided values and fill missing CHIRI_TEST_* vars from .env.local
+const integrationEnv = loadEnv(import.meta.env.MODE, process.cwd(), 'CHIRI_TEST_');
+for (const [key, value] of Object.entries(integrationEnv)) {
+  process.env[key] ??= value;
+}
 
 vi.mock('$lib/tauriHttp', async () => {
   const shim = await import('./fetch-shim');

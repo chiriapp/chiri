@@ -19,7 +19,7 @@
     "test": "vitest run --project=node --project=jsdom",
     "test:watch": "vitest --project=node --project=jsdom",
     "test:coverage": "vitest run --project=node --project=jsdom --coverage",
-    "test:integration": "node --env-file=.env.local ./node_modules/vitest/vitest.mjs run --project=integration",
+    "test:integration": "vitest run --project=integration",
     "test:integration:all": "bash scripts/test-integration-all.sh"
   },
   "dependencies": {
