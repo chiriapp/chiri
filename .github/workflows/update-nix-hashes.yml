@@ -39,8 +39,10 @@ jobs:
           if [ "${{ github.event_name }}" = "release" ]; then
             TAG="${{ github.event.release.tag_name }}"
             VERSION="${TAG#app-v}"
+          elif [ -n "${{ inputs.version }}" ]; then
+            VERSION="${{ inputs.version }}"
           else
-            VERSION="${{ github.event.inputs.version }}"
+            VERSION=$(node -p "require('./package.json').version")
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Detected version: $VERSION"
@@ -49,8 +51,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          BIN_PACKAGE_FILE="nix/package-bin.nix"
-          SRC_PACKAGE_FILE="nix/package.nix"
+          BIN_PACKAGE_FILE="nix/packages/binary.nix"
           BASE_URL="https://github.com/${{ github.repository }}/releases/download/app-v${VERSION}"
 
           echo "==> Updating Nix hashes for version $VERSION"
@@ -59,34 +60,28 @@ jobs:
           # Function to download and hash a file
           get_hash() {
             local url="$1"
-            local tmpfile=$(mktemp)
+            local tmpfile
+            tmpfile=$(mktemp)
             echo "  Downloading: $url" >&2
-            if curl -sL -o "$tmpfile" "$url"; then
-              local hash=$(sha256sum "$tmpfile" | cut -d' ' -f1)
-              # Convert to SRI format (base64 encoded)
-              local sri="sha256-$(echo "$hash" | xxd -r -p | base64 | tr -d '\n')"
-              rm -f "$tmpfile"
-              echo "$sri"
-            else
-              rm -f "$tmpfile"
-              echo "DOWNLOAD_FAILED"
-            fi
+            curl -fsSL --retry 5 --retry-delay 5 -o "$tmpfile" "$url"
+            nix hash file --type sha256 --sri "$tmpfile"
+            rm -f "$tmpfile"
           }
 
-          echo "--- Binary Package (package-bin.nix) ---"
+          echo "--- Binary Package (nix/packages/binary.nix) ---"
           echo "Fetching hashes for pre-built release assets..."
           echo ""
 
-          X64_LINUX_HASH=$(get_hash "${BASE_URL}/chiri_${VERSION}_amd64.deb")
+          X64_LINUX_HASH=$(get_hash "${BASE_URL}/Chiri_${VERSION}_amd64.deb")
           echo "  x86_64-linux: $X64_LINUX_HASH"
 
-          ARM64_LINUX_HASH=$(get_hash "${BASE_URL}/chiri_${VERSION}_arm64.deb")
+          ARM64_LINUX_HASH=$(get_hash "${BASE_URL}/Chiri_${VERSION}_arm64.deb")
           echo "  aarch64-linux: $ARM64_LINUX_HASH"
 
-          X64_DARWIN_HASH=$(get_hash "${BASE_URL}/chiri_${VERSION}_x64.dmg")
+          X64_DARWIN_HASH=$(get_hash "${BASE_URL}/Chiri_${VERSION}_x64.dmg")
           echo "  x86_64-darwin: $X64_DARWIN_HASH"
 
-          ARM64_DARWIN_HASH=$(get_hash "${BASE_URL}/chiri_${VERSION}_aarch64.dmg")
+          ARM64_DARWIN_HASH=$(get_hash "${BASE_URL}/Chiri_${VERSION}_aarch64.dmg")
           echo "  aarch64-darwin: $ARM64_DARWIN_HASH"
 
           echo ""
@@ -116,38 +111,6 @@ jobs:
           echo "✓ Binary package updated"
           echo ""
 
-          echo "--- Source Package (package.nix) ---"
-          echo "Fetching hash for GitHub source tarball..."
-          echo ""
-
-          # Use nix-prefetch-url to get the correct hash for fetchFromGitHub
-          # GitHub's fetchFromGitHub uses a specific URL format
-          SOURCE_URL="https://github.com/${{ github.repository }}/archive/refs/tags/app-v${VERSION}.tar.gz"
-
-          # Use nix-prefetch-url to get the hash (it handles the unpacking correctly)
-          echo "  Prefetching: $SOURCE_URL"
-          SOURCE_HASH=$(nix-prefetch-url --unpack "$SOURCE_URL" --type sha256 | xargs nix-hash --to-sri --type sha256)
-          echo "  Source tarball: $SOURCE_HASH"
-
-          echo ""
-          echo "Updating $SRC_PACKAGE_FILE..."
-
-          # Update version in source package
-          sed -i "s/version = \"[^\"]*\";/version = \"$VERSION\";/" "$SRC_PACKAGE_FILE"
-
-          # Update source hash using awk for reliable replacement
-          awk -v source_hash="$SOURCE_HASH" '
-          {
-            if (prev_line ~ /# Update this hash when releasing a new version/ && $0 ~ /hash = "sha256-/) {
-              sub(/hash = "sha256-[^"]*"/, "hash = \"" source_hash "\"");
-            }
-            print;
-            prev_line = $0;
-          }' "$SRC_PACKAGE_FILE" > "$SRC_PACKAGE_FILE.tmp" && mv "$SRC_PACKAGE_FILE.tmp" "$SRC_PACKAGE_FILE"
-
-          echo "✓ Source package updated"
-          echo ""
-
           echo "--- Updating dependency hashes ---"
           echo "Running update-hashes.sh to update cargo and pnpm hashes..."
           echo ""
@@ -159,12 +122,15 @@ jobs:
           echo ""
           echo "==> All package files updated!"
 
+      - name: Verify updated Nix source package
+        run: nix build .#source --print-build-logs
+
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add nix/package-bin.nix nix/package.nix
+          git add nix/packages/binary.nix nix/packages/source.nix
 
           if git diff --staged --quiet; then
             echo "No changes to commit (hashes already up to date)"
