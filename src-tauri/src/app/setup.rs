@@ -49,6 +49,17 @@ pub(super) fn setup_app(
         crate::linux::decorations::configure_titlebar_for_de(&window);
     }
 
+    #[cfg(target_os = "linux")]
+    {
+        let state = app.state::<crate::linux::unifiedpush::UnifiedPushState>();
+        if let Err(error) = state.ensure_connector(app.handle()) {
+            log::warn!(
+                "[UnifiedPush] Failed to register connector during setup: {}",
+                error
+            );
+        }
+    }
+
     notifications::initialize(app);
 
     // Tray will be initialized from frontend after reading settings.
