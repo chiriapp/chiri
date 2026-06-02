@@ -7,8 +7,6 @@ pub fn migration() -> Migration {
         version: 22,
         description: "split_caldav_config_from_accounts",
         sql: r#"
-            PRAGMA foreign_keys = OFF;
-
             -- Create caldav_configs table
             CREATE TABLE caldav_configs (
                 account_id TEXT PRIMARY KEY NOT NULL,
@@ -37,25 +35,19 @@ pub fn migration() -> Migration {
                 COALESCE(auth_type, 'basic'), refresh_token, token_expiry
             FROM accounts;
 
-            -- Rebuild accounts without caldav columns
-            CREATE TABLE accounts_new (
-                id TEXT PRIMARY KEY NOT NULL,
-                name TEXT NOT NULL,
-                icon TEXT,
-                emoji TEXT,
-                last_sync TEXT,
-                is_active INTEGER NOT NULL DEFAULT 1,
-                sort_order INTEGER DEFAULT 0
-            );
-
-            INSERT INTO accounts_new (id, name, icon, emoji, last_sync, is_active, sort_order)
-            SELECT id, name, icon, emoji, last_sync, is_active, sort_order
-            FROM accounts;
-
-            DROP TABLE accounts;
-            ALTER TABLE accounts_new RENAME TO accounts;
-
-            PRAGMA foreign_keys = ON;
+            -- Drop only the CalDAV columns from accounts. Rebuilding or dropping
+            -- the parent accounts table would cascade through calendars/tasks
+            -- while sqlx runs migrations with SQLite foreign keys enabled
+            ALTER TABLE accounts DROP COLUMN server_url;
+            ALTER TABLE accounts DROP COLUMN username;
+            ALTER TABLE accounts DROP COLUMN password;
+            ALTER TABLE accounts DROP COLUMN server_type;
+            ALTER TABLE accounts DROP COLUMN calendar_home_url;
+            ALTER TABLE accounts DROP COLUMN principal_url;
+            ALTER TABLE accounts DROP COLUMN accept_invalid_certs;
+            ALTER TABLE accounts DROP COLUMN auth_type;
+            ALTER TABLE accounts DROP COLUMN refresh_token;
+            ALTER TABLE accounts DROP COLUMN token_expiry;
         "#,
         kind: MigrationKind::Up,
     }
