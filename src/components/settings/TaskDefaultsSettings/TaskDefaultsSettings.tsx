@@ -8,9 +8,8 @@ import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
+import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { RepeatModal } from '$components/modals/RepeatModal';
-import { TagModal } from '$components/modals/TagModal';
-import { TagPickerModal } from '$components/modals/TagPickerModal';
 import { TaskDefaultsReminderPickerModal } from '$components/modals/TaskDefaultsReminderPickerModal';
 import { TaskDefaultsColorPicker } from '$components/settings/TaskDefaultsSettings/TaskDefaultsColorPicker';
 import { getIconByName } from '$constants/icons';
@@ -100,9 +99,7 @@ export const TaskDefaultsSettings = () => {
   const resolvedAccentColor = useResolvedAccentColor();
   const { data: accounts = [] } = useAccounts();
   const { data: tags = [] } = useTags();
-  const [showTagPicker, setShowTagPicker] = useState(false);
-  const [createTagName, setCreateTagName] = useState<string | null>(null);
-  const [tagPickerInitialQuery, setTagPickerInitialQuery] = useState('');
+  const [showTagsModal, setShowTagsModal] = useState(false);
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [editingReminderOffset, setEditingReminderOffset] = useState<DefaultReminderOffset | null>(
     null,
@@ -119,12 +116,6 @@ export const TaskDefaultsSettings = () => {
           (o) => !defaultReminders.includes(o.value) || o.value === editingReminderOffset,
         )
       : availableReminderOptions;
-
-  const handleAddTag = (tagId: string) => {
-    if (!defaultTags.includes(tagId)) {
-      setDefaultTags([...defaultTags, tagId]);
-    }
-  };
 
   const handleRemoveTag = (tagId: string) => {
     setDefaultTags(defaultTags.filter((id) => id !== tagId));
@@ -153,7 +144,6 @@ export const TaskDefaultsSettings = () => {
   };
 
   const selectedTags = defaultTags.map((tagId) => tags.find((t) => t.id === tagId)).filter(Boolean);
-  const availableTags = tags.filter((t) => !defaultTags.includes(t.id));
 
   const selectClassName =
     'w-[160px] text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0';
@@ -354,7 +344,7 @@ export const TaskDefaultsSettings = () => {
               })}
               <button
                 type="button"
-                onClick={() => setShowTagPicker(true)}
+                onClick={() => setShowTagsModal(true)}
                 className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs leading-none bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded-sm hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
               >
                 <Plus className="w-3 h-3" />
@@ -509,31 +499,15 @@ export const TaskDefaultsSettings = () => {
         </div>
       </div>
 
-      {showTagPicker && (
-        <TagPickerModal
-          isOpen={showTagPicker}
-          onClose={() => setShowTagPicker(false)}
-          availableTags={availableTags}
-          onSelectTag={handleAddTag}
-          onCreateTag={(name) => {
-            setTagPickerInitialQuery(name);
-            setShowTagPicker(false);
-            setCreateTagName(name);
-          }}
-          allTagsAssigned={availableTags.length === 0 && tags.length > 0}
-          noTagsExist={tags.length === 0}
-          initialQuery={tagPickerInitialQuery}
-        />
-      )}
-
-      {createTagName !== null && (
-        <TagModal
-          tagId={null}
-          initialName={createTagName}
-          onClose={() => {
-            setCreateTagName(null);
-            setShowTagPicker(true);
-          }}
+      {showTagsModal && (
+        <BatchTaskTagsModal
+          isOpen={showTagsModal}
+          onClose={() => setShowTagsModal(false)}
+          tags={tags}
+          selectedTagIds={defaultTags}
+          onSelectedTagIdsChange={setDefaultTags}
+          title="Default Tags"
+          description="Applied to new tasks"
         />
       )}
 

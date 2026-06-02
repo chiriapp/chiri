@@ -2,26 +2,25 @@ import Plus from 'lucide-react/icons/plus';
 import TagIcon from 'lucide-react/icons/tag';
 import X from 'lucide-react/icons/x';
 import { getIconByName } from '$constants/icons';
-import { getAllTags } from '$lib/store/tags';
 import type { Tag, Task } from '$types';
 
 interface TagsProps {
   task: Task;
   tags: Tag[];
-  onAddTag: (tagId: string) => void;
   onRemoveTag: (tagId: string) => void;
-  onOpenTagPicker: () => void;
+  onOpenTagsModal: () => void;
   readOnly?: boolean;
 }
 
 export const TaskEditorTags = ({
   task,
+  tags,
   onRemoveTag,
-  onOpenTagPicker,
+  onOpenTagsModal,
   readOnly = false,
 }: TagsProps) => {
   const taskTags = (task.tags || [])
-    .map((tagId) => getAllTags().find((t) => t.id === tagId))
+    .map((tagId) => tags.find((t) => t.id === tagId))
     .filter(Boolean);
 
   return (
@@ -78,11 +77,11 @@ export const TaskEditorTags = ({
         {!readOnly && (
           <button
             type="button"
-            onClick={onOpenTagPicker}
+            onClick={onOpenTagsModal}
             className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded-sm hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
             <Plus className="w-3 h-3" />
-            Add tag
+            {taskTags.length > 0 ? 'Edit tags' : 'Add tag'}
           </button>
         )}
       </div>

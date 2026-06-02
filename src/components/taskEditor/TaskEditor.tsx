@@ -1,10 +1,9 @@
 import { Fragment, useRef, useState } from 'react';
+import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { MoveToCalendarModal } from '$components/modals/MoveToCalendar/MoveToCalendarModal';
 import { ReminderPickerModal } from '$components/modals/ReminderPickerModal';
 import { RepeatModal } from '$components/modals/RepeatModal';
-import { TagModal } from '$components/modals/TagModal';
-import { TagPickerModal } from '$components/modals/TagPickerModal';
 import { TaskEditorCalendar } from '$components/taskEditor/TaskEditorCalendar';
 import { TaskEditorDates } from '$components/taskEditor/TaskEditorDates';
 import { TaskEditorDescription } from '$components/taskEditor/TaskEditorDescription';
@@ -25,7 +24,6 @@ import { useAccounts } from '$hooks/queries/useAccounts';
 import { useTags } from '$hooks/queries/useTags';
 import {
   useAddReminder,
-  useAddTagToTask,
   useRemoveReminder,
   useRemoveTagFromTask,
   useRestoreTask,
@@ -65,7 +63,6 @@ const ALL_EDITOR_FIELD_KEYS: EditorFieldKey[] = [
 export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps) => {
   const updateTaskMutation = useUpdateTask();
   const setEditorOpenMutation = useSetEditorOpen();
-  const addTagToTaskMutation = useAddTagToTask();
   const removeTagFromTaskMutation = useRemoveTagFromTask();
   const addReminderMutation = useAddReminder();
   const removeReminderMutation = useRemoveReminder();
@@ -84,6 +81,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   const { moveTaskToRecentlyDeleted, deleteTaskPermanently } = useTaskDeletion();
 
   const isReadOnly = !!task.deletedAt;
+  const taskTitleDescription = task.title.trim() || 'Untitled task';
   const checkmarkColor = getContrastTextColor(resolvedAccentColor);
   const deletedEditorFieldOrder = [
     ...editorFieldOrder,
@@ -97,10 +95,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   useResetStaleCursorOnLayerOpen(true);
   usePreserveScrollOnWindowFocus(editorScrollRef);
 
-  // Tag picker state
-  const [showTagPicker, setShowTagPicker] = useState(false);
-  const [createTagName, setCreateTagName] = useState<string | null>(null);
-  const [tagPickerInitialQuery, setTagPickerInitialQuery] = useState('');
+  const [showTagsModal, setShowTagsModal] = useState(false);
 
   // Date picker state
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -114,8 +109,6 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
   const [editReminderDate, setEditReminderDate] = useState<Date | undefined>(undefined);
-
-  const availableTags = tags.filter((t) => !(task.tags || []).includes(t.id));
 
   useDismissableLayer({
     type: 'panel',
@@ -294,9 +287,8 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
         <TaskEditorTags
           task={task}
           tags={tags}
-          onAddTag={(tagId) => addTagToTaskMutation.mutate({ taskId: task.id, tagId })}
           onRemoveTag={(tagId) => removeTagFromTaskMutation.mutate({ taskId: task.id, tagId })}
-          onOpenTagPicker={() => setShowTagPicker(true)}
+          onOpenTagsModal={() => setShowTagsModal(true)}
           readOnly={isReadOnly}
         />
       ) : null,
@@ -374,31 +366,13 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
         />
       )}
 
-      {!isReadOnly && showTagPicker && (
-        <TagPickerModal
-          isOpen={showTagPicker}
-          onClose={() => setShowTagPicker(false)}
-          availableTags={availableTags}
-          onSelectTag={(tagId) => addTagToTaskMutation.mutate({ taskId: task.id, tagId })}
-          onCreateTag={(name) => {
-            setTagPickerInitialQuery(name);
-            setShowTagPicker(false);
-            setCreateTagName(name);
-          }}
-          allTagsAssigned={availableTags.length === 0 && tags.length > 0}
-          noTagsExist={tags.length === 0}
-          initialQuery={tagPickerInitialQuery}
-        />
-      )}
-
-      {!isReadOnly && createTagName !== null && (
-        <TagModal
-          tagId={null}
-          initialName={createTagName}
-          onClose={() => {
-            setCreateTagName(null);
-            setShowTagPicker(true);
-          }}
+      {!isReadOnly && showTagsModal && (
+        <BatchTaskTagsModal
+          isOpen={showTagsModal}
+          onClose={() => setShowTagsModal(false)}
+          tasks={[task]}
+          tags={tags}
+          description={taskTitleDescription}
         />
       )}
 

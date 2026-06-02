@@ -9,14 +9,16 @@ import { useCreateTag, useTags, useUpdateTag } from '$hooks/queries/useTags';
 import { useColorPresets } from '$hooks/ui/useColorPresets';
 import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
+import type { Tag } from '$types';
 
 interface TagModalProps {
   tagId: string | null;
   initialName?: string;
   onClose: () => void;
+  onSave?: (tag: Tag) => void;
 }
 
-export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
+export const TagModal = ({ tagId, initialName, onClose, onSave }: TagModalProps) => {
   const { data: tags = [] } = useTags();
   const createTagMutation = useCreateTag();
   const updateTagMutation = useUpdateTag();
@@ -39,13 +41,21 @@ export const TagModal = ({ tagId, initialName, onClose }: TagModalProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (existingTag) {
-      updateTagMutation.mutate({ id: existingTag.id, updates: { name, color, icon, emoji } });
-    } else {
-      createTagMutation.mutate({ name, color, icon, emoji });
-    }
+    const handleSave = (tag: Tag | undefined) => {
+      if (tag) {
+        onSave?.(tag);
+      }
+      onClose();
+    };
 
-    onClose();
+    if (existingTag) {
+      updateTagMutation.mutate(
+        { id: existingTag.id, updates: { name, color, icon, emoji } },
+        { onSuccess: handleSave },
+      );
+    } else {
+      createTagMutation.mutate({ name, color, icon, emoji }, { onSuccess: handleSave });
+    }
   };
 
   return (
