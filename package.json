@@ -4,6 +4,7 @@
   "author": "Sapphic Angels",
   "description": "A cross-platform CalDAV task management app. Currently in very early alpha!",
   "type": "module",
+  "packageManager": "pnpm@11.1.2",
   "license": "zlib/libpng",
   "scripts": {
     "dev": "vite",
