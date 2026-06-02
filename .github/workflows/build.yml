@@ -46,25 +46,32 @@ jobs:
         include:
           - platform: 'macos-latest'
             label: 'macOS (Apple Silicon)'
+            artifact: 'macos-apple-silicon'
             args: '--target aarch64-apple-darwin'
           - platform: 'macos-15-intel'
             label: 'macOS (Intel)'
+            artifact: 'macos-intel'
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
             label: 'Ubuntu'
+            artifact: 'ubuntu'
             args: ''
           - platform: 'ubuntu-22.04-arm'
             label: 'Ubuntu (ARM)'
+            artifact: 'ubuntu-arm'
             args: ''
           - platform: 'windows-latest'
             label: 'Windows'
+            artifact: 'windows'
             args: ''
           - platform: 'windows-11-arm'
             label: 'Windows (ARM)'
+            artifact: 'windows-arm'
             args: ''
 
     runs-on: ${{ matrix.platform }}
     name: ${{ matrix.label }}
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v6
 
@@ -102,3 +109,17 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: ${{ matrix.args }} --config '{"bundle":{"createUpdaterArtifacts":false}}'
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: Chiri-${{ matrix.artifact }}
+          path: |
+            src-tauri/target/**/release/bundle/**/*.dmg
+            src-tauri/target/**/release/bundle/**/*.deb
+            src-tauri/target/**/release/bundle/**/*.rpm
+            src-tauri/target/**/release/bundle/**/*.msi
+            src-tauri/target/**/release/bundle/**/*-setup.exe
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
