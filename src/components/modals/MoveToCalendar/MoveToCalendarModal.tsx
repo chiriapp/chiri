@@ -58,13 +58,14 @@ export const MoveToCalendarModal = ({
       description={description}
       zIndex="z-60"
       className="max-w-sm"
+      contentPadding={false}
       footer={
         <ModalButton variant="secondary" onClick={onClose}>
           Cancel
         </ModalButton>
       }
     >
-      <div className="px-4 pt-3 pb-2 -mx-4 -mt-4">
+      <div className="p-4 pb-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" />
           <input
@@ -78,7 +79,7 @@ export const MoveToCalendarModal = ({
         </div>
       </div>
 
-      <div className="-mx-4 p-2 max-h-72 overflow-y-auto">
+      <div className="px-2 pt-1 pb-4 max-h-72 overflow-y-auto">
         {filteredCalendars.length === 0 ? (
           <div className="p-4 text-center text-sm text-surface-500 dark:text-surface-400">
             {searchQuery.trim()
