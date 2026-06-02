@@ -161,7 +161,7 @@ print_summary() {
 }
 
 resolve_server_binaries() {
-  local package path binary paths index
+  local package path binary paths index nix_log
   local refs=()
 
   echo "Resolving CalDAV server packages..."
@@ -169,9 +169,13 @@ resolve_server_binaries() {
     refs+=(".#$package")
   done
 
-  if ! paths=$(nix build --quiet --no-link --print-out-paths "${refs[@]}"); then
+  nix_log=$(mktemp)
+  if ! paths=$(nix build --quiet --no-link --print-out-paths "${refs[@]}" 2> "$nix_log"); then
+    cat "$nix_log" >&2
+    rm -f "$nix_log"
     return 1
   fi
+  rm -f "$nix_log"
 
   index=0
   while IFS= read -r path; do
@@ -223,7 +227,9 @@ run_server() {
     return 1
   }
 
-  echo ""
+  if [ "${#RESULT_NAMES[@]}" -gt 0 ]; then
+    echo ""
+  fi
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "  $name"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
