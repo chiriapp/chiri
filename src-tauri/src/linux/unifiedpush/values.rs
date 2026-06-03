@@ -16,9 +16,3 @@ pub(super) fn get_string(args: &VariantDict, key: &str) -> Option<String> {
         .and_then(|value| <&str>::try_from(value).ok())
         .map(ToString::to_string)
 }
-
-pub(super) fn get_bytes(args: &VariantDict, key: &str) -> Option<Vec<u8>> {
-    args.get(key)
-        .and_then(|value| value.try_clone().ok())
-        .and_then(|value| value.try_into().ok())
-}

@@ -1,6 +1,6 @@
 use gtk::{
     gio,
-    glib::{self, prelude::*},
+    glib,
     prelude::*,
 };
 use serde::Serialize;
