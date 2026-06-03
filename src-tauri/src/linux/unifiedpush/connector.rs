@@ -1,8 +1,4 @@
-use gtk::{
-    gio,
-    glib,
-    prelude::*,
-};
+use gtk::{gio, glib, prelude::*};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 
