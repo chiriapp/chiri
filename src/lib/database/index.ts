@@ -1,5 +1,6 @@
 import DatabasePlugin from '@tauri-apps/plugin-sql';
 import * as accountOps from '$lib/database/accounts';
+import * as caldavTaskObjectOps from '$lib/database/caldav';
 import * as calendarOps from '$lib/database/calendars';
 import * as filterOps from '$lib/database/filters';
 import * as historyOps from '$lib/database/history';
@@ -10,7 +11,7 @@ import * as tagOps from '$lib/database/tags';
 import * as taskOps from '$lib/database/tasks';
 import * as uiOps from '$lib/database/ui';
 import { loggers } from '$lib/logger';
-import type { Account, Calendar, Tag, Task } from '$types';
+import type { Account, CalDAVTaskObject, Calendar, Tag, Task } from '$types';
 import type { TaskHistoryEntry } from '$types/database';
 import type { Filter } from '$types/filter';
 import type { PushSubscription } from '$types/push';
@@ -326,6 +327,35 @@ class Database {
 
   async clearPendingDeletion(uid: string): Promise<void> {
     await pendingOps.clearPendingDeletion(await this.conn(), uid);
+    this.notify();
+  }
+
+  async markPendingDeletionAttempt(uid: string, error: string): Promise<void> {
+    await pendingOps.markPendingDeletionAttempt(await this.conn(), uid, error);
+    this.notify();
+  }
+
+  // CalDAV task object baselines
+  async getCalDAVTaskObjectByUid(taskUid: string): Promise<CalDAVTaskObject | undefined> {
+    return caldavTaskObjectOps.getCalDAVTaskObjectByUid(await this.conn(), taskUid);
+  }
+
+  async getCalDAVTaskObjectsByCalendar(calendarId: string): Promise<CalDAVTaskObject[]> {
+    return caldavTaskObjectOps.getCalDAVTaskObjectsByCalendar(await this.conn(), calendarId);
+  }
+
+  async upsertCalDAVTaskObject(object: CalDAVTaskObject): Promise<void> {
+    await caldavTaskObjectOps.upsertCalDAVTaskObject(await this.conn(), object);
+    this.notify();
+  }
+
+  async removeCalDAVTaskObjectByUid(taskUid: string): Promise<void> {
+    await caldavTaskObjectOps.removeCalDAVTaskObjectByUid(await this.conn(), taskUid);
+    this.notify();
+  }
+
+  async removeCalDAVTaskObjectsByCalendar(calendarId: string): Promise<void> {
+    await caldavTaskObjectOps.removeCalDAVTaskObjectsByCalendar(await this.conn(), calendarId);
     this.notify();
   }
 

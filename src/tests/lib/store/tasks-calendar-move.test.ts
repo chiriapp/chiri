@@ -64,7 +64,8 @@ vi.mock('$utils/recurrence', () => ({
 }));
 
 import { dataStore, defaultDataStore, defaultUIState } from '$lib/store';
-import { createTask, updateTask } from '$lib/store/tasks';
+import { addReminder, removeReminder, updateReminder } from '$lib/store/reminders';
+import { addTagToTask, createTask, removeTagFromTask, updateTask } from '$lib/store/tasks';
 
 const seedStore = (tasks: Task[], pendingDeletions: PendingDeletion[] = []) => {
   dataStore.save({
@@ -103,12 +104,16 @@ describe('updateTask — calendar move detection', () => {
     const result = updateTask('task-1', { calendarId: 'work' });
 
     expect(mockAddPendingDeletion).toHaveBeenCalledOnce();
-    expect(mockAddPendingDeletion).toHaveBeenCalledWith({
-      uid: 'uid-1',
-      href: '/caldav/personal/task.ics',
-      accountId: 'account-1',
-      calendarId: 'personal',
-    });
+    expect(mockAddPendingDeletion).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uid: 'uid-1',
+        href: '/caldav/personal/task.ics',
+        accountId: 'account-1',
+        calendarId: 'personal',
+        etag: 'abc123',
+        deletedAt: expect.any(Date),
+      }),
+    );
 
     expect(result?.href).toBeUndefined();
     expect(result?.etag).toBeUndefined();
@@ -269,6 +274,109 @@ describe('updateTask — calendar move detection', () => {
     const stored = dataStore.load().tasks.find((t) => t.id === 'task-1');
     expect(stored?.href).toBeUndefined();
     expect(stored?.calendarId).toBe('personal');
+  });
+});
+
+describe('task mutation helpers — persistence', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSettingsState.mockReturnValue(mockSettingsState);
+    seedStore([]);
+  });
+
+  it('persists tag additions through updateTask', () => {
+    const task = makeTask({ id: 'task-1', uid: 'uid-1', tags: ['existing'] });
+    seedStore([task]);
+
+    const result = addTagToTask('task-1', 'new-tag');
+
+    expect(result?.tags).toEqual(['existing', 'new-tag']);
+    expect(mockUpdateTask).toHaveBeenCalledWith(
+      'task-1',
+      expect.objectContaining({
+        tags: ['existing', 'new-tag'],
+        synced: false,
+      }),
+    );
+  });
+
+  it('persists tag removals through updateTask', () => {
+    const task = makeTask({ id: 'task-1', uid: 'uid-1', tags: ['keep', 'remove'] });
+    seedStore([task]);
+
+    const result = removeTagFromTask('task-1', 'remove');
+
+    expect(result?.tags).toEqual(['keep']);
+    expect(mockUpdateTask).toHaveBeenCalledWith(
+      'task-1',
+      expect.objectContaining({
+        tags: ['keep'],
+        synced: false,
+      }),
+    );
+  });
+
+  it('persists reminder additions through updateTask', () => {
+    const trigger = new Date('2026-06-03T10:00:00.000Z');
+    const task = makeTask({ id: 'task-1', uid: 'uid-1', reminders: [] });
+    seedStore([task]);
+
+    const result = addReminder('task-1', trigger);
+
+    expect(result?.reminders).toEqual([expect.objectContaining({ trigger })]);
+    expect(mockUpdateTask).toHaveBeenCalledWith(
+      'task-1',
+      expect.objectContaining({
+        reminders: [expect.objectContaining({ trigger })],
+        synced: false,
+      }),
+    );
+  });
+
+  it('persists reminder removals through updateTask', () => {
+    const task = makeTask({
+      id: 'task-1',
+      uid: 'uid-1',
+      reminders: [
+        { id: 'keep', trigger: new Date('2026-06-03T10:00:00.000Z') },
+        { id: 'remove', trigger: new Date('2026-06-03T11:00:00.000Z') },
+      ],
+    });
+    seedStore([task]);
+
+    const result = removeReminder('task-1', 'remove');
+
+    expect(result?.reminders).toEqual([
+      { id: 'keep', trigger: new Date('2026-06-03T10:00:00.000Z') },
+    ]);
+    expect(mockUpdateTask).toHaveBeenCalledWith(
+      'task-1',
+      expect.objectContaining({
+        reminders: [{ id: 'keep', trigger: new Date('2026-06-03T10:00:00.000Z') }],
+        synced: false,
+      }),
+    );
+  });
+
+  it('persists reminder updates through updateTask', () => {
+    const trigger = new Date('2026-06-03T12:00:00.000Z');
+    const task = makeTask({
+      id: 'task-1',
+      uid: 'uid-1',
+      reminders: [{ id: 'reminder-1', trigger: new Date('2026-06-03T10:00:00.000Z') }],
+    });
+    seedStore([task]);
+
+    const result = updateReminder('task-1', 'reminder-1', trigger);
+
+    expect(result?.reminders).toEqual([{ id: 'reminder-1', trigger }]);
+    expect(mockUpdateTask).toHaveBeenCalledWith(
+      'task-1',
+      expect.objectContaining({
+        reminders: [{ id: 'reminder-1', trigger }],
+        synced: false,
+      }),
+    );
   });
 });
 

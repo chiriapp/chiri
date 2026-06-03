@@ -27,6 +27,21 @@ import {
 import type { Task } from '$types';
 import type { FlattenedTask } from '$types/store';
 
+const dateTime = (date: Date | undefined) => date?.getTime();
+
+const hasReorderPersistenceChange = (before: Task | undefined, after: Task) => {
+  if (!before) return false;
+
+  return (
+    before.sortOrder !== after.sortOrder ||
+    before.parentUid !== after.parentUid ||
+    before.calendarId !== after.calendarId ||
+    before.accountId !== after.accountId ||
+    before.synced !== after.synced ||
+    dateTime(before.modifiedAt) !== dateTime(after.modifiedAt)
+  );
+};
+
 /**
  * Hook to get sorted children of a task, reactive to any task store changes.
  * Uses a queryKey under queryKeys.tasks.all so it is invalidated alongside other task queries.
@@ -305,9 +320,19 @@ export const useReorderTasks = () => {
       flattenedItems: FlattenedTask[];
       targetIndent?: number;
     }) => {
-      const taskBefore = getTaskById(activeId);
-      reorderTasks(activeId, overId, flattenedItems, targetIndent);
+      const tasksBefore = getAllTasks();
+      const taskBefore = tasksBefore.find((task) => task.id === activeId);
+      const reorderedTasks = reorderTasks(activeId, overId, flattenedItems, targetIndent);
       const taskAfter = getTaskById(activeId);
+
+      if (reorderedTasks) {
+        const tasksBeforeById = new Map(tasksBefore.map((task) => [task.id, task]));
+        const changedTasks = reorderedTasks.filter((task) =>
+          hasReorderPersistenceChange(tasksBeforeById.get(task.id), task),
+        );
+
+        await Promise.all(changedTasks.map((task) => db.updateTask(task.id, task)));
+      }
 
       const oldParentUid = taskBefore?.parentUid;
       const newParentUid = taskAfter?.parentUid;

@@ -25,6 +25,8 @@ mod v024_saved_filters;
 mod v025_filter_preset_id;
 mod v026_push_provider_metadata;
 mod v027_remove_completed_task_history;
+mod v028_pending_deletion_metadata;
+mod v029_caldav_task_objects;
 
 use tauri_plugin_sql::Migration;
 
@@ -58,5 +60,7 @@ pub fn get_migrations() -> Vec<Migration> {
         v025_filter_preset_id::migration(),
         v026_push_provider_metadata::migration(),
         v027_remove_completed_task_history::migration(),
+        v028_pending_deletion_metadata::migration(),
+        v029_caldav_task_objects::migration(),
     ]
 }

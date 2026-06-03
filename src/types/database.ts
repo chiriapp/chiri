@@ -108,6 +108,21 @@ export interface PendingDeletionRow {
   href: string;
   account_id: string;
   calendar_id: string;
+  etag: string | null;
+  deleted_at: string | null;
+  attempt_count: number | null;
+  last_attempt_at: string | null;
+  last_error: string | null;
+}
+
+export interface CalDAVTaskObjectRow {
+  task_uid: string;
+  account_id: string;
+  calendar_id: string;
+  href: string;
+  etag: string | null;
+  vtodo: string;
+  last_sync_at: string;
 }
 
 export interface UIStateRow {

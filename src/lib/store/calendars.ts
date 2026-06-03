@@ -110,6 +110,7 @@ export const deleteCalendar = (accountId: string, calendarId: string) => {
 
   // Get all tasks to delete and track for server deletion
   const tasksToDelete = data.tasks.filter((t) => t.calendarId === calendarId);
+  const deletedAt = new Date();
   const newPendingDeletions = [
     ...data.pendingDeletions,
     ...tasksToDelete
@@ -119,6 +120,8 @@ export const deleteCalendar = (accountId: string, calendarId: string) => {
         href: t.href!,
         accountId: t.accountId,
         calendarId: t.calendarId,
+        etag: t.etag,
+        deletedAt,
       })),
   ];
 

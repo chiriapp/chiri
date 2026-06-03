@@ -28,13 +28,16 @@ import type { Connection } from '$lib/caldav/connection';
 import { cleanEtag, log, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
 import { taskToVTodo, vtodoToTask } from '$lib/ical/vtodo';
 import { del, parseMultiStatus, propfind, put, report } from '$lib/tauriHttp';
-import type { Calendar, Task } from '$types';
+import type { Calendar, Task, TaskWithCalDAVObject } from '$types';
+
+const stripCalDAVObject = ({ caldavObject: _caldavObject, ...task }: TaskWithCalDAVObject): Task =>
+  task;
 
 export const fetchTasks = async (
   conn: Connection,
   accountId: string,
   calendar: Calendar,
-): Promise<Task[] | null> => {
+): Promise<TaskWithCalDAVObject[] | null> => {
   const queryBody = `<?xml version="1.0" encoding="utf-8"?>
 <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
   <d:prop>
@@ -124,7 +127,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
   }
 
   const results = parseMultiStatus(multigetResponse.body);
-  const tasks: Task[] = [];
+  const tasks: TaskWithCalDAVObject[] = [];
 
   for (const result of results) {
     const calendarData = result.props['calendar-data'];
@@ -133,7 +136,20 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
     if (calendarData) {
       const href = makeAbsoluteUrl(result.href, conn.serverUrl);
       const task = vtodoToTask(calendarData, accountId, calendar.id, href, etag ?? undefined);
-      if (task) tasks.push(task);
+      if (task) {
+        tasks.push({
+          ...task,
+          caldavObject: {
+            taskUid: task.uid,
+            accountId,
+            calendarId: calendar.id,
+            href,
+            etag: etag ?? undefined,
+            vtodo: calendarData,
+            lastSyncAt: new Date(),
+          },
+        });
+      }
     }
   }
 
@@ -226,7 +242,17 @@ export const deleteTask = async (conn: Connection, task: Task): Promise<boolean>
 
   try {
     const response = await del(task.href, conn.credentials, task.etag);
-    return response.status === 204 || response.status === 200;
+    if (
+      response.status === 204 ||
+      response.status === 200 ||
+      response.status === 404 ||
+      response.status === 410
+    ) {
+      return true;
+    }
+
+    log.error(`Failed to delete task: HTTP ${response.status}`);
+    return false;
   } catch (error) {
     log.error('Error deleting task:', error);
     return false;
@@ -254,9 +280,9 @@ export const syncCalendar = async (
   for (const remoteTask of remoteTasks) {
     const localTask = localTasks.find((t) => t.uid === remoteTask.uid);
     if (!localTask) {
-      created.push(remoteTask);
+      created.push(stripCalDAVObject(remoteTask));
     } else if (remoteTask.etag !== localTask.etag) {
-      updated.push({ ...remoteTask, id: localTask.id });
+      updated.push({ ...stripCalDAVObject(remoteTask), id: localTask.id });
     }
   }
 

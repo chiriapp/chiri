@@ -287,12 +287,15 @@ export const deleteTask = async (conn: DatabasePlugin, id: string, deleteChildre
 
   const descendantIds = await getAllDescendantIds(task.uid);
   const toDelete = deleteChildren ? [id, ...descendantIds] : [id];
+  const deletedAt = new Date().toISOString();
 
   const tasks = await Promise.all(toDelete.map((tid) => getTaskById(conn, tid)));
   for (const t of tasks.filter((t): t is Task => !!t && !!t.href)) {
     await conn.execute(
-      `INSERT OR REPLACE INTO pending_deletions (uid, href, account_id, calendar_id) VALUES ($1,$2,$3,$4)`,
-      [t.uid, t.href, t.accountId, t.calendarId],
+      `INSERT OR REPLACE INTO pending_deletions (
+        uid, href, account_id, calendar_id, etag, deleted_at
+      ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [t.uid, t.href, t.accountId, t.calendarId, t.etag ?? null, deletedAt],
     );
   }
 
@@ -306,7 +309,7 @@ export const deleteTask = async (conn: DatabasePlugin, id: string, deleteChildre
   const placeholders = toDelete.map((_, i) => `$${i + 2}`).join(', ');
   await conn.execute(
     `UPDATE tasks SET deleted_at = $1, modified_at = $1 WHERE id IN (${placeholders})`,
-    [new Date().toISOString(), ...toDelete],
+    [deletedAt, ...toDelete],
   );
 
   const uiState = await getUIState(conn);
@@ -339,6 +342,7 @@ export const restoreTask = async (conn: DatabasePlugin, id: string, restoreChild
 
   for (const t of tasks.filter((t): t is Task => !!t)) {
     await conn.execute('DELETE FROM pending_deletions WHERE uid = $1', [t.uid]);
+    await conn.execute('DELETE FROM caldav_task_objects WHERE task_uid = $1', [t.uid]);
   }
 };
 
@@ -368,7 +372,12 @@ export const permanentlyDeleteTask = async (
   }
 
   const placeholders = toDelete.map((_, i) => `$${i + 1}`).join(', ');
+  const tasks = await Promise.all(toDelete.map((tid) => getTaskById(conn, tid)));
   await conn.execute(`DELETE FROM tasks WHERE id IN (${placeholders})`, toDelete);
+
+  for (const t of tasks.filter((t): t is Task => !!t)) {
+    await conn.execute('DELETE FROM caldav_task_objects WHERE task_uid = $1', [t.uid]);
+  }
 
   const uiState = await getUIState(conn);
   if (toDelete.includes(uiState.selectedTaskId || '')) {
@@ -402,6 +411,10 @@ export const deleteExpiredRecentlyDeletedTasks = async (
 
   const idPlaceholders = ids.map((_, i) => `$${i + 1}`).join(', ');
   await conn.execute(`DELETE FROM tasks WHERE id IN (${idPlaceholders})`, ids);
+
+  for (const uid of uids) {
+    await conn.execute('DELETE FROM caldav_task_objects WHERE task_uid = $1', [uid]);
+  }
 
   const uiState = await getUIState(conn);
   if (ids.includes(uiState.selectedTaskId || '')) {

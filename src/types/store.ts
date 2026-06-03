@@ -7,6 +7,11 @@ export interface PendingDeletion {
   href: string;
   accountId: string;
   calendarId: string;
+  etag?: string;
+  deletedAt?: Date;
+  attemptCount?: number;
+  lastAttemptAt?: Date;
+  lastError?: string;
 }
 
 export interface UIState {

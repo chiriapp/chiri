@@ -2,7 +2,7 @@ import * as calendarOps from '$lib/caldav/calendars';
 import type { Connection } from '$lib/caldav/connection';
 import * as connectionOps from '$lib/caldav/connection';
 import * as taskOps from '$lib/caldav/tasks';
-import type { Account, Calendar, ServerType, Task } from '$types';
+import type { Account, Calendar, ServerType, Task, TaskWithCalDAVObject } from '$types';
 
 export class CalDAVClient {
   readonly accountId: string;
@@ -110,7 +110,7 @@ export class CalDAVClient {
   }
 
   // Tasks
-  async fetchTasks(calendar: Calendar): Promise<Task[] | null> {
+  async fetchTasks(calendar: Calendar): Promise<TaskWithCalDAVObject[] | null> {
     return taskOps.fetchTasks(this.conn, this.accountId, calendar);
   }
 

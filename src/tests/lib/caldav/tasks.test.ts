@@ -229,10 +229,16 @@ describe('deleteTask', () => {
     expect(await deleteTask(conn, existingTask)).toBe(false);
   });
 
-  it('returns false on 404 (already deleted)', async () => {
+  it('returns true on 404 (already deleted)', async () => {
     vi.mocked(http.del).mockResolvedValueOnce(ok(404));
 
-    expect(await deleteTask(conn, existingTask)).toBe(false);
+    expect(await deleteTask(conn, existingTask)).toBe(true);
+  });
+
+  it('returns true on 410 (gone)', async () => {
+    vi.mocked(http.del).mockResolvedValueOnce(ok(410));
+
+    expect(await deleteTask(conn, existingTask)).toBe(true);
   });
 
   it('returns false when task has no href', async () => {

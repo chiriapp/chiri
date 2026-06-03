@@ -95,14 +95,18 @@ export const deleteCalendar = async (
   calendarId: string,
 ) => {
   const tasks = await getTasksByCalendar(conn, calendarId);
+  const deletedAt = new Date().toISOString();
   for (const t of tasks.filter((t) => t.href)) {
     await conn.execute(
-      `INSERT OR REPLACE INTO pending_deletions (uid, href, account_id, calendar_id) VALUES ($1, $2, $3, $4)`,
-      [t.uid, t.href, t.accountId, t.calendarId],
+      `INSERT OR REPLACE INTO pending_deletions (
+        uid, href, account_id, calendar_id, etag, deleted_at
+      ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [t.uid, t.href, t.accountId, t.calendarId, t.etag ?? null, deletedAt],
     );
   }
 
   await conn.execute('DELETE FROM calendars WHERE id = $1', [calendarId]);
+  await conn.execute('DELETE FROM caldav_task_objects WHERE calendar_id = $1', [calendarId]);
 
   const uiState = await getUIState(conn);
   if (uiState.activeCalendarId === calendarId) {

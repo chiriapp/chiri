@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { CalDAVTaskObject, TaskWithCalDAVObject } from '$types';
 import { makeCalendar, makeTask } from '../../fixtures';
 
 /**
  * Tests for `syncCalendarTasks` — the orchestrator that stitches the CalDAV
  * layer to the local store. Verifies the four-step flow:
- *   0. processPendingDeletions (DELETE on server, clear from DB)
+ *   0. processPendingDeletions (DELETE on server, clear only after confirmation)
  *   1. pushUnsyncedTasks (createTask / updateTask, mark synced)
  *   2. fetchTasks
  *   3. createTask locally for new remote, updateTask for changed, removeLocalTask for gone
@@ -17,15 +18,26 @@ const mocks = vi.hoisted(() => ({
   clientUpdateTask: vi.fn(),
   clientDeleteTask: vi.fn(),
   clientFetchTasks: vi.fn(),
+  clientFetchCalendars: vi.fn(),
+  clientCalendarExists: vi.fn(),
   isConnected: vi.fn(() => true),
   reconnect: vi.fn(),
 
   // Store accessors
   getAllAccounts: vi.fn(),
+  getUIState: vi.fn(() => ({
+    activeCalendarId: null,
+    calendarSortConfig: { mode: 'manual' },
+  })),
+  setAllTasksView: vi.fn(),
   getTasksByCalendar: vi.fn(),
   localCreateTask: vi.fn(),
   localUpdateTask: vi.fn(),
   removeLocalTask: vi.fn(),
+  localAddCalendar: vi.fn(),
+  localDeleteCalendar: vi.fn(),
+  localUpdateCalendar: vi.fn(),
+  disablePushForCalendar: vi.fn(),
 
   // DB / dataStore
   pendingDeletions: [] as Array<{
@@ -35,6 +47,10 @@ const mocks = vi.hoisted(() => ({
     calendarId: string;
   }>,
   clearPendingDeletion: vi.fn().mockResolvedValue(undefined),
+  markPendingDeletionAttempt: vi.fn().mockResolvedValue(undefined),
+  getCalDAVTaskObjectByUid: vi.fn().mockResolvedValue(undefined),
+  upsertCalDAVTaskObject: vi.fn().mockResolvedValue(undefined),
+  removeCalDAVTaskObjectByUid: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('$lib/caldav', () => ({
@@ -46,6 +62,8 @@ vi.mock('$lib/caldav', () => ({
       updateTask: mocks.clientUpdateTask,
       deleteTask: mocks.clientDeleteTask,
       fetchTasks: mocks.clientFetchTasks,
+      fetchCalendars: mocks.clientFetchCalendars,
+      calendarExists: mocks.clientCalendarExists,
     })),
   },
 }));
@@ -63,9 +81,9 @@ vi.mock('$lib/store/tasks', () => ({
 }));
 
 vi.mock('$lib/store/calendars', () => ({
-  addCalendar: vi.fn(),
-  deleteCalendar: vi.fn(),
-  updateCalendar: vi.fn(),
+  addCalendar: mocks.localAddCalendar,
+  deleteCalendar: mocks.localDeleteCalendar,
+  updateCalendar: mocks.localUpdateCalendar,
 }));
 
 vi.mock('$lib/store/tags', () => ({
@@ -75,8 +93,8 @@ vi.mock('$lib/store/tags', () => ({
 }));
 
 vi.mock('$lib/store/ui', () => ({
-  getUIState: vi.fn(() => ({})),
-  setAllTasksView: vi.fn(),
+  getUIState: mocks.getUIState,
+  setAllTasksView: mocks.setAllTasksView,
 }));
 
 vi.mock('$lib/store', () => ({
@@ -89,6 +107,10 @@ vi.mock('$lib/store', () => ({
 vi.mock('$lib/database', () => ({
   db: {
     clearPendingDeletion: mocks.clearPendingDeletion,
+    markPendingDeletionAttempt: mocks.markPendingDeletionAttempt,
+    getCalDAVTaskObjectByUid: mocks.getCalDAVTaskObjectByUid,
+    upsertCalDAVTaskObject: mocks.upsertCalDAVTaskObject,
+    removeCalDAVTaskObjectByUid: mocks.removeCalDAVTaskObjectByUid,
   },
 }));
 
@@ -98,6 +120,10 @@ vi.mock('$context/settingsContext', () => ({
 
 vi.mock('$hooks/ui/useToast', () => ({
   toastManager: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() },
+}));
+
+vi.mock('$lib/push', () => ({
+  disablePushForCalendar: mocks.disablePushForCalendar,
 }));
 
 vi.mock('@tauri-apps/api/event', () => ({ emit: vi.fn() }));
@@ -123,8 +149,9 @@ vi.mock('$utils/color', () => ({
   resolveEffectiveTheme: vi.fn(() => 'light'),
 }));
 
+import { taskToVTodo } from '$lib/ical/vtodo';
 // Import AFTER mocks are set up.
-import { syncCalendarTasks } from '$lib/store/sync';
+import { syncCalendarsForAccount, syncCalendarTasks } from '$lib/store/sync';
 
 const testCalendar = makeCalendar({
   id: 'cal-1',
@@ -151,6 +178,76 @@ const queryClient = { invalidateQueries: vi.fn() } as unknown as Parameters<
 >[1];
 
 const noopSetSyncing = () => {};
+
+describe('syncCalendarsForAccount', () => {
+  const workCalendar = makeCalendar({
+    id: 'cal-work',
+    url: 'https://server/calendars/work/',
+    displayName: 'Work',
+    accountId: 'acct-1',
+  });
+  const homeCalendar = makeCalendar({
+    id: 'cal-home',
+    url: 'https://server/calendars/home/',
+    displayName: 'Home',
+    accountId: 'acct-1',
+  });
+  const accountWithCalendars = {
+    ...testAccount,
+    calendars: [workCalendar, homeCalendar],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.getAllAccounts.mockReturnValue([accountWithCalendars]);
+    mocks.getUIState.mockReturnValue({
+      activeCalendarId: null,
+      calendarSortConfig: { mode: 'manual' },
+    });
+    mocks.isConnected.mockReturnValue(true);
+    mocks.clientFetchCalendars.mockResolvedValue([]);
+    mocks.clientCalendarExists.mockResolvedValue(false);
+    mocks.getTasksByCalendar.mockReturnValue([]);
+    mocks.disablePushForCalendar.mockResolvedValue(undefined);
+  });
+
+  it('removes local calendars when an empty server listing is confirmed by direct PROPFIND', async () => {
+    mocks.getTasksByCalendar.mockImplementation((calendarId: string) =>
+      calendarId === 'cal-work'
+        ? [makeTask({ id: 'task-work', calendarId, accountId: 'acct-1', synced: true })]
+        : [],
+    );
+
+    const result = await syncCalendarsForAccount('acct-1', queryClient);
+
+    expect(mocks.clientCalendarExists).toHaveBeenCalledWith(workCalendar.url);
+    expect(mocks.clientCalendarExists).toHaveBeenCalledWith(homeCalendar.url);
+    expect(mocks.removeLocalTask).toHaveBeenCalledWith('task-work');
+    expect(mocks.localDeleteCalendar).toHaveBeenCalledWith('acct-1', 'cal-work');
+    expect(mocks.localDeleteCalendar).toHaveBeenCalledWith('acct-1', 'cal-home');
+    expect(result).toEqual([]);
+  });
+
+  it('preserves local calendars when an empty server listing is contradicted by direct PROPFIND', async () => {
+    mocks.clientCalendarExists.mockResolvedValue(true);
+
+    const result = await syncCalendarsForAccount('acct-1', queryClient);
+
+    expect(mocks.clientCalendarExists).toHaveBeenCalledTimes(2);
+    expect(mocks.localDeleteCalendar).not.toHaveBeenCalled();
+    expect(mocks.removeLocalTask).not.toHaveBeenCalled();
+    expect(result).toEqual([workCalendar, homeCalendar]);
+  });
+
+  it('preserves local calendars when direct deletion verification fails', async () => {
+    mocks.clientCalendarExists.mockRejectedValue(new Error('server unreachable'));
+
+    await syncCalendarsForAccount('acct-1', queryClient);
+
+    expect(mocks.localDeleteCalendar).not.toHaveBeenCalled();
+    expect(mocks.removeLocalTask).not.toHaveBeenCalled();
+  });
+});
 
 describe('syncCalendarTasks orchestrator', () => {
   beforeEach(() => {
@@ -205,9 +302,7 @@ describe('syncCalendarTasks orchestrator', () => {
     );
   });
 
-  it('step 0: clears pending deletion even if the server DELETE fails', async () => {
-    // Critical: if we kept retrying a deletion that the server can't process
-    // (e.g. already deleted, 404), we'd loop forever. Always clear.
+  it('step 0: keeps pending deletion queued when the server DELETE throws', async () => {
     mocks.pendingDeletions = [
       { uid: 'doomed', href: '/c/x.ics', accountId: 'acct-1', calendarId: 'cal-1' },
     ];
@@ -217,7 +312,28 @@ describe('syncCalendarTasks orchestrator', () => {
 
     await syncCalendarTasks('cal-1', queryClient, noopSetSyncing);
 
-    expect(mocks.clearPendingDeletion).toHaveBeenCalledWith('doomed');
+    expect(mocks.clearPendingDeletion).not.toHaveBeenCalled();
+    expect(mocks.markPendingDeletionAttempt).toHaveBeenCalledWith(
+      'doomed',
+      expect.stringContaining('server unreachable'),
+    );
+  });
+
+  it('step 0: keeps pending deletion queued when the server rejects the DELETE', async () => {
+    mocks.pendingDeletions = [
+      { uid: 'doomed', href: '/c/x.ics', accountId: 'acct-1', calendarId: 'cal-1' },
+    ];
+    mocks.clientDeleteTask.mockResolvedValueOnce(false);
+    mocks.getTasksByCalendar.mockReturnValue([]);
+    mocks.clientFetchTasks.mockResolvedValueOnce([]);
+
+    await syncCalendarTasks('cal-1', queryClient, noopSetSyncing);
+
+    expect(mocks.clearPendingDeletion).not.toHaveBeenCalled();
+    expect(mocks.markPendingDeletionAttempt).toHaveBeenCalledWith(
+      'doomed',
+      expect.stringContaining('/c/x.ics'),
+    );
   });
 
   it('step 1: pushes unsynced new tasks via createTask, marks them synced afterwards', async () => {
@@ -364,6 +480,80 @@ describe('syncCalendarTasks orchestrator', () => {
     // step 1 did NOT mark synced (push returned null)
     // step 3 did NOT overwrite the local task with the remote version
     expect(mocks.localUpdateTask).not.toHaveBeenCalled();
+  });
+
+  it('step 3: merges remote changes into untouched local fields using the last baseline', async () => {
+    const baseline = makeTask({
+      id: 'baseline-id',
+      uid: 'shared',
+      title: 'Base title',
+      description: 'Base description',
+      href: 'https://server/cal/shared.ics',
+      etag: 'base-etag',
+      calendarId: 'cal-1',
+      accountId: 'acct-1',
+      synced: true,
+    });
+    const local = makeTask({
+      id: 'local-id',
+      uid: 'shared',
+      title: 'Local title',
+      description: 'Base description',
+      href: 'https://server/cal/shared.ics',
+      etag: 'base-etag',
+      calendarId: 'cal-1',
+      accountId: 'acct-1',
+      synced: false,
+      modifiedAt: new Date('2026-06-03T10:00:00.000Z'),
+    });
+    const remote = makeTask({
+      id: 'remote-id',
+      uid: 'shared',
+      title: 'Base title',
+      description: 'Remote description',
+      href: 'https://server/cal/shared.ics',
+      etag: 'remote-etag',
+      calendarId: 'cal-1',
+      accountId: 'acct-1',
+      synced: true,
+    });
+    const remoteObject: CalDAVTaskObject = {
+      taskUid: 'shared',
+      accountId: 'acct-1',
+      calendarId: 'cal-1',
+      href: 'https://server/cal/shared.ics',
+      etag: 'remote-etag',
+      vtodo: taskToVTodo(remote),
+      lastSyncAt: new Date('2026-06-03T10:01:00.000Z'),
+    };
+
+    mocks.getTasksByCalendar.mockReturnValue([local]);
+    mocks.clientUpdateTask.mockResolvedValueOnce(null);
+    mocks.clientFetchTasks.mockResolvedValueOnce([
+      { ...remote, caldavObject: remoteObject } satisfies TaskWithCalDAVObject,
+    ]);
+    mocks.getCalDAVTaskObjectByUid.mockResolvedValueOnce({
+      taskUid: 'shared',
+      accountId: 'acct-1',
+      calendarId: 'cal-1',
+      href: 'https://server/cal/shared.ics',
+      etag: 'base-etag',
+      vtodo: taskToVTodo(baseline),
+      lastSyncAt: new Date('2026-06-03T09:00:00.000Z'),
+    } satisfies CalDAVTaskObject);
+
+    await syncCalendarTasks('cal-1', queryClient, noopSetSyncing);
+
+    const update = mocks.localUpdateTask.mock.calls.find(([taskId]) => taskId === 'local-id')?.[1];
+    expect(update).toMatchObject({
+      description: 'Remote description',
+      href: 'https://server/cal/shared.ics',
+      etag: 'remote-etag',
+      synced: false,
+      modifiedAt: local.modifiedAt,
+    });
+    expect(update?.title).toBeUndefined();
+    expect(mocks.upsertCalDAVTaskObject).toHaveBeenCalledWith(remoteObject);
   });
 
   it('step 4: removes locally when synced local task missing from server', async () => {

@@ -347,11 +347,14 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
     updates.calendarId !== undefined &&
     updates.calendarId !== existingTask.calendarId
   ) {
+    const deletedAt = new Date();
     const deletion = {
       uid: existingTask.uid,
       href: existingTask.href,
       accountId: existingTask.accountId,
       calendarId: existingTask.calendarId,
+      etag: existingTask.etag,
+      deletedAt,
     };
     pendingDeletions = [...pendingDeletions, deletion];
     db.addPendingDeletion(deletion).catch((e) =>
@@ -409,6 +412,7 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
 
   const descendantIds = getAllDescendantIds(task.uid);
   const tasksToDelete = deleteChildren ? [id, ...descendantIds] : [id];
+  const deletedAt = new Date();
 
   // Collect all tasks that need to be tracked for server deletion
   const tasksWithHref = data.tasks.filter((t) => tasksToDelete.includes(t.id) && t.href);
@@ -420,6 +424,8 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
       href: t.href!,
       accountId: t.accountId,
       calendarId: t.calendarId,
+      etag: t.etag,
+      deletedAt,
     })),
   ];
 
@@ -436,7 +442,7 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
   dataStore.save({
     ...data,
     tasks: updatedTasks.map((t) =>
-      tasksToDelete.includes(t.id) ? { ...t, deletedAt: new Date(), modifiedAt: new Date() } : t,
+      tasksToDelete.includes(t.id) ? { ...t, deletedAt, modifiedAt: deletedAt } : t,
     ),
     pendingDeletions: newPendingDeletions,
     ui: {
@@ -643,33 +649,21 @@ export const toggleTaskCollapsed = (id: string) => {
 
 // Task tags
 export const addTagToTask = (taskId: string, tagId: string) => {
-  const data = dataStore.load();
-  const tasks = data.tasks.map((task) =>
-    task.id === taskId
-      ? {
-          ...task,
-          tags: [...(task.tags || []).filter((t) => t !== tagId), tagId],
-          modifiedAt: new Date(),
-          synced: false,
-        }
-      : task,
-  );
-  dataStore.save({ ...data, tasks });
+  const task = getTaskById(taskId);
+  if (!task) return undefined;
+
+  return updateTask(taskId, {
+    tags: [...(task.tags || []).filter((t) => t !== tagId), tagId],
+  });
 };
 
 export const removeTagFromTask = (taskId: string, tagId: string) => {
-  const data = dataStore.load();
-  const tasks = data.tasks.map((task) =>
-    task.id === taskId
-      ? {
-          ...task,
-          tags: (task.tags || []).filter((t) => t !== tagId),
-          modifiedAt: new Date(),
-          synced: false,
-        }
-      : task,
-  );
-  dataStore.save({ ...data, tasks });
+  const task = getTaskById(taskId);
+  if (!task) return undefined;
+
+  return updateTask(taskId, {
+    tags: (task.tags || []).filter((t) => t !== tagId),
+  });
 };
 
 // Export helpers

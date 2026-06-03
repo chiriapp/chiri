@@ -37,7 +37,7 @@ const multi = (
 describe('fetchTasks', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('happy path: query + multiget + vtodoToTask produces Task[]', async () => {
+  it('happy path: query + multiget + vtodoToTask produces tasks with CalDAV baselines', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
     vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
       multi([{ href: '/cal/a.ics' }, { href: '/cal/b.ics' }]),
@@ -55,7 +55,32 @@ describe('fetchTasks', () => {
 
     const result = await fetchTasks(conn, 'acct', calendar);
 
-    expect(result).toEqual([taskA, taskB]);
+    expect(result).toEqual([
+      {
+        ...taskA,
+        caldavObject: expect.objectContaining({
+          taskUid: 'a',
+          accountId: 'acct',
+          calendarId: 'cal-1',
+          href: 'https://cal.example.com/cal/a.ics',
+          etag: 'e-a',
+          vtodo: 'V-A',
+          lastSyncAt: expect.any(Date),
+        }),
+      },
+      {
+        ...taskB,
+        caldavObject: expect.objectContaining({
+          taskUid: 'b',
+          accountId: 'acct',
+          calendarId: 'cal-1',
+          href: 'https://cal.example.com/cal/b.ics',
+          etag: 'e-b',
+          vtodo: 'V-B',
+          lastSyncAt: expect.any(Date),
+        }),
+      },
+    ]);
     expect(http.report).toHaveBeenCalledTimes(2);
   });
 

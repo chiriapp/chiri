@@ -83,6 +83,20 @@ export interface Task {
   localOnly?: boolean;
 }
 
+export interface CalDAVTaskObject {
+  taskUid: string;
+  accountId: string;
+  calendarId: string;
+  href: string;
+  etag?: string;
+  vtodo: string;
+  lastSyncAt: Date;
+}
+
+export interface TaskWithCalDAVObject extends Task {
+  caldavObject: CalDAVTaskObject;
+}
+
 export interface Tag {
   id: string;
   name: string;

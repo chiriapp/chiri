@@ -183,7 +183,7 @@ export const reorderTasks = (
   overId: string,
   flattenedItems: FlattenedTask[],
   targetIndent?: number,
-) => {
+): Task[] | null => {
   const data = dataStore.load();
   const reorderedTasks = reorderTaskList(
     data.tasks,
@@ -194,9 +194,10 @@ export const reorderTasks = (
     targetIndent,
   );
 
-  if (!reorderedTasks) return;
+  if (!reorderedTasks) return null;
 
   dataStore.save({ ...data, tasks: reorderedTasks });
+  return reorderedTasks;
 };
 
 export const reorderTaskList = (

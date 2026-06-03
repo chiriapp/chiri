@@ -65,6 +65,18 @@ describe('calendarExists', () => {
 
     expect(await calendarExists(conn, 'https://x.com/cal/')).toBe(false);
   });
+
+  it('returns false for 410', async () => {
+    vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(410));
+
+    expect(await calendarExists(conn, 'https://x.com/cal/')).toBe(false);
+  });
+
+  it('throws on inconclusive verification statuses', async () => {
+    vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(500));
+
+    await expect(calendarExists(conn, 'https://x.com/cal/')).rejects.toThrow(/HTTP 500/i);
+  });
 });
 
 describe('fetchCalendars', () => {

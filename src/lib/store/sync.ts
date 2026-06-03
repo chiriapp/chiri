@@ -6,6 +6,7 @@ import { settingsStore } from '$context/settingsContext';
 import { toastManager } from '$hooks/ui/useToast';
 import { CalDAVClient } from '$lib/caldav';
 import { db } from '$lib/database';
+import { taskToVTodo, vtodoToTask } from '$lib/ical/vtodo';
 import { loggers } from '$lib/logger';
 import { disablePushForCalendar } from '$lib/push';
 import { queryKeys } from '$lib/queryClient';
@@ -16,11 +17,86 @@ import { createTag, getAllTags, updateTag } from '$lib/store/tags';
 import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$lib/store/tasks';
 import { getUIState, setAllTasksView } from '$lib/store/ui';
 import { getErrorMessage } from '$lib/tauriHttp';
-import type { Calendar, Task } from '$types';
+import type { CalDAVTaskObject, Calendar, Task, TaskWithCalDAVObject } from '$types';
 import { generateTagColor, resolveEffectiveTheme } from '$utils/color';
 
 const log = loggers.dataStore;
 const syncLog = loggers.sync;
+
+const taskFieldsForBaselineMerge = [
+  'title',
+  'description',
+  'status',
+  'completedAt',
+  'percentComplete',
+  'priority',
+  'startDate',
+  'startDateAllDay',
+  'dueDate',
+  'dueDateAllDay',
+  'parentUid',
+  'sortOrder',
+  'url',
+  'rrule',
+  'repeatFrom',
+] as const satisfies readonly (keyof Task)[];
+
+const valueEquals = (left: unknown, right: unknown) => {
+  if (left instanceof Date || right instanceof Date) {
+    const leftTime = left instanceof Date ? left.getTime() : undefined;
+    const rightTime = right instanceof Date ? right.getTime() : undefined;
+    return leftTime === rightTime;
+  }
+
+  return left === right;
+};
+
+const stringArraysEqual = (left: string[] | undefined, right: string[] | undefined) => {
+  const leftValues = left ?? [];
+  const rightValues = right ?? [];
+  return (
+    leftValues.length === rightValues.length && leftValues.every((id) => rightValues.includes(id))
+  );
+};
+
+const buildSyncedTaskObject = (
+  task: Task,
+  href: string,
+  etag: string | undefined,
+): CalDAVTaskObject => {
+  const syncedTask = { ...task, href, etag, synced: true };
+  return {
+    taskUid: task.uid,
+    accountId: task.accountId,
+    calendarId: task.calendarId,
+    href,
+    etag,
+    vtodo: taskToVTodo(syncedTask),
+    lastSyncAt: new Date(),
+  };
+};
+
+const stripRemoteTaskMetadata = ({
+  caldavObject: _caldavObject,
+  tagColorsByName: _tagColorsByName,
+  ...taskData
+}: TaskWithCalDAVObject): Task => taskData;
+
+const persistTaskObject = async (object: CalDAVTaskObject) => {
+  try {
+    await db.upsertCalDAVTaskObject(object);
+  } catch (error) {
+    syncLog.error('Failed to persist CalDAV task object baseline:', error);
+  }
+};
+
+const removeTaskObject = async (taskUid: string) => {
+  try {
+    await db.removeCalDAVTaskObjectByUid(taskUid);
+  } catch (error) {
+    syncLog.error('Failed to remove CalDAV task object baseline:', error);
+  }
+};
 
 // Helper: process pending deletions for a calendar
 const processPendingDeletions = async (
@@ -33,10 +109,11 @@ const processPendingDeletions = async (
 
   for (const deletion of calendarDeletions) {
     try {
-      await client.deleteTask({
+      const deleted = await client.deleteTask({
         id: '',
         uid: deletion.uid,
         href: deletion.href,
+        etag: deletion.etag,
         title: '',
         description: '',
         status: 'needs-action',
@@ -49,13 +126,21 @@ const processPendingDeletions = async (
         createdAt: new Date(),
         modifiedAt: new Date(),
       });
-      clearPendingDeletion(deletion.uid);
+
+      if (deleted) {
+        clearPendingDeletion(deletion.uid);
+      } else {
+        const error = `Server did not confirm deletion for ${deletion.href}`;
+        syncLog.warn(error);
+        recordPendingDeletionAttempt(deletion.uid, error);
+      }
     } catch (error) {
+      const errorMessage = getErrorMessage(error);
       syncLog.error(
         `Failed to delete task from calendar ${calendarDisplayName} from server:`,
         error,
       );
-      clearPendingDeletion(deletion.uid);
+      recordPendingDeletionAttempt(deletion.uid, errorMessage);
     }
   }
 };
@@ -74,11 +159,13 @@ const pushUnsyncedTasks = async (
       if (task.href) {
         const result = await client.updateTask(task);
         if (result) {
+          await persistTaskObject(buildSyncedTaskObject(task, task.href, result.etag));
           updateTask(task.id, { etag: result.etag, synced: true });
         }
       } else {
         const result = await client.createTask(calendar, task);
         if (result) {
+          await persistTaskObject(buildSyncedTaskObject(task, result.href, result.etag));
           updateTask(task.id, { href: result.href, etag: result.etag, synced: true });
         }
       }
@@ -91,19 +178,73 @@ const pushUnsyncedTasks = async (
   }
 };
 
+const getBaselineTask = async (taskUid: string) => {
+  try {
+    const object = await db.getCalDAVTaskObjectByUid(taskUid);
+    if (!object) return null;
+    return vtodoToTask(object.vtodo, object.accountId, object.calendarId, object.href, object.etag);
+  } catch (error) {
+    syncLog.error('Failed to load CalDAV task object baseline:', error);
+    return null;
+  }
+};
+
+const buildBaselineMergeUpdates = (
+  remoteTask: TaskWithCalDAVObject,
+  localTask: Task,
+  baselineTask: Task,
+  remoteTagIds: string[],
+): Partial<Task> => {
+  const updates: Partial<Task> = {
+    href: remoteTask.href ?? remoteTask.caldavObject?.href,
+    etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
+    modifiedAt: localTask.modifiedAt,
+    synced: false,
+  };
+
+  for (const field of taskFieldsForBaselineMerge) {
+    const remoteValue = remoteTask[field];
+    const localValue = localTask[field];
+    const baselineValue = baselineTask[field];
+
+    if (!valueEquals(remoteValue, baselineValue) && valueEquals(localValue, baselineValue)) {
+      updates[field] = remoteValue as never;
+    }
+  }
+
+  const baselineTagIds = getRemoteCategoryNames(baselineTask).map((name: string) =>
+    ensureTagExists(name),
+  );
+  const remoteTagsChanged = !stringArraysEqual(remoteTagIds, baselineTagIds);
+  const localTagsUnchanged = stringArraysEqual(localTask.tags, baselineTagIds);
+  if (remoteTagsChanged && localTagsUnchanged) {
+    updates.tags = remoteTagIds;
+  }
+
+  return updates;
+};
+
 // Helper: process a new task from server
-const processNewRemoteTask = (remoteTask: Task) => {
-  const { tagColorsByName: _tagColorsByName, ...remoteTaskData } = remoteTask;
+const processNewRemoteTask = async (remoteTask: TaskWithCalDAVObject) => {
+  const remoteTaskData = stripRemoteTaskMetadata(remoteTask);
   const categoryNames = getRemoteCategoryNames(remoteTask);
   const tagIds = categoryNames.map((name: string) => ensureTagExists(name));
   applyRemoteTagColors(remoteTask, categoryNames);
 
-  createTask({ ...remoteTaskData, tags: tagIds });
+  createTask({
+    ...remoteTaskData,
+    href: remoteTask.href ?? remoteTask.caldavObject?.href,
+    etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
+    tags: tagIds,
+  });
+  if (remoteTask.caldavObject) {
+    await persistTaskObject(remoteTask.caldavObject);
+  }
 };
 
 // Helper: process an existing task from server (update if needed)
-const processExistingRemoteTask = (remoteTask: Task, localTask: Task) => {
-  const { tagColorsByName: _tagColorsByName, ...remoteTaskData } = remoteTask;
+const processExistingRemoteTask = async (remoteTask: TaskWithCalDAVObject, localTask: Task) => {
+  const remoteTaskData = stripRemoteTaskMetadata(remoteTask);
   const categoryNames = getRemoteCategoryNames(remoteTask);
   const remoteTagIds = categoryNames.map((name: string) => ensureTagExists(name));
   applyRemoteTagColors(remoteTask, categoryNames);
@@ -118,12 +259,26 @@ const processExistingRemoteTask = (remoteTask: Task, localTask: Task) => {
       updateTask(localTask.id, {
         ...remoteTaskData,
         id: localTask.id,
+        href: remoteTask.href ?? remoteTask.caldavObject?.href,
+        etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
         tags: remoteTagIds,
         synced: true,
       });
+    } else {
+      const baselineTask = await getBaselineTask(localTask.uid);
+      if (baselineTask) {
+        updateTask(
+          localTask.id,
+          buildBaselineMergeUpdates(remoteTask, localTask, baselineTask, remoteTagIds),
+        );
+      }
     }
   } else if (!tagsMatch && localTask.synced) {
     updateTask(localTask.id, { tags: remoteTagIds, synced: true });
+  }
+
+  if (remoteTask.caldavObject) {
+    await persistTaskObject(remoteTask.caldavObject);
   }
 };
 
@@ -133,14 +288,44 @@ export const getPendingDeletions = () => {
 
 export const clearPendingDeletion = (uid: string) => {
   const data = dataStore.load();
+  const localTask = (data.tasks ?? []).find((task) => task.uid === uid);
 
   db.clearPendingDeletion(uid).catch((e) =>
     log.error('Failed to persist pending deletion clear:', e),
   );
 
+  if (!localTask || localTask.deletedAt) {
+    db.removeCalDAVTaskObjectByUid(uid).catch((e) =>
+      log.error('Failed to remove CalDAV task object after deletion:', e),
+    );
+  }
+
   dataStore.save({
     ...data,
     pendingDeletions: data.pendingDeletions.filter((d) => d.uid !== uid),
+  });
+};
+
+export const recordPendingDeletionAttempt = (uid: string, error: string) => {
+  const data = dataStore.load();
+  const lastAttemptAt = new Date();
+
+  db.markPendingDeletionAttempt(uid, error).catch((e) =>
+    log.error('Failed to persist pending deletion attempt:', e),
+  );
+
+  dataStore.save({
+    ...data,
+    pendingDeletions: data.pendingDeletions.map((deletion) =>
+      deletion.uid === uid
+        ? {
+            ...deletion,
+            attemptCount: (deletion.attemptCount ?? 0) + 1,
+            lastAttemptAt,
+            lastError: error,
+          }
+        : deletion,
+    ),
   });
 };
 
@@ -359,22 +544,12 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
 
   const localCalendars = account.calendars;
 
-  // Guard against the server returning 0 calendars when we have local ones.
-  // Some servers (e.g. Vikunja) occasionally return only the collection itself
-  // in a PROPFIND response, making fetchCalendars return []. Treating that as
-  // "all calendars deleted" would cause irreversible data loss.
-  if (remoteCalendars.length === 0 && localCalendars.length > 0) {
-    syncLog.warn(
-      `Server returned 0 calendars for ${account.name} but ${localCalendars.length} exist locally. Skipping calendar sync to prevent potential data loss.`,
-    );
-    return;
-  }
-
   // Build the set of confirmed-existing calendar IDs. Start with what the
   // server listing returned, then verify any "missing" local calendars via a
   // direct PROPFIND before treating them as deleted. Unreliable servers (e.g.
   // Vikunja) sometimes return an incomplete listing; the extra PROPFIND lets
-  // us distinguish a real deletion from a transient omission.
+  // us distinguish a real deletion from a transient omission, including the
+  // case where a flaky listing returns zero calendars.
   const confirmedExistingIds = new Set(remoteCalendars.map((c) => c.id));
   const potentiallyDeleted = localCalendars.filter((c) => !confirmedExistingIds.has(c.id));
 
@@ -387,8 +562,12 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
         );
         confirmedExistingIds.add(calendar.id);
       }
-    } catch {
-      // Verification failed — assume it's gone and let removal proceed below.
+    } catch (error) {
+      syncLog.warn(
+        `Calendar "${calendar.displayName}" was absent from server listing, but direct PROPFIND verification failed. Preserving locally to prevent potential data loss.`,
+        error,
+      );
+      confirmedExistingIds.add(calendar.id);
     }
   }
 
@@ -416,6 +595,15 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
       // New calendar from server
       updatedCalendars.push(remoteCalendar);
       newCalendars.push(remoteCalendar);
+    }
+  }
+
+  for (const localCalendar of localCalendars) {
+    if (
+      remoteCalendarIds.has(localCalendar.id) &&
+      !updatedCalendars.some((calendar) => calendar.id === localCalendar.id)
+    ) {
+      updatedCalendars.push(localCalendar);
     }
   }
 
@@ -502,11 +690,11 @@ export const syncCalendarTasks = async (
     // STEP 3: Process remote tasks
     for (const remoteTask of remoteTasks) {
       if (!localUids.has(remoteTask.uid)) {
-        processNewRemoteTask(remoteTask);
+        await processNewRemoteTask(remoteTask);
       } else {
         const localTask = updatedLocalTasks.find((t) => t.uid === remoteTask.uid);
         if (localTask) {
-          processExistingRemoteTask(remoteTask, localTask);
+          await processExistingRemoteTask(remoteTask, localTask);
         }
       }
     }
@@ -517,6 +705,7 @@ export const syncCalendarTasks = async (
     // destroy a resource that was repurposed (e.g. fruux reassigns the UID on the same href).
     for (const localTask of updatedLocalTasks) {
       if (!localTask.deletedAt && localTask.synced && !remoteUids.has(localTask.uid)) {
+        await removeTaskObject(localTask.uid);
         removeLocalTask(localTask.id);
       }
     }
@@ -625,12 +814,14 @@ export const pushTaskToServer = async (task: Task, queryClient: QueryClient) => 
     // Update existing
     const result = await client.updateTask(task);
     if (result) {
+      await persistTaskObject(buildSyncedTaskObject(task, task.href, result.etag));
       updateTask(task.id, { etag: result.etag, synced: true });
     }
   } else {
     // Create new
     const result = await client.createTask(calendar, task);
     if (result) {
+      await persistTaskObject(buildSyncedTaskObject(task, result.href, result.etag));
       updateTask(task.id, { href: result.href, etag: result.etag, synced: true });
     }
   }
@@ -649,5 +840,9 @@ export const removeTaskFromServer = async (task: Task) => {
     await CalDAVClient.reconnect(account);
   }
 
-  return CalDAVClient.getForAccount(account.id).deleteTask(task);
+  const deleted = await CalDAVClient.getForAccount(account.id).deleteTask(task);
+  if (deleted) {
+    await removeTaskObject(task.uid);
+  }
+  return deleted;
 };

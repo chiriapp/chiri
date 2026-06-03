@@ -25,7 +25,9 @@ export const calendarExists = async (conn: Connection, calendarUrl: string): Pro
     `<?xml version="1.0" encoding="utf-8"?><d:propfind xmlns:d="DAV:"><d:prop><d:resourcetype/></d:prop></d:propfind>`,
     '0',
   );
-  return response.status === 207 || response.status === 200;
+  if (response.status === 207 || response.status === 200) return true;
+  if (response.status === 404 || response.status === 410) return false;
+  throw new Error(`Failed to verify calendar existence: HTTP ${response.status}`);
 };
 
 /**
