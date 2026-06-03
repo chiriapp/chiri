@@ -129,8 +129,15 @@ rustPlatform.buildRustPackage (finalAttrs: {
     else
       ''
         mv $out/bin/Chiri $out/bin/chiri
-        substituteInPlace $out/share/applications/Chiri.desktop \
-          --replace-fail "Exec=Chiri" "Exec=chiri"
+        for desktopFile in \
+          $out/share/applications/Chiri.desktop \
+          $out/share/applications/garden.chiri.Chiri.desktop
+        do
+          if [ -f "$desktopFile" ]; then
+            substituteInPlace "$desktopFile" \
+              --replace-fail "Exec=Chiri" "Exec=chiri"
+          fi
+        done
       '';
 
   # tauri apps typically don't have cargo tests
