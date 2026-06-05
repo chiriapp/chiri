@@ -4,7 +4,7 @@ import {
   enable as enableAutostart,
   isEnabled as isAutostartEnabled,
 } from '@tauri-apps/plugin-autostart';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { isMacPlatform } from '$utils/platform';
 
 type MacLaunchAtLoginStatus =
@@ -84,6 +84,8 @@ export const useAutostart = () => {
   const [enabled, setEnabled] = useState<boolean | null>(cachedAutostartState?.enabled ?? null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(cachedAutostartState?.error ?? null);
+  const requestGenerationRef = useRef(0);
+  const pendingUpdateRef = useRef(false);
   const isMac = isMacPlatform();
 
   const setAutostartState = useCallback((state: AutostartState) => {
@@ -94,16 +96,25 @@ export const useAutostart = () => {
 
   useEffect(() => {
     let isMounted = true;
+    const requestGeneration = requestGenerationRef.current;
 
     const loadInitialAutostartState = async () => {
       try {
-        const state = await preloadAutostartState();
-        if (isMounted) {
+        const state = await loadAutostartState();
+        if (
+          isMounted &&
+          requestGeneration === requestGenerationRef.current &&
+          !pendingUpdateRef.current
+        ) {
           setAutostartState(state);
         }
       } catch (loadError) {
         console.error('Failed to read autostart state:', loadError);
-        if (isMounted) {
+        if (
+          isMounted &&
+          requestGeneration === requestGenerationRef.current &&
+          !pendingUpdateRef.current
+        ) {
           setAutostartState({
             enabled: false,
             error: 'Could not read launch-at-login status.',
@@ -122,6 +133,9 @@ export const useAutostart = () => {
   const setAutostartEnabled = useCallback(
     async (checked: boolean) => {
       const previousValue = enabled ?? false;
+      const requestGeneration = requestGenerationRef.current + 1;
+      requestGenerationRef.current = requestGeneration;
+      pendingUpdateRef.current = true;
       cachedAutostartState = { enabled: checked, error: null };
       setEnabled(checked);
       setPending(true);
@@ -133,15 +147,22 @@ export const useAutostart = () => {
             ? await enableMacAutostart()
             : await disableMacAutostart()
           : await setPluginAutostart(checked);
-        setAutostartState(nextState);
+        if (requestGeneration === requestGenerationRef.current) {
+          setAutostartState(nextState);
+        }
       } catch (updateError) {
         console.error('Failed to update autostart state:', updateError);
-        setAutostartState({
-          enabled: previousValue,
-          error: 'Could not update launch-at-login status.',
-        });
+        if (requestGeneration === requestGenerationRef.current) {
+          setAutostartState({
+            enabled: previousValue,
+            error: 'Could not update launch-at-login status.',
+          });
+        }
       } finally {
-        setPending(false);
+        if (requestGeneration === requestGenerationRef.current) {
+          pendingUpdateRef.current = false;
+          setPending(false);
+        }
       }
     },
     [enabled, isMac, setAutostartState],
