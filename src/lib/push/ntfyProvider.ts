@@ -4,6 +4,8 @@
  * Provides WebDAV Push message reception through an ntfy UnifiedPush endpoint.
  */
 
+import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { log } from '$lib/caldav/utils';
 import { base64UrlEncode, generateWebPushKeyPair } from '$lib/push/webPushKeys';
 import type { Calendar } from '$types';
@@ -81,8 +83,10 @@ interface NtfyProviderSubscription {
   endpoint: string;
   /** Key pair for Web Push registration */
   keyPair: WebPushKeyPair;
-  /** EventSource for receiving messages */
-  eventSource?: EventSource;
+  /** Whether the native ntfy SSE listener has been requested but not connected yet */
+  starting?: boolean;
+  /** Whether the native ntfy SSE listener is active */
+  listening?: boolean;
   /** When the current listener was started */
   listenerStartedAt?: Date;
   /** Last successful SSE connection */
@@ -98,20 +102,121 @@ interface NtfyProviderSubscription {
 }
 
 const activeNtfyProviderSubscriptions = new Map<string, NtfyProviderSubscription>();
+const ntfyProviderMessageHandlers = new Map<string, PushMessageHandler>();
 let receivedMessageCount = 0;
 let lastMessageAt: Date | null = null;
+let unlistenConnected: UnlistenFn | null = null;
+let unlistenEvent: UnlistenFn | null = null;
+let unlistenError: UnlistenFn | null = null;
+let listenerSetupPromise: Promise<void> | null = null;
+
+interface NativeNtfyConnectedEvent {
+  calendarId: string;
+  topic: string;
+}
+
+interface NativeNtfySseEvent {
+  calendarId: string;
+  topic: string;
+  data: string;
+}
+
+interface NativeNtfyErrorEvent {
+  calendarId: string;
+  topic: string;
+  error: string;
+}
 
 const formatProviderError = (error: unknown): string => {
   if (error instanceof Error) return error.message;
-  if (error && typeof error === 'object' && 'type' in error) {
-    return `EventSource ${String((error as { type?: unknown }).type)}`;
-  }
   return String(error);
 };
 
 const setNtfyProviderError = (subscription: NtfyProviderSubscription, error: unknown): void => {
   subscription.lastError = formatProviderError(error);
   subscription.lastErrorAt = new Date();
+};
+
+const getNtfyProviderSubscriptionByTopic = (topic: string): NtfyProviderSubscription | null =>
+  [...activeNtfyProviderSubscriptions.values()].find(
+    (subscription) => subscription.topic === topic,
+  ) ?? null;
+
+const ensureNtfyNativeEventListeners = (): Promise<void> => {
+  if (unlistenConnected && unlistenEvent && unlistenError) {
+    return Promise.resolve();
+  }
+  if (listenerSetupPromise) return listenerSetupPromise;
+
+  const setupPromise = Promise.all([
+    listen<NativeNtfyConnectedEvent>('ntfy://connected', (event) => {
+      const subscription = activeNtfyProviderSubscriptions.get(event.payload.calendarId);
+      if (!subscription || subscription.topic !== event.payload.topic) return;
+
+      subscription.starting = false;
+      subscription.listening = true;
+      subscription.lastConnectedAt = new Date();
+      subscription.lastError = undefined;
+      subscription.lastErrorAt = undefined;
+      log.info(`Connected to native ntfy SSE for topic ${subscription.topic}`);
+    }),
+    listen<NativeNtfySseEvent>('ntfy://event', (event) => {
+      const subscription = activeNtfyProviderSubscriptions.get(event.payload.calendarId);
+      if (!subscription || subscription.topic !== event.payload.topic) return;
+
+      try {
+        const data = JSON.parse(event.payload.data);
+        const messageLength = typeof data.message === 'string' ? data.message.length : 0;
+        log.debug(
+          `ntfy SSE event received (type=${data.event}, topic=${data.topic ?? subscription.topic}, encoding=${data.encoding ?? 'plain'}, messageBytes=${messageLength})`,
+        );
+
+        if (data.event !== 'message') return;
+
+        receivedMessageCount++;
+        lastMessageAt = new Date();
+        subscription.receivedMessages++;
+        subscription.lastMessageAt = lastMessageAt;
+        subscription.lastError = undefined;
+        subscription.lastErrorAt = undefined;
+        log.info(`Received push message for calendar ${event.payload.calendarId}`);
+
+        const messageContent =
+          data.message || data.attachment?.name || 'WebDAV Push message received';
+        ntfyProviderMessageHandlers.get(event.payload.calendarId)?.(
+          event.payload.calendarId,
+          messageContent,
+        );
+      } catch (error) {
+        setNtfyProviderError(subscription, error);
+        log.warn('Failed to parse native ntfy message:', error);
+      }
+    }),
+    listen<NativeNtfyErrorEvent>('ntfy://error', (event) => {
+      const subscription =
+        activeNtfyProviderSubscriptions.get(event.payload.calendarId) ??
+        getNtfyProviderSubscriptionByTopic(event.payload.topic);
+      if (!subscription) return;
+
+      subscription.starting = false;
+      subscription.listening = false;
+      setNtfyProviderError(subscription, event.payload.error);
+      log.error(`Native ntfy SSE error for topic ${subscription.topic}:`, event.payload.error);
+    }),
+  ])
+    .then(([connected, event, error]) => {
+      unlistenConnected = connected;
+      unlistenEvent = event;
+      unlistenError = error;
+    })
+    .catch((error) => {
+      listenerSetupPromise = null;
+      log.warn('Failed to listen for native ntfy SSE events:', error);
+      throw error;
+    });
+
+  listenerSetupPromise = setupPromise;
+  return setupPromise;
 };
 
 const generateNtfyProviderTopic = (
@@ -201,7 +306,7 @@ export const restoreNtfyProviderSubscription = async (
 
 export const isNtfyProviderListening = (calendarId: string): boolean => {
   const subscription = activeNtfyProviderSubscriptions.get(calendarId);
-  return !!subscription?.eventSource;
+  return !!subscription?.listening;
 };
 
 /**
@@ -217,66 +322,58 @@ export const startNtfyProviderListening = (
     return false;
   }
 
-  if (ntfySubscription.eventSource) {
+  ntfyProviderMessageHandlers.set(subscription.calendarId, onMessage);
+
+  if (ntfySubscription.listening || ntfySubscription.starting) {
     log.debug(`Already listening for calendar ${subscription.calendarId}`);
     return true;
   }
 
   const sseUrl = getNtfyProviderSseUrl(ntfySubscription.endpoint);
-  const eventSource = new EventSource(sseUrl);
   ntfySubscription.listenerStartedAt = new Date();
+  ntfySubscription.starting = true;
+  ntfySubscription.listening = false;
 
-  eventSource.onopen = () => {
-    ntfySubscription.lastConnectedAt = new Date();
-    ntfySubscription.lastError = undefined;
-    ntfySubscription.lastErrorAt = undefined;
-    log.info(`Connected to ntfy SSE for topic ${ntfySubscription.topic}`);
-  };
+  void ensureNtfyNativeEventListeners()
+    .then(() => {
+      const currentSubscription = activeNtfyProviderSubscriptions.get(subscription.calendarId);
+      if (currentSubscription !== ntfySubscription || !ntfySubscription.starting) return;
 
-  eventSource.onmessage = async (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      const messageLength = typeof data.message === 'string' ? data.message.length : 0;
-      log.debug(
-        `ntfy SSE event received (type=${data.event}, topic=${data.topic ?? ntfySubscription.topic}, encoding=${data.encoding ?? 'plain'}, messageBytes=${messageLength})`,
-      );
-
-      if (data.event === 'message') {
-        receivedMessageCount++;
-        lastMessageAt = new Date();
-        ntfySubscription.receivedMessages++;
-        ntfySubscription.lastMessageAt = lastMessageAt;
-        ntfySubscription.lastError = undefined;
-        ntfySubscription.lastErrorAt = undefined;
-        log.info(`Received push message for calendar ${subscription.calendarId}`);
-
-        const messageContent =
-          data.message || data.attachment?.name || 'WebDAV Push message received';
-        onMessage(subscription.calendarId, messageContent);
-      }
-    } catch (error) {
+      return invoke('start_ntfy_sse_listener', {
+        calendarId: subscription.calendarId,
+        topic: ntfySubscription.topic,
+        sseUrl,
+      });
+    })
+    .catch((error) => {
+      ntfySubscription.starting = false;
+      ntfySubscription.listening = false;
       setNtfyProviderError(ntfySubscription, error);
-      log.warn('Failed to parse ntfy message:', error);
-    }
-  };
+      log.error(`Failed to start native ntfy SSE for topic ${ntfySubscription.topic}:`, error);
+    });
 
-  eventSource.onerror = (error) => {
-    setNtfyProviderError(ntfySubscription, error);
-    log.error(`ntfy SSE error for topic ${ntfySubscription.topic}:`, error);
-  };
-
-  ntfySubscription.eventSource = eventSource;
   return true;
 };
 
 export const stopNtfyProviderListening = (calendarId: string): void => {
   const subscription = activeNtfyProviderSubscriptions.get(calendarId);
-  if (subscription?.eventSource) {
-    subscription.eventSource.close();
-    subscription.eventSource = undefined;
-    subscription.listenerStartedAt = undefined;
-    log.info(`Stopped listening for calendar ${calendarId}`);
-  }
+  if (!subscription) return;
+
+  const hadListener = Boolean(
+    subscription.starting || subscription.listening || subscription.listenerStartedAt,
+  );
+  subscription.starting = false;
+  subscription.listening = false;
+  subscription.listenerStartedAt = undefined;
+  ntfyProviderMessageHandlers.delete(calendarId);
+
+  if (!hadListener) return;
+
+  void invoke('stop_ntfy_sse_listener', { calendarId }).catch((error) => {
+    setNtfyProviderError(subscription, error);
+    log.warn(`Failed to stop native ntfy SSE for calendar ${calendarId}:`, error);
+  });
+  log.info(`Stopped listening for calendar ${calendarId}`);
 };
 
 export const removeNtfyProviderSubscription = (subscription: PushSubscription): void => {
@@ -345,7 +442,7 @@ export const getNtfyProviderSubscriptionDiagnostics = (
   return {
     calendarId,
     providerId: NTFY_DIRECT_PROVIDER_ID,
-    listening: !!subscription.eventSource,
+    listening: !!subscription.listening,
     listenerStartedAt: subscription.listenerStartedAt ?? null,
     lastConnectedAt: subscription.lastConnectedAt ?? null,
     lastMessageAt: subscription.lastMessageAt ?? null,
@@ -356,9 +453,15 @@ export const getNtfyProviderSubscriptionDiagnostics = (
 };
 
 export const stopAllNtfyProviderListeners = (): void => {
-  for (const calendarId of activeNtfyProviderSubscriptions.keys()) {
-    stopNtfyProviderListening(calendarId);
+  for (const subscription of activeNtfyProviderSubscriptions.values()) {
+    subscription.starting = false;
+    subscription.listening = false;
+    subscription.listenerStartedAt = undefined;
   }
+  ntfyProviderMessageHandlers.clear();
   activeNtfyProviderSubscriptions.clear();
+  void invoke('stop_all_ntfy_sse_listeners').catch((error) => {
+    log.warn('Failed to stop native ntfy SSE listeners:', error);
+  });
   log.info('Stopped all ntfy subscriptions');
 };

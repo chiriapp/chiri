@@ -49,7 +49,8 @@ pub fn run() {
                 .build(),
         )
         .manage(tray::TrayState::default())
-        .manage(push::maintenance::PushMaintenanceState::default());
+        .manage(push::maintenance::PushMaintenanceState::default())
+        .manage(push::ntfy::NtfySseState::default());
 
     #[cfg(target_os = "linux")]
     let builder = builder.manage(linux::unifiedpush::UnifiedPushState::default());
@@ -87,6 +88,9 @@ pub fn run() {
             notifications::permission::check_notification_permission,
             notifications::permission::request_notification_permission,
             preferences::get_system_region_preferences,
+            push::ntfy::start_ntfy_sse_listener,
+            push::ntfy::stop_all_ntfy_sse_listeners,
+            push::ntfy::stop_ntfy_sse_listener,
             push::maintenance::start_webdav_push_maintenance,
             push::maintenance::stop_webdav_push_maintenance,
             tray::commands::get_tray_enabled,

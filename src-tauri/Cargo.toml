@@ -30,6 +30,7 @@ tauri-plugin-updater = "2.9.0"
 tauri-plugin-single-instance = "2"
 tauri-plugin-deep-link = "2"
 reqwest = { version = "0.12", default-features = false }
+tokio = { version = "1", features = ["sync", "time"] }
 plist = "1.7"
 cms = "0.3.0-pre.2"
 der = { version = "0.8", features = ["ber"] }
@@ -54,7 +55,6 @@ tauri-plugin-http = { version = "2", default-features = false, features = ["rust
 reqwest = { version = "0.12", features = ["rustls-tls-native-roots"] }
 gtk = "0.18"
 notify-rust = "4"
-tokio = { version = "1", features = ["sync", "time"] }
 zbus = { version = "5.15.0", default-features = false, features = ["tokio"] }
 
 [features]
