@@ -186,7 +186,7 @@ export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProp
   const { enablePush, pushProvider, ntfyServerUrl } = useSettingsStore();
   const {
     availability: providerAvailability,
-    isResolvingLinuxUnifiedPush,
+    isResolvingKUnifiedPush,
     pushProviderConfig,
   } = usePushProviderAvailability({
     enabled: enablePush,
@@ -200,7 +200,7 @@ export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProp
       pushProviderConfig.ntfyConfig?.serverUrl ?? '',
     ],
     queryFn: () => getWebDAVPushAccountDiagnostics(account, pushProviderConfig),
-    enabled: enablePush && !isResolvingLinuxUnifiedPush,
+    enabled: enablePush && !isResolvingKUnifiedPush,
     refetchInterval: 10_000,
     staleTime: 5_000,
   });
@@ -212,7 +212,7 @@ export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProp
   const status = getWebDAVPushStatus(
     account,
     providerAvailability.data,
-    isResolvingLinuxUnifiedPush ||
+    isResolvingKUnifiedPush ||
       (providerAvailability.isFetching && providerAvailability.data === undefined),
     diagnostics.data,
   );

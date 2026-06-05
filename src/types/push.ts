@@ -2,8 +2,8 @@
  * Push endpoint provider used to receive Web Push-compatible messages.
  */
 export const NTFY_DIRECT_PROVIDER_ID = 'ntfy-direct';
-export const LINUX_UNIFIED_PUSH_PROVIDER_ID = 'linux-unifiedpush';
-export type PushProviderId = typeof NTFY_DIRECT_PROVIDER_ID | typeof LINUX_UNIFIED_PUSH_PROVIDER_ID;
+export const KUNIFIED_PUSH_PROVIDER_ID = 'kunifiedpush';
+export type PushProviderId = typeof NTFY_DIRECT_PROVIDER_ID | typeof KUNIFIED_PUSH_PROVIDER_ID;
 
 /**
  * ntfy server configuration.

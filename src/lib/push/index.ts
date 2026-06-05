@@ -14,15 +14,15 @@ import { registerPushSubscription, unregisterPushSubscription } from '$lib/calda
 import { log } from '$lib/caldav/utils';
 import { db } from '$lib/database';
 import {
-  createLinuxUnifiedPushProviderSubscription,
-  getLinuxUnifiedPushProviderSubscriptionDiagnostics,
-  isLinuxUnifiedPushProviderAvailable,
-  removeLinuxUnifiedPushProviderSubscription,
-  restoreLinuxUnifiedPushProviderSubscription,
-  startLinuxUnifiedPushProviderListening,
-  stopAllLinuxUnifiedPushProviderListeners,
-  stopLinuxUnifiedPushProviderListening,
-} from '$lib/push/linuxUnifiedPushProvider';
+  createKUnifiedPushProviderSubscription,
+  getKUnifiedPushProviderSubscriptionDiagnostics,
+  isKUnifiedPushProviderAvailable,
+  removeKUnifiedPushProviderSubscription,
+  restoreKUnifiedPushProviderSubscription,
+  startKUnifiedPushProviderListening,
+  stopAllKUnifiedPushProviderListeners,
+  stopKUnifiedPushProviderListening,
+} from '$lib/push/kUnifiedPushProvider';
 import {
   createNtfyProviderSubscription,
   getNtfyProviderSubscriptionDiagnostics,
@@ -37,7 +37,7 @@ import {
 import { queryClient, queryKeys } from '$lib/queryClient';
 import type { Account, Calendar } from '$types';
 import {
-  LINUX_UNIFIED_PUSH_PROVIDER_ID,
+  KUNIFIED_PUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
   type PushEndpointSubscription,
   type PushMessageHandler,
@@ -127,8 +127,8 @@ export const createWebPushSubscription = async (
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
 ): Promise<PushEndpointSubscription | null> => {
   try {
-    if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
-      return await createLinuxUnifiedPushProviderSubscription(calendar);
+    if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
+      return await createKUnifiedPushProviderSubscription(calendar);
     }
 
     return await createNtfyProviderSubscription(calendar, providerConfig.ntfyConfig);
@@ -141,8 +141,8 @@ export const createWebPushSubscription = async (
 export const isPushProviderAvailable = async (
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
 ): Promise<boolean> => {
-  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
-    return await isLinuxUnifiedPushProviderAvailable();
+  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
+    return await isKUnifiedPushProviderAvailable();
   }
 
   return await isNtfyProviderAvailable(providerConfig.ntfyConfig);
@@ -154,7 +154,7 @@ const subscriptionMatchesProvider = (
 ): boolean => {
   if (subscription.providerId !== providerConfig.providerId) return false;
 
-  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
+  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
     return !!subscription.providerToken;
   }
 
@@ -192,8 +192,8 @@ const getProviderSubscriptionDiagnostics = (
   calendarId: string,
   providerConfig: PushProviderConfig,
 ): PushProviderSubscriptionDiagnostics | null => {
-  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
-    return getLinuxUnifiedPushProviderSubscriptionDiagnostics(calendarId);
+  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
+    return getKUnifiedPushProviderSubscriptionDiagnostics(calendarId);
   }
 
   return getNtfyProviderSubscriptionDiagnostics(calendarId);
@@ -341,16 +341,16 @@ const restoreProviderSubscription = async (
   calendar: Calendar,
   providerConfig: PushProviderConfig,
 ): Promise<boolean> => {
-  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
-    return await restoreLinuxUnifiedPushProviderSubscription(subscription, calendar);
+  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
+    return await restoreKUnifiedPushProviderSubscription(subscription, calendar);
   }
 
   return await restoreNtfyProviderSubscription(subscription, calendar);
 };
 
 const removeProviderSubscription = async (subscription: PushSubscription): Promise<void> => {
-  if (subscription.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
-    await removeLinuxUnifiedPushProviderSubscription(subscription);
+  if (subscription.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
+    await removeKUnifiedPushProviderSubscription(subscription);
     return;
   }
 
@@ -425,7 +425,7 @@ const cleanupSupersededSubscriptions = async (
     await unregisterStoredSubscription(accountId, subscription);
 
     if (
-      subscription.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID &&
+      subscription.providerId === KUNIFIED_PUSH_PROVIDER_ID &&
       subscription.providerToken &&
       subscription.providerToken !== replacement.providerToken
     ) {
@@ -595,8 +595,8 @@ export const startPushListeningForSubscription = (
     return false;
   }
 
-  if (providerConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID) {
-    return startLinuxUnifiedPushProviderListening(
+  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
+    return startKUnifiedPushProviderListening(
       subscription,
       globalMessageHandler,
       calendar
@@ -632,7 +632,7 @@ export const startPushListeningForSubscription = (
  */
 export const stopPushListening = (calendarId: string) => {
   stopNtfyProviderListening(calendarId);
-  stopLinuxUnifiedPushProviderListening(calendarId);
+  stopKUnifiedPushProviderListening(calendarId);
 };
 
 /**
@@ -901,5 +901,5 @@ export const restorePushListeners = async (
 
 export const stopAllPushSubscriptions = (): void => {
   stopAllNtfyProviderListeners();
-  stopAllLinuxUnifiedPushProviderListeners();
+  stopAllKUnifiedPushProviderListeners();
 };

@@ -23,7 +23,7 @@ import {
 } from '$lib/push';
 import type { Account } from '$types';
 import {
-  LINUX_UNIFIED_PUSH_PROVIDER_ID,
+  KUNIFIED_PUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
   type PushProviderConfig,
 } from '$types/push';
@@ -101,7 +101,7 @@ interface UseWebDAVPushProps {
 export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushProps) => {
   const { data: accounts = [] } = useAccounts();
   const { enablePush, pushProvider, ntfyServerUrl, setPushProvider } = useSettingsStore();
-  const { isResolvingLinuxUnifiedPush, linuxUnifiedPushAllowed, pushProviderConfig } =
+  const { isResolvingKUnifiedPush, kunifiedPushAllowed, pushProviderConfig } =
     usePushProviderConfigState(pushProvider, ntfyServerUrl);
   const initializedRef = useRef(false);
   const restoreCompletedRef = useRef(false);
@@ -152,17 +152,17 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
   }, [handlePushMessage]);
 
   useEffect(() => {
-    if (isResolvingLinuxUnifiedPush) return;
-    if (pushProvider !== LINUX_UNIFIED_PUSH_PROVIDER_ID || linuxUnifiedPushAllowed) return;
+    if (isResolvingKUnifiedPush) return;
+    if (pushProvider !== KUNIFIED_PUSH_PROVIDER_ID || kunifiedPushAllowed) return;
 
     setPushProvider(NTFY_DIRECT_PROVIDER_ID);
     restoreCompletedRef.current = false;
     lastPushSetupKeyRef.current = null;
-  }, [isResolvingLinuxUnifiedPush, linuxUnifiedPushAllowed, pushProvider, setPushProvider]);
+  }, [isResolvingKUnifiedPush, kunifiedPushAllowed, pushProvider, setPushProvider]);
 
   // Subscribe to push for push-enabled calendars after sync completes
   useEffect(() => {
-    if (isResolvingLinuxUnifiedPush) return;
+    if (isResolvingKUnifiedPush) return;
 
     // Skip if push is disabled
     if (!enablePush) return;
@@ -199,7 +199,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     };
   }, [
     enablePush,
-    isResolvingLinuxUnifiedPush,
+    isResolvingKUnifiedPush,
     lastSyncTime,
     pushProviderConfig,
     pushProviderConfigKey,
@@ -259,7 +259,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
         const unlisten = await listen<PushMaintenanceEvent>(
           'webdav-push://maintenance',
           async (event) => {
-            if (cancelled || !enablePush || isResolvingLinuxUnifiedPush) return;
+            if (cancelled || !enablePush || isResolvingKUnifiedPush) return;
 
             log.info('Running WebDAV Push maintenance', {
               intervalSeconds: event.payload.intervalSeconds,
@@ -289,11 +289,11 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
       cancelled = true;
       unlistenMaintenance?.();
     };
-  }, [enablePush, isResolvingLinuxUnifiedPush, pushProviderConfig]);
+  }, [enablePush, isResolvingKUnifiedPush, pushProviderConfig]);
 
   useEffect(() => {
     const hasPushTargets = getPushSubscriptionTargets(accounts).length > 0;
-    const enabled = enablePush && hasPushTargets && !isResolvingLinuxUnifiedPush;
+    const enabled = enablePush && hasPushTargets && !isResolvingKUnifiedPush;
 
     invoke('start_webdav_push_maintenance', {
       enabled,
@@ -307,12 +307,12 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
         log.warn('Failed to stop WebDAV Push maintenance:', error);
       });
     };
-  }, [accounts, enablePush, isResolvingLinuxUnifiedPush]);
+  }, [accounts, enablePush, isResolvingKUnifiedPush]);
 
   // Restore push listeners on app startup (for existing subscriptions)
   useEffect(() => {
     if (
-      isResolvingLinuxUnifiedPush ||
+      isResolvingKUnifiedPush ||
       !enablePush ||
       accounts.length === 0 ||
       restoreCompletedRef.current
@@ -330,7 +330,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     };
 
     restore();
-  }, [accounts, enablePush, isResolvingLinuxUnifiedPush, pushProviderConfig]);
+  }, [accounts, enablePush, isResolvingKUnifiedPush, pushProviderConfig]);
 
   // Cleanup on unmount
   useEffect(() => {

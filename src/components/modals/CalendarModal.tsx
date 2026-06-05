@@ -29,7 +29,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   const addCalendarMutation = useAddCalendar();
   const updateAccountMutation = useUpdateAccount();
   const { defaultCalendarColor, enablePush, pushProvider, ntfyServerUrl } = useSettingsStore();
-  const { isResolvingLinuxUnifiedPush, pushProviderConfig } = usePushProviderConfigState(
+  const { isResolvingKUnifiedPush, pushProviderConfig } = usePushProviderConfigState(
     pushProvider,
     ntfyServerUrl,
   );
@@ -136,7 +136,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
 
       if (
         enablePush &&
-        !isResolvingLinuxUnifiedPush &&
+        !isResolvingKUnifiedPush &&
         calendarData.pushSupported &&
         calendarData.pushTopic
       ) {

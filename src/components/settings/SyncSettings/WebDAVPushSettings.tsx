@@ -6,7 +6,7 @@ import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/usePushProviderAvailability';
 import { DEFAULT_NTFY_SERVER_URL } from '$lib/push/ntfyProvider';
 import {
-  LINUX_UNIFIED_PUSH_PROVIDER_ID,
+  KUNIFIED_PUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
   type PushProviderId,
 } from '$types/push';
@@ -22,14 +22,14 @@ export const WebDAVPushSettings = () => {
   } = useSettingsStore();
   const {
     availability: providerAvailability,
-    isResolvingLinuxUnifiedPush,
-    linuxUnifiedPushAllowed,
+    isResolvingKUnifiedPush,
+    kunifiedPushAllowed,
     pushProviderConfig,
   } = usePushProviderAvailability({ enabled: enablePush, pushProvider, ntfyServerUrl });
-  const showLinuxUnifiedPushOption = linuxUnifiedPushAllowed;
-  const showPushProviderSelect = showLinuxUnifiedPushOption;
+  const showKUnifiedPushOption = kunifiedPushAllowed;
+  const showPushProviderSelect = showKUnifiedPushOption;
   const providerChecking =
-    isResolvingLinuxUnifiedPush ||
+    isResolvingKUnifiedPush ||
     (providerAvailability.isFetching && providerAvailability.data === undefined);
   const providerAvailable = providerAvailability.data === true;
   const providerStatusLabel = providerChecking
@@ -43,9 +43,9 @@ export const WebDAVPushSettings = () => {
       ? 'text-semantic-success'
       : 'text-semantic-warning';
   const providerName =
-    pushProviderConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID ? 'KUnifiedPush' : 'ntfy';
+    pushProviderConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID ? 'KUnifiedPush' : 'ntfy';
   const providerDescription =
-    pushProviderConfig.providerId === LINUX_UNIFIED_PUSH_PROVIDER_ID
+    pushProviderConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID
       ? 'Uses your system UnifiedPush distributor'
       : `Uses ${pushProviderConfig.ntfyConfig?.serverUrl ?? DEFAULT_NTFY_SERVER_URL}`;
 
@@ -93,8 +93,8 @@ export const WebDAVPushSettings = () => {
                     className="text-sm border border-transparent bg-surface-100 dark:bg-surface-700 text-surface-800 dark:text-surface-200 rounded-lg outline-hidden focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors shrink-0"
                   >
                     <option value={NTFY_DIRECT_PROVIDER_ID}>ntfy</option>
-                    {showLinuxUnifiedPushOption && (
-                      <option value={LINUX_UNIFIED_PUSH_PROVIDER_ID}>KUnifiedPush</option>
+                    {showKUnifiedPushOption && (
+                      <option value={KUNIFIED_PUSH_PROVIDER_ID}>KUnifiedPush</option>
                     )}
                   </AppSelect>
                 </div>

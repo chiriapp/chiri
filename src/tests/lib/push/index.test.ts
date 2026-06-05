@@ -85,15 +85,15 @@ vi.mock('$lib/caldav/push', () => ({
 vi.mock('$lib/caldav/utils', () => ({
   log: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
-vi.mock('$lib/push/linuxUnifiedPushProvider', () => ({
-  createLinuxUnifiedPushProviderSubscription: vi.fn(),
-  getLinuxUnifiedPushProviderSubscriptionDiagnostics: vi.fn(() => null),
-  isLinuxUnifiedPushProviderAvailable: vi.fn(async () => false),
-  removeLinuxUnifiedPushProviderSubscription: vi.fn(),
-  restoreLinuxUnifiedPushProviderSubscription: vi.fn(async () => false),
-  startLinuxUnifiedPushProviderListening: vi.fn(() => false),
-  stopAllLinuxUnifiedPushProviderListeners: vi.fn(),
-  stopLinuxUnifiedPushProviderListening: vi.fn(),
+vi.mock('$lib/push/kUnifiedPushProvider', () => ({
+  createKUnifiedPushProviderSubscription: vi.fn(),
+  getKUnifiedPushProviderSubscriptionDiagnostics: vi.fn(() => null),
+  isKUnifiedPushProviderAvailable: vi.fn(async () => false),
+  removeKUnifiedPushProviderSubscription: vi.fn(),
+  restoreKUnifiedPushProviderSubscription: vi.fn(async () => false),
+  startKUnifiedPushProviderListening: vi.fn(() => false),
+  stopAllKUnifiedPushProviderListeners: vi.fn(),
+  stopKUnifiedPushProviderListening: vi.fn(),
 }));
 vi.mock('$lib/push/ntfyProvider', () => ({
   createNtfyProviderSubscription: mocks.createNtfyProviderSubscription,

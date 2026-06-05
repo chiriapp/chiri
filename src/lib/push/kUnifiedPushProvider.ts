@@ -4,7 +4,7 @@ import { log } from '$lib/caldav/utils';
 import { generateWebPushKeyPair } from '$lib/push/webPushKeys';
 import type { Calendar } from '$types';
 import {
-  LINUX_UNIFIED_PUSH_PROVIDER_ID,
+  KUNIFIED_PUSH_PROVIDER_ID,
   type PushEndpointSubscription,
   type PushMessageHandler,
   type PushProviderSubscriptionDiagnostics,
@@ -12,24 +12,24 @@ import {
 } from '$types/push';
 import { generateUUID } from '$utils/misc';
 
-interface LinuxUnifiedPushProviderRegistration {
+interface KUnifiedPushProviderRegistration {
   endpoint: string;
   token: string;
   distributor: string;
 }
 
-interface LinuxUnifiedPushProviderMessageEvent {
+interface KUnifiedPushProviderMessageEvent {
   token: string;
   message: string;
   messageBytes: number;
 }
 
-interface LinuxUnifiedPushProviderEndpointEvent {
+interface KUnifiedPushProviderEndpointEvent {
   token: string;
   endpoint: string;
 }
 
-interface LinuxUnifiedPushProviderUnregisteredEvent {
+interface KUnifiedPushProviderUnregisteredEvent {
   token: string;
 }
 
@@ -52,7 +52,7 @@ const getOrCreateDiagnostics = (calendarId: string): PushProviderSubscriptionDia
 
   const diagnostics: PushProviderSubscriptionDiagnostics = {
     calendarId,
-    providerId: LINUX_UNIFIED_PUSH_PROVIDER_ID,
+    providerId: KUNIFIED_PUSH_PROVIDER_ID,
     listening: false,
     listenerStartedAt: null,
     lastConnectedAt: null,
@@ -78,7 +78,7 @@ const invalidateProviderSubscription = (token: string, reason: string) => {
 
   const handler = providerInvalidationHandlers.get(calendarId);
   markProviderError(calendarId, reason);
-  stopLinuxUnifiedPushProviderListening(calendarId);
+  stopKUnifiedPushProviderListening(calendarId);
   handler?.(calendarId, reason);
 };
 
@@ -86,7 +86,7 @@ const ensureProviderEventListeners = () => {
   if (unlistenMessage || listenerPromise) return;
 
   const setupPromise = Promise.all([
-    listen<LinuxUnifiedPushProviderMessageEvent>('unifiedpush://message', (event) => {
+    listen<KUnifiedPushProviderMessageEvent>('unifiedpush://message', (event) => {
       const { token, message, messageBytes } = event.payload;
       const calendarId = calendarIdsByProviderToken.get(token);
       if (!calendarId) return;
@@ -103,14 +103,14 @@ const ensureProviderEventListeners = () => {
 
       handler(calendarId, message || `KUnifiedPush message (${messageBytes} bytes)`);
     }),
-    listen<LinuxUnifiedPushProviderEndpointEvent>('unifiedpush://endpoint', (event) => {
+    listen<KUnifiedPushProviderEndpointEvent>('unifiedpush://endpoint', (event) => {
       const { token, endpoint } = event.payload;
       const currentEndpoint = pushResourcesByProviderToken.get(token);
       if (!currentEndpoint || currentEndpoint === endpoint) return;
 
       invalidateProviderSubscription(token, 'KUnifiedPush endpoint changed');
     }),
-    listen<LinuxUnifiedPushProviderUnregisteredEvent>('unifiedpush://unregistered', (event) => {
+    listen<KUnifiedPushProviderUnregisteredEvent>('unifiedpush://unregistered', (event) => {
       invalidateProviderSubscription(event.payload.token, 'KUnifiedPush unregistered');
     }),
   ])
@@ -134,7 +134,7 @@ const ensureProviderEventListeners = () => {
   listenerPromise = setupPromise;
 };
 
-export const isLinuxUnifiedPushProviderAvailable = async (): Promise<boolean> => {
+export const isKUnifiedPushProviderAvailable = async (): Promise<boolean> => {
   try {
     return await invoke<boolean>('kunifiedpush_available');
   } catch {
@@ -142,23 +142,20 @@ export const isLinuxUnifiedPushProviderAvailable = async (): Promise<boolean> =>
   }
 };
 
-export const createLinuxUnifiedPushProviderSubscription = async (
+export const createKUnifiedPushProviderSubscription = async (
   calendar: Calendar,
 ): Promise<PushEndpointSubscription | null> => {
   try {
     const token = generateUUID();
-    const registration = await invoke<LinuxUnifiedPushProviderRegistration>(
-      'kunifiedpush_register',
-      {
-        token,
-        vapidPublicKey: calendar.pushVapidKey ?? null,
-        description: `Chiri: ${calendar.displayName}`,
-      },
-    );
+    const registration = await invoke<KUnifiedPushProviderRegistration>('kunifiedpush_register', {
+      token,
+      vapidPublicKey: calendar.pushVapidKey ?? null,
+      description: `Chiri: ${calendar.displayName}`,
+    });
     const keyPair = await generateWebPushKeyPair();
 
     return {
-      providerId: LINUX_UNIFIED_PUSH_PROVIDER_ID,
+      providerId: KUNIFIED_PUSH_PROVIDER_ID,
       providerToken: registration.token,
       pushResource: registration.endpoint,
       subscriptionPublicKey: keyPair.publicKey,
@@ -171,21 +168,18 @@ export const createLinuxUnifiedPushProviderSubscription = async (
   }
 };
 
-export const restoreLinuxUnifiedPushProviderSubscription = async (
+export const restoreKUnifiedPushProviderSubscription = async (
   subscription: PushSubscription,
   calendar: Calendar,
 ): Promise<boolean> => {
   if (!subscription.providerToken) return false;
 
   try {
-    const registration = await invoke<LinuxUnifiedPushProviderRegistration>(
-      'kunifiedpush_register',
-      {
-        token: subscription.providerToken,
-        vapidPublicKey: calendar.pushVapidKey ?? null,
-        description: `Chiri: ${calendar.displayName}`,
-      },
-    );
+    const registration = await invoke<KUnifiedPushProviderRegistration>('kunifiedpush_register', {
+      token: subscription.providerToken,
+      vapidPublicKey: calendar.pushVapidKey ?? null,
+      description: `Chiri: ${calendar.displayName}`,
+    });
 
     if (registration.endpoint !== subscription.pushResource) {
       log.warn(
@@ -201,7 +195,7 @@ export const restoreLinuxUnifiedPushProviderSubscription = async (
   }
 };
 
-export const startLinuxUnifiedPushProviderListening = (
+export const startKUnifiedPushProviderListening = (
   subscription: PushSubscription,
   onMessage: PushMessageHandler,
   onInvalidated?: (calendarId: string, reason: string) => void,
@@ -226,7 +220,7 @@ export const startLinuxUnifiedPushProviderListening = (
   return true;
 };
 
-export const stopLinuxUnifiedPushProviderListening = (calendarId: string): void => {
+export const stopKUnifiedPushProviderListening = (calendarId: string): void => {
   providerMessageHandlers.delete(calendarId);
   providerInvalidationHandlers.delete(calendarId);
   const diagnostics = providerDiagnosticsByCalendar.get(calendarId);
@@ -243,10 +237,10 @@ export const stopLinuxUnifiedPushProviderListening = (calendarId: string): void 
   }
 };
 
-export const removeLinuxUnifiedPushProviderSubscription = async (
+export const removeKUnifiedPushProviderSubscription = async (
   subscription: PushSubscription,
 ): Promise<void> => {
-  stopLinuxUnifiedPushProviderListening(subscription.calendarId);
+  stopKUnifiedPushProviderListening(subscription.calendarId);
   providerDiagnosticsByCalendar.delete(subscription.calendarId);
 
   if (!subscription.providerToken) return;
@@ -258,13 +252,13 @@ export const removeLinuxUnifiedPushProviderSubscription = async (
   }
 };
 
-export const getLinuxUnifiedPushProviderSubscriptionDiagnostics = (
+export const getKUnifiedPushProviderSubscriptionDiagnostics = (
   calendarId: string,
 ): PushProviderSubscriptionDiagnostics | null => {
   return providerDiagnosticsByCalendar.get(calendarId) ?? null;
 };
 
-export const stopAllLinuxUnifiedPushProviderListeners = (): void => {
+export const stopAllKUnifiedPushProviderListeners = (): void => {
   calendarIdsByProviderToken.clear();
   pushResourcesByProviderToken.clear();
   providerMessageHandlers.clear();

@@ -4,7 +4,7 @@ import { usePlatform } from '$hooks/system/usePlatform';
 import { isPushProviderAvailable } from '$lib/push';
 import { createNtfyProviderConfig } from '$lib/push/ntfyProvider';
 import {
-  LINUX_UNIFIED_PUSH_PROVIDER_ID,
+  KUNIFIED_PUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
   type PushProviderId,
 } from '$types/push';
@@ -23,11 +23,11 @@ export const usePushProviderConfig = (pushProvider: PushProviderId, ntfyServerUr
 
 export const usePushProviderConfigState = (pushProvider: PushProviderId, ntfyServerUrl: string) => {
   const { isKDE, isLoading } = usePlatform();
-  const linuxUnifiedPushSelected = pushProvider === LINUX_UNIFIED_PUSH_PROVIDER_ID;
-  const linuxUnifiedPushAllowed = isLinuxPlatform() && isKDE;
-  const isResolvingLinuxUnifiedPush = linuxUnifiedPushSelected && isLinuxPlatform() && isLoading;
+  const kunifiedPushSelected = pushProvider === KUNIFIED_PUSH_PROVIDER_ID;
+  const kunifiedPushAllowed = isLinuxPlatform() && isKDE;
+  const isResolvingKUnifiedPush = kunifiedPushSelected && isLinuxPlatform() && isLoading;
   const resolvedPushProvider =
-    linuxUnifiedPushSelected && !isResolvingLinuxUnifiedPush && !linuxUnifiedPushAllowed
+    kunifiedPushSelected && !isResolvingKUnifiedPush && !kunifiedPushAllowed
       ? NTFY_DIRECT_PROVIDER_ID
       : pushProvider;
 
@@ -43,8 +43,8 @@ export const usePushProviderConfigState = (pushProvider: PushProviderId, ntfySer
   );
 
   return {
-    isResolvingLinuxUnifiedPush,
-    linuxUnifiedPushAllowed,
+    isResolvingKUnifiedPush,
+    kunifiedPushAllowed,
     pushProviderConfig,
     resolvedPushProvider,
   };
@@ -55,12 +55,8 @@ export const usePushProviderAvailability = ({
   pushProvider,
   ntfyServerUrl,
 }: UsePushProviderAvailabilityOptions) => {
-  const {
-    isResolvingLinuxUnifiedPush,
-    linuxUnifiedPushAllowed,
-    pushProviderConfig,
-    resolvedPushProvider,
-  } = usePushProviderConfigState(pushProvider, ntfyServerUrl);
+  const { isResolvingKUnifiedPush, kunifiedPushAllowed, pushProviderConfig, resolvedPushProvider } =
+    usePushProviderConfigState(pushProvider, ntfyServerUrl);
   const availability = useQuery({
     queryKey: [
       'push-provider-availability',
@@ -68,14 +64,14 @@ export const usePushProviderAvailability = ({
       pushProviderConfig.ntfyConfig?.serverUrl ?? '',
     ],
     queryFn: () => isPushProviderAvailable(pushProviderConfig),
-    enabled: enabled && !isResolvingLinuxUnifiedPush,
+    enabled: enabled && !isResolvingKUnifiedPush,
     staleTime: 60_000,
   });
 
   return {
     availability,
-    isResolvingLinuxUnifiedPush,
-    linuxUnifiedPushAllowed,
+    isResolvingKUnifiedPush,
+    kunifiedPushAllowed,
     pushProviderConfig,
     resolvedPushProvider,
   };

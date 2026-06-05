@@ -1,7 +1,7 @@
 import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import type { PushSubscriptionRow } from '$types/database';
 import {
-  LINUX_UNIFIED_PUSH_PROVIDER_ID,
+  KUNIFIED_PUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
   type PushSubscription,
 } from '$types/push';
@@ -16,8 +16,8 @@ const rowToSubscription = (row: PushSubscriptionRow): PushSubscription => ({
   registrationUrl: row.registration_url,
   pushResource: row.push_resource,
   providerId:
-    row.provider_id === LINUX_UNIFIED_PUSH_PROVIDER_ID
-      ? LINUX_UNIFIED_PUSH_PROVIDER_ID
+    row.provider_id === KUNIFIED_PUSH_PROVIDER_ID
+      ? KUNIFIED_PUSH_PROVIDER_ID
       : NTFY_DIRECT_PROVIDER_ID,
   providerToken: row.provider_token || undefined,
   expiresAt: new Date(row.expires_at),
