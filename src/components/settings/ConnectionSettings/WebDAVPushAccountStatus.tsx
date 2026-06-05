@@ -12,7 +12,11 @@ import { usePushProviderAvailability } from '$hooks/usePushProviderAvailability'
 import { getWebDAVPushAccountDiagnostics } from '$lib/push';
 import { queryKeys } from '$lib/queryClient';
 import type { Account } from '$types';
-import type { WebDAVPushAccountDiagnostics } from '$types/push';
+import {
+  KUNIFIED_PUSH_PROVIDER_ID,
+  type PushProviderConfig,
+  type WebDAVPushAccountDiagnostics,
+} from '$types/push';
 
 type WebDAVPushStatusTone = 'success' | 'warning' | 'muted' | 'info';
 
@@ -133,10 +137,15 @@ const formatAge = (date: Date | null): string | null => {
 
 const getWebDAVPushStatusDetails = (
   diagnostics: WebDAVPushAccountDiagnostics | undefined,
+  providerConfig: PushProviderConfig,
 ): WebDAVPushStatusDetail[] => {
   if (!diagnostics || diagnostics.supportedCalendars === 0) return [];
 
   const details = [
+    {
+      label: 'Provider',
+      value: providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID ? 'KUnifiedPush' : 'ntfy',
+    },
     {
       label: 'Registered',
       value: `${diagnostics.registeredCalendars}/${diagnostics.supportedCalendars}`,
@@ -217,7 +226,7 @@ export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProp
     diagnostics.data,
   );
   const toneClass = webdavPushToneClass[status.tone];
-  const details = getWebDAVPushStatusDetails(diagnostics.data);
+  const details = getWebDAVPushStatusDetails(diagnostics.data, pushProviderConfig);
 
   return (
     <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
