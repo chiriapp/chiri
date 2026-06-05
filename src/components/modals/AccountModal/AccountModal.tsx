@@ -531,7 +531,7 @@ export function AccountModal({
     : step === 'pick-type'
       ? 'Add CalDAV Account'
       : serverType === 'generic'
-        ? 'Add Generic CalDAV Account'
+        ? 'Add a CalDAV Account'
         : `Add ${serverTypeLabel} Account`;
 
   const modalDescription =
