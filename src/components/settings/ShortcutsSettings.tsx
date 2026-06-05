@@ -126,7 +126,7 @@ export const ShortcutsSettings = ({
                                     </span>
                                   ))}
                               </div>
-                              <Tooltip content="Edit shortcut" position="bottom" allowInModal>
+                              <Tooltip content="Edit shortcut" position="right" allowInModal>
                                 <button
                                   type="button"
                                   onClick={() => handleOpenEdit(shortcut)}
