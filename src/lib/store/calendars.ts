@@ -1,11 +1,51 @@
 import { DEFAULT_CALENDAR_NAME } from '$constants';
+import { settingsStore } from '$context/settingsContext';
 import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
-import type { Calendar, Task } from '$types';
+import type { Account, Calendar, Task } from '$types';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.dataStore;
+
+const isBuiltInLocalCalendar = (account: Account | undefined, calendar: Calendar | undefined) =>
+  !!account &&
+  !!calendar &&
+  !account.caldav &&
+  calendar.displayName === DEFAULT_CALENDAR_NAME &&
+  calendar.url.startsWith('local://');
+
+const isTaskCalendar = (calendar: Calendar) =>
+  !calendar.supportedComponents || calendar.supportedComponents.includes('VTODO');
+
+const maybeAdoptRemoteCalendarAsTaskDefault = (
+  accounts: Account[],
+  account: Account | undefined,
+  calendar: Calendar,
+) => {
+  if (!account?.caldav || !isTaskCalendar(calendar)) return;
+
+  const settings = settingsStore.getState();
+  if (!settings.preferCalDAVCalendarForNewTasks) return;
+  if (settings.defaultCalendarIdManuallyChanged) return;
+
+  const selectedDefaultAccount = accounts.find((candidate) =>
+    candidate.calendars.some(
+      (candidateCalendar) => candidateCalendar.id === settings.defaultCalendarId,
+    ),
+  );
+  const selectedDefaultCalendar = selectedDefaultAccount?.calendars.find(
+    (candidateCalendar) => candidateCalendar.id === settings.defaultCalendarId,
+  );
+  const shouldAdoptRemoteDefault =
+    !settings.defaultCalendarId ||
+    isBuiltInLocalCalendar(selectedDefaultAccount, selectedDefaultCalendar);
+
+  if (!shouldAdoptRemoteDefault) return;
+
+  settingsStore.setDefaultCalendarIdAutomatically(calendar.id);
+  log.info(`Using remote calendar "${calendar.displayName}" as the default for new tasks`);
+};
 
 export const addCalendar = async (accountId: string, calendarData: Partial<Calendar>) => {
   const data = dataStore.load();
@@ -33,6 +73,7 @@ export const addCalendar = async (accountId: string, calendarData: Partial<Calen
   // Assign orphan tasks to this calendar if it's the first one
   const account = data.accounts.find((a) => a.id === accountId);
   const isLocal = !account?.caldav;
+  maybeAdoptRemoteCalendarAsTaskDefault(data.accounts, account, calendar);
   let updatedTasks = data.tasks;
   if (isFirstCalendar) {
     updatedTasks = data.tasks.map((task) => {

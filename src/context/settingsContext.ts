@@ -210,7 +210,12 @@ export const settingsStore = {
   setNotifications: (notifications: boolean) => setState({ notifications }),
   setNotifyReminders: (notifyReminders: boolean) => setState({ notifyReminders }),
   setNotifyOverdue: (notifyOverdue: boolean) => setState({ notifyOverdue }),
-  setDefaultCalendarId: (defaultCalendarId: string | null) => setState({ defaultCalendarId }),
+  setDefaultCalendarId: (defaultCalendarId: string | null) =>
+    setState({ defaultCalendarId, defaultCalendarIdManuallyChanged: true }),
+  setDefaultCalendarIdAutomatically: (defaultCalendarId: string | null) =>
+    setState({ defaultCalendarId }),
+  setPreferCalDAVCalendarForNewTasks: (preferCalDAVCalendarForNewTasks: boolean) =>
+    setState({ preferCalDAVCalendarForNewTasks }),
   setKeyboardShortcuts: (keyboardShortcuts: KeyboardShortcut[]) => setState({ keyboardShortcuts }),
   updateShortcut: (id: string, updates: Partial<KeyboardShortcut>) => {
     const shortcuts = state.keyboardShortcuts.map((s) => (s.id === id ? { ...s, ...updates } : s));

@@ -99,6 +99,8 @@ export interface SettingsState {
   notifyReminders: boolean;
   notifyOverdue: boolean;
   defaultCalendarId: string | null;
+  defaultCalendarIdManuallyChanged: boolean;
+  preferCalDAVCalendarForNewTasks: boolean;
   keyboardShortcuts: KeyboardShortcut[];
   enableSystemTray: boolean;
   checkForUpdatesAutomatically: boolean;
@@ -180,6 +182,8 @@ interface SettingsActions {
   setNotifyReminders: (enabled: boolean) => void;
   setNotifyOverdue: (enabled: boolean) => void;
   setDefaultCalendarId: (calendarId: string | null) => void;
+  setDefaultCalendarIdAutomatically: (calendarId: string | null) => void;
+  setPreferCalDAVCalendarForNewTasks: (enabled: boolean) => void;
   setKeyboardShortcuts: (shortcuts: KeyboardShortcut[]) => void;
   updateShortcut: (id: string, updates: Partial<KeyboardShortcut>) => void;
   resetShortcuts: () => void;

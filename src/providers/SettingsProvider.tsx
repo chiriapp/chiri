@@ -110,6 +110,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (calendarId: string | null) => settingsStore.setDefaultCalendarId(calendarId),
     [],
   );
+  const setDefaultCalendarIdAutomatically = useCallback(
+    (calendarId: string | null) => settingsStore.setDefaultCalendarIdAutomatically(calendarId),
+    [],
+  );
+  const setPreferCalDAVCalendarForNewTasks = useCallback(
+    (enabled: boolean) => settingsStore.setPreferCalDAVCalendarForNewTasks(enabled),
+    [],
+  );
   const setKeyboardShortcuts = useCallback(
     (shortcuts: KeyboardShortcut[]) => settingsStore.setKeyboardShortcuts(shortcuts),
     [],
@@ -342,6 +350,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setNotifyReminders,
     setNotifyOverdue,
     setDefaultCalendarId,
+    setDefaultCalendarIdAutomatically,
+    setPreferCalDAVCalendarForNewTasks,
     setKeyboardShortcuts,
     updateShortcut,
     resetShortcuts,

@@ -32,6 +32,8 @@ export const defaultState: SettingsState = {
   notifyReminders: true,
   notifyOverdue: true,
   defaultCalendarId: null,
+  defaultCalendarIdManuallyChanged: false,
+  preferCalDAVCalendarForNewTasks: true,
   keyboardShortcuts: DEFAULT_SHORTCUTS,
   defaultPriority: 'none',
   defaultStatus: 'needs-action',

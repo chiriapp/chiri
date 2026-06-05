@@ -79,6 +79,8 @@ export const TaskDefaultsSettings = () => {
     setDefaultTags,
     defaultCalendarId,
     setDefaultCalendarId,
+    preferCalDAVCalendarForNewTasks,
+    setPreferCalDAVCalendarForNewTasks,
     defaultCalendarColor,
     setDefaultCalendarColor,
     defaultStartDate,
@@ -291,7 +293,7 @@ export const TaskDefaultsSettings = () => {
                 <option value="">No accounts available</option>
               ) : (
                 <>
-                  <option value="">Use selected calendar</option>
+                  <option value="">Use first calendar</option>
                   {accounts.map((account) => (
                     <optgroup key={account.id} label={account.name}>
                       {account.calendars.map((cal) => (
@@ -305,6 +307,27 @@ export const TaskDefaultsSettings = () => {
               )}
             </AppSelect>
           </div>
+
+          {!defaultCalendarId && (
+            <div className="px-4 pb-4">
+              <div className="pl-4 border-l-2 border-surface-200 dark:border-surface-600">
+                <label className="flex items-center justify-between gap-4 cursor-pointer">
+                  <div>
+                    <p className="text-sm text-surface-700 dark:text-surface-300">Prefer CalDAV</p>
+                    <p className="text-xs text-surface-500 dark:text-surface-400">
+                      When added, prefer using a remote calendar instead of local
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={preferCalDAVCalendarForNewTasks}
+                    onChange={(e) => setPreferCalDAVCalendarForNewTasks(e.target.checked)}
+                    className="rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 outline-hidden shrink-0"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
 
           <div className="border-t border-surface-200 dark:border-surface-700" />
 
