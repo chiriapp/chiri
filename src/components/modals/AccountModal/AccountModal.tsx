@@ -178,23 +178,17 @@ export function AccountModal({
 
   const showVikunjaWarning = async () => {
     return await confirm({
-      title: 'Vikunja server detected',
+      title: 'Vikunja server warning',
       message: (
         <div className="space-y-3">
-          <p>
-            This appears to be a{' '}
-            <strong className="font-semibold text-surface-800 dark:text-surface-200">
-              Vikunja server
-            </strong>
-            .
-          </p>
-          <p>Vikunja has several CalDAV bugs that cause unpredictable behavior.</p>
+          <p>Vikunja's current CalDAV implementation is incomplete and may cause issues.</p>
           <p className="font-extrabold text-base text-surface-700 dark:text-surface-300">
-            This app may not work reliably with Vikunja and you may even encounter data loss.
+            This app may not work reliably with Vikunja, and you may encounter sync problems,
+            missing features, or other bugs.
           </p>
           <p className="font-bold text-surface-800 dark:text-surface-200">
-            It's recommend you try other CalDAV servers (like RustiCal, Fastmail, Baikal, Radicale,
-            etc.) instead.
+            Only limited support will be offered. It's recommended to use a different CalDAV server
+            if possible.
           </p>
           <p>Do you want to continue anyway?</p>
         </div>
@@ -202,7 +196,7 @@ export function AccountModal({
       confirmLabel: 'Continue (dangerous)',
       cancelLabel: 'Cancel',
       destructive: true,
-      delayConfirmSeconds: 20,
+      delayConfirmSeconds: 5,
     });
   };
 
