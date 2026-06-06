@@ -22,6 +22,7 @@ jobs:
       version: ${{ steps.get_version.outputs.version }}
       changelog: ${{ steps.changelog.outputs.changelog }}
       release_id: ${{ steps.create_release.outputs.id }}
+      release_url: ${{ steps.create_release.outputs.url }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -189,6 +190,7 @@ jobs:
           fi
 
           RELEASE_ID=$(jq -r '.id // empty' release.json)
+          RELEASE_URL=$(jq -r '.html_url // empty' release.json)
 
           if [ -z "$RELEASE_ID" ]; then
             echo "::error::GitHub release ID was empty"
@@ -202,6 +204,7 @@ jobs:
           ' release.json > /dev/null
 
           echo "id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
           echo "Draft release ready: $TAG ($RELEASE_ID)"
 
   # second job: Build and upload artifacts for each platform
@@ -322,3 +325,55 @@ jobs:
           releaseId: ${{ needs.prepare-release.outputs.release_id }}
           tagName: app-v${{ needs.prepare-release.outputs.version }}
           args: ${{ matrix.args }}
+
+  publish-summary:
+    name: Publish summary
+    needs:
+      - prepare-release
+      - publish-tauri
+    if: always() && needs.prepare-release.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Write publish summary
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: app-v${{ needs.prepare-release.outputs.version }}
+          VERSION: ${{ needs.prepare-release.outputs.version }}
+          RELEASE_URL: ${{ needs.prepare-release.outputs.release_url }}
+          BUILD_RESULT: ${{ needs.publish-tauri.result }}
+        run: |
+          set -euo pipefail
+
+          gh release view "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json assets,url \
+            > release.json
+
+          ASSET_COUNT=$(jq '.assets | length' release.json)
+          RELEASE_URL="${RELEASE_URL:-$(jq -r '.url // ""' release.json)}"
+
+          mkdir -p release-assets
+          if gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern latest.json \
+            --dir release-assets \
+            --clobber >/dev/null 2>&1; then
+            UPDATER_PLATFORM_COUNT=$(jq '.platforms | length' release-assets/latest.json)
+          else
+            UPDATER_PLATFORM_COUNT="unavailable"
+          fi
+
+          {
+            echo "## Publish"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Version | \`$VERSION\` |"
+            echo "| Release | [$TAG]($RELEASE_URL) |"
+            echo "| Build result | $BUILD_RESULT |"
+            echo "| Asset count | $ASSET_COUNT |"
+            echo "| Updater platform count | $UPDATER_PLATFORM_COUNT |"
+            echo "| Hash update status | Pending post-release |"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -91,6 +91,7 @@ jobs:
           skip-push: ${{ secrets.CACHIX_AUTH_TOKEN == '' }}
 
       - name: Verify expected release assets
+        id: release_assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.version-metadata.outputs.tag }}
@@ -98,8 +99,18 @@ jobs:
         run: |
           set -euo pipefail
 
-          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name' > assets.txt
+          gh release view "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json assets,url \
+            > release.json
+
+          jq -r '.assets[].name' release.json > assets.txt
           cat assets.txt
+
+          RELEASE_URL=$(jq -r '.url // empty' release.json)
+          ASSET_COUNT=$(jq '.assets | length' release.json)
+          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
+          echo "asset_count=$ASSET_COUNT" >> "$GITHUB_OUTPUT"
 
           expected_assets=(
             "latest.json"
@@ -138,6 +149,7 @@ jobs:
           exit "$missing"
 
       - name: Verify updater metadata
+        id: updater_metadata
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.version-metadata.outputs.tag }}
@@ -154,6 +166,8 @@ jobs:
 
           jq -e --arg version "$VERSION" '.version == $version' release-assets/latest.json
           jq -e '.platforms | type == "object" and length > 0' release-assets/latest.json
+          UPDATER_PLATFORM_COUNT=$(jq '.platforms | length' release-assets/latest.json)
+          echo "platform_count=$UPDATER_PLATFORM_COUNT" >> "$GITHUB_OUTPUT"
 
           jq -er '.platforms[]?.url' release-assets/latest.json | while IFS= read -r url; do
             case "$url" in
@@ -167,6 +181,7 @@ jobs:
           done
 
       - name: Update Nix package hashes
+        id: update_hashes
         env:
           VERSION: ${{ needs.version-metadata.outputs.version }}
         run: |
@@ -212,6 +227,12 @@ jobs:
           chmod +x ./scripts/update-hashes.sh
           ./scripts/update-hashes.sh
 
+          if git diff --quiet -- nix/packages/binary.nix nix/packages/source.nix; then
+            echo "hash_status=unchanged" >> "$GITHUB_OUTPUT"
+          else
+            echo "hash_status=updated" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Verify updated Nix source package
         run: nix build .#source --print-build-logs
 
@@ -226,6 +247,7 @@ jobs:
           sed -i -E "s|[Cc]hiri-[0-9]+\.[0-9]+\.[0-9]+|Chiri-${VERSION}|g" README.md
 
       - name: Commit and push changes
+        id: commit_changes
         env:
           VERSION: ${{ needs.version-metadata.outputs.version }}
         run: |
@@ -238,7 +260,44 @@ jobs:
 
           if git diff --staged --quiet; then
             echo "No post-release changes to commit"
+            echo "commit_status=no changes" >> "$GITHUB_OUTPUT"
           else
             git commit -m "chore: finalize post-release updates for v${VERSION}"
             git push origin master
+            echo "commit_status=pushed" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Write post-release summary
+        if: always()
+        env:
+          TAG: ${{ needs.version-metadata.outputs.tag }}
+          VERSION: ${{ needs.version-metadata.outputs.version }}
+          RELEASE_URL: ${{ steps.release_assets.outputs.release_url }}
+          ASSET_COUNT: ${{ steps.release_assets.outputs.asset_count }}
+          UPDATER_PLATFORM_COUNT: ${{ steps.updater_metadata.outputs.platform_count }}
+          HASH_STATUS: ${{ steps.update_hashes.outputs.hash_status }}
+          COMMIT_STATUS: ${{ steps.commit_changes.outputs.commit_status }}
+          ASSET_RESULT: ${{ steps.release_assets.outcome }}
+          UPDATER_RESULT: ${{ steps.updater_metadata.outcome }}
+          HASH_RESULT: ${{ steps.update_hashes.outcome }}
+        run: |
+          set -euo pipefail
+
+          {
+            echo "## Post-release"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| Version | \`$VERSION\` |"
+            echo "| Release | [$TAG](${RELEASE_URL:-unavailable}) |"
+            echo "| Asset count | ${ASSET_COUNT:-unavailable} |"
+            echo "| Updater platform count | ${UPDATER_PLATFORM_COUNT:-unavailable} |"
+            echo "| Hash update status | ${HASH_STATUS:-unavailable} |"
+            echo "| Commit status | ${COMMIT_STATUS:-not reached} |"
+            echo ""
+            echo "| Check | Result |"
+            echo "| --- | --- |"
+            echo "| Release assets | ${ASSET_RESULT:-not reached} |"
+            echo "| Updater metadata | ${UPDATER_RESULT:-not reached} |"
+            echo "| Hash update | ${HASH_RESULT:-not reached} |"
+          } >> "$GITHUB_STEP_SUMMARY"
