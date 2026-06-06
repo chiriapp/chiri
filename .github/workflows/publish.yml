@@ -253,14 +253,14 @@ jobs:
           export-env: true
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          TAURI_SIGNING_PRIVATE_KEY: op://Tauri/Tauri Secrets/signing-key
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: op://Tauri/Tauri Secrets/signing-key-password
-          APPLE_SIGNING_IDENTITY: op://Tauri/Apple Secrets/identity
-          APPLE_CERTIFICATE: op://Tauri/Apple Secrets/certificate
-          APPLE_CERTIFICATE_PASSWORD: op://Tauri/Apple Secrets/api-key
-          APPLE_API_ISSUER: op://Tauri/Apple Secrets/api-issuer
-          APPLE_API_KEY: op://Tauri/Apple Secrets/api-key
-          APPLE_API_KEY_CERTIFICATE: op://Tauri/Apple Secrets/api-key-certificate
+          TAURI_SIGNING_PRIVATE_KEY: op://GitHub Actions/Tauri Secrets/signing-key
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: op://GitHub Actions/Tauri Secrets/signing-key-password
+          APPLE_SIGNING_IDENTITY: op://GitHub Actions/Apple Secrets/identity
+          APPLE_CERTIFICATE: op://GitHub Actions/Apple Secrets/certificate
+          APPLE_CERTIFICATE_PASSWORD: op://GitHub Actions/Apple Secrets/api-key
+          APPLE_API_ISSUER: op://GitHub Actions/Apple Secrets/api-issuer
+          APPLE_API_KEY: op://GitHub Actions/Apple Secrets/api-key
+          APPLE_API_KEY_CERTIFICATE: op://GitHub Actions/Apple Secrets/api-key-certificate
 
       - name: Load signing secrets from 1Password [Windows ARM]
         if: matrix.platform == 'windows-11-arm'
@@ -275,8 +275,8 @@ jobs:
           $env:PATH = "$env:RUNNER_TEMP\op;$env:PATH"
 
           # Load secrets
-          $signingKey = op read "op://Tauri/Tauri Secrets/signing-key"
-          $signingKeyPassword = op read "op://Tauri/Tauri Secrets/signing-key-password"
+          $signingKey = op read "op://GitHub Actions/Tauri Secrets/signing-key"
+          $signingKeyPassword = op read "op://GitHub Actions/Tauri Secrets/signing-key-password"
 
           # Export to GitHub environment
           "TAURI_SIGNING_PRIVATE_KEY=$signingKey" | Out-File -FilePath $env:GITHUB_ENV -Append

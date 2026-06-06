@@ -34,13 +34,13 @@ mac-build:
   trap 'rm -f "$tmp_p8"' EXIT
   chmod 600 "$tmp_p8"
 
-  op read 'op://Tauri/Apple Secrets/api-key-certificate' > "$tmp_p8"
+  op read 'op://GitHub Actions/Apple Secrets/api-key-certificate' > "$tmp_p8"
 
-  TAURI_SIGNING_PRIVATE_KEY='op://Tauri/Tauri Secrets/signing-key' \
-  TAURI_SIGNING_PRIVATE_KEY_PASSWORD='op://Tauri/Tauri Secrets/signing-key-password' \
-  APPLE_SIGNING_IDENTITY='op://Tauri/Apple Secrets/identity' \
-  APPLE_API_ISSUER='op://Tauri/Apple Secrets/api-issuer' \
-  APPLE_API_KEY='op://Tauri/Apple Secrets/api-key' \
+  TAURI_SIGNING_PRIVATE_KEY='op://GitHub Actions/Tauri Secrets/signing-key' \
+  TAURI_SIGNING_PRIVATE_KEY_PASSWORD='op://GitHub Actions/Tauri Secrets/signing-key-password' \
+  APPLE_SIGNING_IDENTITY='op://GitHub Actions/Apple Secrets/identity' \
+  APPLE_API_ISSUER='op://GitHub Actions/Apple Secrets/api-issuer' \
+  APPLE_API_KEY='op://GitHub Actions/Apple Secrets/api-key' \
   APPLE_API_KEY_PATH="$tmp_p8" \
   op run -- pnpm tauri build
 
