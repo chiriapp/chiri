@@ -1,3 +1,4 @@
+import Pencil from 'lucide-react/icons/pencil';
 import Plus from 'lucide-react/icons/plus';
 import TagIcon from 'lucide-react/icons/tag';
 import X from 'lucide-react/icons/x';
@@ -80,7 +81,7 @@ export const TaskEditorTags = ({
             onClick={onOpenTagsModal}
             className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-surface-50 dark:bg-surface-800 text-surface-500 dark:text-surface-400 border border-surface-200 dark:border-surface-600 rounded-sm hover:border-surface-400 dark:hover:border-surface-500 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
           >
-            <Plus className="w-3 h-3" />
+            {taskTags.length > 0 ? <Pencil className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
             {taskTags.length > 0 ? 'Edit tags' : 'Add tag'}
           </button>
         )}
