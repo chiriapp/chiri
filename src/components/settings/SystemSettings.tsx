@@ -23,8 +23,6 @@ export const SystemSettings = () => {
   const {
     enableSystemTray,
     setEnableSystemTray,
-    systemTrayAppliedValue,
-    setSystemTrayAppliedValue,
     showWindowOnLoginLaunch,
     setShowWindowOnLoginLaunch,
     hideDockIconWhenWindowClosed,
@@ -42,12 +40,10 @@ export const SystemSettings = () => {
   const isLinux = isLinuxPlatform();
   const isMac = isMacPlatform();
 
-  const systemTrayChanged = enableSystemTray !== systemTrayAppliedValue;
   const windowDecorationsChanged =
     isLinux && windowDecorationsMode !== windowDecorationsAppliedValue;
   const confirmBeforeQuitChanged = isMac && confirmBeforeQuit !== confirmBeforeQuitAppliedValue;
   const restartReasons = [
-    ...(systemTrayChanged ? ['system tray'] : []),
     ...(windowDecorationsChanged ? ['window decoration'] : []),
     ...(confirmBeforeQuitChanged ? ['quit warning'] : []),
   ];
@@ -96,7 +92,6 @@ export const SystemSettings = () => {
 
   const handleRestart = async () => {
     try {
-      setSystemTrayAppliedValue(enableSystemTray);
       setWindowDecorationsAppliedValue(windowDecorationsMode);
       setConfirmBeforeQuitAppliedValue(confirmBeforeQuit);
       await relaunch();
@@ -193,7 +188,7 @@ export const SystemSettings = () => {
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">Enable system tray</p>
             <p className="text-xs text-surface-500 dark:text-surface-400">
-              Show app in system tray. Requires restart.
+              Lets Chiri run in the background with a tray icon.
             </p>
           </div>
           <input

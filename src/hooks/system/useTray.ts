@@ -13,13 +13,17 @@ interface UseTrayOptions {
 
 export const useTray = ({ isSyncing, lastSyncTime, onSyncRequest }: UseTrayOptions) => {
   const { data: accounts = [] } = useAccounts();
-  const { enableSystemTray, timeFormat } = useSettingsStore();
+  const { enableSystemTray, setSystemTrayAppliedValue, timeFormat } = useSettingsStore();
 
   useEffect(() => {
-    invoke('set_tray_visible', { visible: enableSystemTray }).catch((err) => {
-      console.error('Failed to set tray visibility:', err);
-    });
-  }, [enableSystemTray]);
+    invoke('set_tray_visible', { visible: enableSystemTray })
+      .then(() => {
+        setSystemTrayAppliedValue(enableSystemTray);
+      })
+      .catch((err) => {
+        console.error('Failed to set tray visibility:', err);
+      });
+  }, [enableSystemTray, setSystemTrayAppliedValue]);
 
   useEffect(() => {
     const unlisten = listen('tray-sync', () => {
@@ -32,6 +36,8 @@ export const useTray = ({ isSyncing, lastSyncTime, onSyncRequest }: UseTrayOptio
   }, [onSyncRequest]);
 
   useEffect(() => {
+    if (!enableSystemTray) return;
+
     if (isSyncing) {
       invoke('update_tray_sync_time', { timeStr: 'Last sync: Syncing...' }).catch((err) => {
         console.error('Failed to update sync status:', err);
@@ -43,12 +49,14 @@ export const useTray = ({ isSyncing, lastSyncTime, onSyncRequest }: UseTrayOptio
         console.error('Failed to update sync time:', err);
       });
     }
-  }, [isSyncing, lastSyncTime, timeFormat]);
+  }, [enableSystemTray, isSyncing, lastSyncTime, timeFormat]);
 
   useEffect(() => {
+    if (!enableSystemTray) return;
+
     const hasCaldav = accounts.some((a) => a.caldav);
     invoke('update_tray_sync_enabled', { enabled: hasCaldav }).catch((err) => {
       console.error('Failed to update sync button state:', err);
     });
-  }, [accounts]);
+  }, [accounts, enableSystemTray]);
 };

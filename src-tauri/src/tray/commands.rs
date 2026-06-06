@@ -52,6 +52,10 @@ pub async fn set_tray_visible(
             e.to_string()
         })?;
         state.set_enabled(visible)?;
+    } else if visible {
+        menu::initialize(app_handle, &state, true)?;
+    } else {
+        state.set_enabled(false)?;
     }
     Ok(())
 }
