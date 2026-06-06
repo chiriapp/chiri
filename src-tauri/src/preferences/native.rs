@@ -1,5 +1,8 @@
 use std::process::Command;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 use super::{formats, types::NativeRegionPreferences, week};
 
 #[cfg(target_os = "macos")]
@@ -70,8 +73,12 @@ pub(super) fn get_region_preferences() -> NativeRegionPreferences {
     NativeRegionPreferences::default()
 }
 
-fn run_command_output(command: &str, args: &[&str]) -> Option<String> {
-    let output = Command::new(command).args(args).output().ok()?;
+fn run_command_output(executable: &str, args: &[&str]) -> Option<String> {
+    let mut command = Command::new(executable);
+    command.args(args);
+    hide_command_window(&mut command);
+
+    let output = command.output().ok()?;
     if !output.status.success() {
         return None;
     }
@@ -84,6 +91,16 @@ fn run_command_output(command: &str, args: &[&str]) -> Option<String> {
         Some(trimmed.to_string())
     }
 }
+
+#[cfg(target_os = "windows")]
+fn hide_command_window(command: &mut Command) {
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+    command.creation_flags(CREATE_NO_WINDOW);
+}
+
+#[cfg(not(target_os = "windows"))]
+fn hide_command_window(_: &mut Command) {}
 
 #[cfg(target_os = "windows")]
 fn read_windows_international_value(name: &str) -> Option<String> {
