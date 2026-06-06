@@ -1,6 +1,7 @@
 import CheckCircle from 'lucide-react/icons/check-circle';
 import CircleAlert from 'lucide-react/icons/circle-alert';
 import Loader2 from 'lucide-react/icons/loader-2';
+import { useEffect, useRef, useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
 import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/usePushProviderAvailability';
@@ -11,6 +12,8 @@ import {
   type PushProviderId,
 } from '$types/push';
 
+const NTFY_SERVER_URL_DEBOUNCE_MS = 500;
+
 export const WebDAVPushSettings = () => {
   const {
     enablePush,
@@ -20,6 +23,48 @@ export const WebDAVPushSettings = () => {
     ntfyServerUrl,
     setNtfyServerUrl,
   } = useSettingsStore();
+  const [draftNtfyServerUrl, setDraftNtfyServerUrl] = useState(ntfyServerUrl);
+  const draftNtfyServerUrlRef = useRef(draftNtfyServerUrl);
+  const ntfyServerUrlRef = useRef(ntfyServerUrl);
+  const setNtfyServerUrlRef = useRef(setNtfyServerUrl);
+
+  useEffect(() => {
+    draftNtfyServerUrlRef.current = draftNtfyServerUrl;
+  }, [draftNtfyServerUrl]);
+
+  useEffect(() => {
+    ntfyServerUrlRef.current = ntfyServerUrl;
+    setDraftNtfyServerUrl(ntfyServerUrl);
+  }, [ntfyServerUrl]);
+
+  useEffect(() => {
+    setNtfyServerUrlRef.current = setNtfyServerUrl;
+  }, [setNtfyServerUrl]);
+
+  useEffect(() => {
+    if (draftNtfyServerUrl === ntfyServerUrl) return;
+
+    const timeoutId = window.setTimeout(() => {
+      setNtfyServerUrl(draftNtfyServerUrl);
+    }, NTFY_SERVER_URL_DEBOUNCE_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [draftNtfyServerUrl, ntfyServerUrl, setNtfyServerUrl]);
+
+  useEffect(
+    () => () => {
+      if (draftNtfyServerUrlRef.current !== ntfyServerUrlRef.current) {
+        setNtfyServerUrlRef.current(draftNtfyServerUrlRef.current);
+      }
+    },
+    [],
+  );
+
+  const commitDraftNtfyServerUrl = () => {
+    if (draftNtfyServerUrl !== ntfyServerUrl) {
+      setNtfyServerUrl(draftNtfyServerUrl);
+    }
+  };
   const {
     availability: providerAvailability,
     isResolvingKUnifiedPush,
@@ -114,8 +159,9 @@ export const WebDAVPushSettings = () => {
                   </div>
                   <input
                     type="url"
-                    value={ntfyServerUrl}
-                    onChange={(e) => setNtfyServerUrl(e.target.value)}
+                    value={draftNtfyServerUrl}
+                    onBlur={commitDraftNtfyServerUrl}
+                    onChange={(e) => setDraftNtfyServerUrl(e.target.value)}
                     placeholder={DEFAULT_NTFY_SERVER_URL}
                     className="w-full text-sm px-3 py-1.5 rounded-lg border border-surface-200 dark:border-surface-600 bg-surface-50 dark:bg-surface-700 text-surface-800 dark:text-surface-200 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-surface-800 transition-colors"
                   />
