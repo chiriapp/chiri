@@ -117,8 +117,8 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
           <AboutSettingsLinkRow
             icon={<HeartHandshake className="w-5 h-5" />}
             label="GitHub Sponsors"
-            description="github.com/chiriapp"
-            onClick={link('https://github.com/chiriapp')}
+            description="github.com/sponsors/chiriapp"
+            onClick={link('https://github.com/sponsors/chiriapp')}
           />
 
           <AboutSettingsLinkRow
