@@ -1,5 +1,8 @@
+import { openUrl } from '@tauri-apps/plugin-opener';
 import CheckCircle from 'lucide-react/icons/check-circle';
 import CircleAlert from 'lucide-react/icons/circle-alert';
+import ExternalLink from 'lucide-react/icons/external-link';
+import Info from 'lucide-react/icons/info';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { useEffect, useRef, useState } from 'react';
 import { AppSelect } from '$components/AppSelect';
@@ -13,6 +16,7 @@ import {
 } from '$types/push';
 
 const NTFY_SERVER_URL_DEBOUNCE_MS = 500;
+const WEBDAV_PUSH_DOCS_URL = 'https://github.com/chiriapp/chiri/blob/master/docs/WEBDAV_PUSH.md';
 
 export const WebDAVPushSettings = () => {
   const {
@@ -99,6 +103,23 @@ export const WebDAVPushSettings = () => {
       <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">
         WebDAV Push
       </h3>
+      <div className="flex gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-surface-700 text-xs dark:text-surface-300">
+        <Info className="mt-px size-3.5 shrink-0 text-semantic-info" />
+        <div className="space-y-1">
+          <p>
+            WebDAV Push allows for near-real-time sync for task updates. There are, however, some
+            limitations to be aware of. Read the docs for details.
+          </p>
+          <button
+            type="button"
+            onClick={() => openUrl(WEBDAV_PUSH_DOCS_URL)}
+            className="inline-flex items-center gap-1 font-medium text-semantic-info outline-hidden hover:underline focus-visible:underline"
+          >
+            Read WebDAV Push docs
+            <ExternalLink className="size-3" />
+          </button>
+        </div>
+      </div>
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <label className="flex items-center justify-between p-4">
           <div>
