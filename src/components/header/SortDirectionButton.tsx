@@ -20,7 +20,7 @@ export const SortDirectionButton = ({
   return (
     <Tooltip
       content={isDisabled ? 'Not available for manual sorting' : ''}
-      position="bottom"
+      position="left"
       allowInModal
       className="whitespace-nowrap"
       triggerClassName="w-full"

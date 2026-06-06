@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from 'date-fns';
 
+import ChevronRight from 'lucide-react/icons/chevron-right';
 import Plus from 'lucide-react/icons/plus';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Search from 'lucide-react/icons/search';
@@ -7,6 +8,7 @@ import SlidersHorizontal from 'lucide-react/icons/sliders-horizontal';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
+import { HoverFlyout, HoverFlyoutGroup } from '$components/HoverFlyout';
 import { SortDirectionButton } from '$components/header/SortDirectionButton';
 import { SortOptionButton } from '$components/header/SortOptionsButton';
 import { ViewMenuCheckbox } from '$components/header/ViewMenuCheckbox';
@@ -310,25 +312,63 @@ export const Header = ({
                   />
                 </div>
 
-                <div className="py-2">
-                  <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                    Sort By
+                <div className="py-2 space-y-1">
+                  <div className="px-3 pb-1 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                    Tasks
                   </div>
-                  {SORT_OPTIONS.map((option) => (
-                    <SortOptionButton
-                      key={option.value}
-                      option={option}
-                      isActive={sortConfig.mode === option.value}
-                      onClick={() => handleSortChange(option.value)}
-                    />
-                  ))}
-                </div>
 
-                <div className="pt-2 border-t border-surface-200 dark:border-surface-700">
-                  <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
-                    Sort Direction
-                  </div>
-                  <SortDirectionButton sortConfig={sortConfig} onToggle={toggleSortDirection} />
+                  <HoverFlyoutGroup>
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between gap-3 px-3 py-1.5 text-sm text-surface-700 dark:text-surface-300 transition-colors outline-hidden hover:bg-surface-100 dark:hover:bg-surface-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                    >
+                      <span>Sort Direction</span>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="truncate text-xs text-surface-500 dark:text-surface-400">
+                          {sortConfig.direction === 'asc' ? 'Ascending' : 'Descending'}
+                        </span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-surface-400" />
+                      </div>
+                    </button>
+
+                    <HoverFlyout side="left" minWidthClassName="min-w-52">
+                      <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                        Sort Direction
+                      </div>
+                      <SortDirectionButton sortConfig={sortConfig} onToggle={toggleSortDirection} />
+                    </HoverFlyout>
+                  </HoverFlyoutGroup>
+
+                  <HoverFlyoutGroup>
+                    <button
+                      type="button"
+                      className="w-full flex items-center justify-between gap-3 px-3 py-1.5 text-sm text-surface-700 dark:text-surface-300 transition-colors outline-hidden hover:bg-surface-100 dark:hover:bg-surface-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
+                    >
+                      <span>Sort By</span>
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="truncate text-xs text-surface-500 dark:text-surface-400">
+                          {SORT_OPTIONS.find((option) => option.value === sortConfig.mode)?.label}
+                        </span>
+                        <ChevronRight className="h-4 w-4 shrink-0 text-surface-400" />
+                      </div>
+                    </button>
+
+                    <HoverFlyout side="left" minWidthClassName="min-w-52">
+                      <div className="px-3 pb-2 pt-1 text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wider">
+                        Sort By
+                      </div>
+                      <div className="space-y-1">
+                        {SORT_OPTIONS.map((option) => (
+                          <SortOptionButton
+                            key={option.value}
+                            option={option}
+                            isActive={sortConfig.mode === option.value}
+                            onClick={() => handleSortChange(option.value)}
+                          />
+                        ))}
+                      </div>
+                    </HoverFlyout>
+                  </HoverFlyoutGroup>
                 </div>
               </FloatingDropdownFrame>
             )}

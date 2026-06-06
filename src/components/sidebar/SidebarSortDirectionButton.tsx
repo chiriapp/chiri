@@ -15,7 +15,7 @@ export const SidebarSortDirectionButton = ({
 }: SidebarSortDirectionButtonProps) => (
   <Tooltip
     content={disabled ? 'Not available for manual sorting' : ''}
-    position="bottom"
+    position="right"
     allowInModal
     className="whitespace-nowrap"
     triggerClassName="w-full"

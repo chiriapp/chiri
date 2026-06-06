@@ -1,0 +1,15 @@
+.hover-flyout {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.hover-flyout-group.is-hover-flyout-open > .hover-flyout {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.hover-flyout-group.is-hover-flyout-open > .hover-flyout > .hover-flyout-panel {
+  animation: scaleIn 0.15s ease-out;
+}
