@@ -59,10 +59,7 @@ fn apply_notification_identity(app: &AppHandle, notif: &mut notify_rust::Notific
     }
 }
 
-pub fn send_notification(
-    app: &AppHandle,
-    request: &SendNotificationRequest,
-) -> Result<(), String> {
+pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> Result<(), String> {
     let mut notif = notify_rust::Notification::new();
     notif.summary(&request.title).body(&request.body);
     apply_notification_identity(app, &mut notif);
