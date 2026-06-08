@@ -24,7 +24,7 @@ pub async fn send_notification_with_actions(
     #[cfg(target_os = "linux")]
     {
         let _ = state;
-        return super::linux::send_notification(&app, &request).await;
+        return super::linux::send_notification(&app, &request);
     }
 
     #[cfg(target_os = "windows")]
@@ -82,7 +82,7 @@ pub async fn send_simple_notification(
     #[cfg(target_os = "linux")]
     {
         let _ = state;
-        return super::linux::send_simple_notification(&app, &request).await;
+        return super::linux::send_simple_notification(&app, &request);
     }
 
     #[cfg(target_os = "windows")]

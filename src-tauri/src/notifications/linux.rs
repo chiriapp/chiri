@@ -59,7 +59,7 @@ fn apply_notification_identity(app: &AppHandle, notif: &mut notify_rust::Notific
     }
 }
 
-pub async fn send_notification(
+pub fn send_notification(
     app: &AppHandle,
     request: &SendNotificationRequest,
 ) -> Result<(), String> {
@@ -82,14 +82,19 @@ pub async fn send_notification(
         }
     }
 
-    let handle = notif.show().map_err(|e| e.to_string())?;
-
     let task_id = request.task_id.clone();
     let notification_type =
         serde_json::to_string(&request.notification_type).map_err(|e| e.to_string())?;
     let app = app.clone();
 
     tauri::async_runtime::spawn_blocking(move || {
+        let handle = match notif.show() {
+            Ok(h) => h,
+            Err(e) => {
+                log::warn!("[Notifications] Failed to show notification: {e}");
+                return;
+            }
+        };
         handle.wait_for_action(|action| {
             let Some(action_name) = actions::plain_action_name(action) else {
                 return;
@@ -106,13 +111,17 @@ pub async fn send_notification(
     Ok(())
 }
 
-pub async fn send_simple_notification(
+pub fn send_simple_notification(
     app: &AppHandle,
     request: &SimpleNotificationRequest,
 ) -> Result<(), String> {
     let mut notif = notify_rust::Notification::new();
     notif.summary(&request.title).body(&request.body);
     apply_notification_identity(app, &mut notif);
-    notif.show().map_err(|e| e.to_string())?;
+    tauri::async_runtime::spawn_blocking(move || {
+        if let Err(e) = notif.show() {
+            log::warn!("[Notifications] Failed to show simple notification: {e}");
+        }
+    });
     Ok(())
 }
