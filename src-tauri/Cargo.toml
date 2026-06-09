@@ -1,7 +1,7 @@
 [package]
 name = "Chiri"
 version = "0.9.1"
-description = "A cross-platform CalDAV task management app. Currently in very early alpha!"
+description = "Cross-platform CalDAV task management app."
 authors = ["Sapphic Angels"]
 license = "zlib"
 repository = "https://github.com/chiriapp/chiri.git"

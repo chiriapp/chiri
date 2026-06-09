@@ -2,7 +2,7 @@
   "name": "chiri",
   "version": "0.9.1",
   "author": "Sapphic Angels",
-  "description": "A cross-platform CalDAV task management app. Currently in very early alpha!",
+  "description": "Cross-platform CalDAV task management app.",
   "type": "module",
   "packageManager": "pnpm@11.1.2",
   "license": "zlib/libpng",

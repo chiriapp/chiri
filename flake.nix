@@ -1,5 +1,5 @@
 {
-  description = "Chiri - a cross-platform CalDAV task management app. Currently in very early alpha!";
+  description = "🍃 Chiri - a cross-platform CalDAV task management app.";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";

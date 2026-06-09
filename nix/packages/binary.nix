@@ -79,7 +79,7 @@ if stdenvNoCC.isDarwin then
     '';
 
     meta = {
-      description = "A cross-platform CalDAV task management app. Currently in very early alpha! (pre-built binary)";
+      description = "Cross-platform CalDAV task management app. (pre-built binary)";
       homepage = "https://github.com/chiriapp/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
@@ -158,7 +158,7 @@ else
     '';
 
     meta = {
-      description = "A cross-platform CalDAV task management app. Currently in very early alpha! (pre-built binary)";
+      description = "Cross-platform CalDAV task management app. (pre-built binary)";
       homepage = "https://github.com/chiriapp/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
