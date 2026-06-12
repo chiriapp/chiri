@@ -2,6 +2,7 @@ import { DEFAULT_SHORTCUTS } from '$constants';
 import { loggers } from '$lib/logger';
 import type { KeyboardShortcut } from '$types';
 import type { SettingsState } from '$types/settings';
+import { isReservedShortcut } from '$utils/keyboard';
 
 const log = loggers.settings;
 
@@ -13,6 +14,10 @@ export const mergeShortcuts = (
 
   return defaultShortcuts.map((defaultShortcut) => {
     const existing = existingMap.get(defaultShortcut.id);
+    if (existing && isReservedShortcut(existing)) {
+      return defaultShortcut;
+    }
+
     return existing || defaultShortcut;
   });
 };

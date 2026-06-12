@@ -28,6 +28,7 @@ import type {
 import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$utils/color/accent';
 import { applyColorScheme } from '$utils/color/scheme';
 import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
+import { getShortcutSignature } from '$utils/keyboard';
 import { defaultState } from './settingsDefaults';
 import { exportSettings, importSettings, mergeOrder, mergeShortcuts } from './settingsImportExport';
 
@@ -77,6 +78,9 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
         );
 
         const newLength = loadedState.keyboardShortcuts.length;
+        const originalShortcutsById = new Map(
+          parsed.state.keyboardShortcuts.map((s: KeyboardShortcut) => [s.id, s]),
+        );
         const newIds = loadedState.keyboardShortcuts
           .filter((s: KeyboardShortcut) => !originalIds.includes(s.id))
           .map((s: KeyboardShortcut) => s.id);
@@ -85,10 +89,17 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
         );
 
         // Mark if shortcuts were added or deprecated shortcuts were removed during merge
-        if (newLength !== originalLength) {
+        const changedIds = loadedState.keyboardShortcuts
+          .filter((s: KeyboardShortcut) => {
+            const original = originalShortcutsById.get(s.id);
+            return original && getShortcutSignature(original) !== getShortcutSignature(s);
+          })
+          .map((s: KeyboardShortcut) => s.id);
+
+        if (newLength !== originalLength || changedIds.length > 0) {
           migrated = true;
           log.info(
-            `Migrated keyboard shortcuts: ${originalLength} → ${newLength} (added: ${newIds.join(', ') || 'none'}, removed: ${removedIds.join(', ') || 'none'})`,
+            `Migrated keyboard shortcuts: ${originalLength} → ${newLength} (added: ${newIds.join(', ') || 'none'}, removed: ${removedIds.join(', ') || 'none'}, changed: ${changedIds.join(', ') || 'none'})`,
           );
         }
       }
@@ -227,8 +238,12 @@ export const settingsStore = {
     const hasDeprecatedShortcuts = state.keyboardShortcuts.some(
       (shortcut) => !merged.find((s) => s.id === shortcut.id),
     );
+    const hasChangedShortcuts = merged.some((shortcut) => {
+      const current = state.keyboardShortcuts.find((s) => s.id === shortcut.id);
+      return current && getShortcutSignature(current) !== getShortcutSignature(shortcut);
+    });
 
-    if (hasNewShortcuts || hasDeprecatedShortcuts) {
+    if (hasNewShortcuts || hasDeprecatedShortcuts || hasChangedShortcuts) {
       const newCount = merged.length - state.keyboardShortcuts.length;
       log.info(`Updating shortcuts: ${newCount} shortcut delta (${merged.length} total)`);
       setState({ keyboardShortcuts: merged });

@@ -40,6 +40,7 @@ const menuItemRefs: {
  */
 const shortcutToAccelerator = (shortcut?: KeyboardShortcut) => {
   if (!shortcut?.key) return undefined;
+  if (shortcut.super) return undefined;
 
   const parts: string[] = [];
 

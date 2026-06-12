@@ -29,6 +29,7 @@ import {
   getMetaKeyLabel,
   getModifierJoiner,
   getShiftKeyLabel,
+  getSuperKeyLabel,
 } from '$utils/keyboard';
 import { isMacPlatform } from '$utils/platform';
 
@@ -66,10 +67,11 @@ const matchesModifiers = (e: KeyboardEvent, shortcut: KeyboardShortcut): boolean
   const primaryModifierPressed = isMac ? e.metaKey : e.ctrlKey;
   const metaMatch = shortcut.meta ? primaryModifierPressed : !primaryModifierPressed;
   const ctrlMatch = shortcut.ctrl ? e.ctrlKey : isMac ? !e.ctrlKey : true;
+  const superMatch = isMac ? true : shortcut.super ? e.metaKey : !e.metaKey;
   const shiftMatch = shortcut.shift ? e.shiftKey : !e.shiftKey;
   const altMatch = shortcut.alt ? e.altKey : !e.altKey;
 
-  return metaMatch && ctrlMatch && shiftMatch && altMatch;
+  return metaMatch && ctrlMatch && superMatch && shiftMatch && altMatch;
 };
 
 /**
@@ -426,6 +428,9 @@ export const getShortcutDisplay = (shortcut: KeyboardShortcut) => {
   }
   if (shortcut.ctrl && (isMacPlatform() || !shortcut.meta)) {
     parts.push('Ctrl');
+  }
+  if (shortcut.super && !isMacPlatform()) {
+    parts.push(getSuperKeyLabel());
   }
   if (shortcut.shift) {
     parts.push(getShiftKeyLabel());

@@ -3,7 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import type { KeyboardShortcut } from '$types';
-import { formatShortcut, shortcutsConflict } from '$utils/keyboard';
+import {
+  formatShortcut,
+  getReservedShortcutMessage,
+  normalizeShortcutKey,
+  shortcutsConflict,
+} from '$utils/keyboard';
 import { isMacPlatform } from '$utils/platform';
 
 interface KeyboardShortcutModalProps {
@@ -33,6 +38,10 @@ export const KeyboardShortcutModal = ({
             candidate.id !== shortcut.id && shortcutsConflict(candidate, pendingFullShortcut),
         )
       : undefined;
+  const reservedShortcutMessage = pendingFullShortcut
+    ? getReservedShortcutMessage(pendingFullShortcut)
+    : null;
+  const hasShortcutError = Boolean(conflictingShortcut || reservedShortcutMessage);
 
   // Reset pending shortcut when modal opens with new shortcut
   useEffect(() => {
@@ -62,7 +71,7 @@ export const KeyboardShortcutModal = ({
 
     // Enter saves the current shortcut
     if (e.key === 'Enter') {
-      if (pendingShortcut && shortcut && !conflictingShortcut) {
+      if (pendingShortcut && shortcut && !conflictingShortcut && !reservedShortcutMessage) {
         onSave(shortcut.id, pendingShortcut);
         onClose();
       }
@@ -76,9 +85,10 @@ export const KeyboardShortcutModal = ({
 
     const isMac = isMacPlatform();
     const newShortcut: Partial<KeyboardShortcut> = {
-      key: e.key,
+      key: normalizeShortcutKey(e.key),
       meta: isMac ? e.metaKey : e.ctrlKey,
       ctrl: isMac ? e.ctrlKey : false,
+      super: isMac ? false : e.metaKey,
       shift: e.shiftKey,
       alt: e.altKey,
     };
@@ -87,7 +97,7 @@ export const KeyboardShortcutModal = ({
   };
 
   const handleSave = () => {
-    if (pendingShortcut && shortcut && !conflictingShortcut) {
+    if (pendingShortcut && shortcut && !conflictingShortcut && !reservedShortcutMessage) {
       onSave(shortcut.id, pendingShortcut);
       onClose();
     }
@@ -98,6 +108,7 @@ export const KeyboardShortcutModal = ({
       key: undefined,
       meta: false,
       ctrl: false,
+      super: false,
       shift: false,
       alt: false,
     });
@@ -129,7 +140,10 @@ export const KeyboardShortcutModal = ({
           <ModalButton variant="secondary" onClick={onClose}>
             Cancel
           </ModalButton>
-          <ModalButton onClick={handleSave} disabled={!pendingShortcut || !!conflictingShortcut}>
+          <ModalButton
+            onClick={handleSave}
+            disabled={!pendingShortcut || !!conflictingShortcut || !!reservedShortcutMessage}
+          >
             Save
           </ModalButton>
         </>
@@ -146,7 +160,7 @@ export const KeyboardShortcutModal = ({
           onBlur={() => setIsRecording(false)}
           onKeyDown={handleKeyCapture}
           className={`relative flex h-20 w-full cursor-pointer items-center justify-center rounded-lg border bg-surface-50 shadow-inner transition-colors hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-inset dark:bg-surface-900 dark:focus:bg-surface-800 dark:hover:bg-surface-800 ${
-            conflictingShortcut
+            hasShortcutError
               ? 'border-semantic-error focus:border-semantic-error focus:ring-semantic-error'
               : 'border-surface-200 hover:border-surface-300 focus:border-primary-500 dark:border-surface-700 dark:hover:border-surface-600'
           }`}
@@ -191,6 +205,9 @@ export const KeyboardShortcutModal = ({
           <p className="text-center text-semantic-error text-xs">
             Already used by {conflictingShortcut.description}.
           </p>
+        )}
+        {!conflictingShortcut && reservedShortcutMessage && (
+          <p className="text-center text-semantic-error text-xs">{reservedShortcutMessage}</p>
         )}
       </div>
     </ModalWrapper>
