@@ -7,20 +7,18 @@
   "packageManager": "pnpm@11.1.2",
   "license": "zlib/libpng",
   "scripts": {
-    "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri",
-    "lint": "biome lint .",
-    "lint:rust": "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
+    "check": "biome check",
+    "dev": "vite",
     "format": "biome format --write .",
     "fix": "biome check --write .",
-    "check": "biome check",
+    "lint": "biome lint .",
+    "lint:rust": "cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings",
     "test": "vitest run --project=node --project=jsdom",
-    "test:watch": "vitest --project=node --project=jsdom",
     "test:coverage": "vitest run --project=node --project=jsdom --coverage",
     "test:integration": "vitest run --project=integration",
-    "test:integration:all": "bash scripts/test-integration-all.sh"
+    "test:integration:all": "bash scripts/test-integration-all.sh",
+    "test:watch": "vitest --project=node --project=jsdom"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
