@@ -34,7 +34,7 @@ tokio = { version = "1", features = ["sync", "time"] }
 plist = "1.7"
 cms = "0.3.0-pre.2"
 der = { version = "0.8", features = ["ber"] }
-dirs = "5.0"
+dirs = "6.0"
 icu_calendar = "2.2"
 icu_locale = "2.2"
 iana-time-zone = "0.1"
