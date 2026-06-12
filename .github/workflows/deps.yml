@@ -1,4 +1,4 @@
-name: 'Deps'
+name: 'Nix hashes'
 
 on:
   workflow_run:
@@ -19,7 +19,7 @@ concurrency:
 jobs:
   update-branch:
     name: Update branch
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.actor.login == 'dependabot[bot]'
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
@@ -60,8 +60,8 @@ jobs:
           head_ref="$(jq -r '.headRefName' <<< "$pr_json")"
           title="$(jq -r '.title' <<< "$pr_json")"
 
-          if [[ "$author" != "dependabot[bot]" ]]; then
-            echo "PR #$PR_NUMBER is authored by $author, not dependabot[bot]."
+          if [[ "$author" != "dependabot[bot]" && "$author" != "app/dependabot" ]]; then
+            echo "PR #$PR_NUMBER is authored by $author, not Dependabot."
             exit 1
           fi
 
@@ -154,7 +154,7 @@ jobs:
           git push origin "HEAD:refs/heads/$HEAD_REF"
 
           {
-            echo "## Deps"
+            echo "## Nix hashes"
             echo
             echo "Committed refreshed Nix dependency hashes to Dependabot PR #$DEPENDABOT_PR."
             echo
