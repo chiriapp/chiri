@@ -116,7 +116,7 @@ jobs:
         run: nix build .#source --print-build-logs
 
       - name: Generate Nix hash update patch
-        if: steps.source-build.outcome == 'failure' && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+        if: steps.source-build.outcome == 'failure' && github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'dependabot/')
         shell: bash
         run: |
           set -euo pipefail
@@ -138,7 +138,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload Nix hash update patch
-        if: steps.source-build.outcome == 'failure' && github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+        if: steps.source-build.outcome == 'failure' && github.event_name == 'pull_request' && startsWith(github.event.pull_request.head.ref, 'dependabot/')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: nix-hash-update
