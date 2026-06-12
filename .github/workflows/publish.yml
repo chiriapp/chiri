@@ -26,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
+          persist-credentials: false
           fetch-depth: 0  # Need full history for changelog
 
       - name: Verify release version
@@ -60,15 +61,15 @@ jobs:
 
       - name: Generate release changelog
         id: changelog
+        env:
+          PREV_TAG: ${{ steps.get_prev_tag.outputs.prev_tag }}
         run: |
-          PREV_TAG="${{ steps.get_prev_tag.outputs.prev_tag }}"
-
           if [ -z "$PREV_TAG" ]; then
             # No previous tag, get all commits
             COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges HEAD)
           else
             # Get commits since last tag
-            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges ${PREV_TAG}..HEAD)
+            COMMITS=$(git log --pretty=format:"- %s (%h)" --no-merges "${PREV_TAG}..HEAD")
           fi
 
           # Categorize commits by conventional commit type
@@ -239,6 +240,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
 
       - name: Setup Tauri build
         uses: ./.github/actions/setup-tauri-build
@@ -251,6 +254,7 @@ jobs:
         uses: 1password/load-secrets-action@3a12b0ab99d9cd590a3e9b5a90ea017210ed9556 # v4
         with:
           export-env: true
+          version: 2.33.1
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: op://GitHub Actions/Tauri Secrets/signing-key
