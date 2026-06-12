@@ -22,8 +22,7 @@ updates:
           - "minor"
           - "patch"
     commit-message:
-      prefix: "deps"
-      include: "scope"
+      prefix: "chore(deps)"
 
   - package-ecosystem: "cargo"
     directory: "/src-tauri"
@@ -46,8 +45,7 @@ updates:
           - "minor"
           - "patch"
     commit-message:
-      prefix: "deps"
-      include: "scope"
+      prefix: "chore(deps)"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -67,8 +65,7 @@ updates:
           - "minor"
           - "patch"
     commit-message:
-      prefix: "ci"
-      include: "scope"
+      prefix: "chore(ci)"
 
   - package-ecosystem: "nix"
     directory: "/"
@@ -81,5 +78,4 @@ updates:
     cooldown:
       default-days: 7
     commit-message:
-      prefix: "deps"
-      include: "scope"
+      prefix: "chore(deps)"

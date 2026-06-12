@@ -1,0 +1,162 @@
+name: 'Deps'
+
+on:
+  workflow_run:
+    workflows:
+      - Checks
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: deps-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  update-branch:
+    name: Update branch
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.actor.login == 'dependabot[bot]'
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          fetch-depth: 0
+
+      - name: Download Nix hash patch
+        id: patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          if gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name nix-hash-update --dir nix-hash-update; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+            echo "No nix-hash-update artifact found; nothing to do."
+          fi
+
+      - name: Read Dependabot PR metadata
+        if: steps.patch.outputs.found == 'true'
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$PR_NUMBER" ]]; then
+            echo "Workflow run is not associated with a pull request."
+            exit 1
+          fi
+
+          pr_json="$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json author,headRefName,headRepositoryOwner,title)"
+          author="$(jq -r '.author.login' <<< "$pr_json")"
+          head_owner="$(jq -r '.headRepositoryOwner.login' <<< "$pr_json")"
+          head_ref="$(jq -r '.headRefName' <<< "$pr_json")"
+          title="$(jq -r '.title' <<< "$pr_json")"
+
+          if [[ "$author" != "dependabot[bot]" ]]; then
+            echo "PR #$PR_NUMBER is authored by $author, not dependabot[bot]."
+            exit 1
+          fi
+
+          if [[ "$head_owner" != "${GITHUB_REPOSITORY_OWNER}" ]]; then
+            echo "Dependabot PR head repo owner is $head_owner, not ${GITHUB_REPOSITORY_OWNER}."
+            exit 1
+          fi
+
+          if [[ ! "$head_ref" =~ ^dependabot/[A-Za-z0-9._/-]+$ ]]; then
+            echo "Unexpected Dependabot branch name: $head_ref"
+            exit 1
+          fi
+
+          {
+            echo "number=$PR_NUMBER"
+            echo "head-ref=$head_ref"
+            echo "title<<EOF"
+            echo "$title"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Apply hash patch
+        if: steps.patch.outputs.found == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          patch_file="nix-hash-update/nix-hash-update.patch"
+          head_ref="${{ steps.pr.outputs.head-ref }}"
+
+          if [[ ! -s "$patch_file" ]]; then
+            echo "Patch artifact is missing or empty."
+            exit 1
+          fi
+
+          git fetch origin "+refs/heads/$head_ref:refs/remotes/origin/$head_ref"
+          git switch --create "$head_ref" "origin/$head_ref"
+
+          git apply --check "$patch_file"
+          git apply "$patch_file"
+
+          changed_files="$(git diff --name-only)"
+          if [[ "$changed_files" != "nix/packages/source.nix" ]]; then
+            echo "Patch changed unexpected files:"
+            printf '%s\n' "$changed_files"
+            exit 1
+          fi
+
+          invalid_lines="$(
+            git diff --unified=0 -- nix/packages/source.nix |
+              grep -E '^[+-][^+-]' |
+              grep -Ev '^[+-]  (cargoHash = "sha256-[A-Za-z0-9+/=]+=";|hash = "sha256-[A-Za-z0-9+/=]+="; # pnpmDeps)$' ||
+              true
+          )"
+
+          if [[ -n "$invalid_lines" ]]; then
+            echo "Patch changes more than the allowed Nix dependency hash lines:"
+            printf '%s\n' "$invalid_lines"
+            exit 1
+          fi
+
+      - name: Commit hash update
+        if: steps.patch.outputs.found == 'true'
+        id: commit
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No hash changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add nix/packages/source.nix
+          git commit -m "chore(deps): update nix dependency hashes"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Push hash update
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          HEAD_REF: ${{ steps.pr.outputs.head-ref }}
+          DEPENDABOT_PR: ${{ steps.pr.outputs.number }}
+          DEPENDABOT_TITLE: ${{ steps.pr.outputs.title }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git push origin "HEAD:refs/heads/$HEAD_REF"
+
+          {
+            echo "## Deps"
+            echo
+            echo "Committed refreshed Nix dependency hashes to Dependabot PR #$DEPENDABOT_PR."
+            echo
+            echo "Dependabot title: $DEPENDABOT_TITLE"
+          } >> "$GITHUB_STEP_SUMMARY"
