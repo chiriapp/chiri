@@ -141,9 +141,18 @@ jobs:
           git commit -m "chore(deps): update nix dependency hashes"
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
+      - name: Create app token
+        if: steps.commit.outputs.changed == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.HASH_BOT_APP_ID }}
+          private-key: ${{ secrets.HASH_BOT_PRIVATE_KEY }}
+
       - name: Push hash update
         if: steps.commit.outputs.changed == 'true'
         env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
           HEAD_REF: ${{ steps.pr.outputs.head-ref }}
           DEPENDABOT_PR: ${{ steps.pr.outputs.number }}
           DEPENDABOT_TITLE: ${{ steps.pr.outputs.title }}
@@ -151,7 +160,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          git push origin "HEAD:refs/heads/$HEAD_REF"
+          git push "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:refs/heads/$HEAD_REF"
 
           {
             echo "## Nix hashes"
