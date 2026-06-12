@@ -92,9 +92,16 @@ export const RegionTimeSettings = () => {
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-100 text-surface-700 dark:bg-surface-700 dark:text-surface-200">
               <CalendarDays className="h-4 w-4" />
             </span>
-            <span className="min-w-0 font-medium text-sm text-surface-900 dark:text-surface-100">
-              Date format
-            </span>
+
+            <div className="flex flex-col">
+              <span className="min-w-0 font-medium text-sm text-surface-900 dark:text-surface-100">
+                Date format
+              </span>
+
+              <span className="min-w-0 text-surface-500 text-xs dark:text-surface-400">
+                How dates appear throughout the app
+              </span>
+            </div>
           </div>
           <AppSelect
             value={dateFormat}
@@ -114,9 +121,14 @@ export const RegionTimeSettings = () => {
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-100 text-surface-700 dark:bg-surface-700 dark:text-surface-200">
               <Clock className="h-4 w-4" />
             </span>
-            <span className="min-w-0 font-medium text-sm text-surface-900 dark:text-surface-100">
-              Time format
-            </span>
+            <div className="flex flex-col">
+              <span className="min-w-0 font-medium text-sm text-surface-900 dark:text-surface-100">
+                Time format
+              </span>
+              <span className="min-w-0 text-surface-500 text-xs dark:text-surface-400">
+                12-hour (AM/PM) or 24-hour clock
+              </span>
+            </div>
           </div>
           <div className="flex shrink-0 gap-2">
             {(
@@ -146,9 +158,15 @@ export const RegionTimeSettings = () => {
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-100 text-surface-700 dark:bg-surface-700 dark:text-surface-200">
               <CalendarDays className="h-4 w-4" />
             </span>
-            <span className="min-w-0 font-medium text-sm text-surface-900 dark:text-surface-100">
-              Week starts on
-            </span>
+
+            <div className="flex flex-col">
+              <span className="min-w-0 font-medium text-sm text-surface-900 dark:text-surface-100">
+                Week starts on
+              </span>
+              <span className="min-w-0 text-surface-500 text-xs dark:text-surface-400">
+                First day of the week in date pickers
+              </span>
+            </div>
           </div>
           <AppSelect
             value={startOfWeek}
