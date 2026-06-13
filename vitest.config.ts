@@ -16,6 +16,7 @@ export default defineConfig({
           include: ['src/tests/**/*.test.ts'],
           exclude: [
             'src/tests/lib/tauri-http.test.ts',
+            'src/tests/components/TaskDefaultsSettings.test.tsx',
             'src/tests/hooks/ui/useContextMenu.test.ts',
             'src/tests/hooks/ui/useInitialFocusRef.test.ts',
             'src/tests/hooks/ui/usePreserveScrollOnWindowFocus.test.ts',
@@ -32,6 +33,7 @@ export default defineConfig({
           environment: 'jsdom',
           include: [
             'src/tests/lib/tauri-http.test.ts',
+            'src/tests/components/TaskDefaultsSettings.test.tsx',
             'src/tests/hooks/ui/useContextMenu.test.ts',
             'src/tests/hooks/ui/useInitialFocusRef.test.ts',
             'src/tests/hooks/ui/usePreserveScrollOnWindowFocus.test.ts',

@@ -101,6 +101,7 @@ export const TaskDefaultsSettings = () => {
   const resolvedAccentColor = useResolvedAccentColor();
   const { data: accounts = [] } = useAccounts();
   const { data: tags = [] } = useTags();
+  const accountsWithCalendars = accounts.filter((account) => account.calendars.length > 0);
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [editingReminderOffset, setEditingReminderOffset] = useState<DefaultReminderOffset | null>(
@@ -283,18 +284,15 @@ export const TaskDefaultsSettings = () => {
             <AppSelect
               value={defaultCalendarId || ''}
               onChange={(e) => setDefaultCalendarId(e.target.value || null)}
-              disabled={
-                accounts.length === 0 || !accounts.some((account) => account.calendars.length > 0)
-              }
+              disabled={accountsWithCalendars.length === 0}
               className="max-w-50 shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
             >
-              {accounts.length === 0 ||
-              !accounts.some((account) => account.calendars.length > 0) ? (
+              {accountsWithCalendars.length === 0 ? (
                 <option value="">No accounts available</option>
               ) : (
                 <>
                   <option value="">Use first calendar</option>
-                  {accounts.map((account) => (
+                  {accountsWithCalendars.map((account) => (
                     <optgroup key={account.id} label={account.name}>
                       {account.calendars.map((cal) => (
                         <option key={cal.id} value={cal.id}>
