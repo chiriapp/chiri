@@ -141,6 +141,7 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
       zIndex="z-60"
       className="max-w-2xl"
       backdropClassName="bg-black/35 backdrop-blur-md"
+      dialogAnimationDelayMs={0}
       footerLeft={footerLeft}
       footer={
         <ModalButton
