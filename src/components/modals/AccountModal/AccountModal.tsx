@@ -96,6 +96,7 @@ export function AccountModal({
   const [setupNotice, setSetupNotice] = useState<CalDAVSetupNotice | null>(null);
   const [quickConnectLoginStep, setQuickConnectLoginStep] =
     useState<QuickConnectLoginStep>('input');
+  const [fastmailOAuthSetupInProgress, setFastmailOAuthSetupInProgress] = useState(false);
   const [navDirection, setNavDirection] = useState<'forward' | 'back' | null>(null);
   const [quickConnectButtonState, setQuickConnectButtonState] = useState({
     disabled: true,
@@ -161,6 +162,7 @@ export function AccountModal({
   };
 
   const handleBackFromOAuth = () => {
+    setFastmailOAuthSetupInProgress(false);
     setNavDirection('back');
     setStep('connect-method');
   };
@@ -573,6 +575,7 @@ export function AccountModal({
     step === 'pick-type' ? 'Choose your server type to get started.' : undefined;
 
   const isQuickConnectInProgress = step === 'quick-connect' && quickConnectLoginStep !== 'input';
+  const preventClose = isQuickConnectInProgress || fastmailOAuthSetupInProgress;
   const stepAnimationClass =
     navDirection === 'forward'
       ? 'animate-step-forward'
@@ -581,7 +584,7 @@ export function AccountModal({
         : '';
 
   const backButton =
-    !account && step !== 'pick-type' && !isQuickConnectInProgress ? (
+    !account && step !== 'pick-type' && !preventClose ? (
       <ModalButton
         variant="secondary"
         onClick={
@@ -607,7 +610,7 @@ export function AccountModal({
       size={step === 'pick-type' ? 'xl' : 'md'}
       zIndex={zIndex}
       contentPadding={false}
-      preventClose={quickConnectLoginStep === 'processing'}
+      preventClose={preventClose}
       footerLeft={backButton}
       footer={
         step === 'quick-connect' && quickConnectLoginStep === 'input' ? (
@@ -716,7 +719,12 @@ export function AccountModal({
           />
         )}
 
-        {step === 'fastmail-oauth' && <FastmailOAuthStep onSuccess={onClose} />}
+        {step === 'fastmail-oauth' && (
+          <FastmailOAuthStep
+            onSuccess={onClose}
+            onSetupInProgressChange={setFastmailOAuthSetupInProgress}
+          />
+        )}
 
         {step === 'credentials' && (
           <CredentialsForm
