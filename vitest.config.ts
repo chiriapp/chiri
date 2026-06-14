@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -16,6 +17,7 @@ export default defineConfig({
           include: ['src/tests/**/*.test.ts'],
           exclude: [
             'src/tests/lib/tauri-http.test.ts',
+            'src/tests/components/TaskDefaultsSettings.test.tsx',
             'src/tests/hooks/ui/useContextMenu.test.ts',
             'src/tests/hooks/ui/useInitialFocusRef.test.ts',
             'src/tests/hooks/ui/usePreserveScrollOnWindowFocus.test.ts',
@@ -32,6 +34,7 @@ export default defineConfig({
           environment: 'jsdom',
           include: [
             'src/tests/lib/tauri-http.test.ts',
+            'src/tests/components/TaskDefaultsSettings.test.tsx',
             'src/tests/hooks/ui/useContextMenu.test.ts',
             'src/tests/hooks/ui/useInitialFocusRef.test.ts',
             'src/tests/hooks/ui/usePreserveScrollOnWindowFocus.test.ts',
@@ -66,6 +69,9 @@ export default defineConfig({
       $styles: resolve(__dirname, './src/styles'),
       $types: resolve(__dirname, './src/types'),
       $utils: resolve(__dirname, './src/utils'),
+      'lucide-react/icons': fileURLToPath(
+        new URL('./node_modules/lucide-react/dist/esm/icons', import.meta.url),
+      ),
     },
   },
 });

@@ -110,6 +110,10 @@ export const SERVER_TYPE_GROUPS: ServerTypeGroup[] = [
         value: 'vikunja',
         label: 'Vikunja',
       },
+      {
+        value: 'xandikos',
+        label: 'Xandikos',
+      },
     ],
   },
 ];

@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import Loader2 from 'lucide-react/icons/loader-2';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
 import {
@@ -18,11 +18,15 @@ const log = loggers.account;
 
 interface FastmailOAuthStepProps {
   onSuccess: () => void;
+  onSetupInProgressChange: (inProgress: boolean) => void;
 }
 
 type Phase = 'idle' | 'browser' | 'connecting' | 'done';
 
-export const FastmailOAuthStep = ({ onSuccess }: FastmailOAuthStepProps) => {
+export const FastmailOAuthStep = ({
+  onSuccess,
+  onSetupInProgressChange,
+}: FastmailOAuthStepProps) => {
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState('');
   const queryClient = useQueryClient();
@@ -143,6 +147,11 @@ export const FastmailOAuthStep = ({ onSuccess }: FastmailOAuthStepProps) => {
   };
 
   const isLoading = phase === 'browser' || phase === 'connecting';
+  const isSetupInProgress = phase === 'connecting';
+
+  useEffect(() => {
+    onSetupInProgressChange(isSetupInProgress);
+  }, [isSetupInProgress, onSetupInProgressChange]);
 
   const statusText =
     phase === 'browser'

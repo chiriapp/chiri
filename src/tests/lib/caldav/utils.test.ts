@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cleanEtag, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
+import { cleanEtag, hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
 
 describe('cleanEtag', () => {
   it('strips surrounding double quotes', () => {
@@ -68,6 +68,25 @@ describe('normalizeUrl', () => {
     expect(normalizeUrl('https://example.com/path#section')).toBe(
       'https://example.com/path#section',
     );
+  });
+});
+
+describe('hasHttpUrlScheme', () => {
+  it('accepts http and https urls', () => {
+    expect(hasHttpUrlScheme('http://example.com')).toBe(true);
+    expect(hasHttpUrlScheme('https://example.com')).toBe(true);
+  });
+
+  it('rejects scheme-less hosts', () => {
+    expect(hasHttpUrlScheme('example.com')).toBe(false);
+  });
+
+  it('trims whitespace before checking', () => {
+    expect(hasHttpUrlScheme('  https://example.com/caldav  ')).toBe(true);
+  });
+
+  it('rejects other URL schemes', () => {
+    expect(hasHttpUrlScheme('webcal://example.com')).toBe(false);
   });
 });
 

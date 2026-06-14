@@ -66,6 +66,7 @@ export const useCalendarDeletion = () => {
           destructive: true,
           notice: vikunjaNotice,
           disableConfirm: isVikunja,
+          keepOpenOnConfirm: true,
         });
         if (!confirmed) return false;
       }

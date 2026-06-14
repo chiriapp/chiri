@@ -30,8 +30,6 @@
         import nixpkgs {
           inherit system;
           overlays = [ (import rust-overlay) ];
-          # temporary until my pr in nixos/nixpkgs is merged which unbreaks nsis on darwin
-          config.allowBrokenPredicate = pkg: nixpkgs.lib.getName pkg == "nsis";
         };
 
       perSystem =

@@ -1,5 +1,5 @@
 import X from 'lucide-react/icons/x';
-import type { DragEventHandler, ReactNode } from 'react';
+import type { CSSProperties, DragEventHandler, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { ModalBackdrop } from '$components/ModalBackdrop';
 import { MODAL_SIZE_CLASSES } from '$constants';
@@ -40,6 +40,7 @@ interface ModalWrapperProps {
   escapeLayerType?: DismissableLayerType;
   backdropProps?: ModalWrapperBackdropProps;
   backdropClassName?: string;
+  dialogAnimationDelayMs?: number;
   className?: string;
 }
 
@@ -69,6 +70,7 @@ export const ModalWrapper = ({
   escapeLayerType = 'modal',
   backdropProps,
   backdropClassName,
+  dialogAnimationDelayMs = 0,
   className,
 }: ModalWrapperProps) => {
   const focusTrapRef = useFocusTrap(
@@ -104,6 +106,14 @@ export const ModalWrapper = ({
 
   if (!isOpen) return null;
 
+  const dialogAnimationStyle =
+    dialogAnimationDelayMs > 0
+      ? ({
+          animationDelay: `${dialogAnimationDelayMs}ms`,
+          animationFillMode: 'backwards',
+        } satisfies CSSProperties)
+      : undefined;
+
   return createPortal(
     <ModalBackdrop
       className="cursor-default p-4"
@@ -117,6 +127,7 @@ export const ModalWrapper = ({
         aria-modal="true"
         tabIndex={initialFocus === 'dialog' ? -1 : undefined}
         className={`relative flex max-h-[90vh] w-full animate-scale-in flex-col overflow-hidden rounded-xl bg-white shadow-xl outline-hidden dark:bg-surface-800 ${className || MODAL_SIZE_CLASSES[size]}`}
+        style={dialogAnimationStyle}
       >
         {title && (
           <div className="flex shrink-0 items-center justify-between rounded-t-xl border-surface-200 border-b bg-white p-4 dark:border-surface-700 dark:bg-surface-800">
