@@ -5,3 +5,10 @@
 pub fn force_quit() {
     std::process::exit(0);
 }
+
+pub const AUTOSTART_LAUNCH_ARG: &str = "--chiri-autostart";
+
+#[tauri::command]
+pub fn was_launched_from_autostart() -> bool {
+    std::env::args_os().any(|arg| arg == std::ffi::OsStr::new(AUTOSTART_LAUNCH_ARG))
+}

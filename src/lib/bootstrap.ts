@@ -125,16 +125,15 @@ export const showWindow = async (delay: number = 200): Promise<void> => {
 };
 
 export const shouldShowWindowOnStartup = async (): Promise<boolean> => {
-  if (!isMacPlatform()) {
-    return true;
-  }
-
-  const launchedAtLogin = await invoke<boolean>('was_macos_launched_as_login_item').catch(
-    (error) => {
-      log.warn('Failed to detect macOS login-item launch:', error);
-      return false;
-    },
-  );
+  const launchedAtLogin = isMacPlatform()
+    ? await invoke<boolean>('was_macos_launched_as_login_item').catch((error) => {
+        log.warn('Failed to detect macOS login-item launch:', error);
+        return false;
+      })
+    : await invoke<boolean>('was_launched_from_autostart').catch((error) => {
+        log.warn('Failed to detect autostart launch:', error);
+        return false;
+      });
 
   if (!launchedAtLogin) {
     log.debug('Showing window for normal app launch');
@@ -143,17 +142,17 @@ export const shouldShowWindowOnStartup = async (): Promise<boolean> => {
 
   const enableSystemTray = settingsStore.getState().enableSystemTray;
   if (!enableSystemTray) {
-    log.info('Showing window for login-item launch because system tray is disabled');
+    log.info('Showing window for login/autostart launch because system tray is disabled');
     return true;
   }
 
   const showWindowOnLoginLaunch = settingsStore.getState().showWindowOnLoginLaunch;
   if (showWindowOnLoginLaunch) {
-    log.info('Showing window for login-item launch because startup window setting is enabled');
+    log.info('Showing window for login/autostart launch because startup window setting is enabled');
     return true;
   }
 
-  log.info('Keeping window hidden for macOS login-item launch');
+  log.info('Keeping window hidden for login/autostart launch');
   return false;
 };
 

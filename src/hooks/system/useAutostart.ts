@@ -20,6 +20,7 @@ type AutostartState = {
 };
 
 let cachedAutostartState: AutostartState | null = null;
+let pluginAutostartRegistrationRefreshed = false;
 
 const getMacAutostartState = (status: MacLaunchAtLoginStatus): AutostartState => ({
   enabled: status === 'enabled' || status === 'requires_approval',
@@ -36,10 +37,20 @@ const loadMacAutostartState = async (): Promise<AutostartState> => {
   return getMacAutostartState(status);
 };
 
-const loadPluginAutostartState = async (): Promise<AutostartState> => ({
-  enabled: await isAutostartEnabled(),
-  error: null,
-});
+const loadPluginAutostartState = async (): Promise<AutostartState> => {
+  const enabled = await isAutostartEnabled();
+
+  if (enabled && !pluginAutostartRegistrationRefreshed) {
+    try {
+      await enableAutostart();
+      pluginAutostartRegistrationRefreshed = true;
+    } catch (error) {
+      console.warn('Failed to refresh autostart registration:', error);
+    }
+  }
+
+  return { enabled, error: null };
+};
 
 const enableMacAutostart = async (): Promise<AutostartState> => {
   const status = await invoke<MacLaunchAtLoginStatus>('enable_macos_launch_at_login');
@@ -62,8 +73,10 @@ const disableMacAutostart = async (): Promise<AutostartState> => {
 const setPluginAutostart = async (enabled: boolean): Promise<AutostartState> => {
   if (enabled) {
     await enableAutostart();
+    pluginAutostartRegistrationRefreshed = true;
   } else {
     await disableAutostart();
+    pluginAutostartRegistrationRefreshed = false;
   }
 
   return {

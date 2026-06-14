@@ -34,7 +34,7 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
-            None,
+            Some(vec![commands::AUTOSTART_LAUNCH_ARG]),
         ))
         .plugin(logging::build_logging_plugin().build())
         .plugin(tauri_plugin_os::init())
@@ -58,6 +58,7 @@ pub fn run() {
     builder
         .invoke_handler(tauri::generate_handler![
             commands::force_quit,
+            commands::was_launched_from_autostart,
             http::http_request,
             install::get_install_type,
             install::should_disable_updates,

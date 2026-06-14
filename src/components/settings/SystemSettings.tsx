@@ -54,9 +54,9 @@ export const SystemSettings = () => {
   const launchAtLoginLoading = autostart.enabled === null;
   const launchAtLoginBusy = launchAtLoginLoading || autostart.pending;
   const launchAtLoginDescription = launchAtLoginLoading
-    ? 'Checking login item status...'
+    ? 'Checking launch-at-login status...'
     : autostart.pending
-      ? 'Updating login item...'
+      ? 'Updating launch-at-login...'
       : 'Start Chiri automatically when you sign in';
   const launchAtLoginSpinnerClass =
     autostart.pending && autostart.enabled === true
@@ -135,32 +135,32 @@ export const SystemSettings = () => {
           />
         </label>
 
+        <div className="px-4 pb-4">
+          <div className="space-y-3 border-surface-200 border-l-2 pl-4 dark:border-surface-600">
+            <label
+              className={`flex items-center justify-between ${startQuietlyAtLoginDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
+            >
+              <div>
+                <p className="text-sm text-surface-700 dark:text-surface-300">
+                  Start quietly in tray at login
+                </p>
+                <p className="text-surface-500 text-xs dark:text-surface-400">
+                  Hide the main window when Chiri starts automatically. Requires system tray.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={!showWindowOnLoginLaunch}
+                disabled={startQuietlyAtLoginDisabled}
+                onChange={(e) => setShowWindowOnLoginLaunch(!e.target.checked)}
+                className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </label>
+          </div>
+        </div>
+
         {isMac && (
           <>
-            <div className="px-4 pb-4">
-              <div className="space-y-3 border-surface-200 border-l-2 pl-4 dark:border-surface-600">
-                <label
-                  className={`flex items-center justify-between ${startQuietlyAtLoginDisabled ? 'cursor-not-allowed opacity-50' : ''}`}
-                >
-                  <div>
-                    <p className="text-sm text-surface-700 dark:text-surface-300">
-                      Start quietly in tray at login
-                    </p>
-                    <p className="text-surface-500 text-xs dark:text-surface-400">
-                      Hide the main window when Chiri starts automatically. Requires system tray.
-                    </p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={!showWindowOnLoginLaunch}
-                    disabled={startQuietlyAtLoginDisabled}
-                    onChange={(e) => setShowWindowOnLoginLaunch(!e.target.checked)}
-                    className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </label>
-              </div>
-            </div>
-
             <div className="border-surface-200 border-t dark:border-surface-700" />
 
             <div className="px-4 py-3">
