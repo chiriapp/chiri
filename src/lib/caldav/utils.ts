@@ -10,6 +10,10 @@ export const normalizeUrl = (url: string) => {
   return url.replace(/\/$/, '');
 };
 
+export const hasHttpUrlScheme = (url: string) => {
+  return /^https?:\/\//i.test(url.trim());
+};
+
 export const makeAbsoluteUrl = (href: string, baseUrl: string) => {
   return href.startsWith('http') ? href : new URL(href, baseUrl).toString();
 };

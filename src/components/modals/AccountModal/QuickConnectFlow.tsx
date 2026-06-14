@@ -13,6 +13,7 @@ import {
 } from '$lib/auth/nextcloud';
 import { normalizeRusticalUrl, validateRusticalServer } from '$lib/auth/rustical';
 import { CalDAVClient } from '$lib/caldav';
+import { hasHttpUrlScheme } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
 import { generateUUID } from '$utils/misc';
 
@@ -35,7 +36,7 @@ const CONFIG = {
   nextcloud: {
     label: 'Nextcloud',
     urlLabel: 'Nextcloud Server URL',
-    urlPlaceholder: 'cloud.example.com or https://cloud.example.com',
+    urlPlaceholder: 'https://cloud.example.com',
     spinnerColor: 'text-primary-500',
     normalize: normalizeNextcloudUrl,
     validate: validateNextcloudServer,
@@ -112,6 +113,11 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
     const handleConnect = async () => {
       if (!serverUrl.trim()) {
         setError(`Please enter your ${config.label} server URL`);
+        return;
+      }
+
+      if (!hasHttpUrlScheme(serverUrl)) {
+        setError('Server URL must start with http:// or https://.');
         return;
       }
 

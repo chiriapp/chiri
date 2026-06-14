@@ -1,0 +1,7 @@
+rules:
+  dangerous-triggers:
+    ignore:
+      # intentional workflow_run bridge for Dependabot Nix hash patches
+      # the workflow validates the PR author, repository owner, branch name,
+      # changed file, and changed lines before it writes anything back
+      - deps.yml:3

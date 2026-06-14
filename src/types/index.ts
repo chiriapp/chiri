@@ -118,7 +118,8 @@ export type ServerType =
   | 'nextcloud'
   | 'radicale'
   | 'rustical'
-  | 'vikunja';
+  | 'vikunja'
+  | 'xandikos';
 
 export interface CalDAVConfig {
   serverUrl: string;

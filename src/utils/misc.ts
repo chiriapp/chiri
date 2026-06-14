@@ -2,10 +2,6 @@ export const generateUUID = () => {
   return crypto.randomUUID();
 };
 
-export const isVikunjaServer = (calendarHome: string) => {
-  return calendarHome.includes('/dav/projects');
-};
-
 /**
  * Pluralize a word based on count
  */

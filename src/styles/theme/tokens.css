@@ -24,6 +24,7 @@
   --color-surface-700: var(--surface-700, #3f3f46);
   --color-surface-800: var(--surface-800, #27272a);
   --color-surface-900: var(--surface-900, #18181b);
+  --color-surface-950: var(--surface-950, #09090b);
 
   --color-priority-high: var(--priority-high);
   --color-priority-medium: var(--priority-medium);

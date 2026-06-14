@@ -50,7 +50,10 @@ export const ConfirmDialogProvider = ({ children }: { children: ReactNode }) => 
     } else {
       resolverRef.current?.(true);
     }
-  }, []);
+    if (!options.keepOpenOnConfirm) {
+      close();
+    }
+  }, [close, options.keepOpenOnConfirm]);
 
   const handleAlternate = useCallback(() => {
     alternateResolverRef.current?.('alternate');

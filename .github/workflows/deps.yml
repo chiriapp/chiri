@@ -24,6 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Download Nix hash patch
@@ -85,12 +86,14 @@ jobs:
 
       - name: Apply hash patch
         if: steps.patch.outputs.found == 'true'
+        env:
+          HEAD_REF: ${{ steps.pr.outputs.head-ref }}
         shell: bash
         run: |
           set -euo pipefail
 
           patch_file="nix-hash-update/nix-hash-update.patch"
-          head_ref="${{ steps.pr.outputs.head-ref }}"
+          head_ref="$HEAD_REF"
 
           if [[ ! -s "$patch_file" ]]; then
             echo "Patch artifact is missing or empty."
@@ -148,6 +151,7 @@ jobs:
         with:
           app-id: ${{ secrets.HASH_BOT_APP_ID }}
           private-key: ${{ secrets.HASH_BOT_PRIVATE_KEY }}
+          permission-contents: write
 
       - name: Push hash update
         if: steps.commit.outputs.changed == 'true'

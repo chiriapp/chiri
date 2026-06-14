@@ -25,12 +25,14 @@ import {
   getSetupNotice,
   probeSetupVtodoCreationIfNeeded,
 } from '$lib/caldav/setup';
+import { hasHttpUrlScheme } from '$lib/caldav/utils';
+import { getServerWarning, getUrlWarning, toConfirmOptions } from '$lib/caldav/warnings';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
 import { isCertError, tauriRequest } from '$lib/tauriHttp';
 import type { Account, Calendar, ServerType } from '$types';
-import { generateUUID, isVikunjaServer } from '$utils/misc';
+import { generateUUID } from '$utils/misc';
 import type { MobileConfigCalDAVSettings } from '$utils/mobileconfig';
 
 const log = loggers.account;
@@ -94,6 +96,7 @@ export function AccountModal({
   const [setupNotice, setSetupNotice] = useState<CalDAVSetupNotice | null>(null);
   const [quickConnectLoginStep, setQuickConnectLoginStep] =
     useState<QuickConnectLoginStep>('input');
+  const [fastmailOAuthSetupInProgress, setFastmailOAuthSetupInProgress] = useState(false);
   const [navDirection, setNavDirection] = useState<'forward' | 'back' | null>(null);
   const [quickConnectButtonState, setQuickConnectButtonState] = useState({
     disabled: true,
@@ -159,6 +162,7 @@ export function AccountModal({
   };
 
   const handleBackFromOAuth = () => {
+    setFastmailOAuthSetupInProgress(false);
     setNavDirection('back');
     setStep('connect-method');
   };
@@ -176,28 +180,29 @@ export function AccountModal({
     setStep('connect-method');
   };
 
-  const showVikunjaWarning = async () => {
-    return await confirm({
-      title: 'Vikunja server warning',
-      message: (
-        <div className="space-y-3">
-          <p>Vikunja's current CalDAV implementation is incomplete and may cause issues.</p>
-          <p className="font-extrabold text-base text-surface-700 dark:text-surface-300">
-            This app may not work reliably with Vikunja, and you may encounter sync problems,
-            missing features, or other bugs.
-          </p>
-          <p className="font-bold text-surface-800 dark:text-surface-200">
-            Only limited support will be offered. It's recommended to use a different CalDAV server
-            if possible.
-          </p>
-          <p>Do you want to continue anyway?</p>
-        </div>
-      ),
-      confirmLabel: 'Continue (dangerous)',
-      cancelLabel: 'Cancel',
-      destructive: true,
-      delayConfirmSeconds: 5,
+  const confirmServerWarning = async (calendarHome?: string) => {
+    const warning = getServerWarning(serverType, { calendarHome });
+    if (!warning) return true;
+
+    return await confirm(toConfirmOptions(warning));
+  };
+
+  const validateServerUrlScheme = () => {
+    if (hasHttpUrlScheme(serverUrl)) return true;
+
+    setSetupError({
+      title: 'URL scheme required',
+      message: 'Server URL must start with http:// or https://.',
+      hint: 'Add the scheme explicitly, for example https://caldav.example.com.',
     });
+    return false;
+  };
+
+  const confirmServerUrlWarning = async (url: string) => {
+    const warning = getUrlWarning(url);
+    if (!warning) return true;
+
+    return await confirm(toConfirmOptions(warning));
   };
 
   const fetchTasksForCalendar = async (accountId: string, calendar: Calendar) => {
@@ -255,12 +260,16 @@ export function AccountModal({
     });
   };
 
-  const connectWithCertHandling = async (accountId: string, effectivePassword: string) => {
+  const connectWithCertHandling = async (
+    accountId: string,
+    effectivePassword: string,
+    trimmedServerUrl: string,
+  ) => {
     const isOAuth = account?.caldav?.authType === 'oauth';
     const tryConnect = (withInvalidCerts?: boolean) =>
       CalDAVClient.connect(
         accountId,
-        serverUrl,
+        trimmedServerUrl,
         username,
         isOAuth ? '' : effectivePassword,
         serverType,
@@ -281,7 +290,7 @@ export function AccountModal({
 
       let serverReachable = false;
       try {
-        await tauriRequest(serverUrl, 'OPTIONS', {
+        await tauriRequest(trimmedServerUrl, 'OPTIONS', {
           username,
           password: effectivePassword,
           acceptInvalidCerts: true,
@@ -324,23 +333,37 @@ export function AccountModal({
         throw new Error('Server URL and username are required');
       }
 
-      const tempId = generateUUID();
-      log.debug(`Testing connection to ${serverUrl}...`);
+      if (!validateServerUrlScheme()) {
+        setIsTesting(false);
+        return;
+      }
 
-      const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
+      const trimmedServerUrl = serverUrl.trim();
+      const proceedWithUrl = await confirmServerUrlWarning(trimmedServerUrl);
+      if (!proceedWithUrl) {
+        setIsTesting(false);
+        return;
+      }
+
+      const tempId = generateUUID();
+      log.debug(`Testing connection to ${trimmedServerUrl}...`);
+
+      const connectionInfo = await connectWithCertHandling(
+        tempId,
+        effectivePassword,
+        trimmedServerUrl,
+      );
       if (!connectionInfo) {
         setIsTesting(false);
         return;
       }
 
-      if (isVikunjaServer(connectionInfo.calendarHome)) {
-        const proceed = await showVikunjaWarning();
+      const proceed = await confirmServerWarning(connectionInfo.calendarHome);
 
-        if (!proceed) {
-          CalDAVClient.disconnect(tempId);
-          setIsTesting(false);
-          return;
-        }
+      if (!proceed) {
+        CalDAVClient.disconnect(tempId);
+        setIsTesting(false);
+        return;
       }
 
       log.debug(`Fetching calendars...`);
@@ -367,9 +390,16 @@ export function AccountModal({
   };
 
   const updateExistingAccount = async (effectivePassword: string | undefined) => {
+    if (!validateServerUrlScheme()) return false;
+    const trimmedServerUrl = serverUrl.trim();
+
     if (effectivePassword) {
-      log.debug(`Testing connection to ${serverUrl}...`);
-      const result = await connectWithCertHandling(account!.id, effectivePassword);
+      log.debug(`Testing connection to ${trimmedServerUrl}...`);
+      const result = await connectWithCertHandling(
+        account!.id,
+        effectivePassword,
+        trimmedServerUrl,
+      );
       if (!result) return false;
     }
 
@@ -380,7 +410,7 @@ export function AccountModal({
         icon,
         emoji,
         caldav: {
-          serverUrl,
+          serverUrl: trimmedServerUrl,
           username,
           password: effectivePassword || account!.caldav!.password,
           serverType,
@@ -398,24 +428,36 @@ export function AccountModal({
   };
 
   const connectAndFetchCalendars = async (effectivePassword: string) => {
+    if (!validateServerUrlScheme()) return null;
+    const trimmedServerUrl = serverUrl.trim();
+
     if (testSuccess && testedConnectionId) {
       log.debug('Reusing tested connection...');
-      return { tempId: testedConnectionId, calendars: testedCalendars };
+      return {
+        tempId: testedConnectionId,
+        calendars: testedCalendars,
+        serverUrl: trimmedServerUrl,
+      };
     }
 
     const tempId = generateUUID();
 
-    log.debug(`Connecting to ${serverUrl}...`);
-    const connectionInfo = await connectWithCertHandling(tempId, effectivePassword);
+    log.debug(`Connecting to ${trimmedServerUrl}...`);
+    const proceedWithUrl = await confirmServerUrlWarning(trimmedServerUrl);
+    if (!proceedWithUrl) return null;
+
+    const connectionInfo = await connectWithCertHandling(
+      tempId,
+      effectivePassword,
+      trimmedServerUrl,
+    );
     if (!connectionInfo) return null;
 
-    if (isVikunjaServer(connectionInfo.calendarHome)) {
-      const proceed = await showVikunjaWarning();
+    const proceed = await confirmServerWarning(connectionInfo.calendarHome);
 
-      if (!proceed) {
-        CalDAVClient.disconnect(tempId);
-        return null;
-      }
+    if (!proceed) {
+      CalDAVClient.disconnect(tempId);
+      return null;
     }
 
     log.debug(`Fetching calendars...`);
@@ -425,14 +467,14 @@ export function AccountModal({
     log.info(`Found ${calendars.length} calendars:`, calendars);
     setSetupNotice(getSetupNotice(diagnostics, canCreateVtodoCalendar));
 
-    return { tempId, calendars };
+    return { tempId, calendars, serverUrl: trimmedServerUrl };
   };
 
   const createNewAccount = async (effectivePassword: string) => {
     const accountSetup = await connectAndFetchCalendars(effectivePassword);
     if (!accountSetup) return false;
 
-    const { tempId, calendars } = accountSetup;
+    const { tempId, calendars, serverUrl: trimmedServerUrl } = accountSetup;
     createAccountMutation.mutate(
       {
         id: tempId,
@@ -440,11 +482,12 @@ export function AccountModal({
         icon,
         emoji,
         caldav: {
-          serverUrl,
+          serverUrl: trimmedServerUrl,
           username,
           password: effectivePassword,
           serverType,
           calendarHomeUrl: calendarHomeUrl.trim() || undefined,
+          principalUrl: principalUrl.trim() || undefined,
           acceptInvalidCerts: acceptInvalidCerts || undefined,
           authType: 'basic',
         },
@@ -532,6 +575,7 @@ export function AccountModal({
     step === 'pick-type' ? 'Choose your server type to get started.' : undefined;
 
   const isQuickConnectInProgress = step === 'quick-connect' && quickConnectLoginStep !== 'input';
+  const preventClose = isQuickConnectInProgress || fastmailOAuthSetupInProgress;
   const stepAnimationClass =
     navDirection === 'forward'
       ? 'animate-step-forward'
@@ -540,7 +584,7 @@ export function AccountModal({
         : '';
 
   const backButton =
-    !account && step !== 'pick-type' && !isQuickConnectInProgress ? (
+    !account && step !== 'pick-type' && !preventClose ? (
       <ModalButton
         variant="secondary"
         onClick={
@@ -566,7 +610,7 @@ export function AccountModal({
       size={step === 'pick-type' ? 'xl' : 'md'}
       zIndex={zIndex}
       contentPadding={false}
-      preventClose={quickConnectLoginStep === 'processing'}
+      preventClose={preventClose}
       footerLeft={backButton}
       footer={
         step === 'quick-connect' && quickConnectLoginStep === 'input' ? (
@@ -675,7 +719,12 @@ export function AccountModal({
           />
         )}
 
-        {step === 'fastmail-oauth' && <FastmailOAuthStep onSuccess={onClose} />}
+        {step === 'fastmail-oauth' && (
+          <FastmailOAuthStep
+            onSuccess={onClose}
+            onSetupInProgressChange={setFastmailOAuthSetupInProgress}
+          />
+        )}
 
         {step === 'credentials' && (
           <CredentialsForm

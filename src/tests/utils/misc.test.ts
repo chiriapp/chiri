@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { generateUUID, isVikunjaServer, pluralize } from '$utils/misc';
+import { generateUUID, pluralize } from '$utils/misc';
 
 describe('generateUUID', () => {
   it('returns a string in RFC 4122 v4 format', () => {
@@ -10,20 +10,6 @@ describe('generateUUID', () => {
   it('returns unique values across many calls', () => {
     const set = new Set(Array.from({ length: 100 }, () => generateUUID()));
     expect(set.size).toBe(100);
-  });
-});
-
-describe('isVikunjaServer', () => {
-  it('returns true when path contains /dav/projects', () => {
-    expect(isVikunjaServer('https://vikunja.io/dav/projects/user/')).toBe(true);
-    expect(isVikunjaServer('/dav/projects/123')).toBe(true);
-  });
-
-  it('returns false for typical CalDAV server paths', () => {
-    expect(isVikunjaServer('https://example.com/remote.php/dav/calendars/alice/')).toBe(false);
-    expect(isVikunjaServer('/dav.php/principals/alice/')).toBe(false);
-    expect(isVikunjaServer('/caldav/principal/alice/')).toBe(false);
-    expect(isVikunjaServer('')).toBe(false);
   });
 });
 

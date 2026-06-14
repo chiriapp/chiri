@@ -251,27 +251,27 @@ export const CredentialsForm = ({
       {error && (
         <div
           role="alert"
-          className="rounded-lg border border-semantic-error/30 bg-semantic-error/10 p-3 text-sm text-surface-700 dark:text-surface-300"
+          className="min-w-0 rounded-lg border border-semantic-error/30 bg-semantic-error/10 p-3 text-sm text-surface-700 dark:text-surface-300"
         >
-          <div className="grid grid-cols-[1rem_1fr] gap-x-3 gap-y-2">
+          <div className="grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] gap-x-3 gap-y-2">
             <CircleX className="mt-0.5 size-4 shrink-0 text-semantic-error" />
             <div className="min-w-0">
-              <p className="font-medium text-semantic-error">{error.title}</p>
+              <p className="wrap-break-word font-medium text-semantic-error">{error.title}</p>
             </div>
-            <p className="col-span-2">{error.message}</p>
+            <p className="wrap-break-word col-span-2 min-w-0">{error.message}</p>
 
             {error.hint && (
-              <p className="col-span-2 text-surface-600 text-xs dark:text-surface-400">
+              <p className="wrap-break-word col-span-2 min-w-0 text-surface-600 text-xs dark:text-surface-400">
                 {error.hint}
               </p>
             )}
 
             {error.detail && error.detail !== error.message && (
-              <details className="col-span-2 text-surface-500 text-xs dark:text-surface-400">
+              <details className="col-span-2 min-w-0 text-surface-500 text-xs dark:text-surface-400">
                 <summary className="cursor-pointer select-none font-medium">
                   Technical detail
                 </summary>
-                <p className="wrap-break-word mt-1 font-mono">{error.detail}</p>
+                <p className="wrap-break-word mt-1 whitespace-pre-wrap font-mono">{error.detail}</p>
               </details>
             )}
           </div>

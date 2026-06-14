@@ -1,24 +1,20 @@
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
+import { hasHttpUrlScheme } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
 
 const log = loggers.http;
 
 /**
  * Normalizes a RustiCal server URL
- * Ensures proper protocol and removes trailing slashes
+ * Requires an explicit http/https scheme and removes trailing slashes
  */
 export const normalizeRusticalUrl = (url: string) => {
-  let normalized = url.trim();
-
-  // Add https:// if no protocol specified
-  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
-    normalized = `https://${normalized}`;
+  const normalized = url.trim();
+  if (!hasHttpUrlScheme(normalized)) {
+    throw new Error('Server URL must start with http:// or https://.');
   }
 
-  // Remove trailing slash
-  normalized = normalized.replace(/\/$/, '');
-
-  return normalized;
+  return normalized.replace(/\/$/, '');
 };
 
 /**

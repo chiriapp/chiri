@@ -22,6 +22,8 @@ export interface ConfirmOptions {
   notice?: ConfirmNotice;
   // Disable the confirm button (e.g. when the action is not supported)
   disableConfirm?: boolean;
+  // Keep dialog open after confirm so the caller can drive loading/error state.
+  keepOpenOnConfirm?: boolean;
 }
 
 export type ConfirmResult = 'confirm' | 'alternate' | 'cancel';
@@ -54,6 +56,7 @@ export const defaultConfirmOptions: Required<
     | 'delayConfirmSeconds'
     | 'notice'
     | 'disableConfirm'
+    | 'keepOpenOnConfirm'
   >
 > &
   Pick<
@@ -64,6 +67,7 @@ export const defaultConfirmOptions: Required<
     | 'delayConfirmSeconds'
     | 'notice'
     | 'disableConfirm'
+    | 'keepOpenOnConfirm'
   > = {
   title: 'Confirm action',
   subtitle: undefined,
@@ -74,4 +78,7 @@ export const defaultConfirmOptions: Required<
   alternateLabel: undefined,
   alternateDestructive: undefined,
   delayConfirmSeconds: undefined,
+  notice: undefined,
+  disableConfirm: undefined,
+  keepOpenOnConfirm: undefined,
 };
