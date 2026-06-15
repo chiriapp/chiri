@@ -1,12 +1,16 @@
 import { Toaster } from 'sonner';
+import { useSettingsStore } from '$context/settingsContext';
 
 export const ToastProvider = () => {
+  // raise the z-index of toasts during onboarding to make sure users see toasts like "hold / double press Cmd+Q to quit"
+  const { onboardingCompleted } = useSettingsStore();
+
   return (
     <Toaster
       position="bottom-right"
       expand={false}
       closeButton
-      style={{ zIndex: 40 }}
+      style={{ zIndex: onboardingCompleted ? 40 : 70 }}
       toastOptions={{
         classNames: {
           toast:
