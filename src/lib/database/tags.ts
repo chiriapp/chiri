@@ -1,10 +1,10 @@
 import type DatabasePlugin from '@tauri-apps/plugin-sql';
-import { getFallbackItemColor } from '$constants/colorSchemes';
 import { rowToTag } from '$lib/database/converters';
 import { getTasksByTag, updateTask } from '$lib/database/tasks';
 import { setActiveTag } from '$lib/database/ui';
 import type { Tag } from '$types';
 import type { TagRow } from '$types/database';
+import { getFallbackItemColor } from '$utils/color/scheme';
 import { generateUUID } from '$utils/misc';
 
 export const getAllTags = async (conn: DatabasePlugin) => {

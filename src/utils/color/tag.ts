@@ -1,6 +1,6 @@
-import { getColorSchemeColorPresets } from '$constants/colorSchemes';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes/default';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
 import type { AccentColor } from '$types/color';
+import { getColorSchemeColorPresets } from '$utils/color/scheme';
 
 /**
  * generate a consistent color for a tag based on its name

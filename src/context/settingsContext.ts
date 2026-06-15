@@ -1,7 +1,6 @@
 import { createContext, useContext } from 'react';
 import { DEFAULT_SHORTCUTS } from '$constants';
-import { getColorSchemeFlavor } from '$constants/colorSchemes';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes/default';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
 import { loggers } from '$lib/logger';
 import type {
   DefaultDateOffset,
@@ -26,7 +25,7 @@ import type {
   WindowDecorationsMode,
 } from '$types/settings';
 import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$utils/color/accent';
-import { applyColorScheme } from '$utils/color/scheme';
+import { applyColorScheme, getColorSchemeFlavor } from '$utils/color/scheme';
 import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
 import { getShortcutSignature } from '$utils/keyboard';
 import { defaultState } from './settingsDefaults';

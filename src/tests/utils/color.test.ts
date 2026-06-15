@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-// color.ts imports from $constants and $types which may pull in heavy chains.
-// stub the color-scheme constants module since we only test pure helpers
-vi.mock('$constants/colorSchemes', () => ({
+// stub the color-scheme utils module since we only test pure helpers
+vi.mock('$utils/color/scheme', () => ({
   getColorSchemeColorPresets: () => ['#ef4444', '#f97316', '#22c55e', '#3b82f6'],
   getColorSchemeFlavor: () => ({
     surfaces: {},
@@ -10,8 +9,9 @@ vi.mock('$constants/colorSchemes', () => ({
     statusColors: {},
     priorityColors: {},
   }),
+  getColorSchemeFlavorDefaultAccentColor: () => '#f085cc',
+  getFallbackItemColor: () => '#f085cc',
 }));
-vi.mock('$types/color', () => ({ DEFAULT_COLOR_SCHEME_ID: 'default' }));
 
 import { getContrastTextColor, normalizeHexColor } from '$utils/color';
 import { applyAccentColor, resolveAccentColor } from '$utils/color/accent';

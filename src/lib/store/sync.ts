@@ -1,6 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { emit } from '@tauri-apps/api/event';
-import { getColorSchemeColorPresets } from '$constants/colorSchemes';
 import { MENU_EVENTS } from '$constants/menu';
 import { settingsStore } from '$context/settingsContext';
 import { toastManager } from '$hooks/ui/useToast';
@@ -18,6 +17,7 @@ import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$li
 import { getUIState, setAllTasksView } from '$lib/store/ui';
 import { getErrorMessage } from '$lib/tauriHttp';
 import type { CalDAVTaskObject, Calendar, Task, TaskWithCalDAVObject } from '$types';
+import { getColorSchemeColorPresets } from '$utils/color/scheme';
 import { generateTagColor } from '$utils/color/tag';
 import { resolveEffectiveTheme } from '$utils/color/theme';
 

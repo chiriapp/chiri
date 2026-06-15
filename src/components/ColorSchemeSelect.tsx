@@ -2,9 +2,9 @@ import Check from 'lucide-react/icons/check';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import { type CSSProperties, type KeyboardEvent, useEffect, useId, useRef, useState } from 'react';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
-import { getColorSchemeFlavorDefaultAccentColor } from '$constants/colorSchemes';
 import type { ColorSchemeFlavor } from '$types/color';
 import { getColorSchemePreviewPalette } from '$utils/color/preview';
+import { getColorSchemeFlavorDefaultAccentColor } from '$utils/color/scheme';
 
 export interface ColorSchemeSelectOption {
   id: string;

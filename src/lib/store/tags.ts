@@ -1,8 +1,8 @@
-import { getFallbackItemColor } from '$constants/colorSchemes';
 import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import type { Tag } from '$types';
+import { getFallbackItemColor } from '$utils/color/scheme';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.dataStore;

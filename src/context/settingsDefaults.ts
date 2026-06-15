@@ -4,10 +4,10 @@ import {
   DEFAULT_SHORTCUTS,
   DEFAULT_SIDEBAR_WIDTH,
 } from '$constants';
-import { getDefaultAccentColor } from '$constants/colorSchemes';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes/default';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
 import { NTFY_DIRECT_PROVIDER_ID } from '$types/push';
 import type { SettingsState } from '$types/settings';
+import { getDefaultAccentColor } from '$utils/color/scheme';
 
 const defaultAccentColor = getDefaultAccentColor();
 

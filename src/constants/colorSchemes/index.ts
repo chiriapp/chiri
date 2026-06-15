@@ -1,11 +1,121 @@
 import { catppuccinColorScheme } from '$constants/colorSchemes/catppuccin';
-import { defaultColorScheme } from '$constants/colorSchemes/default';
 import { everforestColorScheme } from '$constants/colorSchemes/everforest';
 import { githubColorScheme } from '$constants/colorSchemes/github';
 import { gruvboxColorScheme } from '$constants/colorSchemes/gruvbox';
 import { nordColorScheme } from '$constants/colorSchemes/nord';
 import { tokyoNightColorScheme } from '$constants/colorSchemes/tokyoNight';
-import type { ColorSchemeDefinition, ColorSchemeFlavor, ColorSchemeMode } from '$types/color';
+import type { ColorSchemeAccent, ColorSchemeDefinition } from '$types/color';
+
+export const DEFAULT_COLOR_SCHEME_ID = 'default';
+
+const defaultAccentColors = [
+  { name: 'Rose', value: '#f47b96' },
+  { name: 'Peach', value: '#f5a06a' },
+  { name: 'Amber', value: '#f5c430' },
+  { name: 'Sage', value: '#72cc86' },
+  { name: 'Teal', value: '#4ccfc4' },
+  { name: 'Sky', value: '#60b8f5' },
+  { name: 'Lavender', value: '#a88ef5' },
+  { name: 'Pink', value: '#f085cc' },
+] as const satisfies readonly ColorSchemeAccent[];
+
+const defaultAccentColor = 'Pink';
+
+const surfaces = {
+  50: '#fafafa',
+  100: '#f5f5f5',
+  200: '#e5e5e5',
+  300: '#d4d4d4',
+  400: '#a3a3a3',
+  500: '#737373',
+  600: '#525252',
+  700: '#404040',
+  800: '#262626',
+  900: '#171717',
+} as const;
+
+const amoledSurfaces = {
+  50: '#fafafa',
+  100: '#f5f5f5',
+  200: '#e5e5e5',
+  300: '#d4d4d4',
+  400: '#a3a3a3',
+  500: '#525252',
+  600: '#2e2e2e',
+  700: '#222222',
+  800: '#141414',
+  900: '#000000',
+} as const;
+
+export const defaultColorScheme: ColorSchemeDefinition = {
+  id: 'default',
+  name: 'Default',
+  flavors: [
+    {
+      id: 'light',
+      name: 'Light',
+      mode: 'light',
+      surfaces,
+      accentColors: [...defaultAccentColors],
+      defaultAccent: defaultAccentColor,
+      semanticColors: {
+        info: '#2563eb',
+        warning: '#d97706',
+        success: '#16a34a',
+        error: '#dc2626',
+      },
+      statusColors: {
+        needsAction: '#71717a',
+        inProcess: '#2563eb',
+        completed: '#16a34a',
+        cancelled: '#e11d48',
+      },
+      priorityColors: { high: '#dc2626', medium: '#d97706', low: '#2563eb' },
+    },
+    {
+      id: 'dark',
+      name: 'Dark',
+      mode: 'dark',
+      surfaces,
+      accentColors: [...defaultAccentColors],
+      defaultAccent: defaultAccentColor,
+      semanticColors: {
+        info: '#60a5fa',
+        warning: '#fbbf24',
+        success: '#4ade80',
+        error: '#f87171',
+      },
+      statusColors: {
+        needsAction: '#a1a1aa',
+        inProcess: '#60a5fa',
+        completed: '#4ade80',
+        cancelled: '#fb7185',
+      },
+      priorityColors: { high: '#f87171', medium: '#fbbf24', low: '#60a5fa' },
+    },
+    {
+      id: 'amoled',
+      name: 'AMOLED',
+      mode: 'dark',
+      surfaces: amoledSurfaces,
+      accentColors: [...defaultAccentColors],
+      defaultAccent: defaultAccentColor,
+      semanticColors: {
+        info: '#60a5fa',
+        warning: '#fbbf24',
+        success: '#4ade80',
+        error: '#f87171',
+      },
+      statusColors: {
+        needsAction: '#a1a1aa',
+        inProcess: '#60a5fa',
+        completed: '#4ade80',
+        cancelled: '#fb7185',
+      },
+      priorityColors: { high: '#f87171', medium: '#fbbf24', low: '#60a5fa' },
+    },
+  ],
+};
 
 export const COLOR_SCHEMES: ColorSchemeDefinition[] = [
   defaultColorScheme,
@@ -16,45 +126,3 @@ export const COLOR_SCHEMES: ColorSchemeDefinition[] = [
   nordColorScheme,
   tokyoNightColorScheme,
 ];
-
-export const getColorScheme = (schemeId: string): ColorSchemeDefinition =>
-  COLOR_SCHEMES.find((scheme) => scheme.id === schemeId) ?? defaultColorScheme;
-
-export const getColorSchemeFlavor = (
-  schemeId: string,
-  flavorId: string | null,
-  mode?: ColorSchemeMode,
-): ColorSchemeFlavor => {
-  const scheme = getColorScheme(schemeId);
-
-  return (
-    (flavorId ? scheme.flavors.find((flavor) => flavor.id === flavorId) : undefined) ??
-    (mode ? scheme.flavors.find((flavor) => flavor.mode === mode) : undefined) ??
-    scheme.flavors[0] ??
-    defaultColorScheme.flavors[0]
-  );
-};
-
-export const getColorSchemeAccentColors = (
-  schemeId: string,
-  flavorId: string | null,
-  mode?: ColorSchemeMode,
-) => getColorSchemeFlavor(schemeId, flavorId, mode).accentColors;
-
-export const getColorSchemeColorPresets = (
-  schemeId: string,
-  flavorId: string | null,
-  mode?: ColorSchemeMode,
-) => getColorSchemeAccentColors(schemeId, flavorId, mode).map((color) => color.value);
-
-export const getDefaultAccentColor = () => defaultColorScheme.flavors[0].defaultAccent;
-
-export const getColorSchemeFlavorDefaultAccentColor = (flavor: ColorSchemeFlavor) =>
-  flavor.accentColors.find((color) => color.name === flavor.defaultAccent)?.value ??
-  flavor.accentColors[0]?.value ??
-  '#f085cc';
-
-export const getFallbackItemColor = () => {
-  const flavor = defaultColorScheme.flavors[0];
-  return getColorSchemeFlavorDefaultAccentColor(flavor);
-};

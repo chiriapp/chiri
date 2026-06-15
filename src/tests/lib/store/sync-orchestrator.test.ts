@@ -128,7 +128,7 @@ vi.mock('$lib/push', () => ({
 
 vi.mock('@tauri-apps/api/event', () => ({ emit: vi.fn() }));
 
-vi.mock('$constants/colorSchemes', () => ({
+vi.mock('$utils/color/scheme', () => ({
   getColorSchemeColorPresets: vi.fn(() => ['#ef4444']),
 }));
 

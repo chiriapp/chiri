@@ -1,5 +1,5 @@
-import { getColorSchemeFlavor } from '$constants/colorSchemes';
 import type { ColorSchemeDefinition, ColorSchemeFlavor, ColorSchemeMode } from '$types/color';
+import { getColorSchemeFlavor } from '$utils/color/scheme';
 
 interface ColorSchemePreviewPalette {
   background: string;
