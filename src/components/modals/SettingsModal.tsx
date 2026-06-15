@@ -27,7 +27,7 @@ import { EditorSettings } from '$components/settings/EditorSettings/EditorSettin
 import { LookAndFeelSettings } from '$components/settings/LookAndFeelSettings';
 import { NotificationSettings } from '$components/settings/NotificationSettings';
 import { RegionAndTimeSettings } from '$components/settings/RegionAndTimeSettings';
-import { ShortcutsSettings } from '$components/settings/ShortcutsSettings';
+import { ShortcutsSettings } from '$components/settings/ShortcutsSettings/ShortcutsSettings';
 import { SyncSettings } from '$components/settings/SyncSettings/SyncSettings';
 import { SystemSettings } from '$components/settings/SystemSettings';
 import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings/TaskDefaultsSettings';
