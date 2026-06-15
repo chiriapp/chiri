@@ -72,7 +72,13 @@ export const SidebarAccountsList = ({
   const closeSortMenu = useCallback(() => setShowSortMenu(false), []);
 
   const getAccountTaskCount = (accountId: string) =>
-    tasks.filter((t) => t.accountId === accountId && !t.deletedAt && t.status !== 'completed' && t.status !== 'cancelled').length;
+    tasks.filter(
+      (t) =>
+        t.accountId === accountId &&
+        !t.deletedAt &&
+        t.status !== 'completed' &&
+        t.status !== 'cancelled',
+    ).length;
 
   const sortedAccounts = (() => {
     const sorted = [...accounts];
