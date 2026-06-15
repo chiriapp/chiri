@@ -28,6 +28,7 @@ interface SidebarContextMenuProps {
   onCreateCalendar: (accountId: string) => void;
   onExportCalendar: (calendarId: string) => void;
   onExportAccount: (accountId: string) => void;
+  onMobileConfigExport: (accountId: string) => void;
   onDeleteAccount: (accountId: string) => Promise<void>;
   onDeleteCalendar: (calendarId: string, accountId: string) => Promise<void>;
   onDeleteTag: (tagId: string) => Promise<void>;
@@ -50,6 +51,7 @@ export const SidebarContextMenu = ({
   onCreateCalendar,
   onExportCalendar,
   onExportAccount,
+  onMobileConfigExport,
   onDeleteAccount,
   onDeleteCalendar,
   onDeleteTag,
@@ -79,6 +81,7 @@ export const SidebarContextMenu = ({
           onEditAccount={onEditAccount}
           onCreateCalendar={onCreateCalendar}
           onExportAccount={onExportAccount}
+          onMobileConfigExport={onMobileConfigExport}
           onDeleteAccount={onDeleteAccount}
         />
       )}

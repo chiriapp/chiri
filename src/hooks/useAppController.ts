@@ -39,6 +39,9 @@ export const useAppController = (
     closeExport,
     openTaskActions,
     closeTaskActions,
+    openMobileConfigExport,
+    closeMobileConfigExport,
+    mobileConfigAccountId,
   } = modals;
   const commands = useAppCommands({ modals, onSyncCalendar });
   useNativeMenuCommands({
@@ -64,6 +67,7 @@ export const useAppController = (
       editingCalendar,
       showExportModal,
       exportCalendarId,
+      mobileConfigAccountId,
     },
     modalActions: {
       openSettings,
@@ -81,6 +85,8 @@ export const useAppController = (
       closeExport,
       openTaskActions,
       closeTaskActions,
+      openMobileConfigExport,
+      closeMobileConfigExport,
     },
     commands: {
       openSettings: commands.openSettings,

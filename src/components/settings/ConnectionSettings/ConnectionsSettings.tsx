@@ -1,6 +1,9 @@
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
 import Activity from 'lucide-react/icons/activity';
 import CheckCircle from 'lucide-react/icons/check-circle';
 import CircleAlert from 'lucide-react/icons/circle-alert';
+import Download from 'lucide-react/icons/download';
 import Edit2 from 'lucide-react/icons/edit-2';
 import Loader2 from 'lucide-react/icons/loader-2';
 import Plus from 'lucide-react/icons/plus';
@@ -8,6 +11,7 @@ import Trash2 from 'lucide-react/icons/trash-2';
 import User from 'lucide-react/icons/user';
 import X from 'lucide-react/icons/x';
 import { useMemo, useState } from 'react';
+import { MobileConfigExportModal } from '$components/modals/MobileConfigExportModal';
 import { WebDAVPushAccountStatus } from '$components/settings/ConnectionSettings/WebDAVPushAccountStatus';
 import { Tooltip } from '$components/Tooltip';
 import { useConnectionStore } from '$context/connectionContext';
@@ -15,7 +19,8 @@ import { useAccountDeletion } from '$hooks/deletion/useAccountDeletion';
 import { useTasks } from '$hooks/queries/useTasks';
 import { CalDAVClient } from '$lib/caldav';
 import type { Account } from '$types';
-import { pluralize } from '$utils/misc';
+import { downloadFile, pluralize } from '$utils/misc';
+import { generateMobileConfig } from '$utils/mobileconfig';
 
 interface ConnectionsSettingsProps {
   accounts: Account[];
@@ -37,6 +42,7 @@ export const ConnectionsSettings = ({
   const [testResults, setTestResults] = useState<
     Record<string, { success: boolean; message: string }>
   >({});
+  const [exportingAccount, setExportingAccount] = useState<Account | null>(null);
 
   // Calculate task counts per account
   const accountStats = useMemo(() => {
@@ -101,6 +107,43 @@ export const ConnectionsSettings = ({
 
   const handleAddAccount = () => {
     onAddAccount();
+  };
+
+  const handleExportMobileConfig = (account: Account) => {
+    setExportingAccount(account);
+  };
+
+  const handleConfirmExport = async (includePassword: boolean) => {
+    if (!exportingAccount) return;
+    const account = exportingAccount;
+
+    try {
+      const xml = generateMobileConfig(account, includePassword);
+      const safeName = account.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const fileName = `${safeName}_caldav.mobileconfig`;
+
+      try {
+        const path = await save({
+          defaultPath: fileName,
+          filters: [{ name: 'Apple Configuration Profile', extensions: ['mobileconfig'] }],
+        });
+
+        if (path) {
+          await writeTextFile(path, xml);
+          setExportingAccount(null);
+        }
+      } catch (err: unknown) {
+        // Silently handle user cancellation
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('cancelled') || msg.includes('user closed')) return;
+
+        // Fall back to blob download if Tauri APIs are unavailable
+        downloadFile(xml, fileName, 'application/x-apple-aspen-config');
+        setExportingAccount(null);
+      }
+    } catch (err) {
+      console.error('Failed to export .mobileconfig:', err);
+    }
   };
 
   return (
@@ -181,6 +224,15 @@ export const ConnectionsSettings = ({
                           <Edit2 className="h-5 w-5" />
                         </button>
                       </Tooltip>
+                      <Tooltip content="Export to .mobileconfig" position="bottom" allowInModal>
+                        <button
+                          type="button"
+                          onClick={() => handleExportMobileConfig(account)}
+                          className="rounded-sm p-1.5 text-surface-600 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-600"
+                        >
+                          <Download className="h-5 w-5" />
+                        </button>
+                      </Tooltip>
                       <Tooltip content="Test connection" position="bottom" allowInModal>
                         <button
                           type="button"
@@ -248,6 +300,14 @@ export const ConnectionsSettings = ({
           </div>
         )}
       </div>
+
+      {exportingAccount && (
+        <MobileConfigExportModal
+          account={exportingAccount}
+          onConfirm={handleConfirmExport}
+          onClose={() => setExportingAccount(null)}
+        />
+      )}
     </div>
   );
 };

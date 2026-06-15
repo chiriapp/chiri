@@ -1,3 +1,5 @@
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
 import Inbox from 'lucide-react/icons/inbox';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -6,6 +8,7 @@ import { CalendarModal } from '$components/modals/CalendarModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { FilterModal } from '$components/modals/FilterModal';
 import { FilterPresetModal } from '$components/modals/FilterPresetModal';
+import { MobileConfigExportModal } from '$components/modals/MobileConfigExportModal';
 import { TagModal } from '$components/modals/TagModal';
 import { SidebarAccountsList } from '$components/sidebar/SidebarAccountsList';
 import { SidebarCollapsedView } from '$components/sidebar/SidebarCollapsedView';
@@ -47,6 +50,8 @@ import {
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account, Calendar, KeyboardShortcut } from '$types';
 import { formatShortcut, getModifierJoiner } from '$utils/keyboard';
+import { downloadFile } from '$utils/misc';
+import { generateMobileConfig } from '$utils/mobileconfig';
 
 interface SidebarProps {
   onOpenSettings?: () => void;
@@ -169,6 +174,7 @@ export const Sidebar = ({
   const [showExportModal, setShowExportModal] = useState(false);
   const [exportCalendarId, setExportCalendarId] = useState<string | null>(null);
   const [exportAccountId, setExportAccountId] = useState<string | null>(null);
+  const [mobileConfigAccountId, setMobileConfigAccountId] = useState<string | null>(null);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [editingTagId, setEditingTagId] = useState<string | null>(null);
   const [editingFilterId, setEditingFilterId] = useState<string | null>(null);
@@ -241,6 +247,35 @@ export const Sidebar = ({
   const handleCollapseAllAccounts = () => {
     setExpandedAccountIds([]);
     settingsStore.setState({ accountsSectionCollapsed: true });
+  };
+
+  const handleConfirmMobileConfigExport = async (includePassword: boolean) => {
+    const account = accounts.find((a) => a.id === mobileConfigAccountId);
+    if (!account) return;
+
+    try {
+      const xml = generateMobileConfig(account, includePassword);
+      const safeName = account.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const fileName = `${safeName}_caldav.mobileconfig`;
+
+      try {
+        const path = await save({
+          defaultPath: fileName,
+          filters: [{ name: 'Apple Configuration Profile', extensions: ['mobileconfig'] }],
+        });
+        if (path) {
+          await writeTextFile(path, xml);
+          setMobileConfigAccountId(null);
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('cancelled') || msg.includes('user closed')) return;
+        downloadFile(xml, fileName, 'application/x-apple-aspen-config');
+        setMobileConfigAccountId(null);
+      }
+    } catch (err) {
+      console.error('Failed to export .mobileconfig:', err);
+    }
   };
 
   useEffect(() => {
@@ -576,6 +611,7 @@ export const Sidebar = ({
             setExportAccountId(accountId);
             setShowExportModal(true);
           }}
+          onMobileConfigExport={(accountId) => setMobileConfigAccountId(accountId)}
           onDeleteAccount={async (accountId) => {
             await deleteAccount(accountId, accounts);
           }}
@@ -697,6 +733,18 @@ export const Sidebar = ({
           }}
         />
       )}
+
+      {mobileConfigAccountId &&
+        (() => {
+          const account = accounts.find((a) => a.id === mobileConfigAccountId);
+          return account ? (
+            <MobileConfigExportModal
+              account={account}
+              onConfirm={handleConfirmMobileConfigExport}
+              onClose={() => setMobileConfigAccountId(null)}
+            />
+          ) : null;
+        })()}
     </>
   );
 };

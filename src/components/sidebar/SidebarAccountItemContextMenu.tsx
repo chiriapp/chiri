@@ -1,4 +1,5 @@
 import { emit } from '@tauri-apps/api/event';
+import Download from 'lucide-react/icons/download';
 import Edit2 from 'lucide-react/icons/edit-2';
 import Plus from 'lucide-react/icons/plus';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
@@ -17,6 +18,7 @@ interface SidebarAccountItemContextMenuProps {
   onEditAccount: (account: Account) => void;
   onCreateCalendar: (accountId: string) => void;
   onExportAccount: (accountId: string) => void;
+  onMobileConfigExport: (accountId: string) => void;
   onDeleteAccount: (accountId: string) => Promise<void>;
 }
 
@@ -29,6 +31,7 @@ export const SidebarAccountItemContextMenu = ({
   onEditAccount,
   onCreateCalendar,
   onExportAccount,
+  onMobileConfigExport,
   onDeleteAccount,
 }: SidebarAccountItemContextMenuProps) => {
   const account = accounts.find((a) => a.id === accountId);
@@ -107,6 +110,24 @@ export const SidebarAccountItemContextMenu = ({
       </button>
 
       <div className="border-surface-200 border-t dark:border-surface-700" />
+
+      {!isLocal && (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              onMobileConfigExport(accountId);
+              onClose();
+            }}
+            className="flex w-full items-center gap-2 px-3 py-2 text-sm text-surface-700 outline-hidden hover:bg-surface-100 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-300 dark:hover:bg-surface-700"
+          >
+            <Download className="h-4 w-4" />
+            Export to .mobileconfig
+          </button>
+
+          <div className="border-surface-200 border-t dark:border-surface-700" />
+        </>
+      )}
 
       <button
         type="button"

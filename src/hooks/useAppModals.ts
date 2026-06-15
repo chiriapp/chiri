@@ -29,6 +29,7 @@ export const useAppModals = (): AppModals => {
   const [exportCalendarId, setExportCalendarId] = useState<string | null>(null);
   const [showTaskActions, setShowTaskActions] = useState(false);
   const [taskActionsId, setTaskActionsId] = useState<string | null>(null);
+  const [mobileConfigAccountId, setMobileConfigAccountId] = useState<string | null>(null);
 
   const openSettings = useCallback((initialTab: SettingsInitialTab = {}) => {
     setSettingsInitialTab(initialTab);
@@ -107,6 +108,14 @@ export const useAppModals = (): AppModals => {
     setTaskActionsId(null);
   }, []);
 
+  const openMobileConfigExport = useCallback((accountId: string) => {
+    setMobileConfigAccountId(accountId);
+  }, []);
+
+  const closeMobileConfigExport = useCallback(() => {
+    setMobileConfigAccountId(null);
+  }, []);
+
   return {
     showSettings,
     settingsInitialTab,
@@ -122,6 +131,7 @@ export const useAppModals = (): AppModals => {
     exportCalendarId,
     showTaskActions,
     taskActionsId,
+    mobileConfigAccountId,
     openSettings,
     toggleSettings,
     closeSettings,
@@ -137,5 +147,7 @@ export const useAppModals = (): AppModals => {
     closeExport,
     openTaskActions,
     closeTaskActions,
+    openMobileConfigExport,
+    closeMobileConfigExport,
   };
 };

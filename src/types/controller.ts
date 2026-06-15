@@ -33,6 +33,7 @@ export interface AppModalState {
   exportCalendarId: string | null;
   showTaskActions: boolean;
   taskActionsId: string | null;
+  mobileConfigAccountId: string | null;
 }
 
 export interface AppModalActions {
@@ -51,6 +52,8 @@ export interface AppModalActions {
   closeExport: () => void;
   openTaskActions: (taskId: string) => void;
   closeTaskActions: () => void;
+  openMobileConfigExport: (accountId: string) => void;
+  closeMobileConfigExport: () => void;
 }
 
 export type AppModals = AppModalState & AppModalActions;
