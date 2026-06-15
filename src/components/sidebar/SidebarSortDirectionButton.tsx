@@ -24,7 +24,7 @@ export const SidebarSortDirectionButton = ({
       type="button"
       onClick={disabled ? undefined : onToggle}
       disabled={disabled}
-      className={`flex w-full items-center gap-2 rounded-b-md px-3 py-1.5 text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+      className={`flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
         disabled
           ? 'cursor-not-allowed text-surface-400 dark:text-surface-600'
           : 'text-surface-700 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-700'
