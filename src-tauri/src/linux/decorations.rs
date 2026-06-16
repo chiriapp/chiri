@@ -120,24 +120,41 @@ pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
 /// The initial per-DE decision happens in `configure_titlebar_for_de` during
 /// setup; this command lets the user override that choice from settings
 /// without restarting the app.
+///
+/// On GTK-native DEs (GNOME, COSMIC), we toggle GTK's own client-side
+/// decorations via `set_decorated`.
+///
+/// On compositor-managed DEs (KDE, etc.), `set_decorated` would restore a
+/// blank GTK CSD titlebar instead of KDE's native one, so we skip it and
+/// rely solely on `window.set_decorations` which speaks the Wayland/X11
+/// compositor protocol directly.
 #[tauri::command]
 pub async fn set_window_decorations(
     window: tauri::WebviewWindow,
     enabled: bool,
 ) -> Result<(), String> {
+    let uses_gtk_csd = needs_gtk_decorations();
     let window_for_gtk = window.clone();
-    window
-        .run_on_main_thread(move || {
-            use gtk::prelude::GtkWindowExt;
 
-            if let Ok(gtk_window) = window_for_gtk.gtk_window() {
-                if !enabled {
-                    gtk_window.set_titlebar(Option::<&gtk::Widget>::None);
+    if uses_gtk_csd {
+        // GNOME / COSMIC: toggle GTK client-side decorations directly.
+        window
+            .run_on_main_thread(move || {
+                use gtk::prelude::GtkWindowExt;
+
+                if let Ok(gtk_window) = window_for_gtk.gtk_window() {
+                    if !enabled {
+                        gtk_window.set_titlebar(Option::<&gtk::Widget>::None);
+                    }
+                    gtk_window.set_decorated(enabled);
                 }
-                gtk_window.set_decorated(enabled);
-            }
-        })
-        .map_err(|e| e.to_string())?;
+            })
+            .map_err(|e| e.to_string())?;
+    }
+    // For KDE and other compositor-managed DEs, skip gtk_window.set_decorated:
+    // it would restore a blank GTK CSD widget instead of the native titlebar.
+    // window.set_decorations() below speaks the Wayland/X11 protocol and is
+    // the correct way to toggle compositor-drawn decorations on those DEs.
 
     window.set_decorations(enabled).map_err(|e| e.to_string())
 }
