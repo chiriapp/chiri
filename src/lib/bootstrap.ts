@@ -70,14 +70,17 @@ export const initializeApp = async () => {
     log.error('Failed to initialize system tray:', error);
   }
 
-  // Apply window decorations override. 'auto' leaves the startup-time
-  // per-DE decision in place; explicit 'on'/'off' overrides it.
+  // Sync the decoration hint file so configure_titlebar_for_de can read it on
+  // the next startup. This also migrates existing users who never opened Settings
+  // (and therefore have no hint file yet) to the correct mode.
+  // Decoration changes always require a restart — the pre-realization Rust path
+  // is the only reliable way to negotiate decoration mode with the compositor.
   const decorationsMode = settingsStore.getState().windowDecorationsMode;
-  if (decorationsMode !== 'auto' && isLinuxPlatform()) {
+  if (isLinuxPlatform()) {
     try {
-      await invoke('set_window_decorations', { enabled: decorationsMode === 'on' });
+      await invoke('save_window_decorations_hint', { mode: decorationsMode });
     } catch (error) {
-      log.error('Failed to apply window decorations override:', error);
+      log.error('Failed to sync decoration hint file:', error);
     }
   }
   settingsStore.setWindowDecorationsAppliedValue(decorationsMode);
