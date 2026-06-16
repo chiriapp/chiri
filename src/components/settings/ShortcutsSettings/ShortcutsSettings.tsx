@@ -1,5 +1,7 @@
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
-import { useEffect, useState } from 'react';
+import Search from 'lucide-react/icons/search';
+import X from 'lucide-react/icons/x';
+import { useEffect, useRef, useState } from 'react';
 import { KeyboardShortcutModal } from '$components/modals/KeyboardShortcutModal';
 import { ShortcutRow } from '$components/settings/ShortcutsSettings/ShortcutRow';
 import { Tooltip } from '$components/Tooltip';
@@ -38,10 +40,27 @@ export const ShortcutsSettings = ({
   const { keyboardShortcuts, updateShortcut, resetShortcuts, ensureLatestShortcuts } =
     useSettingsStore();
   const [editingShortcut, setEditingShortcut] = useState<KeyboardShortcut | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const hasCustomShortcuts = !keyboardShortcutsMatch(keyboardShortcuts, DEFAULT_SHORTCUTS);
   const resetTitle = hasCustomShortcuts
     ? 'Reset to defaults'
     : 'Keyboard shortcuts are already using defaults';
+
+  const trimmedQuery = searchQuery.trim().toLowerCase();
+  const isSearching = !!trimmedQuery;
+
+  // Filter shortcuts within each group if searching, and only keep groups that have matching shortcuts
+  const renderedGroups = SHORTCUT_GROUPS.map((group) => {
+    const shortcuts = group.ids
+      .map((id) => keyboardShortcuts.find((s) => s.id === id))
+      .filter((s): s is KeyboardShortcut => s !== undefined)
+      .filter((s) => !isSearching || s.description.toLowerCase().includes(trimmedQuery));
+    return {
+      label: group.label,
+      shortcuts,
+    };
+  }).filter((g) => g.shortcuts.length > 0);
 
   // Ensure shortcuts are up-to-date with defaults when component mounts
   useEffect(() => {
@@ -85,25 +104,54 @@ export const ShortcutsSettings = ({
           </Tooltip>
         </div>
 
+        <div className="relative">
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-surface-400" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search shortcuts..."
+            aria-label="Search keyboard shortcuts"
+            className="w-full rounded-lg border border-transparent bg-surface-100 py-2 pr-9 pl-9 text-sm text-surface-800 transition-colors focus:border-primary-500 focus:bg-white focus:outline-hidden dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 rounded-sm p-0.5 text-surface-400 transition-colors hover:text-surface-600 dark:hover:text-surface-300"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
         <div className="space-y-6">
-          {SHORTCUT_GROUPS.map((group) => {
-            const shortcuts = group.ids
-              .map((id) => keyboardShortcuts.find((s) => s.id === id))
-              .filter((s): s is KeyboardShortcut => s !== undefined);
-            if (shortcuts.length === 0) return null;
-            return (
+          {isSearching && renderedGroups.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <Search className="h-7 w-7 text-surface-300 dark:text-surface-600" />
+              <p className="text-sm text-surface-500 dark:text-surface-400">
+                No shortcuts match{' '}
+                <span className="font-medium text-surface-700 dark:text-surface-300">
+                  &ldquo;{searchQuery}&rdquo;
+                </span>
+              </p>
+            </div>
+          ) : (
+            renderedGroups.map((group) => (
               <div key={group.label}>
                 <p className="mb-1.5 px-0.5 font-medium text-surface-400 text-xs uppercase tracking-wider dark:text-surface-500">
                   {group.label}
                 </p>
                 <div className="overflow-hidden rounded-lg border border-surface-200 dark:border-surface-700">
-                  {shortcuts.map((shortcut) => (
+                  {group.shortcuts.map((shortcut) => (
                     <ShortcutRow key={shortcut.id} shortcut={shortcut} onEdit={handleOpenEdit} />
                   ))}
                 </div>
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
       </div>
 
