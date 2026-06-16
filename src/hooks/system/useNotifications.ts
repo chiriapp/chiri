@@ -232,6 +232,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
 
       for (const task of tasks) {
         if (task.completed) continue;
+        if (task.deletedAt) continue;
 
         const snoozeStatus = getTaskSnoozeStatus(task.id, now.getTime());
         if (snoozeStatus.isSnoozed) continue;
