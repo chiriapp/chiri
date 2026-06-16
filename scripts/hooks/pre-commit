@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# git pre-commit hook. runs Biome check with auto-fix before every commit
+set -euo pipefail
+
+# skip in CI. github actions already runs biome check independently
+if [ -n "${CI:-}" ]; then
+  exit 0
+fi
+
+# only run if there are staged files that biome can process
+biome_staged=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(tsx?|jsx?|json[c]?)$' || true)
+if [ -z "$biome_staged" ]; then
+  exit 0
+fi
+
+echo "🔍 Running Biome check…"
+
+# --write:  auto-fix safe issues (formatting + safe lints)
+# --staged: only check staged files; also re-stages any files Biome modifies
+if ! pnpm exec biome check --write --staged .; then
+  echo ""
+  echo "❌ Biome found errors that couldn't be auto-fixed."
+  echo "   Run 'pnpm run fix', review the output, re-stage and try again."
+  exit 1
+fi
+
+echo "✅ Biome check passed."

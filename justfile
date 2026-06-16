@@ -11,6 +11,7 @@ alias l := clippy
 alias m := mac-build
 alias u := update
 alias v := vite
+alias g := hooks
 
 cargo:
   cd src-tauri && cargo update
@@ -50,7 +51,10 @@ dev:
 hash:
   ./scripts/update-hashes.sh
 
-install:
+hooks:
+  bash scripts/install-hooks.sh
+
+install: hooks
   pnpm install
 
 update:
