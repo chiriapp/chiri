@@ -5,7 +5,7 @@ import ExternalLink from 'lucide-react/icons/external-link';
 import Info from 'lucide-react/icons/info';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { useEffect, useRef, useState } from 'react';
-import { AppSelect } from '$components/AppSelect';
+import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/push/usePushProviderAvailability';
 import { DEFAULT_NTFY_SERVER_URL } from '$lib/push/ntfyProvider';
@@ -153,7 +153,7 @@ export const WebDAVPushSettings = () => {
                       Local receiver for Web Push callbacks
                     </p>
                   </div>
-                  <AppSelect
+                  <Select
                     value={pushProvider}
                     onChange={(e) => setPushProvider(e.target.value as PushProviderId)}
                     className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
@@ -162,7 +162,7 @@ export const WebDAVPushSettings = () => {
                     {showKUnifiedPushOption && (
                       <option value={KUNIFIED_PUSH_PROVIDER_ID}>KUnifiedPush</option>
                     )}
-                  </AppSelect>
+                  </Select>
                 </div>
               </>
             )}

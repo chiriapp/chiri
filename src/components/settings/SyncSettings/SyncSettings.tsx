@@ -1,5 +1,5 @@
 import Info from 'lucide-react/icons/info';
-import { AppSelect } from '$components/AppSelect';
+import { Select } from '$components/Select';
 import { WebDAVPushSettings } from '$components/settings/SyncSettings/WebDAVPushSettings';
 import { CONNECTIVITY_CHECK_INTERVAL_OPTIONS, SYNC_INTERVAL_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$context/settingsContext';
@@ -52,7 +52,7 @@ export const SyncSettings = () => {
                     How often to check for changes
                   </p>
                 </div>
-                <AppSelect
+                <Select
                   id="sync-interval"
                   value={syncInterval.toString()}
                   onChange={(e) => setSyncInterval(Number(e.target.value))}
@@ -63,7 +63,7 @@ export const SyncSettings = () => {
                       {option.label}
                     </option>
                   ))}
-                </AppSelect>
+                </Select>
               </div>
             </div>
           </div>
@@ -149,7 +149,7 @@ export const SyncSettings = () => {
                   How often to probe for connectivity
                 </p>
               </div>
-              <AppSelect
+              <Select
                 id="connectivity-check-interval"
                 value={connectivityCheckInterval.toString()}
                 onChange={(e) => setConnectivityCheckInterval(Number(e.target.value))}
@@ -160,7 +160,7 @@ export const SyncSettings = () => {
                     {option.label}
                   </option>
                 ))}
-              </AppSelect>
+              </Select>
             </div>
 
             <div className="border-surface-200 border-t dark:border-surface-700" />

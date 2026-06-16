@@ -3,8 +3,8 @@ import Sun from 'lucide-react/icons/sun';
 import Sunrise from 'lucide-react/icons/sunrise';
 import Sunset from 'lucide-react/icons/sunset';
 import { useState } from 'react';
-import { AppSelect } from '$components/AppSelect';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
+import { Select } from '$components/Select';
 import { DATE_FORMAT_OPTIONS, WEEK_START_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$context/settingsContext';
 import type { DateFormat, StartOfWeek } from '$types/preference';
@@ -56,7 +56,7 @@ export const RegionAndTimeSettings = () => {
               How dates appear throughout the app
             </p>
           </div>
-          <AppSelect
+          <Select
             value={dateFormat}
             onChange={(e) => setDateFormat(e.target.value as DateFormat)}
             className={selectClassName}
@@ -66,7 +66,7 @@ export const RegionAndTimeSettings = () => {
                 {option.label}
               </option>
             ))}
-          </AppSelect>
+          </Select>
         </div>
 
         <div className="border-surface-200 border-t dark:border-surface-700" />
@@ -110,7 +110,7 @@ export const RegionAndTimeSettings = () => {
               First day of the week in date pickers
             </p>
           </div>
-          <AppSelect
+          <Select
             value={startOfWeek}
             onChange={(e) => setStartOfWeek(e.target.value as StartOfWeek)}
             className={selectClassName}
@@ -120,7 +120,7 @@ export const RegionAndTimeSettings = () => {
                 {option.label}
               </option>
             ))}
-          </AppSelect>
+          </Select>
         </div>
       </div>
 

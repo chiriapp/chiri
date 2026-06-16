@@ -1,4 +1,4 @@
-import { AppSelect } from '$components/AppSelect';
+import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import type { SubtaskDeletionBehavior } from '$types/settings';
 
@@ -136,14 +136,14 @@ export const BehaviorSettings = () => {
               Choose whether subtasks move with it or stay in your lists
             </p>
           </div>
-          <AppSelect
+          <Select
             value={deleteSubtasksWithParent}
             onChange={(e) => setDeleteSubtasksWithParent(e.target.value as SubtaskDeletionBehavior)}
             className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
           >
             <option value="delete">Move subtasks too</option>
             <option value="keep">Keep subtasks</option>
-          </AppSelect>
+          </Select>
         </div>
       </div>
 

@@ -1,3 +1,4 @@
+import CornerDownRight from 'lucide-react/icons/corner-down-right';
 import { Fragment, useRef, useState } from 'react';
 import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
@@ -30,7 +31,8 @@ import {
   useUpdateReminder,
   useUpdateTask,
 } from '$hooks/queries/useTasks';
-import { useSetEditorOpen } from '$hooks/queries/useUIState';
+import { useSetEditorOpen, useSetSelectedTask } from '$hooks/queries/useUIState';
+import { useVisibleTasks } from '$hooks/queries/useVisibleTasks';
 import { useDismissableLayer } from '$hooks/ui/useDismissableLayer';
 import { usePreserveScrollOnWindowFocus } from '$hooks/ui/usePreserveScrollOnWindowFocus';
 import { useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
@@ -38,6 +40,7 @@ import {
   resetStaleCursorOnLayerClose,
   useResetStaleCursorOnLayerOpen,
 } from '$hooks/ui/useStaleCursorReset';
+import { getTaskByUid } from '$lib/store/tasks';
 import type { Task, TaskStatus } from '$types';
 import type { EditorFieldKey } from '$types/settings';
 import { getContrastTextColor } from '$utils/color';
@@ -63,6 +66,7 @@ const ALL_EDITOR_FIELD_KEYS: EditorFieldKey[] = [
 export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps) => {
   const updateTaskMutation = useUpdateTask();
   const setEditorOpenMutation = useSetEditorOpen();
+  const setSelectedTaskMutation = useSetSelectedTask();
   const removeTagFromTaskMutation = useRemoveTagFromTask();
   const addReminderMutation = useAddReminder();
   const removeReminderMutation = useRemoveReminder();
@@ -79,6 +83,14 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   } = useSettingsStore();
   const resolvedAccentColor = useResolvedAccentColor();
   const { moveTaskToRecentlyDeleted, deleteTaskPermanently } = useTaskDeletion();
+
+  // Determine if parent task is visible in the current view
+  const visibleTasks = useVisibleTasks();
+  const visibleTaskUids = new Set(visibleTasks.map((t) => t.uid));
+  const parentTask =
+    task.parentUid && !visibleTaskUids.has(task.parentUid)
+      ? getTaskByUid(task.parentUid)
+      : undefined;
 
   const isReadOnly = !!task.deletedAt;
   const taskTitleDescription = task.title.trim() || 'Untitled task';
@@ -344,6 +356,23 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
             useAccentColorForCheckboxes={useAccentColorForCheckboxes}
             readOnly={isReadOnly}
           />
+
+          {parentTask && (
+            <button
+              type="button"
+              onClick={() => setSelectedTaskMutation.mutate(parentTask.id)}
+              className="-mt-3 flex w-full items-center gap-1.5 rounded-md px-1 py-1 text-left text-surface-500 text-xs transition-colors hover:bg-surface-100 hover:text-surface-700 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-surface-200"
+              title={`Go to parent task: ${parentTask.title || 'Untitled task'}`}
+            >
+              <CornerDownRight className="h-3 w-3 shrink-0" />
+              <span className="truncate">
+                Subtask of{' '}
+                <span className="font-medium text-surface-600 dark:text-surface-300">
+                  {parentTask.title || 'Untitled task'}
+                </span>
+              </span>
+            </button>
+          )}
 
           {isReadOnly && <TaskEditorReadOnlyNotice task={task} />}
 

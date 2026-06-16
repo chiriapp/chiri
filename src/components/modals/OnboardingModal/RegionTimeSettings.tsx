@@ -2,7 +2,7 @@ import CalendarDays from 'lucide-react/icons/calendar-days';
 import Clock from 'lucide-react/icons/clock';
 import Globe from 'lucide-react/icons/globe';
 import { useEffect, useRef, useState } from 'react';
-import { AppSelect } from '$components/AppSelect';
+import { Select } from '$components/Select';
 import { DATE_FORMAT_OPTIONS, WEEK_START_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$context/settingsContext';
 import { getSystemRegionPreferences } from '$lib/preferences';
@@ -103,7 +103,7 @@ export const RegionTimeSettings = () => {
               </span>
             </div>
           </div>
-          <AppSelect
+          <Select
             value={dateFormat}
             onChange={(event) => handleDateFormatChange(event.target.value as DateFormat)}
             className="max-w-44 shrink-0 rounded-lg border border-surface-200 bg-surface-50 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-200"
@@ -113,7 +113,7 @@ export const RegionTimeSettings = () => {
                 {option.label}
               </option>
             ))}
-          </AppSelect>
+          </Select>
         </div>
 
         <div className="flex items-center justify-between gap-3 rounded-lg border border-surface-200 p-2.5 dark:border-surface-700">
@@ -168,7 +168,7 @@ export const RegionTimeSettings = () => {
               </span>
             </div>
           </div>
-          <AppSelect
+          <Select
             value={startOfWeek}
             onChange={(event) => handleStartOfWeekChange(event.target.value as StartOfWeek)}
             className="max-w-40 shrink-0 rounded-lg border border-surface-200 bg-surface-50 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-200"
@@ -178,7 +178,7 @@ export const RegionTimeSettings = () => {
                 {option.label}
               </option>
             ))}
-          </AppSelect>
+          </Select>
         </div>
       </div>
     </section>

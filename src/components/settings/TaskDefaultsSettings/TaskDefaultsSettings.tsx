@@ -7,10 +7,10 @@ import Repeat from 'lucide-react/icons/repeat';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
-import { AppSelect } from '$components/AppSelect';
 import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { RepeatModal } from '$components/modals/RepeatModal';
 import { TaskDefaultsReminderPickerModal } from '$components/modals/TaskDefaultsReminderPickerModal';
+import { Select } from '$components/Select';
 import { TaskDefaultsColorPicker } from '$components/settings/TaskDefaultsSettings/TaskDefaultsColorPicker';
 import { getIconByName } from '$constants/icons';
 import { PRIORITIES } from '$constants/priority';
@@ -281,7 +281,7 @@ export const TaskDefaultsSettings = () => {
                 Applied when creating a new task
               </p>
             </div>
-            <AppSelect
+            <Select
               value={defaultCalendarId || ''}
               onChange={(e) => setDefaultCalendarId(e.target.value || null)}
               disabled={accountsWithCalendars.length === 0}
@@ -303,7 +303,7 @@ export const TaskDefaultsSettings = () => {
                   ))}
                 </>
               )}
-            </AppSelect>
+            </Select>
           </div>
 
           {!defaultCalendarId && (
@@ -383,7 +383,7 @@ export const TaskDefaultsSettings = () => {
         <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
           <div className="flex items-center justify-between gap-4 p-4">
             <p className="text-sm text-surface-700 dark:text-surface-300">Start date</p>
-            <AppSelect
+            <Select
               value={defaultStartDate}
               onChange={(e) => setDefaultStartDate(e.target.value as typeof defaultStartDate)}
               className={selectClassName}
@@ -398,14 +398,14 @@ export const TaskDefaultsSettings = () => {
                   ))}
                 </optgroup>
               ))}
-            </AppSelect>
+            </Select>
           </div>
 
           <div className="border-surface-200 border-t dark:border-surface-700" />
 
           <div className="flex items-center justify-between gap-4 p-4">
             <p className="text-sm text-surface-700 dark:text-surface-300">Due date</p>
-            <AppSelect
+            <Select
               value={defaultDueDate}
               onChange={(e) => setDefaultDueDate(e.target.value as typeof defaultDueDate)}
               className={selectClassName}
@@ -415,7 +415,7 @@ export const TaskDefaultsSettings = () => {
                   {opt.label}
                 </option>
               ))}
-            </AppSelect>
+            </Select>
           </div>
 
           <div className="border-surface-200 border-t dark:border-surface-700" />

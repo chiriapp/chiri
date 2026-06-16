@@ -1,10 +1,10 @@
 import Calendar from 'lucide-react/icons/calendar';
 import CalendarPlus from 'lucide-react/icons/calendar-plus';
 import { useState } from 'react';
-import { AppSelect } from '$components/AppSelect';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
+import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import type { RecurrenceFrequency } from '$types/recurrence';
 import { formatDate } from '$utils/date';
@@ -246,7 +246,7 @@ export const RepeatModal = ({
         }
       >
         <div className="space-y-4 p-4">
-          <AppSelect
+          <Select
             value={ui.freq}
             onChange={(e) => {
               const freq = e.target.value as RecurrenceFrequency;
@@ -267,7 +267,7 @@ export const RepeatModal = ({
             <option value="monthly">Monthly</option>
             <option value="yearly">Yearly</option>
             <option value="custom">Custom…</option>
-          </AppSelect>
+          </Select>
 
           {showInterval && (
             <div className="flex items-center gap-2">
@@ -285,7 +285,7 @@ export const RepeatModal = ({
                 className={`w-16 text-center ${inputCls}`}
               />
               {ui.freq === 'custom' ? (
-                <AppSelect
+                <Select
                   value={ui.customPeriod}
                   onChange={(e) => {
                     const customPeriod = e.target.value as CustomPeriod;
@@ -299,7 +299,7 @@ export const RepeatModal = ({
                       {ui.interval === 1 ? label : plural}
                     </option>
                   ))}
-                </AppSelect>
+                </Select>
               ) : (
                 <span className="text-sm text-surface-700 dark:text-surface-300">
                   {periodLabel}

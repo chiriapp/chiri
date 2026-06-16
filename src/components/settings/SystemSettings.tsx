@@ -3,7 +3,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
 import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import Loader2 from 'lucide-react/icons/loader-2';
-import { AppSelect } from '$components/AppSelect';
+import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAutostart } from '$hooks/system/useAutostart';
 import { usePlatform } from '$hooks/system/usePlatform';
@@ -278,7 +278,7 @@ export const SystemSettings = () => {
                 Show title bar and borders on Linux. Auto-detection is applied on restart.
               </p>
             </div>
-            <AppSelect
+            <Select
               value={windowDecorationsMode}
               onChange={(e) =>
                 handleWindowDecorationsChange(e.target.value as WindowDecorationsMode)
@@ -288,7 +288,7 @@ export const SystemSettings = () => {
               <option value="auto">Auto (detect)</option>
               <option value="on">Always show</option>
               <option value="off">Always hide</option>
-            </AppSelect>
+            </Select>
           </div>
         </div>
       )}
