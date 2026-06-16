@@ -51,7 +51,9 @@ const getTitleClassName = (task: Task, isInteractive: boolean) => {
 };
 
 const SubtaskTitleContent = ({ task }: { task: Task }) =>
-  task.title || <span className="text-surface-400 italic dark:text-surface-500">Untitled subtask</span>;
+  task.title || (
+    <span className="text-surface-400 italic dark:text-surface-500">Untitled subtask</span>
+  );
 
 interface TaskEditorSubtaskItemProps {
   task: Task;
