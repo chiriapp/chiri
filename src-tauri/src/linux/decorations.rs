@@ -73,24 +73,65 @@ fn is_tiling_wm() -> bool {
         || env::var("NIRI_SOCKET").is_ok()
 }
 
-/// configures the titlebar based on the desktop environment
-/// must be called BEFORE the window is shown/realized
+/// returns the path to the decoration hint file.
 ///
-/// - GNOME, COSMIC: keep GTK client-side decorations (works well, draggable)
-/// - KDE, others: use native window decorations (integrates better)
+/// bridges the js settings store (localStorage) and Rust startup
+/// js writes the user's decoration preference here when it changes, and
+/// `configure_titlebar_for_de` reads it before the window is realized so the
+/// correct decoration mode is negotiated with the Wayland compositor at
+/// surface-creation time (the only moment it reliably works on KDE... i think)
+#[cfg(target_os = "linux")]
+fn decoration_hint_path(app: &tauri::AppHandle) -> Option<std::path::PathBuf> {
+    app.path()
+        .app_config_dir()
+        .ok()
+        .map(|dir| dir.join("window_decorations_hint"))
+}
+
+/// reads the saved decoration hint: "on", "off", or "auto" (default)
+#[cfg(target_os = "linux")]
+fn read_decoration_hint(app: &tauri::AppHandle) -> String {
+    decoration_hint_path(app)
+        .and_then(|p| std::fs::read_to_string(p).ok())
+        .map(|s| s.trim().to_lowercase())
+        .filter(|s| matches!(s.as_str(), "on" | "off" | "auto"))
+        .unwrap_or_else(|| "auto".to_string())
+}
+
+/// configures the titlebar based on the desktop environment AND the saved
+/// decoration hint, which is written by the frontend whenever the user changes
+/// the setting.
 ///
+/// must be called BEFORE the window is shown/realized. that is the only moment
+/// at which GTK's Wayland backend negotiates the `zxdg_decoration_manager_v1`
+/// mode with the compositor.  runtime calls to `set_decorated` do not reliably
+/// trigger a Wayland protocol update on KDE apparently
+
 /// note: the Wayland xdg_toplevel app_id is derived from the binary name,
 /// so the Flatpak installs the binary as garden.chiri.Chiri to match the .desktop filename for KWin icon lookup
 #[cfg(target_os = "linux")]
-pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
+pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow, app: &tauri::AppHandle) {
     use gtk::prelude::GtkWindowExt;
 
     let desktop = env::var("XDG_CURRENT_DESKTOP").unwrap_or_else(|_| "Unknown".to_string());
+    let hint = read_decoration_hint(app);
+
+    log::info!("[Decorations] Desktop='{}', hint='{}'", desktop, hint);
 
     if let Ok(gtk_window) = window.gtk_window() {
+        // explicit "always hide". strip all decorations regardless of DE
+        if hint == "off" {
+            log::info!("[Decorations] hint=off — disabling all decorations");
+            gtk_window.set_titlebar(Option::<&gtk::Widget>::None);
+            gtk_window.set_decorated(false);
+            return;
+        }
+
+        // hint=on or hint=auto. apply the normal per-DE logic
+
         if is_tiling_wm() {
             log::info!(
-                "Desktop '{}' detected - disabling all window decorations (tiling WM)",
+                "[Decorations] Desktop '{}' detected - disabling all window decorations (tiling WM)",
                 desktop
             );
             gtk_window.set_decorated(false);
@@ -99,35 +140,54 @@ pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
 
         if needs_gtk_decorations() {
             log::info!(
-                "Desktop '{}' detected - keeping GTK client-side decorations",
+                "[Decorations] Desktop '{}' detected - keeping GTK client-side decorations",
                 desktop
             );
             return;
         }
 
         log::info!(
-            "Desktop '{}' detected - using native window decorations",
+            "[Decorations] Desktop '{}' detected - using native window decorations",
             desktop
         );
 
-        // remove the GTK titlebar to use native DE decorations
+        // remove the GTK titlebar widget so GTK falls back to requesting
+        // server-side decorations from the compositor (KWin *should* add its own
+        // native titlebar at this point)
         gtk_window.set_titlebar(Option::<&gtk::Widget>::None);
     }
 }
 
+#[tauri::command]
+pub async fn save_window_decorations_hint(
+    app: tauri::AppHandle,
+    mode: String,
+) -> Result<(), String> {
+    if !matches!(mode.as_str(), "on" | "off" | "auto") {
+        return Err(format!("Invalid decoration mode: {mode}"));
+    }
+    let path = decoration_hint_path(&app).ok_or("Could not determine app config dir")?;
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+    }
+    std::fs::write(&path, &mode).map_err(|e| e.to_string())?;
+    log::info!("[Decorations] Saved decoration hint: {mode}");
+    Ok(())
+}
+
 /// Toggle window decorations at runtime via Tauri's WebviewWindow API.
 ///
-/// The initial per-DE decision happens in `configure_titlebar_for_de` during
-/// setup; this command lets the user override that choice from settings
-/// without restarting the app.
+/// on GTK-native DEs (GNOME, COSMIC), this works immediately because GTK's
+/// CSD state is toggled directly
 ///
-/// On GTK-native DEs (GNOME, COSMIC), we toggle GTK's own client-side
-/// decorations via `set_decorated`.
+/// on compositor-managed DEs (KDE, etc.), GTK3's `set_decorated()` does NOT
+/// send Wayland `zxdg_decoration_manager_v1` protocol messages at runtime.
+/// the change therefore has no visible effect until the app is restarted
+/// which is why the frontend shows a "restart required" notice on KDE and
+/// why `save_window_decorations_hint` is the true persistence mechanism
 ///
-/// On compositor-managed DEs (KDE, etc.), `set_decorated` would restore a
-/// blank GTK CSD titlebar instead of KDE's native one, so we skip it and
-/// rely solely on `window.set_decorations` which speaks the Wayland/X11
-/// compositor protocol directly.
+/// this command is still called on KDE as a best-effort attempt and to keep
+/// the applied-value state consistent
 #[tauri::command]
 pub async fn set_window_decorations(
     window: tauri::WebviewWindow,
@@ -151,10 +211,8 @@ pub async fn set_window_decorations(
             })
             .map_err(|e| e.to_string())?;
     }
-    // For KDE and other compositor-managed DEs, skip gtk_window.set_decorated:
-    // it would restore a blank GTK CSD widget instead of the native titlebar.
-    // window.set_decorations() below speaks the Wayland/X11 protocol and is
-    // the correct way to toggle compositor-drawn decorations on those DEs.
 
+    // best-effort Tauri-level call (maps to gtk_window_set_decorated on Linux)
+    // works on GNOME; has no reliable effect on KDE Wayland at runtime
     window.set_decorations(enabled).map_err(|e| e.to_string())
 }

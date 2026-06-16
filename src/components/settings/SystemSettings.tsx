@@ -41,9 +41,7 @@ export const SystemSettings = () => {
   const isMac = isMacPlatform();
 
   const windowDecorationsChanged =
-    isLinux &&
-    windowDecorationsMode === 'auto' &&
-    windowDecorationsMode !== windowDecorationsAppliedValue;
+    isLinux && windowDecorationsMode !== windowDecorationsAppliedValue;
   const confirmBeforeQuitChanged = isMac && confirmBeforeQuit !== confirmBeforeQuitAppliedValue;
   const restartReasons = [
     ...(windowDecorationsChanged ? ['window decoration'] : []),
@@ -79,16 +77,14 @@ export const SystemSettings = () => {
 
   const handleWindowDecorationsChange = async (mode: WindowDecorationsMode) => {
     setWindowDecorationsMode(mode);
-    // 'auto' can only be re-applied by restarting. the Rust startup hook is
-    // the only thing that runs the per-DE titlebar logic. for 'on'/'off' we
-    // can toggle live via the Rust WebviewWindow API.
-    if (mode !== 'auto') {
-      try {
-        await invoke('set_window_decorations', { enabled: mode === 'on' });
-        setWindowDecorationsAppliedValue(mode);
-      } catch (error) {
-        console.error('Failed to apply window decorations override:', error);
-      }
+    // Persist the hint file so configure_titlebar_for_de picks it up on the
+    // next startup. Decoration changes always require a restart — the Rust
+    // startup hook is the only reliable place to negotiate decoration mode
+    // with the compositor before the window surface is created.
+    try {
+      await invoke('save_window_decorations_hint', { mode });
+    } catch (error) {
+      console.error('Failed to save decoration hint:', error);
     }
   };
 
