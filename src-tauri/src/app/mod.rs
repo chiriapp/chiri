@@ -72,10 +72,6 @@ pub fn run() {
             push::kunifiedpush::kunifiedpush_register,
             #[cfg(target_os = "linux")]
             push::kunifiedpush::kunifiedpush_unregister,
-            #[cfg(target_os = "linux")]
-            linux::decorations::save_window_decorations_hint,
-            #[cfg(target_os = "linux")]
-            linux::decorations::set_window_decorations,
             #[cfg(target_os = "macos")]
             macos::login_item::disable_macos_launch_at_login,
             #[cfg(target_os = "macos")]

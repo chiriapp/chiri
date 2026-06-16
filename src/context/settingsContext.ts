@@ -22,7 +22,6 @@ import type {
   TaskBadgeKey,
   TaskBadgeVisibility,
   TaskListDensity,
-  WindowDecorationsMode,
 } from '$types/settings';
 import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$utils/color/accent';
 import { applyColorScheme, getColorSchemeFlavor } from '$utils/color/scheme';
@@ -337,10 +336,6 @@ export const settingsStore = {
   setConnectivityCheckUrl: (connectivityCheckUrl: string) => setState({ connectivityCheckUrl }),
   setConnectivityCheckInterval: (connectivityCheckInterval: number) =>
     setState({ connectivityCheckInterval }),
-  setWindowDecorationsMode: (windowDecorationsMode: WindowDecorationsMode) =>
-    setState({ windowDecorationsMode }),
-  setWindowDecorationsAppliedValue: (windowDecorationsAppliedValue: WindowDecorationsMode) =>
-    setState({ windowDecorationsAppliedValue }),
   setEnablePush: (enablePush: boolean) => setState({ enablePush }),
   setPushProvider: (pushProvider: PushProviderId) => setState({ pushProvider }),
   setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),

@@ -111,8 +111,6 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'connectivityCheckEnabled',
       'connectivityCheckUrl',
       'connectivityCheckInterval',
-      'windowDecorationsMode',
-      'windowDecorationsAppliedValue',
       'enablePush',
       'pushProvider',
       'ntfyServerUrl',

@@ -122,8 +122,6 @@ export const defaultState: SettingsState = {
   connectivityCheckEnabled: true,
   connectivityCheckUrl: '',
   connectivityCheckInterval: 30,
-  windowDecorationsMode: 'auto',
-  windowDecorationsAppliedValue: 'auto',
   enablePush: false,
   pushProvider: NTFY_DIRECT_PROVIDER_ID,
   ntfyServerUrl: 'https://ntfy.sh',

@@ -19,7 +19,6 @@ import type {
   TaskBadgeKey,
   TaskBadgeVisibility,
   TaskListDensity,
-  WindowDecorationsMode,
 } from '$types/settings';
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
@@ -302,14 +301,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (interval: number) => settingsStore.setConnectivityCheckInterval(interval),
     [],
   );
-  const setWindowDecorationsMode = useCallback(
-    (mode: WindowDecorationsMode) => settingsStore.setWindowDecorationsMode(mode),
-    [],
-  );
-  const setWindowDecorationsAppliedValue = useCallback(
-    (mode: WindowDecorationsMode) => settingsStore.setWindowDecorationsAppliedValue(mode),
-    [],
-  );
   const setEnablePush = useCallback((enabled: boolean) => settingsStore.setEnablePush(enabled), []);
   const setPushProvider = useCallback(
     (provider: PushProviderId) => settingsStore.setPushProvider(provider),
@@ -400,8 +391,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setConnectivityCheckEnabled,
     setConnectivityCheckUrl,
     setConnectivityCheckInterval,
-    setWindowDecorationsMode,
-    setWindowDecorationsAppliedValue,
     setEnablePush,
     setPushProvider,
     setNtfyServerUrl,

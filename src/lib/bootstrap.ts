@@ -9,7 +9,7 @@ import { db } from '$lib/database';
 import { initLogger, loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import { initAppMenu } from '$utils/menu';
-import { isLinuxPlatform, isMacPlatform, isWindowsPlatform } from '$utils/platform';
+import { isMacPlatform, isWindowsPlatform } from '$utils/platform';
 
 const log = loggers.bootstrap;
 
@@ -69,21 +69,6 @@ export const initializeApp = async () => {
   } catch (error) {
     log.error('Failed to initialize system tray:', error);
   }
-
-  // Sync the decoration hint file so configure_titlebar_for_de can read it on
-  // the next startup. This also migrates existing users who never opened Settings
-  // (and therefore have no hint file yet) to the correct mode.
-  // Decoration changes always require a restart — the pre-realization Rust path
-  // is the only reliable way to negotiate decoration mode with the compositor.
-  const decorationsMode = settingsStore.getState().windowDecorationsMode;
-  if (isLinuxPlatform()) {
-    try {
-      await invoke('save_window_decorations_hint', { mode: decorationsMode });
-    } catch (error) {
-      log.error('Failed to sync decoration hint file:', error);
-    }
-  }
-  settingsStore.setWindowDecorationsAppliedValue(decorationsMode);
 
   log.debug('Getting UI state...');
   const uiState = await db.getUIState();

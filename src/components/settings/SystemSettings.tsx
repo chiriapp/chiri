@@ -3,12 +3,10 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
 import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import Loader2 from 'lucide-react/icons/loader-2';
-import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAutostart } from '$hooks/system/useAutostart';
 import { usePlatform } from '$hooks/system/usePlatform';
-import type { WindowDecorationsMode } from '$types/settings';
-import { isLinuxPlatform, isMacPlatform } from '$utils/platform';
+import { isMacPlatform } from '$utils/platform';
 
 const formatRestartReasons = (reasons: string[]) => {
   if (reasons.length <= 1) return reasons[0] ?? 'changes';
@@ -31,22 +29,12 @@ export const SystemSettings = () => {
     setConfirmBeforeQuit,
     confirmBeforeQuitAppliedValue,
     setConfirmBeforeQuitAppliedValue,
-    windowDecorationsMode,
-    windowDecorationsAppliedValue,
-    setWindowDecorationsMode,
-    setWindowDecorationsAppliedValue,
   } = useSettingsStore();
 
-  const isLinux = isLinuxPlatform();
   const isMac = isMacPlatform();
 
-  const windowDecorationsChanged =
-    isLinux && windowDecorationsMode !== windowDecorationsAppliedValue;
   const confirmBeforeQuitChanged = isMac && confirmBeforeQuit !== confirmBeforeQuitAppliedValue;
-  const restartReasons = [
-    ...(windowDecorationsChanged ? ['window decoration'] : []),
-    ...(confirmBeforeQuitChanged ? ['quit warning'] : []),
-  ];
+  const restartReasons = [...(confirmBeforeQuitChanged ? ['quit warning'] : [])];
   const restartRequired = restartReasons.length > 0;
   const restartRequiredMessage = `Restart to apply ${formatRestartReasons(restartReasons)} changes`;
   const launchAtLoginLoading = autostart.enabled === null;
@@ -75,22 +63,8 @@ export const SystemSettings = () => {
     }
   };
 
-  const handleWindowDecorationsChange = async (mode: WindowDecorationsMode) => {
-    setWindowDecorationsMode(mode);
-    // Persist the hint file so configure_titlebar_for_de picks it up on the
-    // next startup. Decoration changes always require a restart — the Rust
-    // startup hook is the only reliable place to negotiate decoration mode
-    // with the compositor before the window surface is created.
-    try {
-      await invoke('save_window_decorations_hint', { mode });
-    } catch (error) {
-      console.error('Failed to save decoration hint:', error);
-    }
-  };
-
   const handleRestart = async () => {
     try {
-      setWindowDecorationsAppliedValue(windowDecorationsMode);
       setConfirmBeforeQuitAppliedValue(confirmBeforeQuit);
       await relaunch();
     } catch (error) {
@@ -260,32 +234,6 @@ export const SystemSettings = () => {
               className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
             />
           </label>
-        </div>
-      )}
-
-      {isLinux && (
-        <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
-          <div className="flex items-center justify-between gap-4 p-4">
-            <div>
-              <p className="text-sm text-surface-700 dark:text-surface-300">
-                Enable window decorations
-              </p>
-              <p className="text-surface-500 text-xs dark:text-surface-400">
-                Show title bar and borders on Linux. Auto-detection is applied on restart.
-              </p>
-            </div>
-            <Select
-              value={windowDecorationsMode}
-              onChange={(e) =>
-                handleWindowDecorationsChange(e.target.value as WindowDecorationsMode)
-              }
-              className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-none transition-colors focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
-            >
-              <option value="auto">Auto (detect)</option>
-              <option value="on">Always show</option>
-              <option value="off">Always hide</option>
-            </Select>
-          </div>
         </div>
       )}
 

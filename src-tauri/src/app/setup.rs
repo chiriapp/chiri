@@ -48,7 +48,7 @@ pub(super) fn setup_app(
 
     #[cfg(target_os = "linux")]
     if let Some(window) = app.get_webview_window("main") {
-        crate::linux::decorations::configure_titlebar_for_de(&window, app.handle());
+        crate::linux::decorations::configure_titlebar_for_de(&window);
     }
 
     #[cfg(target_os = "linux")]

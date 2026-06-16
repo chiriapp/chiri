@@ -29,9 +29,7 @@ export type SettingsSubtab =
   | 'updates'
   | 'about';
 
-export type TaskListDensity = 'comfortable' | 'compact';
-
-export type WindowDecorationsMode = 'auto' | 'on' | 'off';
+export type TaskListDensity = 'compact' | 'normal' | 'comfortable';
 
 export interface EditorFieldVisibility {
   status: boolean;
@@ -150,8 +148,6 @@ export interface SettingsState {
   connectivityCheckEnabled: boolean;
   connectivityCheckUrl: string;
   connectivityCheckInterval: number;
-  windowDecorationsMode: WindowDecorationsMode;
-  windowDecorationsAppliedValue: WindowDecorationsMode;
   enablePush: boolean;
   pushProvider: PushProviderId;
   ntfyServerUrl: string;
@@ -234,8 +230,6 @@ interface SettingsActions {
   setConnectivityCheckEnabled: (enabled: boolean) => void;
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;
-  setWindowDecorationsMode: (mode: WindowDecorationsMode) => void;
-  setWindowDecorationsAppliedValue: (mode: WindowDecorationsMode) => void;
   setEnablePush: (enabled: boolean) => void;
   setPushProvider: (provider: PushProviderId) => void;
   setNtfyServerUrl: (url: string) => void;
