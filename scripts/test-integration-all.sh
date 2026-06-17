@@ -297,12 +297,12 @@ run_server "xandikos" "caldav-xandikos" \
   "$(cat <<EOF
 CHIRI_TEST_CALDAV_URL=http://localhost:5232
 CHIRI_TEST_CALDAV_USERNAME=test
-CHIRI_TEST_CALDAV_PASSWORD=ignored
+CHIRI_TEST_CALDAV_PASSWORD=test
 CHIRI_TEST_CALDAV_TYPE=generic
 CHIRI_TEST_CALDAV_HOME=http://localhost:5232/test/calendars
 EOF
 )" \
-  "http://localhost:5232/test/" "" || FAIL=1
+  "http://localhost:5232/test/" "test:test" || FAIL=1
 
 run_server "radicale" "caldav-radicale" \
   "$(cat <<EOF

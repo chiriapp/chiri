@@ -12,18 +12,45 @@
 { pkgs }:
 
 let
+  customXandikos = pkgs.xandikos.overridePythonAttrs (old: {
+    version = "master";
+    src = pkgs.fetchFromGitHub {
+      owner = "jelmer";
+      repo = "xandikos";
+      rev = "master";
+      sha256 = "0prr62fl25jaswkvg4ikvi50axyk4j4bdzbjhksnzm2wqghiiss7";
+    };
+    postPatch = ''
+      sed -i 's/if ssl_context is None:/if False:/' xandikos/web.py
+    '';
+    dependencies = old.dependencies ++ (with pkgs.python3Packages; [
+      pywebpush
+      py-vapid
+      bcrypt
+    ]);
+  });
+
   package = pkgs.writeShellApplication {
     name = "caldav-xandikos";
-    runtimeInputs = [ pkgs.xandikos ];
+    runtimeInputs = [
+      customXandikos
+      pkgs.apacheHttpd
+    ];
     text = ''
       DATA_DIR="''${CALDAV_DATA_DIR:-$HOME/.local/share/chiri-caldav-test/xandikos}"
       PORT="''${CALDAV_PORT:-5232}"
       PRINCIPAL="''${CALDAV_PRINCIPAL:-test}"
+      USERNAME="''${CALDAV_USERNAME:-test}"
+      PASSWORD="''${CALDAV_PASSWORD:-test}"
 
       mkdir -p "$DATA_DIR"
 
-      echo "Xandikos CalDAV test server (no auth)"
+      HTPASSWD="$DATA_DIR/htpasswd"
+      htpasswd -Bbc "$HTPASSWD" "$USERNAME" "$PASSWORD" > /dev/null 2>&1
+
+      echo "Xandikos CalDAV test server"
       echo "  Principal URL: http://localhost:$PORT/$PRINCIPAL/"
+      echo "  Credentials:   $USERNAME / $PASSWORD"
       echo "  Data:          $DATA_DIR"
       echo ""
       echo "Press Ctrl+C to stop."
@@ -42,6 +69,8 @@ let
         -l 127.0.0.1 \
         -p "$PORT" \
         --current-user-principal "/$PRINCIPAL/" \
+        --webdav-push \
+        --htpasswd "$HTPASSWD" \
         --defaults
     '';
   };
