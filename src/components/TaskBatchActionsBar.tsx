@@ -1,4 +1,5 @@
 import Ban from 'lucide-react/icons/ban';
+import CalendarClock from 'lucide-react/icons/calendar-clock';
 import Check from 'lucide-react/icons/check';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import ChevronDown from 'lucide-react/icons/chevron-down';
@@ -12,11 +13,13 @@ import Trash2 from 'lucide-react/icons/trash-2';
 import X from 'lucide-react/icons/x';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
+import { BatchTaskDatesModal } from '$components/modals/BatchTaskDatesModal';
 import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { MoveToCalendarModal } from '$components/modals/MoveToCalendar/MoveToCalendarModal';
 import { Tooltip } from '$components/Tooltip';
 import { PRIORITIES } from '$constants/priority';
+import { useSettingsStore } from '$context/settingsContext';
 import { useTaskDeletion } from '$hooks/deletion/useTaskDeletion';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useTags } from '$hooks/queries/useTags';
@@ -91,10 +94,12 @@ export const TaskBatchActionsBar = ({
 }: TaskBatchActionsBarProps) => {
   const { data: accounts = [] } = useAccounts();
   const { data: tags = [] } = useTags();
+  const { timeFormat } = useSettingsStore();
   const batchUpdateTasksMutation = useBatchUpdateTasks();
   const restoreTaskMutation = useRestoreTask();
   const { moveTaskToRecentlyDeleted, deleteTasksPermanently } = useTaskDeletion();
   const [showTagsModal, setShowTagsModal] = useState(false);
+  const [showDatesModal, setShowDatesModal] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [openMenu, setOpenMenu] = useState<'status' | 'priority' | null>(null);
@@ -288,6 +293,16 @@ export const TaskBatchActionsBar = ({
                 <span className={compactLabelClass(isCompact)}>Tags</span>
               </button>
 
+              <button
+                type="button"
+                onClick={() => setShowDatesModal(true)}
+                className={getActionButtonClass({ isCompact })}
+                title="Edit dates"
+              >
+                <CalendarClock className="h-4 w-4" />
+                <span className={compactLabelClass(isCompact)}>Dates</span>
+              </button>
+
               <Tooltip
                 content={
                   allCalendars.length === 0 ? 'Add a calendar to be able to move tasks' : null
@@ -432,6 +447,15 @@ export const TaskBatchActionsBar = ({
           onClose={() => setShowTagsModal(false)}
           tasks={selectedTasks}
           tags={tags}
+        />
+      )}
+
+      {showDatesModal && (
+        <BatchTaskDatesModal
+          isOpen={showDatesModal}
+          onClose={() => setShowDatesModal(false)}
+          tasks={selectedTasks}
+          timeFormat={timeFormat}
         />
       )}
 
