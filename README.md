@@ -274,14 +274,14 @@ Found a security issue? Please report it privately. See [<span aria-hidden="true
 [donate-opencollective]: https://opencollective.com/chiri
 [donate-patreon]: https://www.patreon.com/c/chiriapp
 
-[header-donate-github-sponsors-badge]: https://img.shields.io/badge/donate-github%20sponsors-f5c2e7?style=plastic&logo=githubsponsors&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
-[header-donate-liberapay-badge]: https://img.shields.io/badge/donate-liberapay-f5c2e7?style=plastic&logo=liberapay&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
-[header-donate-opencollective-badge]: https://img.shields.io/badge/donate-opencollective-f5c2e7?style=plastic&logo=opencollective&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
-[header-donate-patreon-badge]: https://img.shields.io/badge/donate-patreon-f5c2e7?style=plastic&logo=patreon&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=1000
+[header-donate-github-sponsors-badge]: https://img.shields.io/badge/donate-github%20sponsors-f5c2e7?style=plastic&logo=githubsponsors&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=10000
+[header-donate-liberapay-badge]: https://img.shields.io/badge/donate-liberapay-f5c2e7?style=plastic&logo=liberapay&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=10000
+[header-donate-opencollective-badge]: https://img.shields.io/badge/donate-opencollective-f5c2e7?style=plastic&logo=opencollective&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=10000
+[header-donate-patreon-badge]: https://img.shields.io/badge/donate-patreon-f5c2e7?style=plastic&logo=patreon&logoColor=f5c2e7&labelColor=18181b&cacheSeconds=10000
 
-[header-repo-license-badge]: https://img.shields.io/github/license/chiriapp/chiri?style=plastic&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
-[header-repo-stars-badge]: https://img.shields.io/github/stars/chiriapp/chiri?style=plastic&logo=github&logoColor=f5c2e7&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
-[header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/chiriapp/chiri/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=1000
+[header-repo-license-badge]: https://img.shields.io/github/license/chiriapp/chiri?style=plastic&labelColor=18181b&color=f5c2e7&cacheSeconds=10000
+[header-repo-stars-badge]: https://img.shields.io/github/stars/chiriapp/chiri?style=plastic&logo=github&logoColor=f5c2e7&labelColor=18181b&color=f5c2e7&cacheSeconds=10000
+[header-repo-total-downloads-badge]: https://img.shields.io/github/downloads/chiriapp/chiri/total?style=plastic&logo=hack-the-box&logoColor=f5c2e7&label=downloads&labelColor=18181b&color=f5c2e7&cacheSeconds=10000
 
 [header-repo-issues-link]: https://github.com/chiriapp/chiri/issues
 [header-screenshot]: https://raw.githubusercontent.com/chiriapp/chiri/refs/heads/master/.github/assets/screenshot.png
