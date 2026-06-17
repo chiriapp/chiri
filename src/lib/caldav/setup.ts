@@ -211,7 +211,7 @@ export const getSetupNotice = (
 export const probeSetupVtodoCreationIfNeeded = async (
   client: CalDAVClient,
   diagnostics: CalendarDiscoveryDiagnostics,
-): Promise<boolean> => {
+) => {
   if (diagnostics.includedCalendarCount > 0) {
     return false;
   }

@@ -46,7 +46,7 @@ let unlistenEndpoint: UnlistenFn | null = null;
 let unlistenUnregistered: UnlistenFn | null = null;
 let listenerPromise: Promise<void> | null = null;
 
-const describeProviderTarget = (registration: KUnifiedPushProviderRegistration): string =>
+const describeProviderTarget = (registration: KUnifiedPushProviderRegistration) =>
   `${registration.endpoint} via ${registration.distributor}`;
 
 const getOrCreateDiagnostics = (calendarId: string): PushProviderSubscriptionDiagnostics => {
@@ -69,7 +69,7 @@ const getOrCreateDiagnostics = (calendarId: string): PushProviderSubscriptionDia
   return diagnostics;
 };
 
-const markProviderError = (calendarId: string, error: string): void => {
+const markProviderError = (calendarId: string, error: string) => {
   const diagnostics = getOrCreateDiagnostics(calendarId);
   diagnostics.lastError = error;
   diagnostics.lastErrorAt = new Date();
@@ -146,7 +146,7 @@ const ensureProviderEventListeners = () => {
   listenerPromise = setupPromise;
 };
 
-export const isKUnifiedPushProviderAvailable = async (): Promise<boolean> => {
+export const isKUnifiedPushProviderAvailable = async () => {
   try {
     return await invoke<boolean>('kunifiedpush_available');
   } catch {
@@ -186,7 +186,7 @@ export const createKUnifiedPushProviderSubscription = async (
 export const restoreKUnifiedPushProviderSubscription = async (
   subscription: PushSubscription,
   calendar: Calendar,
-): Promise<boolean> => {
+) => {
   if (!subscription.providerToken) return false;
 
   try {
@@ -217,7 +217,7 @@ export const startKUnifiedPushProviderListening = (
   subscription: PushSubscription,
   onMessage: PushMessageHandler,
   onInvalidated?: (calendarId: string, reason: string) => void,
-): boolean => {
+) => {
   if (!subscription.providerToken) return false;
 
   calendarIdsByProviderToken.set(subscription.providerToken, subscription.calendarId);
@@ -238,7 +238,7 @@ export const startKUnifiedPushProviderListening = (
   return true;
 };
 
-export const stopKUnifiedPushProviderListening = (calendarId: string): void => {
+export const stopKUnifiedPushProviderListening = (calendarId: string) => {
   providerMessageHandlers.delete(calendarId);
   providerInvalidationHandlers.delete(calendarId);
   const diagnostics = providerDiagnosticsByCalendar.get(calendarId);
@@ -255,9 +255,7 @@ export const stopKUnifiedPushProviderListening = (calendarId: string): void => {
   }
 };
 
-export const removeKUnifiedPushProviderSubscription = async (
-  subscription: PushSubscription,
-): Promise<void> => {
+export const removeKUnifiedPushProviderSubscription = async (subscription: PushSubscription) => {
   stopKUnifiedPushProviderListening(subscription.calendarId);
   providerDiagnosticsByCalendar.delete(subscription.calendarId);
 
@@ -276,7 +274,7 @@ export const getKUnifiedPushProviderSubscriptionDiagnostics = (
   return providerDiagnosticsByCalendar.get(calendarId) ?? null;
 };
 
-export const stopAllKUnifiedPushProviderListeners = (): void => {
+export const stopAllKUnifiedPushProviderListeners = () => {
   calendarIdsByProviderToken.clear();
   pushResourcesByProviderToken.clear();
   providerMessageHandlers.clear();

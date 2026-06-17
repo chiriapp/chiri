@@ -41,7 +41,7 @@ export const getContrastTextColor = (color: string) => {
  * @param color - hex color string (with or without alpha)
  * @returns normalized hex color without alpha channel
  */
-export const normalizeHexColor = (color: string | undefined | null): string | undefined => {
+export const normalizeHexColor = (color: string | undefined | null) => {
   if (!color) return undefined;
 
   // if color is 9 characters (#RRGGBBAA) and ends with FF, strip the alpha

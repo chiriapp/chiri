@@ -4,7 +4,7 @@ import { type RefObject, useEffect, useEffectEvent, useRef } from 'react';
 const KEYBOARD_FOCUS_ATTRIBUTE = 'data-keyboard-navigation-focus';
 const PRESET_ITEM_SELECTOR = '[data-vertical-list-item]';
 
-const isEditableElement = (target: EventTarget | null): boolean => {
+const isEditableElement = (target: EventTarget | null) => {
   if (!(target instanceof HTMLElement)) return false;
 
   return (
@@ -15,10 +15,10 @@ const isEditableElement = (target: EventTarget | null): boolean => {
   );
 };
 
-const isVisible = (element: HTMLElement): boolean =>
+const isVisible = (element: HTMLElement) =>
   element.offsetParent !== null && window.getComputedStyle(element).visibility !== 'hidden';
 
-const shouldIgnoreKeyboardEvent = (event: KeyboardEvent): boolean =>
+const shouldIgnoreKeyboardEvent = (event: KeyboardEvent) =>
   event.defaultPrevented ||
   event.altKey ||
   event.ctrlKey ||
@@ -26,30 +26,30 @@ const shouldIgnoreKeyboardEvent = (event: KeyboardEvent): boolean =>
   event.shiftKey ||
   isEditableElement(event.target);
 
-const clearKeyboardFocus = (container: HTMLElement): void => {
+const clearKeyboardFocus = (container: HTMLElement) => {
   for (const item of container.querySelectorAll<HTMLElement>(`[${KEYBOARD_FOCUS_ATTRIBUTE}]`)) {
     item.removeAttribute(KEYBOARD_FOCUS_ATTRIBUTE);
   }
 };
 
-const clearAllKeyboardFocus = (...containers: Array<HTMLElement | null>): void => {
+const clearAllKeyboardFocus = (...containers: Array<HTMLElement | null>) => {
   for (const container of containers) {
     if (container) clearKeyboardFocus(container);
   }
 };
 
-const focusKeyboardItem = (container: HTMLElement, item: HTMLElement): void => {
+const focusKeyboardItem = (container: HTMLElement, item: HTMLElement) => {
   clearKeyboardFocus(container);
   item.setAttribute(KEYBOARD_FOCUS_ATTRIBUTE, 'true');
   item.focus({ preventScroll: true });
 };
 
-const getPresetItems = (container: HTMLElement): HTMLElement[] =>
+const getPresetItems = (container: HTMLElement) =>
   Array.from(container.querySelectorAll<HTMLElement>(PRESET_ITEM_SELECTOR)).filter(
     (item) => !item.hasAttribute('disabled') && isVisible(item),
   );
 
-const canNavigatePresetList = (container: HTMLElement, activeElement: Element | null): boolean => {
+const canNavigatePresetList = (container: HTMLElement, activeElement: Element | null) => {
   const dialog = container.closest('[role="dialog"]');
   return (
     activeElement === dialog ||
@@ -57,12 +57,12 @@ const canNavigatePresetList = (container: HTMLElement, activeElement: Element | 
   );
 };
 
-const getActivePresetIndex = (items: HTMLElement[], activeElement: Element | null): number => {
+const getActivePresetIndex = (items: HTMLElement[], activeElement: Element | null) => {
   if (!(activeElement instanceof HTMLElement)) return -1;
   return items.indexOf(activeElement);
 };
 
-const getActiveGridDate = (container: HTMLElement): Date | null => {
+const getActiveGridDate = (container: HTMLElement) => {
   const activeElement = document.activeElement;
   if (!(activeElement instanceof HTMLElement) || !container.contains(activeElement)) return null;
 
@@ -72,7 +72,7 @@ const getActiveGridDate = (container: HTMLElement): Date | null => {
   return new Date(time);
 };
 
-const getInitialGridFocusDate = (currentMonth: Date, preferredDate?: Date): Date => {
+const getInitialGridFocusDate = (currentMonth: Date, preferredDate?: Date) => {
   if (preferredDate && isSameMonth(preferredDate, currentMonth)) return startOfDay(preferredDate);
 
   const today = new Date();
@@ -85,7 +85,7 @@ const getGridTargetDate = (
   event: KeyboardEvent,
   activeDate: Date | null,
   initialFocusDate: Date,
-): Date | null => {
+) => {
   if (!activeDate) {
     if (event.key === 'PageUp') return addMonths(initialFocusDate, -1);
     if (event.key === 'PageDown') return addMonths(initialFocusDate, 1);
@@ -110,7 +110,7 @@ const getGridTargetDate = (
   }
 };
 
-const focusGridDay = (container: HTMLElement, date: Date): boolean => {
+const focusGridDay = (container: HTMLElement, date: Date) => {
   const dayButton = container.querySelector<HTMLButtonElement>(
     `[data-calendar-day-time="${date.getTime()}"]`,
   );
@@ -161,7 +161,7 @@ export const useDatePickerKeyboardNavigation = ({
   useEffect(() => {
     if (!enabled) return;
 
-    const handlePresetListNavigation = (event: KeyboardEvent, presetList: HTMLElement): boolean => {
+    const handlePresetListNavigation = (event: KeyboardEvent, presetList: HTMLElement) => {
       if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return false;
 
       const activeElement = document.activeElement;
@@ -184,7 +184,7 @@ export const useDatePickerKeyboardNavigation = ({
       return true;
     };
 
-    const handleMonthNavigation = (event: KeyboardEvent, grid: HTMLElement | null): boolean => {
+    const handleMonthNavigation = (event: KeyboardEvent, grid: HTMLElement | null) => {
       if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return false;
 
       if (grid && event.target instanceof Node && grid.contains(event.target)) return false;
@@ -198,7 +198,7 @@ export const useDatePickerKeyboardNavigation = ({
       return true;
     };
 
-    const handleGridNavigation = (event: KeyboardEvent, grid: HTMLElement): boolean => {
+    const handleGridNavigation = (event: KeyboardEvent, grid: HTMLElement) => {
       if (!(event.target instanceof Node) || !grid.contains(event.target)) return false;
 
       const activeDate = getActiveGridDate(grid);

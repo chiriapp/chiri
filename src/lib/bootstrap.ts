@@ -112,7 +112,7 @@ export const showWindow = async (delay: number = 200): Promise<void> => {
   });
 };
 
-export const shouldShowWindowOnStartup = async (): Promise<boolean> => {
+export const shouldShowWindowOnStartup = async () => {
   const launchedAtLogin = isMacPlatform()
     ? await invoke<boolean>('was_macos_launched_as_login_item').catch((error) => {
         log.warn('Failed to detect macOS login-item launch:', error);

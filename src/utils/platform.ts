@@ -54,7 +54,7 @@ export const isWindowsPlatform = () => {
   return platform() === 'windows';
 };
 
-export const getInstallType = async (): Promise<InstallType> => {
+export const getInstallType = async () => {
   try {
     return await invoke<InstallType>('get_install_type');
   } catch (error) {
@@ -84,7 +84,7 @@ export const getPackageManagerName = (installType: InstallType | null | undefine
  * Check if in-app updates should be disabled.
  * Returns true for installations managed by external package managers.
  */
-export const shouldDisableUpdates = async (): Promise<boolean> => {
+export const shouldDisableUpdates = async () => {
   try {
     return await invoke<boolean>('should_disable_updates');
   } catch (error) {

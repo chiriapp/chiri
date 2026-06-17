@@ -60,7 +60,7 @@ const resolveTaskTags = (
   taskTags: string[] | undefined,
   activeTagId: string | null,
   defaultTags: string[],
-): string[] => {
+) => {
   let tags = taskTags ?? [];
   if (activeTagId && !tags.includes(activeTagId)) {
     tags = [activeTagId, ...tags];
@@ -234,7 +234,7 @@ const buildTaskUpdateParams = (task: Task, id: string): unknown[] => [
 /**
  * Merge task updates with existing task, handling status/completed sync
  */
-const mergeTaskUpdates = (existing: Task, updates: Partial<Task>): Task => {
+const mergeTaskUpdates = (existing: Task, updates: Partial<Task>) => {
   const merged: Task = {
     ...existing,
     ...updates,

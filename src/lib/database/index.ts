@@ -12,11 +12,10 @@ import * as taskOps from '$lib/database/tasks';
 import * as uiOps from '$lib/database/ui';
 import { loggers } from '$lib/logger';
 import type { Account, CalDAVTaskObject, Calendar, Tag, Task } from '$types';
-import type { TaskHistoryEntry } from '$types/database';
 import type { Filter } from '$types/filter';
 import type { PushSubscription } from '$types/push';
 import type { AccountSortConfig, CalendarSortConfig, SortConfig, TagSortConfig } from '$types/sort';
-import type { DataChangeListener, DataStore, PendingDeletion, UIState } from '$types/store';
+import type { DataChangeListener, PendingDeletion } from '$types/store';
 
 const DB_NAME = 'sqlite:chiri.db';
 
@@ -37,7 +36,7 @@ class Database {
     }
   }
 
-  private async conn(): Promise<DatabasePlugin> {
+  private async conn() {
     if (!this.connection) await this.init();
     return this.connection!;
   }
@@ -48,257 +47,253 @@ class Database {
     return () => this.listeners.delete(listener);
   }
 
-  notify(): void {
+  notify() {
     for (const listener of this.listeners) listener();
   }
 
   // Accounts
-  async getAllAccounts(): Promise<Account[]> {
+  async getAllAccounts() {
     return accountOps.getAllAccounts(await this.conn());
   }
 
-  async getAccountById(id: string): Promise<Account | undefined> {
+  async getAccountById(id: string) {
     return accountOps.getAccountById(await this.conn(), id);
   }
 
-  async createAccount(data: Partial<Account>): Promise<Account> {
+  async createAccount(data: Partial<Account>) {
     const result = await accountOps.createAccount(await this.conn(), data);
     this.notify();
     return result;
   }
 
-  async updateAccount(id: string, updates: Partial<Account>): Promise<Account | undefined> {
+  async updateAccount(id: string, updates: Partial<Account>) {
     const result = await accountOps.updateAccount(await this.conn(), id, updates);
     this.notify();
     return result;
   }
 
-  async deleteAccount(id: string): Promise<void> {
+  async deleteAccount(id: string) {
     await accountOps.deleteAccount(await this.conn(), id);
     this.notify();
   }
 
   // Calendars
-  async addCalendar(accountId: string, data: Partial<Calendar>): Promise<void> {
+  async addCalendar(accountId: string, data: Partial<Calendar>) {
     await calendarOps.addCalendar(await this.conn(), accountId, data);
     this.notify();
   }
 
-  async updateCalendar(calendarId: string, updates: Partial<Calendar>): Promise<void> {
+  async updateCalendar(calendarId: string, updates: Partial<Calendar>) {
     await calendarOps.updateCalendar(await this.conn(), calendarId, updates);
     this.notify();
   }
 
-  async deleteCalendar(accountId: string, calendarId: string): Promise<void> {
+  async deleteCalendar(accountId: string, calendarId: string) {
     await calendarOps.deleteCalendar(await this.conn(), accountId, calendarId);
     this.notify();
   }
 
   // Tasks
-  async getAllTasks(): Promise<Task[]> {
+  async getAllTasks() {
     return taskOps.getAllTasks(await this.conn());
   }
 
-  async getTaskById(id: string): Promise<Task | undefined> {
+  async getTaskById(id: string) {
     return taskOps.getTaskById(await this.conn(), id);
   }
 
-  async getTaskByUid(uid: string): Promise<Task | undefined> {
+  async getTaskByUid(uid: string) {
     return taskOps.getTaskByUid(await this.conn(), uid);
   }
 
-  async getTasksByCalendar(calendarId: string): Promise<Task[]> {
+  async getTasksByCalendar(calendarId: string) {
     return taskOps.getTasksByCalendar(await this.conn(), calendarId);
   }
 
-  async getTasksByTag(tagId: string): Promise<Task[]> {
+  async getTasksByTag(tagId: string) {
     return taskOps.getTasksByTag(await this.conn(), tagId);
   }
 
-  async getChildTasks(parentUid: string): Promise<Task[]> {
+  async getChildTasks(parentUid: string) {
     return taskOps.getChildTasks(await this.conn(), parentUid);
   }
 
-  async countChildren(parentUid: string): Promise<number> {
+  async countChildren(parentUid: string) {
     return taskOps.countChildren(await this.conn(), parentUid);
   }
 
-  async createTask(data: Partial<Task>): Promise<Task> {
+  async createTask(data: Partial<Task>) {
     const result = await taskOps.createTask(await this.conn(), data);
     this.notify();
     return result;
   }
 
-  async updateTask(id: string, updates: Partial<Task>): Promise<Task | undefined> {
+  async updateTask(id: string, updates: Partial<Task>) {
     const result = await taskOps.updateTask(await this.conn(), id, updates);
     this.notify();
     return result;
   }
 
-  async deleteTask(id: string, deleteChildren?: boolean): Promise<void> {
+  async deleteTask(id: string, deleteChildren?: boolean) {
     await taskOps.deleteTask(await this.conn(), id, deleteChildren);
     this.notify();
   }
 
-  async restoreTask(id: string, restoreChildren?: boolean): Promise<void> {
+  async restoreTask(id: string, restoreChildren?: boolean) {
     await taskOps.restoreTask(await this.conn(), id, restoreChildren);
     this.notify();
   }
 
-  async permanentlyDeleteTask(id: string, deleteChildren?: boolean): Promise<void> {
+  async permanentlyDeleteTask(id: string, deleteChildren?: boolean) {
     await taskOps.permanentlyDeleteTask(await this.conn(), id, deleteChildren);
     this.notify();
   }
 
-  async deleteExpiredRecentlyDeletedTasks(now?: Date): Promise<number> {
+  async deleteExpiredRecentlyDeletedTasks(now?: Date) {
     const count = await taskOps.deleteExpiredRecentlyDeletedTasks(await this.conn(), now);
     if (count > 0) this.notify();
     return count;
   }
 
-  async toggleTaskComplete(id: string): Promise<void> {
+  async toggleTaskComplete(id: string) {
     await taskOps.toggleTaskComplete(await this.conn(), id);
     this.notify();
   }
 
   // Tags
-  async getAllTags(): Promise<Tag[]> {
+  async getAllTags() {
     return tagOps.getAllTags(await this.conn());
   }
 
-  async getTagById(id: string): Promise<Tag | undefined> {
+  async getTagById(id: string) {
     return tagOps.getTagById(await this.conn(), id);
   }
 
-  async createTag(data: Partial<Tag>): Promise<Tag> {
+  async createTag(data: Partial<Tag>) {
     const result = await tagOps.createTag(await this.conn(), data);
     this.notify();
     return result;
   }
 
-  async updateTag(id: string, updates: Partial<Tag>): Promise<Tag | undefined> {
+  async updateTag(id: string, updates: Partial<Tag>) {
     const result = await tagOps.updateTag(await this.conn(), id, updates);
     this.notify();
     return result;
   }
 
-  async deleteTag(id: string): Promise<void> {
+  async deleteTag(id: string) {
     await tagOps.deleteTag(await this.conn(), id);
     this.notify();
   }
 
   // Filters
-  async getAllFilters(): Promise<Filter[]> {
+  async getAllFilters() {
     return filterOps.getAllFilters(await this.conn());
   }
 
-  async getFilterById(id: string): Promise<Filter | undefined> {
+  async getFilterById(id: string) {
     return filterOps.getFilterById(await this.conn(), id);
   }
 
-  async createFilter(data: Partial<Filter>): Promise<Filter> {
+  async createFilter(data: Partial<Filter>) {
     const result = await filterOps.createFilter(await this.conn(), data);
     this.notify();
     return result;
   }
 
-  async updateFilter(id: string, updates: Partial<Filter>): Promise<Filter | undefined> {
+  async updateFilter(id: string, updates: Partial<Filter>) {
     const result = await filterOps.updateFilter(await this.conn(), id, updates);
     this.notify();
     return result;
   }
 
-  async deleteFilter(id: string): Promise<void> {
+  async deleteFilter(id: string) {
     await filterOps.deleteFilter(await this.conn(), id);
     this.notify();
   }
 
   // UI state
-  async getUIState(): Promise<UIState> {
+  async getUIState() {
     return uiOps.getUIState(await this.conn());
   }
 
-  async setActiveAccount(id: string | null): Promise<void> {
+  async setActiveAccount(id: string | null) {
     await uiOps.setActiveAccount(await this.conn(), id);
     this.notify();
   }
 
-  async setActiveCalendar(id: string | null): Promise<void> {
+  async setActiveCalendar(id: string | null) {
     await uiOps.setActiveCalendar(await this.conn(), id);
     this.notify();
   }
 
-  async setActiveTag(id: string | null): Promise<void> {
+  async setActiveTag(id: string | null) {
     await uiOps.setActiveTag(await this.conn(), id);
     this.notify();
   }
 
-  async setActiveFilter(id: string | null): Promise<void> {
+  async setActiveFilter(id: string | null) {
     await uiOps.setActiveFilter(await this.conn(), id);
     this.notify();
   }
 
-  async setAllTasksView(): Promise<void> {
+  async setAllTasksView() {
     await uiOps.setAllTasksView(await this.conn());
     this.notify();
   }
 
-  async setRecentlyDeletedView(): Promise<void> {
+  async setRecentlyDeletedView() {
     await uiOps.setRecentlyDeletedView(await this.conn());
     this.notify();
   }
 
-  async setSelectedTask(id: string | null): Promise<void> {
+  async setSelectedTask(id: string | null) {
     await uiOps.setSelectedTask(await this.conn(), id);
     this.notify();
   }
 
-  async setEditorOpen(open: boolean): Promise<void> {
+  async setEditorOpen(open: boolean) {
     await uiOps.setEditorOpen(await this.conn(), open);
     this.notify();
   }
 
-  async setSearchQuery(query: string): Promise<void> {
+  async setSearchQuery(query: string) {
     await uiOps.setSearchQuery(await this.conn(), query);
     this.notify();
   }
 
-  async setSortConfig(config: SortConfig): Promise<void> {
+  async setSortConfig(config: SortConfig) {
     await uiOps.setSortConfig(await this.conn(), config);
     this.notify();
   }
 
-  async setAccountSortConfig(config: AccountSortConfig): Promise<void> {
+  async setAccountSortConfig(config: AccountSortConfig) {
     await uiOps.setAccountSortConfig(await this.conn(), config);
     this.notify();
   }
 
-  async setCalendarSortConfig(config: CalendarSortConfig): Promise<void> {
+  async setCalendarSortConfig(config: CalendarSortConfig) {
     await uiOps.setCalendarSortConfig(await this.conn(), config);
     this.notify();
   }
 
-  async setTagSortConfig(config: TagSortConfig): Promise<void> {
+  async setTagSortConfig(config: TagSortConfig) {
     await uiOps.setTagSortConfig(await this.conn(), config);
     this.notify();
   }
 
-  async setShowCompletedTasks(show: boolean): Promise<void> {
+  async setShowCompletedTasks(show: boolean) {
     await uiOps.setShowCompletedTasks(await this.conn(), show);
     this.notify();
   }
 
-  async setShowUnstartedTasks(show: boolean): Promise<void> {
+  async setShowUnstartedTasks(show: boolean) {
     await uiOps.setShowUnstartedTasks(await this.conn(), show);
     this.notify();
   }
 
   // History
-  async logHistoryForTaskUpdate(
-    taskUid: string,
-    oldTask: Task,
-    updates: Partial<Task>,
-  ): Promise<void> {
+  async logHistoryForTaskUpdate(taskUid: string, oldTask: Task, updates: Partial<Task>) {
     return historyOps.logHistoryForTaskUpdate(await this.conn(), taskUid, oldTask, updates);
   }
 
@@ -307,16 +302,16 @@ class Database {
     field: string,
     oldValue: string | null,
     newValue: string | null,
-  ): Promise<void> {
+  ) {
     return historyOps.logTaskChange(await this.conn(), taskUid, field, oldValue, newValue);
   }
 
-  async getTaskHistory(taskUid: string): Promise<TaskHistoryEntry[]> {
+  async getTaskHistory(taskUid: string) {
     return historyOps.getTaskHistory(await this.conn(), taskUid);
   }
 
   // Pending deletions
-  async getPendingDeletions(): Promise<PendingDeletion[]> {
+  async getPendingDeletions() {
     return pendingOps.getPendingDeletions(await this.conn());
   }
 
@@ -325,66 +320,66 @@ class Database {
     this.notify();
   }
 
-  async clearPendingDeletion(uid: string): Promise<void> {
+  async clearPendingDeletion(uid: string) {
     await pendingOps.clearPendingDeletion(await this.conn(), uid);
     this.notify();
   }
 
-  async markPendingDeletionAttempt(uid: string, error: string): Promise<void> {
+  async markPendingDeletionAttempt(uid: string, error: string) {
     await pendingOps.markPendingDeletionAttempt(await this.conn(), uid, error);
     this.notify();
   }
 
   // CalDAV task object baselines
-  async getCalDAVTaskObjectByUid(taskUid: string): Promise<CalDAVTaskObject | undefined> {
+  async getCalDAVTaskObjectByUid(taskUid: string) {
     return caldavTaskObjectOps.getCalDAVTaskObjectByUid(await this.conn(), taskUid);
   }
 
-  async getCalDAVTaskObjectsByCalendar(calendarId: string): Promise<CalDAVTaskObject[]> {
+  async getCalDAVTaskObjectsByCalendar(calendarId: string) {
     return caldavTaskObjectOps.getCalDAVTaskObjectsByCalendar(await this.conn(), calendarId);
   }
 
-  async upsertCalDAVTaskObject(object: CalDAVTaskObject): Promise<void> {
+  async upsertCalDAVTaskObject(object: CalDAVTaskObject) {
     await caldavTaskObjectOps.upsertCalDAVTaskObject(await this.conn(), object);
     this.notify();
   }
 
-  async removeCalDAVTaskObjectByUid(taskUid: string): Promise<void> {
+  async removeCalDAVTaskObjectByUid(taskUid: string) {
     await caldavTaskObjectOps.removeCalDAVTaskObjectByUid(await this.conn(), taskUid);
     this.notify();
   }
 
-  async removeCalDAVTaskObjectsByCalendar(calendarId: string): Promise<void> {
+  async removeCalDAVTaskObjectsByCalendar(calendarId: string) {
     await caldavTaskObjectOps.removeCalDAVTaskObjectsByCalendar(await this.conn(), calendarId);
     this.notify();
   }
 
   // Push subscriptions
-  async getAllPushSubscriptions(): Promise<PushSubscription[]> {
+  async getAllPushSubscriptions() {
     return pushOps.getAllPushSubscriptions(await this.conn());
   }
 
-  async getPushSubscriptionsByCalendar(calendarId: string): Promise<PushSubscription[]> {
+  async getPushSubscriptionsByCalendar(calendarId: string) {
     return pushOps.getPushSubscriptionsByCalendar(await this.conn(), calendarId);
   }
 
-  async upsertPushSubscription(subscription: PushSubscription): Promise<void> {
+  async upsertPushSubscription(subscription: PushSubscription) {
     await pushOps.upsertPushSubscription(await this.conn(), subscription);
     this.notify();
   }
 
-  async deletePushSubscription(subscriptionId: string): Promise<void> {
+  async deletePushSubscription(subscriptionId: string) {
     await pushOps.deletePushSubscription(await this.conn(), subscriptionId);
     this.notify();
   }
 
-  async deletePushSubscriptionsByCalendar(calendarId: string): Promise<void> {
+  async deletePushSubscriptionsByCalendar(calendarId: string) {
     await pushOps.deletePushSubscriptionsByCalendar(await this.conn(), calendarId);
     this.notify();
   }
 
   // Snapshot
-  async getSnapshot(): Promise<DataStore> {
+  async getSnapshot() {
     return snapshotOps.getSnapshot(await this.conn());
   }
 }

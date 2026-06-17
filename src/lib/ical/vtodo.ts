@@ -66,7 +66,7 @@ export const filterCalDavDescription = (description: string | undefined | null) 
   return description;
 };
 
-const parseICalDuration = (value: string): number | null => {
+const parseICalDuration = (value: string) => {
   const match = value.match(
     /^([+-])?P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/,
   );
@@ -86,7 +86,7 @@ const parseICalDuration = (value: string): number | null => {
  * Format millisecond offset as an RFC 5545 duration string.
  * Examples: -900000 → "-PT15M", 3600000 → "PT1H"
  */
-const formatICalDuration = (offsetMs: number): string => {
+const formatICalDuration = (offsetMs: number) => {
   const sign = offsetMs < 0 ? '-' : '';
   const totalSeconds = Math.floor(Math.abs(offsetMs) / 1000);
   const days = Math.floor(totalSeconds / 86400);
@@ -266,7 +266,7 @@ interface ParsedVTodo {
 /**
  * Parse VALARM content into structured data
  */
-const parseVAlarm = (valarmContent: string): ParsedVAlarm => {
+const parseVAlarm = (valarmContent: string) => {
   const result: ParsedVAlarm = {};
   const lines = unfoldLines(valarmContent).split('\n');
 
@@ -433,7 +433,7 @@ const applyVTodoProp = (result: ParsedVTodo, prop: ParsedProperty) => {
 /**
  * Parse VTODO content into structured data
  */
-export const parseVTodo = (vtodoContent: string): ParsedVTodo => {
+export const parseVTodo = (vtodoContent: string) => {
   const result: ParsedVTodo = {};
   const lines = unfoldLines(vtodoContent).split('\n');
 
@@ -544,7 +544,7 @@ const generateVAlarm = (reminder: Reminder) => {
 /**
  * Generate date property line (DTSTART or DUE)
  */
-const generateDateLine = (property: 'DTSTART' | 'DUE', date: Date, allDay: boolean): string => {
+const generateDateLine = (property: 'DTSTART' | 'DUE', date: Date, allDay: boolean) => {
   if (allDay) {
     return `${property};VALUE=DATE:${formatICalDateOnly(date)}`;
   }
@@ -554,7 +554,7 @@ const generateDateLine = (property: 'DTSTART' | 'DUE', date: Date, allDay: boole
 /**
  * Generate CATEGORIES and tag color lines
  */
-const generateTagLines = (taskTagIds: string[]): string[] => {
+const generateTagLines = (taskTagIds: string[]) => {
   const lines: string[] = [];
   const tags = getAllTags();
   const taskTags = taskTagIds

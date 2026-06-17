@@ -132,7 +132,7 @@ export const ReminderPickerModal = ({
   const startPadding = getMonthStartPadding(monthStart.getDay(), weekStartsOn);
   const paddedDays = createPaddedDaysArray(days, startPadding);
 
-  const minutesToTimeLabel = (minutes: number): string => {
+  const minutesToTimeLabel = (minutes: number) => {
     const d = new Date();
     d.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
     return formatTime(d);

@@ -12,10 +12,7 @@ const rowToCalDAVTaskObject = (row: CalDAVTaskObjectRow): CalDAVTaskObject => ({
   lastSyncAt: new Date(row.last_sync_at),
 });
 
-export const getCalDAVTaskObjectByUid = async (
-  conn: DatabasePlugin,
-  taskUid: string,
-): Promise<CalDAVTaskObject | undefined> => {
+export const getCalDAVTaskObjectByUid = async (conn: DatabasePlugin, taskUid: string) => {
   const rows = await conn.select<CalDAVTaskObjectRow[]>(
     'SELECT * FROM caldav_task_objects WHERE task_uid = $1',
     [taskUid],
@@ -23,10 +20,7 @@ export const getCalDAVTaskObjectByUid = async (
   return rows.length > 0 ? rowToCalDAVTaskObject(rows[0]) : undefined;
 };
 
-export const getCalDAVTaskObjectsByCalendar = async (
-  conn: DatabasePlugin,
-  calendarId: string,
-): Promise<CalDAVTaskObject[]> => {
+export const getCalDAVTaskObjectsByCalendar = async (conn: DatabasePlugin, calendarId: string) => {
   const rows = await conn.select<CalDAVTaskObjectRow[]>(
     'SELECT * FROM caldav_task_objects WHERE calendar_id = $1',
     [calendarId],
@@ -34,10 +28,7 @@ export const getCalDAVTaskObjectsByCalendar = async (
   return rows.map(rowToCalDAVTaskObject);
 };
 
-export const upsertCalDAVTaskObject = async (
-  conn: DatabasePlugin,
-  object: CalDAVTaskObject,
-): Promise<void> => {
+export const upsertCalDAVTaskObject = async (conn: DatabasePlugin, object: CalDAVTaskObject) => {
   await conn.execute(
     `INSERT OR REPLACE INTO caldav_task_objects (
       task_uid, account_id, calendar_id, href, etag, vtodo, last_sync_at
@@ -54,16 +45,13 @@ export const upsertCalDAVTaskObject = async (
   );
 };
 
-export const removeCalDAVTaskObjectByUid = async (
-  conn: DatabasePlugin,
-  taskUid: string,
-): Promise<void> => {
+export const removeCalDAVTaskObjectByUid = async (conn: DatabasePlugin, taskUid: string) => {
   await conn.execute('DELETE FROM caldav_task_objects WHERE task_uid = $1', [taskUid]);
 };
 
 export const removeCalDAVTaskObjectsByCalendar = async (
   conn: DatabasePlugin,
   calendarId: string,
-): Promise<void> => {
+) => {
   await conn.execute('DELETE FROM caldav_task_objects WHERE calendar_id = $1', [calendarId]);
 };

@@ -22,7 +22,7 @@ export const normalizeRusticalUrl = (url: string) => {
  * @param serverUrl The RustiCal server URL
  * @returns Promise that resolves to true if it's a valid RustiCal server
  */
-export const validateRusticalServer = async (serverUrl: string): Promise<boolean> => {
+export const validateRusticalServer = async (serverUrl: string) => {
   const normalizedUrl = normalizeRusticalUrl(serverUrl);
 
   try {

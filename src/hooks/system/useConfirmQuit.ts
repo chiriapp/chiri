@@ -25,10 +25,7 @@ const isProductionMode = () => window.location.protocol === 'tauri:';
 /**
  * Check if any webview window is currently visible
  */
-const checkWindowVisibility = async (): Promise<{
-  hasVisible: boolean;
-  windows: WebviewWindow[];
-}> => {
+const checkWindowVisibility = async () => {
   const windows = await getAllWebviewWindows();
   const visibilityChecks = await Promise.all(windows.map((win) => win.isVisible()));
   return {
@@ -41,8 +38,8 @@ const checkWindowVisibility = async (): Promise<{
  * Ensure notification permission and update the cached state
  */
 const ensureNotificationPermission = async (
-  permissionRef: React.MutableRefObject<NotificationPermission>,
-): Promise<boolean> => {
+  permissionRef: React.RefObject<NotificationPermission>,
+) => {
   if (permissionRef.current !== 'unknown') {
     return permissionRef.current === 'granted';
   }
@@ -66,8 +63,8 @@ const ensureNotificationPermission = async (
  * Try to send a native notification for quit confirmation
  */
 const trySendNativeNotification = async (
-  permissionRef: React.MutableRefObject<NotificationPermission>,
-): Promise<boolean> => {
+  permissionRef: React.RefObject<NotificationPermission>,
+) => {
   if (!isProductionMode()) return false;
 
   const hasPermission = await ensureNotificationPermission(permissionRef);
@@ -87,7 +84,7 @@ const trySendNativeNotification = async (
 /**
  * Show a toast notification for quit confirmation
  */
-const showQuitToast = (): string | number =>
+const showQuitToast = () =>
   toast.info(
     createElement(
       'span',
@@ -109,9 +106,7 @@ const showQuitToast = (): string | number =>
 /**
  * Show window and display quit confirmation toast as fallback
  */
-const showWindowWithToast = async (
-  windows: WebviewWindow[],
-): Promise<string | number | undefined> => {
+const showWindowWithToast = async (windows: WebviewWindow[]) => {
   if (windows.length === 0) return undefined;
 
   const mainWindow = windows[0];

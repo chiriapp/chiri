@@ -32,7 +32,7 @@ export const getOrCreateTestCalendar = async (
   conn: Connection,
   accountId: string,
   name: string,
-): Promise<Calendar> => {
+) => {
   const existing = await fetchCalendars(conn, accountId);
   const found = existing.find((c) => c.displayName === name || c.url.includes(name.toLowerCase()));
   if (found) return found;

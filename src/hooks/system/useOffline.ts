@@ -15,7 +15,7 @@ const REQUEST_TIMEOUT = 5000;
 
 export const DEFAULT_CONNECTIVITY_CHECK_URL = 'https://detectportal.firefox.com/success.txt';
 
-const tryUrl = async (url: string, signal: AbortSignal): Promise<boolean> => {
+const tryUrl = async (url: string, signal: AbortSignal) => {
   const response = await tauriFetch(url, {
     method: 'GET',
     signal: AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),

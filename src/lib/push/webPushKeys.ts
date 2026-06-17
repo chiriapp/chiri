@@ -29,7 +29,7 @@ export const generateWebPushKeyPair = async (): Promise<WebPushKeyPair> => {
   };
 };
 
-export const base64UrlEncode = (data: Uint8Array): string => {
+export const base64UrlEncode = (data: Uint8Array) => {
   const base64 = btoa(String.fromCharCode(...data));
   return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };

@@ -195,7 +195,7 @@ const buildBaselineMergeUpdates = (
   localTask: Task,
   baselineTask: Task,
   remoteTagIds: string[],
-): Partial<Task> => {
+) => {
   const updates: Partial<Task> = {
     href: remoteTask.href ?? remoteTask.caldavObject?.href,
     etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
@@ -330,7 +330,7 @@ export const recordPendingDeletionAttempt = (uid: string, error: string) => {
   });
 };
 
-export const reconnectAccounts = async (): Promise<Set<string>> => {
+export const reconnectAccounts = async () => {
   const accounts = getAllAccounts();
   const failedAccountIds = new Set<string>();
   for (const account of accounts) {

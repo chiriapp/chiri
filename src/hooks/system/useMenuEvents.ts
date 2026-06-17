@@ -180,7 +180,7 @@ const registerListener = async <T = unknown>(
   handler: (payload: T) => void,
   unlistenCallbacks: (() => void)[],
   isActiveRef: { current: boolean },
-): Promise<boolean> => {
+) => {
   const unlisten = await listen<T>(event, (e) => handler(e.payload as T));
   if (!isActiveRef.current) {
     unlisten();
@@ -196,7 +196,7 @@ const registerSimpleEvents = async (
   unlistenCallbacks: (() => void)[],
   isActiveRef: { current: boolean },
   isBlocked: MenuEventBlocker,
-): Promise<boolean> => {
+) => {
   for (const config of SIMPLE_EVENTS) {
     const success = await registerListener(
       config.event,
@@ -222,7 +222,7 @@ const registerParamEvents = async (
   unlistenCallbacks: (() => void)[],
   isActiveRef: { current: boolean },
   isBlocked: MenuEventBlocker,
-): Promise<boolean> => {
+) => {
   for (const config of PARAM_EVENTS) {
     const success = await registerListener<Record<string, unknown>>(
       config.event,
@@ -246,7 +246,7 @@ const registerSortModeEvents = async (
   unlistenCallbacks: (() => void)[],
   isActiveRef: { current: boolean },
   isBlocked: MenuEventBlocker,
-): Promise<boolean> => {
+) => {
   for (const [event, mode] of Object.entries(SORT_MODE_MAP)) {
     const success = await registerListener(
       event,
@@ -272,7 +272,7 @@ const registerSortDirectionEvents = async (
   unlistenCallbacks: (() => void)[],
   isActiveRef: { current: boolean },
   isBlocked: MenuEventBlocker,
-): Promise<boolean> => {
+) => {
   const sortDirections: Array<{ event: string; direction: SortDirection; label: string }> = [
     { event: MENU_EVENTS.SORT_DIRECTION_ASC, direction: 'asc', label: 'Ascending' },
     { event: MENU_EVENTS.SORT_DIRECTION_DESC, direction: 'desc', label: 'Descending' },

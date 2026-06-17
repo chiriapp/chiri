@@ -68,7 +68,7 @@ const resolveTaskTags = (
   providedTags: string[] | undefined,
   activeTagId: string | null,
   defaultTags: string[],
-): string[] => {
+) => {
   let tags = providedTags ?? [];
   if (activeTagId && !tags.includes(activeTagId)) {
     tags = [activeTagId, ...tags];
@@ -87,7 +87,7 @@ const resolveCalendarAndAccount = (
   uiActiveAccountId: string | null,
   accounts: Array<{ id: string; calendars: Array<{ id: string }> }>,
   defaultCalendarId: string | null | undefined,
-): { calendarId: string | undefined; accountId: string | undefined } => {
+) => {
   let calendarId = taskCalendarId ?? uiActiveCalendarId ?? undefined;
   let accountId = taskAccountId ?? uiActiveAccountId ?? undefined;
 
@@ -117,10 +117,7 @@ const resolveCalendarAndAccount = (
 };
 
 // Helper: handle recurring task completion (advance to next occurrence)
-const handleRecurringTaskCompletion = (
-  task: Task,
-  data: ReturnType<typeof dataStore.load>,
-): boolean => {
+const handleRecurringTaskCompletion = (task: Task, data: ReturnType<typeof dataStore.load>) => {
   const rruleParts = parseRRule(task.rrule!);
   const count = rruleParts.COUNT ? parseInt(rruleParts.COUNT, 10) : undefined;
 

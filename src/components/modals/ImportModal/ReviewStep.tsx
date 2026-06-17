@@ -25,7 +25,7 @@ const PRIORITY_CONFIG = {
   none: { label: '', color: '' },
 } as const;
 
-const formatDate = (date: Date | string | undefined): string | null => {
+const formatDate = (date: Date | string | undefined) => {
   if (!date) return null;
   const d = new Date(date);
   if (Number.isNaN(d.getTime())) return null;

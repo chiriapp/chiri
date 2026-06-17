@@ -10,7 +10,7 @@ export const flattenTasks = (
   getChildTasks: (parentUid: string) => Task[],
   getSortedTasks: (tasks: Task[]) => Task[],
   ancestorIds: string[] = [],
-): FlattenedTask[] => {
+) => {
   const result: FlattenedTask[] = [];
 
   for (const task of tasks) {

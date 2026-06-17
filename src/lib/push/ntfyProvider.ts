@@ -25,7 +25,7 @@ const DEFAULT_NTFY_PROVIDER_CONFIG: NtfyProviderConfig = {
   topicPrefix: 'up',
 };
 
-export const normalizeNtfyProviderServerUrl = (serverUrl?: string | null): string => {
+export const normalizeNtfyProviderServerUrl = (serverUrl?: string | null) => {
   const trimmed = serverUrl?.trim();
   if (!trimmed) return DEFAULT_NTFY_SERVER_URL;
 
@@ -48,10 +48,10 @@ export const createNtfyProviderConfig = (serverUrl?: string | null): NtfyProvide
   serverUrl: normalizeNtfyProviderServerUrl(serverUrl),
 });
 
-const joinNtfyUrl = (serverUrl: string, path: string): string =>
+const joinNtfyUrl = (serverUrl: string, path: string) =>
   `${serverUrl.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`;
 
-export const getNtfyProviderSseUrl = (endpoint: string): string => joinNtfyUrl(endpoint, 'sse');
+export const getNtfyProviderSseUrl = (endpoint: string) => joinNtfyUrl(endpoint, 'sse');
 
 export const isNtfyProviderPushResource = (
   pushResource: string,
@@ -127,22 +127,22 @@ interface NativeNtfyErrorEvent {
   error: string;
 }
 
-const formatProviderError = (error: unknown): string => {
+const formatProviderError = (error: unknown) => {
   if (error instanceof Error) return error.message;
   return String(error);
 };
 
-const setNtfyProviderError = (subscription: NtfyProviderSubscription, error: unknown): void => {
+const setNtfyProviderError = (subscription: NtfyProviderSubscription, error: unknown) => {
   subscription.lastError = formatProviderError(error);
   subscription.lastErrorAt = new Date();
 };
 
-const getNtfyProviderSubscriptionByTopic = (topic: string): NtfyProviderSubscription | null =>
+const getNtfyProviderSubscriptionByTopic = (topic: string) =>
   [...activeNtfyProviderSubscriptions.values()].find(
     (subscription) => subscription.topic === topic,
   ) ?? null;
 
-const ensureNtfyNativeEventListeners = (): Promise<void> => {
+const ensureNtfyNativeEventListeners = () => {
   if (unlistenConnected && unlistenEvent && unlistenError) {
     return Promise.resolve();
   }
@@ -219,9 +219,7 @@ const ensureNtfyNativeEventListeners = (): Promise<void> => {
   return setupPromise;
 };
 
-const generateNtfyProviderTopic = (
-  config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG,
-): string => {
+const generateNtfyProviderTopic = (config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG) => {
   // ntfy's UnifiedPush subscriber-based rate limiting expects topics that:
   // - start with "up"
   // - are exactly 14 chars long
@@ -233,7 +231,7 @@ const generateNtfyProviderTopic = (
 const createActiveNtfyProviderSubscription = async (
   calendar: Calendar,
   config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG,
-): Promise<NtfyProviderSubscription> => {
+) => {
   const existing = activeNtfyProviderSubscriptions.get(calendar.id);
   if (existing) {
     log.debug(`Already subscribed to ntfy for calendar ${calendar.displayName}`);
@@ -263,7 +261,7 @@ const createActiveNtfyProviderSubscription = async (
 export const createNtfyProviderSubscription = async (
   calendar: Calendar,
   config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG,
-): Promise<PushEndpointSubscription | null> => {
+) => {
   await createActiveNtfyProviderSubscription(calendar, config);
   return getNtfyProviderEndpointSubscription(calendar.id);
 };
@@ -274,7 +272,7 @@ export const createNtfyProviderSubscription = async (
 export const restoreNtfyProviderSubscription = async (
   subscription: PushSubscription,
   calendar: Calendar,
-): Promise<boolean> => {
+) => {
   const existing = activeNtfyProviderSubscriptions.get(subscription.calendarId);
   if (existing) {
     log.debug(`Already subscribed to ntfy for calendar ${calendar.displayName}`);
@@ -304,7 +302,7 @@ export const restoreNtfyProviderSubscription = async (
   return true;
 };
 
-export const isNtfyProviderListening = (calendarId: string): boolean => {
+export const isNtfyProviderListening = (calendarId: string) => {
   const subscription = activeNtfyProviderSubscriptions.get(calendarId);
   return !!subscription?.listening;
 };
@@ -315,7 +313,7 @@ export const isNtfyProviderListening = (calendarId: string): boolean => {
 export const startNtfyProviderListening = (
   subscription: PushSubscription,
   onMessage: PushMessageHandler,
-): boolean => {
+) => {
   const ntfySubscription = activeNtfyProviderSubscriptions.get(subscription.calendarId);
   if (!ntfySubscription) {
     log.warn(`No subscription found for calendar ${subscription.calendarId}`);
@@ -355,7 +353,7 @@ export const startNtfyProviderListening = (
   return true;
 };
 
-export const stopNtfyProviderListening = (calendarId: string): void => {
+export const stopNtfyProviderListening = (calendarId: string) => {
   const subscription = activeNtfyProviderSubscriptions.get(calendarId);
   if (!subscription) return;
 
@@ -376,13 +374,13 @@ export const stopNtfyProviderListening = (calendarId: string): void => {
   log.info(`Stopped listening for calendar ${calendarId}`);
 };
 
-export const removeNtfyProviderSubscription = (subscription: PushSubscription): void => {
+export const removeNtfyProviderSubscription = (subscription: PushSubscription) => {
   stopNtfyProviderListening(subscription.calendarId);
   activeNtfyProviderSubscriptions.delete(subscription.calendarId);
   log.info(`Removed ntfy subscription for calendar ${subscription.calendarId}`);
 };
 
-export const getNtfyProviderPushEndpoint = (calendarId: string): string | null => {
+export const getNtfyProviderPushEndpoint = (calendarId: string) => {
   return activeNtfyProviderSubscriptions.get(calendarId)?.endpoint ?? null;
 };
 
@@ -403,7 +401,7 @@ export const getNtfyProviderEndpointSubscription = (
 
 export const isNtfyProviderAvailable = async (
   config: NtfyProviderConfig = DEFAULT_NTFY_PROVIDER_CONFIG,
-): Promise<boolean> => {
+) => {
   try {
     const response = await fetch(`${config.serverUrl}/v1/health`, {
       method: 'GET',
@@ -415,7 +413,7 @@ export const isNtfyProviderAvailable = async (
   }
 };
 
-export const getNtfyProviderActiveSubscriptionCount = (): number => {
+export const getNtfyProviderActiveSubscriptionCount = () => {
   return activeNtfyProviderSubscriptions.size;
 };
 
@@ -452,7 +450,7 @@ export const getNtfyProviderSubscriptionDiagnostics = (
   };
 };
 
-export const stopAllNtfyProviderListeners = (): void => {
+export const stopAllNtfyProviderListeners = () => {
   for (const subscription of activeNtfyProviderSubscriptions.values()) {
     subscription.starting = false;
     subscription.listening = false;

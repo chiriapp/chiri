@@ -2,7 +2,7 @@ import * as calendarOps from '$lib/caldav/calendars';
 import type { Connection } from '$lib/caldav/connection';
 import * as connectionOps from '$lib/caldav/connection';
 import * as taskOps from '$lib/caldav/tasks';
-import type { Account, Calendar, ServerType, Task, TaskWithCalDAVObject } from '$types';
+import type { Account, Calendar, ServerType, Task } from '$types';
 
 export class CalDAVClient {
   readonly accountId: string;
@@ -29,7 +29,7 @@ export class CalDAVClient {
     principalUrl?: string,
     acceptInvalidCerts?: boolean,
     bearerToken?: string,
-  ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> {
+  ) {
     return connectionOps.connect(
       accountId,
       serverUrl,
@@ -52,7 +52,7 @@ export class CalDAVClient {
     calendarHomeUrl?: string,
     principalUrl?: string,
     acceptInvalidCerts?: boolean,
-  ): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> {
+  ) {
     return connectionOps.connectWithBearer(
       accountId,
       serverUrl,
@@ -65,71 +65,68 @@ export class CalDAVClient {
     );
   }
 
-  static disconnect(accountId: string): void {
+  static disconnect(accountId: string) {
     connectionOps.disconnect(accountId);
   }
 
-  static isConnected(accountId: string): boolean {
+  static isConnected(accountId: string) {
     return connectionOps.isConnected(accountId);
   }
 
-  static async reconnect(account: Account): Promise<void> {
+  static async reconnect(account: Account) {
     return connectionOps.reconnect(account);
   }
 
   // Calendars
-  async fetchCalendars(): Promise<Calendar[]> {
+  async fetchCalendars() {
     return calendarOps.fetchCalendars(this.conn, this.accountId);
   }
 
-  async discoverCalendars(): Promise<calendarOps.CalendarDiscoveryResult> {
+  async discoverCalendars() {
     return calendarOps.discoverCalendars(this.conn, this.accountId);
   }
 
-  async calendarExists(calendarUrl: string): Promise<boolean> {
+  async calendarExists(calendarUrl: string) {
     return calendarOps.calendarExists(this.conn, calendarUrl);
   }
 
-  async createCalendar(displayName: string, color?: string): Promise<Calendar> {
+  async createCalendar(displayName: string, color?: string) {
     return calendarOps.createCalendar(this.conn, this.accountId, displayName, color);
   }
 
-  async probeVtodoCalendarCreation(): Promise<void> {
+  async probeVtodoCalendarCreation() {
     return calendarOps.probeVtodoCalendarCreation(this.conn, this.accountId);
   }
 
   async updateCalendar(
     calendarUrl: string,
     updates: { displayName?: string; color?: string; order?: number },
-  ): Promise<{ success: boolean; failedProperties: string[] }> {
+  ) {
     return calendarOps.updateCalendar(this.conn, calendarUrl, updates);
   }
 
-  async deleteCalendar(calendarUrl: string): Promise<boolean> {
+  async deleteCalendar(calendarUrl: string) {
     return calendarOps.deleteCalendar(this.conn, calendarUrl);
   }
 
   // Tasks
-  async fetchTasks(calendar: Calendar): Promise<TaskWithCalDAVObject[] | null> {
+  async fetchTasks(calendar: Calendar) {
     return taskOps.fetchTasks(this.conn, this.accountId, calendar);
   }
 
-  async createTask(calendar: Calendar, task: Task): Promise<{ href: string; etag: string } | null> {
+  async createTask(calendar: Calendar, task: Task) {
     return taskOps.createTask(this.conn, calendar, task);
   }
 
-  async updateTask(task: Task): Promise<{ etag: string } | null> {
+  async updateTask(task: Task) {
     return taskOps.updateTask(this.conn, task);
   }
 
-  async deleteTask(task: Task): Promise<boolean> {
+  async deleteTask(task: Task) {
     return taskOps.deleteTask(this.conn, task);
   }
 
-  async syncCalendar(
-    calendar: Calendar,
-    localTasks: Task[],
-  ): Promise<{ created: Task[]; updated: Task[]; deleted: string[] } | null> {
+  async syncCalendar(calendar: Calendar, localTasks: Task[]) {
     return taskOps.syncCalendar(this.conn, this.accountId, calendar, localTasks);
   }
 }

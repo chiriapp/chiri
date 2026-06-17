@@ -32,7 +32,7 @@ const getMacAutostartState = (status: MacLaunchAtLoginStatus): AutostartState =>
         : null,
 });
 
-const loadMacAutostartState = async (): Promise<AutostartState> => {
+const loadMacAutostartState = async () => {
   const status = await invoke<MacLaunchAtLoginStatus>('get_macos_launch_at_login_status');
   return getMacAutostartState(status);
 };
@@ -52,12 +52,12 @@ const loadPluginAutostartState = async (): Promise<AutostartState> => {
   return { enabled, error: null };
 };
 
-const enableMacAutostart = async (): Promise<AutostartState> => {
+const enableMacAutostart = async () => {
   const status = await invoke<MacLaunchAtLoginStatus>('enable_macos_launch_at_login');
   return getMacAutostartState(status);
 };
 
-const disableMacAutostart = async (): Promise<AutostartState> => {
+const disableMacAutostart = async () => {
   const status = await invoke<MacLaunchAtLoginStatus>('disable_macos_launch_at_login').catch(
     async (error) => {
       const currentState = await loadMacAutostartState();
@@ -85,10 +85,10 @@ const setPluginAutostart = async (enabled: boolean): Promise<AutostartState> => 
   };
 };
 
-const loadAutostartState = async (): Promise<AutostartState> =>
+const loadAutostartState = async () =>
   isMacPlatform() ? loadMacAutostartState() : loadPluginAutostartState();
 
-export const preloadAutostartState = async (): Promise<AutostartState> => {
+export const preloadAutostartState = async () => {
   cachedAutostartState = await loadAutostartState();
   return cachedAutostartState;
 };

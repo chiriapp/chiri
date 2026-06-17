@@ -130,7 +130,7 @@ const getWebDAVPushStatus = (
   };
 };
 
-const formatAge = (date: Date | null): string | null => {
+const formatAge = (date: Date | null) => {
   if (!date) return null;
   return formatDistanceToNow(date, { addSuffix: true });
 };

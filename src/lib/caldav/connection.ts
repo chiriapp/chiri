@@ -112,10 +112,7 @@ const PRINCIPAL_RE =
 
 /** Resolves the DAV root URL for generic/auto-detect servers, trying .well-known
  *  first and falling back to common paths if it returns 404. */
-const resolveGenericDavRoot = async (
-  baseUrl: string,
-  credentials: CalDAVCredentials,
-): Promise<{ davRootUrl: string; davRootBody: string | null }> => {
+const resolveGenericDavRoot = async (baseUrl: string, credentials: CalDAVCredentials) => {
   const wellKnownUrl = `${baseUrl}/.well-known/caldav`;
   const wkResponse = await propfind(wellKnownUrl, credentials, PRINCIPAL_QUERY, '0');
 
@@ -145,10 +142,7 @@ const resolveGenericDavRoot = async (
 };
 
 /** Discovers principalUrl + calendarHome for generic/auto-detect server types. */
-const discoverGenericUrls = async (
-  baseUrl: string,
-  credentials: CalDAVCredentials,
-): Promise<{ principalUrl: string; calendarHome: string }> => {
+const discoverGenericUrls = async (baseUrl: string, credentials: CalDAVCredentials) => {
   const { davRootUrl, davRootBody } = await resolveGenericDavRoot(baseUrl, credentials);
 
   // Try to extract principal from the response we already have before issuing
@@ -215,7 +209,7 @@ export const connect = async (
   principalUrlOverride?: string,
   acceptInvalidCerts?: boolean,
   bearerToken?: string,
-): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> => {
+) => {
   const credentials: CalDAVCredentials = {
     username,
     password,
@@ -325,7 +319,7 @@ export const connectWithBearer = async (
   calendarHomeUrl?: string,
   principalUrlOverride?: string,
   acceptInvalidCerts?: boolean,
-): Promise<{ principalUrl: string; displayName: string; calendarHome: string }> => {
+) => {
   // pass empty string for password; bearerToken overrides it in tauriRequest
   return connect(
     accountId,
@@ -340,15 +334,15 @@ export const connectWithBearer = async (
   );
 };
 
-export const disconnect = (accountId: string): void => {
+export const disconnect = (accountId: string) => {
   connectionStore.deleteConnection(accountId);
 };
 
-export const isConnected = (accountId: string): boolean => {
+export const isConnected = (accountId: string) => {
   return connectionStore.hasConnection(accountId);
 };
 
-export const reconnect = async (account: Account): Promise<void> => {
+export const reconnect = async (account: Account) => {
   if (!account.caldav) {
     throw new Error('Cannot reconnect a local account');
   }

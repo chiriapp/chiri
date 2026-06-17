@@ -14,7 +14,7 @@
 import { DOMParser, type Element, type Node } from '@xmldom/xmldom';
 import type { CalDAVCredentials, HttpResponse, MultiStatusResponse } from '$lib/tauriHttp';
 
-const authHeader = (credentials: CalDAVCredentials): string =>
+const authHeader = (credentials: CalDAVCredentials) =>
   credentials.bearerToken
     ? `Bearer ${credentials.bearerToken}`
     : `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`;
@@ -104,7 +104,7 @@ const elementChildren = (node: Node): Element[] => {
   return out;
 };
 
-const parsePropValue = (child: Element): string | null => {
+const parsePropValue = (child: Element) => {
   const localName = child.localName ?? '';
   if (localName === 'resourcetype') {
     return elementChildren(child)
@@ -161,7 +161,7 @@ const hasElementChild = (node: Node) => {
   return false;
 };
 
-const innerXml = (el: Element): string => {
+const innerXml = (el: Element) => {
   let out = '';
   for (let i = 0; i < el.childNodes.length; i++) {
     const c = el.childNodes.item(i);

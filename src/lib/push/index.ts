@@ -42,7 +42,6 @@ import {
   type PushEndpointSubscription,
   type PushMessageHandler,
   type PushProviderConfig,
-  type PushProviderSubscriptionDiagnostics,
   type PushRegistration,
   type PushSubscription,
   type PushTrigger,
@@ -74,7 +73,7 @@ const getPushSetupKey = (
   accountId: string,
   calendar: Calendar,
   providerConfig: PushProviderConfig,
-): string =>
+) =>
   [
     accountId,
     calendar.id,
@@ -125,7 +124,7 @@ const removeSubscriptionFromCaches = (subscription: PushSubscription) => {
 export const createWebPushSubscription = async (
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
-): Promise<PushEndpointSubscription | null> => {
+) => {
   try {
     if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
       return await createKUnifiedPushProviderSubscription(calendar);
@@ -140,7 +139,7 @@ export const createWebPushSubscription = async (
 
 export const isPushProviderAvailable = async (
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
-): Promise<boolean> => {
+) => {
   if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
     return await isKUnifiedPushProviderAvailable();
   }
@@ -151,7 +150,7 @@ export const isPushProviderAvailable = async (
 const subscriptionMatchesProvider = (
   subscription: PushSubscription,
   providerConfig: PushProviderConfig,
-): boolean => {
+) => {
   if (subscription.providerId !== providerConfig.providerId) return false;
 
   if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
@@ -166,17 +165,17 @@ const subscriptionMatchesProvider = (
 const isRenewablyValidSubscription = (
   subscription: PushSubscription,
   providerConfig: PushProviderConfig,
-): boolean =>
+) =>
   subscription.expiresAt > new Date(Date.now() + RENEWAL_THRESHOLD_HOURS * 60 * 60 * 1000) &&
   subscriptionMatchesProvider(subscription, providerConfig);
 
 const isActiveProviderSubscription = (
   subscription: PushSubscription,
   providerConfig: PushProviderConfig,
-): boolean =>
+) =>
   subscription.expiresAt > new Date() && subscriptionMatchesProvider(subscription, providerConfig);
 
-const isExpiringSoon = (subscription: PushSubscription): boolean =>
+const isExpiringSoon = (subscription: PushSubscription) =>
   subscription.expiresAt <= new Date(Date.now() + RENEWAL_THRESHOLD_HOURS * 60 * 60 * 1000);
 
 const newerDate = (a: Date | null, b: Date | null): Date | null => {
@@ -185,13 +184,13 @@ const newerDate = (a: Date | null, b: Date | null): Date | null => {
   return a > b ? a : b;
 };
 
-const newestSubscriptionFirst = (a: PushSubscription, b: PushSubscription): number =>
+const newestSubscriptionFirst = (a: PushSubscription, b: PushSubscription) =>
   b.expiresAt.getTime() - a.expiresAt.getTime() || b.createdAt.getTime() - a.createdAt.getTime();
 
 const getProviderSubscriptionDiagnostics = (
   calendarId: string,
   providerConfig: PushProviderConfig,
-): PushProviderSubscriptionDiagnostics | null => {
+) => {
   if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
     return getKUnifiedPushProviderSubscriptionDiagnostics(calendarId);
   }
@@ -202,7 +201,7 @@ const getProviderSubscriptionDiagnostics = (
 export const getWebDAVPushAccountDiagnostics = async (
   account: Account,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
-): Promise<WebDAVPushAccountDiagnostics> => {
+) => {
   const subscriptions = await getFreshAllSubscriptions();
   const supportedCalendars = account.calendars.filter((calendar) => calendar.pushSupported);
   const diagnostics: WebDAVPushAccountDiagnostics = {
@@ -261,10 +260,7 @@ export const getWebDAVPushAccountDiagnostics = async (
   return diagnostics;
 };
 
-const unregisterStoredSubscription = async (
-  accountId: string,
-  subscription: PushSubscription,
-): Promise<void> => {
+const unregisterStoredSubscription = async (accountId: string, subscription: PushSubscription) => {
   if (!isConnected(accountId)) return;
 
   try {
@@ -275,13 +271,13 @@ const unregisterStoredSubscription = async (
   }
 };
 
-const removeStoredSubscription = async (subscription: PushSubscription): Promise<void> => {
+const removeStoredSubscription = async (subscription: PushSubscription) => {
   await removeProviderSubscription(subscription);
   await db.deletePushSubscription(subscription.id);
   removeSubscriptionFromCaches(subscription);
 };
 
-const removeStoredSubscriptionRecord = async (subscription: PushSubscription): Promise<void> => {
+const removeStoredSubscriptionRecord = async (subscription: PushSubscription) => {
   await db.deletePushSubscription(subscription.id);
   removeSubscriptionFromCaches(subscription);
 };
@@ -306,7 +302,7 @@ const cleanupProviderEndpoint = async (
   accountId: string,
   calendar: Calendar,
   endpoint: PushEndpointSubscription,
-): Promise<void> => {
+) => {
   await removeProviderSubscription(
     createProviderCleanupSubscription(accountId, calendar, endpoint),
   );
@@ -317,7 +313,7 @@ const removeDuplicateProviderSubscriptions = async (
   keptSubscription: PushSubscription,
   subscriptions: PushSubscription[],
   providerConfig: PushProviderConfig,
-): Promise<number> => {
+) => {
   const duplicates = subscriptions.filter(
     (subscription) =>
       subscription.id !== keptSubscription.id &&
@@ -340,7 +336,7 @@ const restoreProviderSubscription = async (
   subscription: PushSubscription,
   calendar: Calendar,
   providerConfig: PushProviderConfig,
-): Promise<boolean> => {
+) => {
   if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
     return await restoreKUnifiedPushProviderSubscription(subscription, calendar);
   }
@@ -348,7 +344,7 @@ const restoreProviderSubscription = async (
   return await restoreNtfyProviderSubscription(subscription, calendar);
 };
 
-const removeProviderSubscription = async (subscription: PushSubscription): Promise<void> => {
+const removeProviderSubscription = async (subscription: PushSubscription) => {
   if (subscription.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
     await removeKUnifiedPushProviderSubscription(subscription);
     return;
@@ -362,7 +358,7 @@ const createRegisteredPushSubscription = async (
   calendar: Calendar,
   conn: Connection,
   providerConfig: PushProviderConfig,
-): Promise<PushSubscription | null> => {
+) => {
   const webPushSubscription = await createWebPushSubscription(calendar, providerConfig);
   if (!webPushSubscription) {
     log.warn(`Failed to create Web Push subscription for ${calendar.displayName}`);
@@ -420,7 +416,7 @@ const cleanupSupersededSubscriptions = async (
   calendar: Calendar,
   supersededSubscriptions: PushSubscription[],
   replacement: PushSubscription,
-): Promise<void> => {
+) => {
   for (const subscription of supersededSubscriptions) {
     await unregisterStoredSubscription(accountId, subscription);
 
@@ -449,7 +445,7 @@ const recreateCalendarPushSubscription = async (
   supersededSubscriptions: PushSubscription[],
   providerConfig: PushProviderConfig,
   reason: string,
-): Promise<PushSubscription | null> => {
+) => {
   if (!isConnected(accountId)) {
     log.warn(
       `Cannot recreate push subscription for ${calendar.displayName}: account ${accountId} is not connected`,
@@ -485,7 +481,7 @@ export const subscribeCalendarToPush = async (
   accountId: string,
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
-): Promise<PushSubscription | null> => {
+) => {
   // Check if calendar supports push
   if (!calendar.pushSupported || !calendar.pushTopic) {
     log.debug(`Calendar ${calendar.displayName} does not support push`);
@@ -773,7 +769,7 @@ export const disablePushForCalendar = async (accountId: string, calendarId: stri
   await unsubscribeCalendarFromPush(accountId, calendarId);
 };
 
-export const disableAllPushSubscriptions = async (): Promise<void> => {
+export const disableAllPushSubscriptions = async () => {
   const subscriptions = await getFreshAllSubscriptions();
 
   for (const subscription of subscriptions) {
@@ -794,7 +790,7 @@ const restoreCalendarPushListener = async (
   calendar: Calendar,
   subscriptions: PushSubscription[],
   providerConfig: PushProviderConfig,
-): Promise<boolean> => {
+) => {
   const renewableSubscriptions = subscriptions
     .filter((subscription) => isRenewablyValidSubscription(subscription, providerConfig))
     .sort(newestSubscriptionFirst);
@@ -905,7 +901,7 @@ export const restorePushListeners = async (
   return restored;
 };
 
-export const stopAllPushSubscriptions = (): void => {
+export const stopAllPushSubscriptions = () => {
   stopAllNtfyProviderListeners();
   stopAllKUnifiedPushProviderListeners();
 };

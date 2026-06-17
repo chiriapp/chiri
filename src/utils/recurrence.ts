@@ -118,7 +118,7 @@ export const buildRRule = (parts: Record<string, string>) => {
 /**
  * Get frequency label for interval > 1 (e.g., "Every 2 weeks")
  */
-const getIntervalLabel = (freq: string, interval: number): string => {
+const getIntervalLabel = (freq: string, interval: number) => {
   const unit = FREQ_UNIT[freq] ?? freq.toLowerCase();
   return `Every ${interval} ${unit}`;
 };
@@ -126,7 +126,7 @@ const getIntervalLabel = (freq: string, interval: number): string => {
 /**
  * Format BYDAY list for weekly recurrence (e.g., "Mon, Wed, Fri")
  */
-const formatWeeklyDays = (byday: string): string => {
+const formatWeeklyDays = (byday: string) => {
   return byday
     .split(',')
     .map((d) => BYDAY_LABEL[d.replace(/^[+-]?\d+/, '')] ?? d)
@@ -136,7 +136,7 @@ const formatWeeklyDays = (byday: string): string => {
 /**
  * Format monthly BYDAY (e.g., "1MO" → "on the 1st Mon")
  */
-const formatMonthlyByday = (byday: string): string | null => {
+const formatMonthlyByday = (byday: string) => {
   const match = byday.match(/^([+-]?\d+)([A-Z]+)$/);
   if (!match) return null;
 
@@ -147,7 +147,7 @@ const formatMonthlyByday = (byday: string): string | null => {
   return ` on the ${ordinal} ${BYDAY_LABEL[day] ?? day}`;
 };
 
-const formatMonthlyBydayDetail = (byday: string): string | null => {
+const formatMonthlyBydayDetail = (byday: string) => {
   const monthlyByday = formatMonthlyByday(byday);
   return monthlyByday ? monthlyByday.replace(/^ on the /, '') : null;
 };
@@ -155,7 +155,7 @@ const formatMonthlyBydayDetail = (byday: string): string | null => {
 /**
  * Format the UNTIL date (e.g., "until Jan 1, 2024")
  */
-const formatUntilDate = (until: string, dateFormat?: DateFormat): string => {
+const formatUntilDate = (until: string, dateFormat?: DateFormat) => {
   const y = parseInt(until.slice(0, 4), 10);
   const m = parseInt(until.slice(4, 6), 10) - 1;
   const d = parseInt(until.slice(6, 8), 10);

@@ -7,27 +7,21 @@ import {
   DEFAULT_COLOR_SCHEME_ID,
   defaultColorScheme,
 } from '$constants/colorSchemes';
-import type {
-  AccentColor,
-  ColorSchemeDefinition,
-  ColorSchemeFlavor,
-  ColorSchemeMode,
-  Theme,
-} from '$types/color';
+import type { AccentColor, ColorSchemeFlavor, ColorSchemeMode, Theme } from '$types/color';
 import { resolveAccentColor } from '$utils/color/accent';
 import { getPreviewFlavor } from '$utils/color/preview';
 import { resolveEffectiveTheme } from '$utils/color/theme';
 
 const SURFACE_SHADES = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900] as const;
 
-export const getColorScheme = (schemeId: string): ColorSchemeDefinition =>
+export const getColorScheme = (schemeId: string) =>
   COLOR_SCHEMES.find((scheme) => scheme.id === schemeId) ?? defaultColorScheme;
 
 export const getColorSchemeFlavor = (
   schemeId: string,
   flavorId: string | null,
   mode?: ColorSchemeMode,
-): ColorSchemeFlavor => {
+) => {
   const scheme = getColorScheme(schemeId);
 
   return (

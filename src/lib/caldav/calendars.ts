@@ -18,7 +18,7 @@ const checkPropertySuccess = (responseBody: string, propertyName: string) => {
   return false;
 };
 
-export const calendarExists = async (conn: Connection, calendarUrl: string): Promise<boolean> => {
+export const calendarExists = async (conn: Connection, calendarUrl: string) => {
   const response = await propfind(
     calendarUrl,
     conn.credentials,
@@ -173,7 +173,7 @@ export const discoverCalendars = async (
   return { calendars, diagnostics };
 };
 
-export const fetchCalendars = async (conn: Connection, accountId: string): Promise<Calendar[]> => {
+export const fetchCalendars = async (conn: Connection, accountId: string) => {
   return (await discoverCalendars(conn, accountId)).calendars;
 };
 
@@ -182,7 +182,7 @@ export const createCalendar = async (
   accountId: string,
   displayName: string,
   color?: string,
-): Promise<Calendar> => {
+) => {
   const isVikunja = conn.serverType === 'vikunja' || conn.calendarHome.includes('/dav/projects');
   if (isVikunja) {
     throw new Error(
@@ -248,10 +248,7 @@ export const createCalendar = async (
   return fallbackCalendar;
 };
 
-export const probeVtodoCalendarCreation = async (
-  conn: Connection,
-  accountId: string,
-): Promise<void> => {
+export const probeVtodoCalendarCreation = async (conn: Connection, accountId: string) => {
   const displayName = `Chiri VTODO capability check ${Date.now()} ${Math.random().toString(36).slice(2, 8)}`;
   const probeCalendar = await createCalendar(conn, accountId, displayName);
 
@@ -269,7 +266,7 @@ export const updateCalendar = async (
   conn: Connection,
   calendarUrl: string,
   updates: { displayName?: string; color?: string; order?: number },
-): Promise<{ success: boolean; failedProperties: string[] }> => {
+) => {
   const failedProperties: string[] = [];
 
   if (updates.displayName) {
@@ -337,7 +334,7 @@ export const updateCalendar = async (
   return { success: failedProperties.length === 0, failedProperties };
 };
 
-export const deleteCalendar = async (conn: Connection, calendarUrl: string): Promise<boolean> => {
+export const deleteCalendar = async (conn: Connection, calendarUrl: string) => {
   try {
     const response = await del(calendarUrl, conn.credentials);
 

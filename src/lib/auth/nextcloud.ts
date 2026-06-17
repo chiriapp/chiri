@@ -251,7 +251,7 @@ export const deleteAppPassword = async (
   serverUrl: string,
   username: string,
   appPassword: string,
-): Promise<void> => {
+) => {
   const normalizedUrl = normalizeNextcloudUrl(serverUrl);
 
   try {

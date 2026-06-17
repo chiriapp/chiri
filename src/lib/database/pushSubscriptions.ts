@@ -27,9 +27,7 @@ const rowToSubscription = (row: PushSubscriptionRow): PushSubscription => ({
 /**
  * Get all push subscriptions
  */
-export const getAllPushSubscriptions = async (
-  conn: DatabasePlugin,
-): Promise<PushSubscription[]> => {
+export const getAllPushSubscriptions = async (conn: DatabasePlugin) => {
   const rows = await conn.select<PushSubscriptionRow[]>('SELECT * FROM push_subscriptions');
   return rows.map(rowToSubscription);
 };
@@ -37,10 +35,7 @@ export const getAllPushSubscriptions = async (
 /**
  * Get push subscriptions for a calendar
  */
-export const getPushSubscriptionsByCalendar = async (
-  conn: DatabasePlugin,
-  calendarId: string,
-): Promise<PushSubscription[]> => {
+export const getPushSubscriptionsByCalendar = async (conn: DatabasePlugin, calendarId: string) => {
   const rows = await conn.select<PushSubscriptionRow[]>(
     'SELECT * FROM push_subscriptions WHERE calendar_id = $1',
     [calendarId],
@@ -54,7 +49,7 @@ export const getPushSubscriptionsByCalendar = async (
 export const upsertPushSubscription = async (
   conn: DatabasePlugin,
   subscription: PushSubscription,
-): Promise<void> => {
+) => {
   await conn.execute(
     `INSERT OR REPLACE INTO push_subscriptions (id, calendar_id, account_id, registration_url, push_resource, provider_id, provider_token, expires_at, created_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
@@ -75,10 +70,7 @@ export const upsertPushSubscription = async (
 /**
  * Delete a push subscription by ID
  */
-export const deletePushSubscription = async (
-  conn: DatabasePlugin,
-  subscriptionId: string,
-): Promise<void> => {
+export const deletePushSubscription = async (conn: DatabasePlugin, subscriptionId: string) => {
   await conn.execute('DELETE FROM push_subscriptions WHERE id = $1', [subscriptionId]);
 };
 
@@ -88,6 +80,6 @@ export const deletePushSubscription = async (
 export const deletePushSubscriptionsByCalendar = async (
   conn: DatabasePlugin,
   calendarId: string,
-): Promise<void> => {
+) => {
   await conn.execute('DELETE FROM push_subscriptions WHERE calendar_id = $1', [calendarId]);
 };

@@ -16,7 +16,7 @@ const WEEK_START_MAP: Record<string, WeekStartDay> = {
 /**
  * Convert week start setting to numeric value (0=Sun, 1=Mon, ..., 6=Sat)
  */
-export const getWeekStartValue = (setting: string): WeekStartDay => {
+export const getWeekStartValue = (setting: string) => {
   return WEEK_START_MAP[setting] ?? 1;
 };
 

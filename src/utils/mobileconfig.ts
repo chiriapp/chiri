@@ -187,7 +187,7 @@ export const parseAppleConfigProfileResult = (xmlContent: string): MobileConfigP
 /**
  * Parse an Apple Configuration Profile XML and extract CalDAV settings.
  */
-export const parseAppleConfigProfile = (xmlContent: string): MobileConfigCalDAVSettings | null => {
+export const parseAppleConfigProfile = (xmlContent: string) => {
   const result = parseAppleConfigProfileResult(xmlContent);
 
   return result.ok ? result.config : null;
@@ -196,7 +196,7 @@ export const parseAppleConfigProfile = (xmlContent: string): MobileConfigCalDAVS
 /**
  * Escape a string for safe inclusion inside an XML plist <string> element.
  */
-const escapeXml = (value: string): string =>
+const escapeXml = (value: string) =>
   value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -214,7 +214,7 @@ const escapeXml = (value: string): string =>
  * @param includePassword - When true, embeds the cleartext password in the profile
  * @returns A string containing the full .mobileconfig XML
  */
-export const generateMobileConfig = (account: Account, includePassword = false): string => {
+export const generateMobileConfig = (account: Account, includePassword = false) => {
   const caldav = account.caldav;
   if (!caldav) throw new Error('Account has no CalDAV configuration');
 

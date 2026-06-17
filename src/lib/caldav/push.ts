@@ -23,7 +23,7 @@ const buildPushRegisterXml = (
   subscription: WebPushSubscription,
   triggers: PushTrigger[],
   expiresAt?: Date,
-): string => {
+) => {
   const triggerElements = triggers
     .map((trigger) => {
       if (trigger.type === 'content-update') {
@@ -153,7 +153,7 @@ export const registerPushSubscription = async (
 export const unregisterPushSubscription = async (
   registrationUrl: string,
   credentials: CalDAVCredentials,
-): Promise<boolean> => {
+) => {
   log.info(`Unregistering push subscription: ${registrationUrl}`);
 
   try {

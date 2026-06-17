@@ -31,17 +31,14 @@ const getUnsupportedProvider = (serverUrl: string): UnsupportedCalDAVProvider | 
   return null;
 };
 
-export const getUrlWarning = (serverUrl: string): CalDAVWarning | null => {
+export const getUrlWarning = (serverUrl: string) => {
   const provider = getUnsupportedProvider(serverUrl);
   if (!provider) return null;
 
   return UNSUPPORTED_CALDAV_WARNINGS[provider];
 };
 
-export const getServerWarning = (
-  serverType: ServerType,
-  options?: { calendarHome?: string },
-): CalDAVWarning | null => {
+export const getServerWarning = (serverType: ServerType, options?: { calendarHome?: string }) => {
   const { calendarHome } = options ?? {};
   if (serverType === 'vikunja' || (calendarHome && isVikunjaServer(calendarHome))) {
     return CALDAV_SERVER_WARNINGS.vikunja ?? null;

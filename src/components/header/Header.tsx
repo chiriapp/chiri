@@ -54,7 +54,7 @@ const getSyncTooltip = (
   syncProgress: { current: number; total: number } | null,
   lastSyncSource: string | null,
   accountCount: number,
-): string => {
+) => {
   if (disableSync) return 'Add an account to be able to use sync';
   if (isOffline) return 'Cannot sync while offline';
   if (isSyncing) {
@@ -79,7 +79,7 @@ const getSyncButtonClass = (
   isOffline: boolean,
   disableSync: boolean,
   isAnyModalOpen: boolean,
-): string => {
+) => {
   const base =
     'w-9 h-9 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset flex items-center justify-center';
   if (isSyncing) {

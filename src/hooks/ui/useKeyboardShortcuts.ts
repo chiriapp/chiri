@@ -56,13 +56,13 @@ const BLOCKED_IN_MODAL = new Set([
 /**
  * Check if the current event target is an input element
  */
-const isInputElement = (target: HTMLElement): boolean =>
+const isInputElement = (target: HTMLElement) =>
   target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
 
 /**
  * Check if a keyboard event matches a shortcut's modifier requirements
  */
-const matchesModifiers = (e: KeyboardEvent, shortcut: KeyboardShortcut): boolean => {
+const matchesModifiers = (e: KeyboardEvent, shortcut: KeyboardShortcut) => {
   const isMac = isMacPlatform();
   const primaryModifierPressed = isMac ? e.metaKey : e.ctrlKey;
   const metaMatch = shortcut.meta ? primaryModifierPressed : !primaryModifierPressed;
@@ -82,7 +82,7 @@ const findMatchingShortcut = (
   shortcuts: KeyboardShortcut[],
   handlers: Record<string, () => void>,
   isModalOpen: boolean,
-): { shortcut: KeyboardShortcut; handler: () => void } | null => {
+) => {
   for (const shortcut of shortcuts) {
     const handler = handlers[shortcut.id];
     if (!handler || !shortcut.key) continue;

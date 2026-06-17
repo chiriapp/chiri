@@ -9,9 +9,7 @@ interface FocusSnapshot {
   selectionStart?: number | null;
 }
 
-const supportsSelectionRange = (
-  element: HTMLElement,
-): element is HTMLInputElement | HTMLTextAreaElement =>
+const supportsSelectionRange = (element: HTMLElement) =>
   element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement;
 
 /**

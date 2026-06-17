@@ -63,7 +63,7 @@ const btnClass = (active: boolean) =>
       : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
   }`;
 
-const minutesToTimeLabel = (minutes: number): string => {
+const minutesToTimeLabel = (minutes: number) => {
   const d = new Date();
   d.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
   return formatTime(d);
@@ -102,7 +102,7 @@ const isTimeCustom = (
   localNoTime: boolean,
   selectedMinutes: number,
   quickTimePresets: QuickTimePresets,
-): boolean => {
+) => {
   if (!timeSelected || localNoTime) return false;
   return !CATEGORY_PRESETS.some(({ id }) => quickTimePresets[id] === selectedMinutes);
 };
@@ -110,10 +110,7 @@ const isTimeCustom = (
 /**
  * Compute quick date selection state
  */
-const getQuickDateState = (
-  localValue: Date | undefined,
-  today: Date,
-): { isToday: boolean; isTomorrow: boolean; isNextWeek: boolean } => ({
+const getQuickDateState = (localValue: Date | undefined, today: Date) => ({
   isToday: localValue ? isSameDay(localValue, today) : false,
   isTomorrow: localValue ? isSameDay(localValue, addDays(today, 1)) : false,
   isNextWeek: localValue ? isSameDay(localValue, addDays(today, 7)) : false,

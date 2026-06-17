@@ -17,7 +17,7 @@ const findNewParentUid = (
   activeIndex: number,
   overIndex: number,
   effectiveIndent: number,
-): string | undefined => {
+) => {
   if (effectiveIndent === 0) return undefined;
 
   const searchStart =
@@ -64,7 +64,7 @@ const searchForInsertPosition = (
   sortedSiblings: Task[],
   descendantIds: Set<string>,
   isMovingDown: boolean,
-): number => {
+) => {
   for (let i = startIndex; i >= 0; i--) {
     const item = flattenedItems[i];
     if (item.id === activeId || descendantIds.has(item.id)) continue;
@@ -91,7 +91,7 @@ const findInsertIndex = (
   descendantIds: Set<string>,
   activeItem: FlattenedTask,
   isReindent: boolean,
-): number => {
+) => {
   const isMovingDown = activeIndex < overIndex;
 
   // For re-indent without moving (parent changed), search from overIndex - 1

@@ -74,7 +74,7 @@ const sendHttpRequest = async (
   credentials: CalDAVCredentials,
   requestHeaders: Record<string, string>,
   body?: string,
-): Promise<HttpResponse> => {
+) => {
   if (credentials.acceptInvalidCerts || credentials.bearerToken) {
     return invoke<HttpResponse>('http_request', {
       url,
@@ -141,7 +141,7 @@ const getDigestRetryHeader = (
  * Returns true if the error looks like a TLS certificate validation failure.
  * Covers native-tls (macOS/Windows) and rustls (Linux) error messages.
  */
-export const isCertError = (error: unknown): boolean => {
+export const isCertError = (error: unknown) => {
   const raw = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
   const lower = raw.toLowerCase();
   return (
@@ -158,7 +158,7 @@ export const isCertError = (error: unknown): boolean => {
  * Extracts a human-readable message from an unknown caught value.
  * The Tauri HTTP plugin throws plain strings for network errors, not Error objects.
  */
-export const getErrorMessage = (error: unknown): string => {
+export const getErrorMessage = (error: unknown) => {
   const raw =
     error instanceof Error ? error.message : typeof error === 'string' ? error : 'Unknown error';
 

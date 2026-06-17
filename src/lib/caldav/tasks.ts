@@ -33,11 +33,7 @@ import type { Calendar, Task, TaskWithCalDAVObject } from '$types';
 const stripCalDAVObject = ({ caldavObject: _caldavObject, ...task }: TaskWithCalDAVObject): Task =>
   task;
 
-export const fetchTasks = async (
-  conn: Connection,
-  accountId: string,
-  calendar: Calendar,
-): Promise<TaskWithCalDAVObject[] | null> => {
+export const fetchTasks = async (conn: Connection, accountId: string, calendar: Calendar) => {
   const queryBody = `<?xml version="1.0" encoding="utf-8"?>
 <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
   <d:prop>
@@ -157,11 +153,7 @@ ${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
   return tasks;
 };
 
-export const createTask = async (
-  conn: Connection,
-  calendar: Calendar,
-  task: Task,
-): Promise<{ href: string; etag: string } | null> => {
+export const createTask = async (conn: Connection, calendar: Calendar, task: Task) => {
   try {
     const icalData = taskToVTodo(task);
     const filename = `${task.uid}.ics`;
@@ -204,10 +196,7 @@ export const createTask = async (
   }
 };
 
-export const updateTask = async (
-  conn: Connection,
-  task: Task,
-): Promise<{ etag: string } | null> => {
+export const updateTask = async (conn: Connection, task: Task) => {
   if (!task.href) {
     log.error('Task has no href for update');
     return null;
@@ -234,7 +223,7 @@ export const updateTask = async (
   }
 };
 
-export const deleteTask = async (conn: Connection, task: Task): Promise<boolean> => {
+export const deleteTask = async (conn: Connection, task: Task) => {
   if (!task.href) {
     log.error('Task has no href for deletion');
     return false;
@@ -264,7 +253,7 @@ export const syncCalendar = async (
   accountId: string,
   calendar: Calendar,
   localTasks: Task[],
-): Promise<{ created: Task[]; updated: Task[]; deleted: string[] } | null> => {
+) => {
   const remoteTasks = await fetchTasks(conn, accountId, calendar);
 
   if (remoteTasks === null) {

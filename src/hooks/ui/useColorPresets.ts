@@ -8,7 +8,7 @@ import { resolveEffectiveTheme } from '$utils/color/theme';
  * Uses the active flavor's accent colors so item color swatches feel native
  * to the active palette, including the default scheme.
  */
-export const useColorPresets = (): readonly string[] => {
+export const useColorPresets = () => {
   const { colorScheme, colorSchemeFlavor, theme } = useSettingsStore();
 
   return useMemo(

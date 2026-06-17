@@ -113,7 +113,7 @@ const processOverdueNotification = (
   task: Task,
   justUnsnoozed: boolean,
   notifiedTasks: Set<string>,
-): void => {
+) => {
   if (!task.dueDate) return;
 
   const dueDate = new Date(task.dueDate);
@@ -141,7 +141,7 @@ const handleNotificationAction = (
   toggleTaskComplete: (taskId: string) => void,
   snoozeTask: (taskId: string, durationMinutes: number) => void,
   openTaskActions?: (taskId: string) => void,
-): void => {
+) => {
   if (action === 'complete') {
     toggleTaskComplete(taskId);
     log.info('Completing task:', taskId);
@@ -155,10 +155,7 @@ const handleNotificationAction = (
 };
 
 // Helper: Clean up notification refs to prevent memory leaks
-const cleanupNotificationRefs = (
-  notifiedTasks: Set<string>,
-  notifiedReminders: Set<string>,
-): void => {
+const cleanupNotificationRefs = (notifiedTasks: Set<string>, notifiedReminders: Set<string>) => {
   if (notifiedTasks.size > 1000) {
     notifiedTasks.clear();
   }
@@ -176,7 +173,7 @@ const clearSnoozeKeys = (
   taskId: string,
   notifiedReminders: Set<string>,
   notifiedTasks: Set<string>,
-): void => {
+) => {
   for (const key of notifiedReminders) {
     if (key.startsWith(`reminder-${taskId}`)) {
       notifiedReminders.delete(key);
