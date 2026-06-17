@@ -34,13 +34,13 @@ rust_staged=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.rs$'
 if [ -n "$rust_staged" ]; then
   echo "🔍 Running rustfmt check…"
 
-  # --check: exit non-zero if any files would be reformatted (matches CI exactly)
-  if cargo fmt --manifest-path src-tauri/Cargo.toml -- --check; then
+  # auto-format rust files and restage them
+  if cargo fmt --manifest-path src-tauri/Cargo.toml; then
+    echo "$rust_staged" | xargs git add
     echo "✅ rustfmt check passed."
   else
     echo ""
-    echo "❌ Rust formatting issues found."
-    echo "   Run 'cargo fmt --manifest-path src-tauri/Cargo.toml' to fix, then re-stage."
+    echo "❌ Rust formatting failed."
     exit_code=1
   fi
 
