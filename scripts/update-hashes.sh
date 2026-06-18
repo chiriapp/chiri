@@ -7,62 +7,11 @@ cd "$(dirname "$0")/.."
 echo "==> Updating Nix hashes for Chiri"
 echo ""
 
-PACKAGE_FILE="nix/packages/source.nix"
-TEMP_FILE=$(mktemp)
-
-extract_hash() {
-    grep "got:" | head -1 | awk '{print $2}'
-}
-
-echo "Step 1: Updating pnpm dependencies hash..."
-
-sed 's/hash = "sha256-[^"]*"; # pnpmDeps/hash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="; # pnpmDeps/' "$PACKAGE_FILE" > "$TEMP_FILE"
-mv "$TEMP_FILE" "$PACKAGE_FILE"
-
-PNPM_HASH=$(nix build .#source 2>&1 | extract_hash || true)
-
-if [ -z "$PNPM_HASH" ]; then
-    echo "  ✗ Failed to get pnpm hash"
-    exit 1
-fi
-
-echo "  ✓ Got pnpm hash: $PNPM_HASH"
-
-sed "s|hash = \"sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\"; # pnpmDeps|hash = \"$PNPM_HASH\"; # pnpmDeps|" "$PACKAGE_FILE" > "$TEMP_FILE"
-mv "$TEMP_FILE" "$PACKAGE_FILE"
+# use nix run to fetch nix-update from nixpkgs if not installed locally
+# we skip version update because we only want to update cargoDeps and pnpmDeps hashes
+nix run nixpkgs#nix-update -- --flake source --version skip --no-src
 
 echo ""
-echo "Step 2: Updating Cargo dependencies hash..."
-
-sed 's/cargoHash = "sha256-[^"]*";/cargoHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";/' "$PACKAGE_FILE" > "$TEMP_FILE"
-mv "$TEMP_FILE" "$PACKAGE_FILE"
-
-CARGO_HASH=$(nix build .#source 2>&1 | extract_hash || true)
-
-if [ -z "$CARGO_HASH" ]; then
-    echo "  ✗ Failed to get cargo hash"
-    exit 1
-fi
-
-echo "  ✓ Got cargo hash: $CARGO_HASH"
-
-sed "s|cargoHash = \"sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\";|cargoHash = \"$CARGO_HASH\";|" "$PACKAGE_FILE" > "$TEMP_FILE"
-mv "$TEMP_FILE" "$PACKAGE_FILE"
-
-# echo ""
-# echo "Step 3: Verifying build..."
-
-# if nix build .#source 2>&1 | grep -q "error:"; then
-#     echo "  ✗ Build failed"
-#     exit 1
-# fi
-
-echo "  ✓ Hashes updated"
-echo ""
-echo "==> All hashes updated successfully!"
-echo ""
-echo "Updated hashes:"
-echo "  pnpm: $PNPM_HASH"
-echo "  cargo: $CARGO_HASH"
+echo "==> Hashes updated successfully!"
 echo ""
 echo "Run 'nix build .#source' to verify the full build."

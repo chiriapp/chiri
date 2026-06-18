@@ -35,4 +35,20 @@ if [ -n "$rust_staged" ]; then
   fi
 fi
 
+# Nix hashes check
+lockfiles_staged=$(git diff --cached --name-only | grep -E '^(pnpm-lock\.yaml|src-tauri/Cargo\.lock)$' || true)
+nix_source_staged=$(git diff --cached --name-only | grep -E '^nix/packages/source\.nix$' || true)
+
+if [ -n "$lockfiles_staged" ] && [ -z "$nix_source_staged" ]; then
+  echo ""
+  echo "⚠️ Lockfiles staged without updated Nix hashes. Running update-hashes.sh..."
+  if ./scripts/update-hashes.sh; then
+    git add nix/packages/source.nix
+    echo "✅ Hashes updated and staged automatically."
+  else
+    echo "❌ Failed to update hashes. Quitting."
+    exit_code=1
+  fi
+fi
+
 exit $exit_code

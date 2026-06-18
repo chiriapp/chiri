@@ -48,6 +48,7 @@ let
     pkgs.pkg-config
     pkgs.openssl
     pkgs.nsis
+    pkgs.nix-update
 
     # Tauri dependencies
     pkgs.libiconv
