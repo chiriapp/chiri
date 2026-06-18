@@ -1,8 +1,8 @@
+import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Download from 'lucide-react/icons/download';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
-import { marked } from 'marked';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
@@ -43,9 +43,24 @@ export const UpdateModal = ({
   const cleanedChangelog = useMemo(() => cleanChangelog(updateInfo.body ?? ''), [updateInfo.body]);
   const changelogPreview = useMemo(() => getChangelogPreview(cleanedChangelog), [cleanedChangelog]);
 
-  const changelogHtml = useMemo(() => {
-    if (!changelogPreview) return '';
-    return marked.parse(changelogPreview) as string;
+  const [changelogHtml, setChangelogHtml] = useState('');
+
+  useEffect(() => {
+    if (!changelogPreview) {
+      setChangelogHtml('');
+      return;
+    }
+
+    let isMounted = true;
+    invoke<string>('parse_and_sanitize_markdown', { markdown: changelogPreview })
+      .then((html) => {
+        if (isMounted) setChangelogHtml(html);
+      })
+      .catch(console.error);
+
+    return () => {
+      isMounted = false;
+    };
   }, [changelogPreview]);
 
   const hasChangelog = changelogHtml.trim().length > 0;

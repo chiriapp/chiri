@@ -6,7 +6,7 @@
 use tauri_plugin_log::{Target, TargetKind, TimezoneStrategy};
 
 // List of crates to exclude from logs to reduce noise
-const LOGGING_TARGET_IGNORE_LIST: [&str; 8] = [
+const LOGGING_TARGET_IGNORE_LIST: [&str; 10] = [
     "tauri",
     "sqlx",
     "hyper",
@@ -15,6 +15,8 @@ const LOGGING_TARGET_IGNORE_LIST: [&str; 8] = [
     "cookie_store",
     "reqwest",
     "zbus",
+    "html5ever",
+    "ammonia",
 ];
 
 const LOGGING_MESSAGE_PREFIX_IGNORE_LIST: [&str; 4] = [
