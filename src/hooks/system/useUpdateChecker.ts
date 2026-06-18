@@ -198,11 +198,12 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
           toastManager.dismiss('update-check-checking');
         }
 
-        const body = update.body || (await fetchReleaseNotes(update.version));
+        const fetchedNotes = await fetchReleaseNotes(update.version);
+        const body = update.body || fetchedNotes.body;
         const updateInfo: UpdateInfo = {
           version: update.version,
           body,
-          date: update.date,
+          date: update.date || fetchedNotes.date,
           currentVersion,
         };
 

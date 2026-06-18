@@ -14,11 +14,11 @@ export const fetchReleaseNotes = async (version: string) => {
       `https://api.github.com/repos/${GITHUB_REPO}/releases/tags/app-v${version}`,
       { headers: { Accept: 'application/vnd.github.v3+json' } },
     );
-    if (!response.ok) return '';
-    const release = (await response.json()) as { body?: string };
-    return release.body ?? '';
+    if (!response.ok) return { body: '' };
+    const release = (await response.json()) as { body?: string; published_at?: string };
+    return { body: release.body ?? '', date: release.published_at };
   } catch {
-    return '';
+    return { body: '' };
   }
 };
 

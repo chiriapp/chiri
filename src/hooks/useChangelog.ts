@@ -4,22 +4,26 @@ import { fetchReleaseNotes } from '$utils/version';
 interface ChangelogData {
   version: string;
   body: string;
+  date?: string;
 }
 
 export const useChangelog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [changelogData, setChangelogData] = useState<ChangelogData | null>(null);
 
-  const openChangelog = useCallback(async (version: string, prefetchedBody?: string) => {
-    if (prefetchedBody !== undefined) {
-      setChangelogData({ version, body: prefetchedBody });
-      return;
-    }
-    setIsLoading(true);
-    const body = await fetchReleaseNotes(version);
-    setIsLoading(false);
-    setChangelogData({ version, body });
-  }, []);
+  const openChangelog = useCallback(
+    async (version: string, prefetchedBody?: string, prefetchedDate?: string) => {
+      if (prefetchedBody !== undefined) {
+        setChangelogData({ version, body: prefetchedBody, date: prefetchedDate });
+        return;
+      }
+      setIsLoading(true);
+      const releaseData = await fetchReleaseNotes(version);
+      setIsLoading(false);
+      setChangelogData({ version, body: releaseData.body, date: releaseData.date });
+    },
+    [],
+  );
 
   const closeChangelog = useCallback(() => setChangelogData(null), []);
 
