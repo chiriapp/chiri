@@ -2,7 +2,7 @@ import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import Inbox from 'lucide-react/icons/inbox';
 import Trash2 from 'lucide-react/icons/trash-2';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AccountModal } from '$components/modals/AccountModal/AccountModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
 import { ExportModal } from '$components/modals/ExportModal';
@@ -301,7 +301,7 @@ export const Sidebar = ({
   }, [activeAccountMenuTriggerId]);
 
   const resetStaleCursorAfterContextMenuDismiss = useCallback(
-    (event: MouseEvent | React.MouseEvent) => {
+    (event: MouseEvent | MouseEvent) => {
       const isAccountMenu = contextMenu?.type === 'account';
       const accountMenuId = isAccountMenu ? contextMenu.id : undefined;
       const accountMenuTrigger = accountMenuId ? findAccountMenuTrigger(accountMenuId) : undefined;
@@ -333,7 +333,7 @@ export const Sidebar = ({
   );
 
   const handleContextMenu = (
-    e: React.MouseEvent,
+    e: MouseEvent,
     type: 'account' | 'calendar' | 'tag' | 'filter' | 'accounts-section',
     id: string,
     accountId?: string,

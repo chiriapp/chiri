@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { platform } from '@tauri-apps/plugin-os';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type DragEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { loggers } from '$lib/logger';
 import {
   type MobileConfigCalDAVSettings,
@@ -40,10 +40,10 @@ interface UseFileDropOptions {
 interface UseFileDropReturn {
   isDragOver: boolean;
   isUnsupportedFile: boolean;
-  handleFileDrop: (e: React.DragEvent) => Promise<void>;
-  handleDragOver: (e: React.DragEvent) => void;
-  handleDragEnter: (e: React.DragEvent) => void;
-  handleDragLeave: (e: React.DragEvent) => void;
+  handleFileDrop: (e: DragEvent) => Promise<void>;
+  handleDragOver: (e: DragEvent) => void;
+  handleDragEnter: (e: DragEvent) => void;
+  handleDragLeave: (e: DragEvent) => void;
   clearDragState: () => void;
 }
 
@@ -174,7 +174,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
   // Check if dragged files are supported
   // Note: In Tauri/WebKit, dataTransfer.items is empty during drag for security reasons
   // We can only show a generic message listing all supported file types
-  const checkDraggedFiles = useCallback((e: React.DragEvent) => {
+  const checkDraggedFiles = useCallback((e: DragEvent) => {
     const types = e.dataTransfer?.types || [];
     // Tauri only exposes ["Files"] in types array during drag, no specific file info
     return types.includes('Files');
@@ -182,7 +182,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
 
   // handle file drop for import
   const handleFileDrop = useCallback(
-    async (e: React.DragEvent) => {
+    async (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragOver(false);
@@ -266,7 +266,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
   );
 
   const handleDragOver = useCallback(
-    (e: React.DragEvent) => {
+    (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
 
@@ -289,7 +289,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
   );
 
   const handleDragEnter = useCallback(
-    (e: React.DragEvent) => {
+    (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
 
@@ -304,7 +304,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
     [checkDraggedFiles],
   );
 
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
+  const handleDragLeave = useCallback((e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {

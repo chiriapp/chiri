@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { type MouseEvent, useCallback, useEffect, useState } from 'react';
 
 export const CLOSE_CONTEXT_MENUS_EVENT = 'closeAllContextMenus';
 
@@ -28,7 +28,7 @@ export const useContextMenuDismissal = (onClose: () => void, isOpen: boolean) =>
 export const useContextMenu = () => {
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
 
-  const handleContextMenu = (e: React.MouseEvent) => {
+  const handleContextMenu = (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     document.dispatchEvent(new CustomEvent(CLOSE_CONTEXT_MENUS_EVENT));

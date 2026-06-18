@@ -2,8 +2,14 @@ import AlertCircle from 'lucide-react/icons/alert-circle';
 import FileText from 'lucide-react/icons/file-text';
 import Upload from 'lucide-react/icons/upload';
 import X from 'lucide-react/icons/x';
-import type { DragEvent } from 'react';
-import { useRef, useState } from 'react';
+import {
+  type ChangeEvent,
+  type DragEvent,
+  type KeyboardEvent,
+  type MouseEvent,
+  useRef,
+  useState,
+} from 'react';
 
 interface FileUploadStepProps {
   fileName: string;
@@ -35,14 +41,14 @@ export const FileUploadStep = ({
     fileInputRef.current?.click();
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       fileInputRef.current?.click();
     }
   };
 
-  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileInputChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -54,7 +60,7 @@ export const FileUploadStep = ({
     }
   };
 
-  const handleRemoveFile = (e: React.MouseEvent) => {
+  const handleRemoveFile = (e: MouseEvent) => {
     e.stopPropagation();
     onReset();
     if (fileInputRef.current) {
@@ -68,7 +74,7 @@ export const FileUploadStep = ({
     return <FileText className="h-5 w-5" />;
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleDragLeave = (e: DragEvent) => {
     // Only trigger leave if we're actually leaving the drop zone
     if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
       onDragLeave();

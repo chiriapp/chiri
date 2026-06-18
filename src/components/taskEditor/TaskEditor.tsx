@@ -1,5 +1,5 @@
 import CornerDownRight from 'lucide-react/icons/corner-down-right';
-import { Fragment, useRef, useState } from 'react';
+import { Fragment, type ReactNode, useRef, useState } from 'react';
 import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { MoveToCalendarModal } from '$components/modals/MoveToCalendar/MoveToCalendarModal';
@@ -245,7 +245,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
     }
   };
 
-  const editorFieldRenderers: Record<EditorFieldKey, () => React.ReactNode> = {
+  const editorFieldRenderers: Record<EditorFieldKey, () => ReactNode> = {
     status: () =>
       isReadOnly || editorFieldVisibility.status ? (
         <TaskEditorStatus

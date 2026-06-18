@@ -3,6 +3,7 @@ import BellRing from 'lucide-react/icons/bell-ring';
 import Plus from 'lucide-react/icons/plus';
 import Settings from 'lucide-react/icons/settings';
 import X from 'lucide-react/icons/x';
+import type { KeyboardEvent } from 'react';
 import type { Task } from '$types';
 import type { TimeFormat } from '$types/preference';
 import { formatDate, formatTime } from '$utils/date';
@@ -50,7 +51,7 @@ export const TaskEditorReminders = ({
                   tabIndex: 0,
                   onClick: () =>
                     onEditReminder({ id: reminder.id, trigger: new Date(reminder.trigger) }),
-                  onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+                  onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
                       onEditReminder({ id: reminder.id, trigger: new Date(reminder.trigger) });

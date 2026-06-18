@@ -8,7 +8,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useCallback, useRef, useState } from 'react';
+import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import { SidebarCalendarItem } from '$components/sidebar/SidebarCalendarItem';
 import { useReorderCalendars } from '$hooks/queries/useAccounts';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
@@ -23,7 +23,7 @@ interface SidebarCalendarListProps {
   isAnyModalOpen: boolean;
   isAnyAccountDragging: boolean;
   calendarSortConfig: CalendarSortConfig;
-  onContextMenu: (e: React.MouseEvent, type: 'calendar', id: string, accountId: string) => void;
+  onContextMenu: (e: MouseEvent, type: 'calendar', id: string, accountId: string) => void;
   onSelectCalendar: (accountId: string, calendarId: string) => void;
 }
 
@@ -110,7 +110,7 @@ export const SidebarCalendarList = ({
       taskCount: getTaskCount(calendar.id),
       calendarColor,
       onSelect: () => onSelectCalendar(account.id, calendar.id),
-      onContextMenu: (e: React.MouseEvent) => onContextMenu(e, 'calendar', calendar.id, account.id),
+      onContextMenu: (e: MouseEvent) => onContextMenu(e, 'calendar', calendar.id, account.id),
     };
   };
 

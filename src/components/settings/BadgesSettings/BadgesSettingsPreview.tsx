@@ -7,11 +7,11 @@ import Link from 'lucide-react/icons/link';
 import Loader from 'lucide-react/icons/loader';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Tag from 'lucide-react/icons/tag';
-import { Fragment } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { useSettingsStore } from '$context/settingsContext';
 import type { TaskBadgeKey } from '$types/settings';
 
-const PREVIEW_BADGE_RENDERERS: Record<TaskBadgeKey, () => React.ReactNode> = {
+const PREVIEW_BADGE_RENDERERS: Record<TaskBadgeKey, () => ReactNode> = {
   startDate: () => (
     <span
       className="inline-flex items-center gap-1 rounded-sm border bg-surface-100 px-2 py-0.5 font-medium text-surface-600 text-xs dark:bg-surface-700 dark:text-surface-400"

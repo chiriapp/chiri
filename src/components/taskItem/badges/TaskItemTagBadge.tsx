@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react';
 import { getIconByName } from '$constants/icons';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Tag } from '$types';
@@ -7,7 +8,7 @@ export const TaskItemTagBadge = ({
   onTagClick,
 }: {
   tag: Tag;
-  onTagClick: (tagId: string, event: React.MouseEvent) => void;
+  onTagClick: (tagId: string, event: MouseEvent) => void;
 }) => {
   const resolveAccent = useAccentColorResolver();
   const resolvedAccentColor = useResolvedAccentColor();

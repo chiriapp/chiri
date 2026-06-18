@@ -1,7 +1,7 @@
 import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Plus from 'lucide-react/icons/plus';
-import { useRef, useState } from 'react';
+import { type MouseEvent, useRef, useState } from 'react';
 import { SidebarCalendarList } from '$components/sidebar/SidebarCalendarList';
 import { SidebarLocalSortMenu } from '$components/sidebar/SidebarLocalSortMenu';
 import { Tooltip } from '$components/Tooltip';
@@ -17,7 +17,7 @@ interface SidebarLocalListProps {
   collapsed: boolean;
   onToggle: () => void;
   onContextMenu: (
-    e: React.MouseEvent,
+    e: MouseEvent,
     type: 'account' | 'calendar' | 'tag' | 'accounts-section',
     id: string,
     accountId?: string,

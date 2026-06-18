@@ -1,8 +1,8 @@
-import { forwardRef } from 'react';
+import { forwardRef, type TextareaHTMLAttributes } from 'react';
 import { useComposition } from '$hooks/ui/useComposition';
 
 interface ComposedTextareaProps
-  extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> {
+  extends Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'onChange'> {
   value: string;
   onChange: (value: string, cursorPos?: number | null) => void;
 }

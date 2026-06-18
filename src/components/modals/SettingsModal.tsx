@@ -16,7 +16,7 @@ import Settings from 'lucide-react/icons/settings';
 import Sliders from 'lucide-react/icons/sliders';
 import SquarePen from 'lucide-react/icons/square-pen';
 import User from 'lucide-react/icons/user';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { AboutSettings } from '$components/settings/AboutSettings/AboutSettings';
 import { BadgesSettings } from '$components/settings/BadgesSettings/BadgesSettings';
@@ -46,7 +46,7 @@ interface SettingsModalProps {
 type SettingsSubtabInfo = {
   id: SettingsSubtab;
   label: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 };
 
 export const SettingsModal = ({
@@ -69,7 +69,7 @@ export const SettingsModal = ({
   const categories: {
     id: SettingsCategory;
     label: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     subtabs: SettingsSubtabInfo[];
   }[] = [
     {

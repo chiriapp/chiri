@@ -11,7 +11,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Plus from 'lucide-react/icons/plus';
-import { useCallback, useRef, useState } from 'react';
+import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import { SidebarTagItem } from '$components/sidebar/SidebarTagItem';
 import { SidebarTagsSortMenu } from '$components/sidebar/SidebarTagsSortMenu';
 import { Tooltip } from '$components/Tooltip';
@@ -29,7 +29,7 @@ interface SidebarTagsListProps {
   onToggleTagsSection: () => void;
   onSelectTag: (tagId: string) => void;
   onContextMenu: (
-    e: React.MouseEvent,
+    e: MouseEvent,
     type: 'account' | 'calendar' | 'tag' | 'accounts-section',
     id: string,
     accountId?: string,
@@ -97,7 +97,7 @@ export const SidebarTagsList = ({
       isAnyTagDragging,
       taskCount: getTagTaskCount(tag.id),
       onSelect: () => onSelectTag(tag.id),
-      onContextMenu: (e: React.MouseEvent) => onContextMenu(e, 'tag', tag.id),
+      onContextMenu: (e: MouseEvent) => onContextMenu(e, 'tag', tag.id),
     };
   };
 

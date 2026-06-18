@@ -2,7 +2,7 @@ import Check from 'lucide-react/icons/check';
 import Loader from 'lucide-react/icons/loader';
 import Type from 'lucide-react/icons/type';
 import X from 'lucide-react/icons/x';
-import { useEffect, useRef } from 'react';
+import { type MouseEvent, useEffect, useRef } from 'react';
 import { ComposedTextarea } from '$components/ComposedTextarea';
 import { useToggleTaskComplete } from '$hooks/queries/useTasks';
 import { consumeSelectedTaskTitleAutofocus } from '$hooks/queries/useUIState';
@@ -79,7 +79,7 @@ export const TaskEditorTitle = ({
     });
   };
 
-  const handleCheckboxClick = (e: React.MouseEvent) => {
+  const handleCheckboxClick = (e: MouseEvent) => {
     e.stopPropagation();
     if (readOnly) return;
     toggleTaskCompleteMutation.mutate(task.id);

@@ -1,5 +1,5 @@
 import { listen } from '@tauri-apps/api/event';
-import { useEffect } from 'react';
+import { type RefObject, useEffect } from 'react';
 import { DEFAULT_SORT_CONFIG } from '$constants';
 import { MENU_EVENTS } from '$constants/menu';
 import { useModalState } from '$context/modalStateContext';
@@ -10,35 +10,35 @@ import type { SortDirection, SortMode } from '$types/sort';
 const log = loggers.menu;
 
 interface MenuCallbacks {
-  onNewTask?: React.RefObject<(() => void) | null>;
-  onOpenSettings?: React.RefObject<(() => void) | null>;
-  onOpenImport?: React.RefObject<(() => void) | null>;
-  onOpenAccount?: React.RefObject<(() => void) | null>;
-  onEditAccount?: React.RefObject<((accountId: string) => void) | null>;
-  onOpenCreateCalendar?: React.RefObject<((accountId?: string) => void) | null>;
-  onSearch?: React.RefObject<(() => void) | null>;
-  onOpenAbout?: React.RefObject<(() => void) | null>;
-  onOpenKeyboardShortcuts?: React.RefObject<(() => void) | null>;
-  onToggleCompleted?: React.RefObject<((currentValue: boolean) => void) | null>;
-  onToggleUnstarted?: React.RefObject<((currentValue: boolean) => void) | null>;
-  onSync?: React.RefObject<(() => void) | null>;
-  onSetSortMode?: React.RefObject<
+  onNewTask?: RefObject<(() => void) | null>;
+  onOpenSettings?: RefObject<(() => void) | null>;
+  onOpenImport?: RefObject<(() => void) | null>;
+  onOpenAccount?: RefObject<(() => void) | null>;
+  onEditAccount?: RefObject<((accountId: string) => void) | null>;
+  onOpenCreateCalendar?: RefObject<((accountId?: string) => void) | null>;
+  onSearch?: RefObject<(() => void) | null>;
+  onOpenAbout?: RefObject<(() => void) | null>;
+  onOpenKeyboardShortcuts?: RefObject<(() => void) | null>;
+  onToggleCompleted?: RefObject<((currentValue: boolean) => void) | null>;
+  onToggleUnstarted?: RefObject<((currentValue: boolean) => void) | null>;
+  onSync?: RefObject<(() => void) | null>;
+  onSetSortMode?: RefObject<
     ((mode: SortMode, currentMode: SortMode, currentDirection: SortDirection) => void) | null
   >;
-  onSetSortDirection?: React.RefObject<
+  onSetSortDirection?: RefObject<
     ((direction: SortDirection, currentMode: SortMode) => void) | null
   >;
-  onToggleSidebar?: React.RefObject<(() => void) | null>;
-  onDeleteTask?: React.RefObject<(() => void) | null>;
-  onNavPrevList?: React.RefObject<(() => void) | null>;
-  onNavNextList?: React.RefObject<(() => void) | null>;
-  onCheckForUpdates?: React.RefObject<(() => void) | null>;
-  onShowChangelog?: React.RefObject<(() => void) | null>;
-  onRemoveAccount?: React.RefObject<((accountId: string) => void) | null>;
-  onSyncCalendar?: React.RefObject<((calendarId: string, accountId: string) => void) | null>;
-  onEditCalendar?: React.RefObject<((calendarId: string, accountId: string) => void) | null>;
-  onExportCalendar?: React.RefObject<((calendarId: string, accountId: string) => void) | null>;
-  onDeleteCalendar?: React.RefObject<((calendarId: string, accountId: string) => void) | null>;
+  onToggleSidebar?: RefObject<(() => void) | null>;
+  onDeleteTask?: RefObject<(() => void) | null>;
+  onNavPrevList?: RefObject<(() => void) | null>;
+  onNavNextList?: RefObject<(() => void) | null>;
+  onCheckForUpdates?: RefObject<(() => void) | null>;
+  onShowChangelog?: RefObject<(() => void) | null>;
+  onRemoveAccount?: RefObject<((accountId: string) => void) | null>;
+  onSyncCalendar?: RefObject<((calendarId: string, accountId: string) => void) | null>;
+  onEditCalendar?: RefObject<((calendarId: string, accountId: string) => void) | null>;
+  onExportCalendar?: RefObject<((calendarId: string, accountId: string) => void) | null>;
+  onDeleteCalendar?: RefObject<((calendarId: string, accountId: string) => void) | null>;
 }
 
 // Simple event configuration for events that just call a callback

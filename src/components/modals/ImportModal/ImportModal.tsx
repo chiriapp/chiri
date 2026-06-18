@@ -2,7 +2,7 @@ import Check from 'lucide-react/icons/check';
 import ChevronLeft from 'lucide-react/icons/chevron-left';
 import Loader2 from 'lucide-react/icons/loader-2';
 import Upload from 'lucide-react/icons/upload';
-import { useCallback, useEffect, useState } from 'react';
+import { type DragEvent, useCallback, useEffect, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { DestinationStep } from '$components/modals/ImportModal/DestinationStep';
@@ -297,7 +297,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   };
 
   // Handle drops anywhere on the modal (only for preventing default behavior)
-  const handleModalDrop = useCallback(async (e: React.DragEvent) => {
+  const handleModalDrop = useCallback(async (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -306,13 +306,13 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   }, []);
 
   // Handle drag over the modal - just prevent default
-  const handleModalDragOver = useCallback((e: React.DragEvent) => {
+  const handleModalDragOver = useCallback((e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
 
   // Handle drag leave from modal - just prevent default
-  const handleModalDragLeave = useCallback((e: React.DragEvent) => {
+  const handleModalDragLeave = useCallback((e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
@@ -328,7 +328,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
 
   // Handle drops in the drop zone only
   const handleDropZoneDrop = useCallback(
-    async (e: React.DragEvent) => {
+    async (e: DragEvent) => {
       e.preventDefault();
       e.stopPropagation();
 

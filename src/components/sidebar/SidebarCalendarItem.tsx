@@ -1,4 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable';
+import type { HTMLAttributes, MouseEvent } from 'react';
 import { getIconByName } from '$constants/icons';
 import type { Calendar } from '$types';
 
@@ -13,7 +14,7 @@ interface SidebarCalendarItemProps {
   calendarColor: string;
   sortable?: boolean;
   onSelect: () => void;
-  onContextMenu: (e: React.MouseEvent) => void;
+  onContextMenu: (e: MouseEvent) => void;
 }
 
 export const SidebarCalendarItem = ({
@@ -36,7 +37,7 @@ export const SidebarCalendarItem = ({
   const CalendarIcon = getIconByName(calendar.icon ?? 'calendar');
   const transformStr = sortable && transform ? `translate3d(0, ${transform.y}px, 0)` : undefined;
   const dragHandleProps = sortable
-    ? ({ ...attributes, ...listeners } as React.HTMLAttributes<HTMLButtonElement>)
+    ? ({ ...attributes, ...listeners } as HTMLAttributes<HTMLButtonElement>)
     : undefined;
 
   const item = (

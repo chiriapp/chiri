@@ -1,13 +1,14 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import GripVertical from 'lucide-react/icons/grip-vertical';
+import type { CSSProperties, ReactNode } from 'react';
 import type { TaskBadgeKey } from '$types/settings';
 
 export type BadgeConfig = {
   key: TaskBadgeKey;
   label: string;
   description: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 };
 
 interface BadgesSettingsSortableBadgesProps {
@@ -27,7 +28,7 @@ export const BadgesSettingsSortableBadges = ({
     id: badge.key,
   });
 
-  const style: React.CSSProperties = {
+  const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.6 : undefined,

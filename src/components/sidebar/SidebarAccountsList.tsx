@@ -11,7 +11,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Plus from 'lucide-react/icons/plus';
-import { useCallback, useRef, useState } from 'react';
+import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import { SidebarAccountItem } from '$components/sidebar/SidebarAccountItem';
 import { SidebarAccountsSortMenu } from '$components/sidebar/SidebarAccountsSortMenu';
 import { Tooltip } from '$components/Tooltip';
@@ -30,7 +30,7 @@ interface SidebarAccountsListProps {
   accountsSectionCollapsed: boolean;
   onToggleAccountsSection: () => void;
   onContextMenu: (
-    e: React.MouseEvent,
+    e: MouseEvent,
     type: 'account' | 'calendar' | 'tag' | 'accounts-section',
     id: string,
     accountId?: string,

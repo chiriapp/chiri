@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { MAX_SIDEBAR_WIDTH, MIN_SIDEBAR_WIDTH } from '$constants';
 
 export const useSidebarResize = (onWidthChange: (width: number) => void) => {
@@ -6,7 +6,8 @@ export const useSidebarResize = (onWidthChange: (width: number) => void) => {
   const resizeHandleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    // we use globalThis.MouseEvent to avoid conflicts with React's MouseEvent type
+    const handleMouseMove = (e: globalThis.MouseEvent) => {
       if (!isResizing) return;
 
       const newWidth = Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, e.clientX));
@@ -30,7 +31,7 @@ export const useSidebarResize = (onWidthChange: (width: number) => void) => {
     };
   }, [isResizing, onWidthChange]);
 
-  const handleResizeStart = (e: React.MouseEvent) => {
+  const handleResizeStart = (e: MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
     document.body.style.cursor = 'col-resize';

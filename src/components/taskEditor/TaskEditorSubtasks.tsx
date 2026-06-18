@@ -2,7 +2,7 @@ import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import Plus from 'lucide-react/icons/plus';
-import { useMemo, useState } from 'react';
+import { type KeyboardEvent, useMemo, useState } from 'react';
 import { TaskEditorSubtaskItem } from '$components/taskEditor/TaskEditorSubtaskItem';
 import { useChildTasks, useCreateTask, useTasks } from '$hooks/queries/useTasks';
 import { truncateName, useSortableDrag } from '$hooks/ui/useSortableDrag';
@@ -88,7 +88,7 @@ export const TaskEditorSubtasks = ({
     });
   };
 
-  const handleSubtaskKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleSubtaskKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       if (newSubtaskTitle.trim()) {

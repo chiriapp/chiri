@@ -2,7 +2,7 @@ import Calendar from 'lucide-react/icons/calendar';
 import Check from 'lucide-react/icons/check';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Cloud from 'lucide-react/icons/cloud';
-import { useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { useDismissableLayer } from '$hooks/ui/useDismissableLayer';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Account } from '$types';
@@ -124,7 +124,7 @@ export const DestinationStep = ({
   }, [isOpen]);
 
   // Keyboard navigation
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       closeDropdown();
     } else if (e.key === 'Enter' || e.key === ' ') {

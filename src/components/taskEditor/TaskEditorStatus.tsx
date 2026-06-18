@@ -3,7 +3,7 @@ import Ban from 'lucide-react/icons/ban';
 import Check from 'lucide-react/icons/check';
 import Loader from 'lucide-react/icons/loader';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
-import { useState } from 'react';
+import { type CSSProperties, useState } from 'react';
 import type { Task, TaskStatus } from '$types';
 
 interface TaskEditorStatusProps {
@@ -105,9 +105,7 @@ export const TaskEditorStatus = ({
             max={100}
             step={5}
             value={draftPercent ?? task.percentComplete ?? 0}
-            style={
-              { '--pct': `${draftPercent ?? task.percentComplete ?? 0}%` } as React.CSSProperties
-            }
+            style={{ '--pct': `${draftPercent ?? task.percentComplete ?? 0}%` } as CSSProperties}
             onChange={(e) => setDraftPercent(Number(e.target.value))}
             onPointerUp={(e) => {
               if (readOnly) return;

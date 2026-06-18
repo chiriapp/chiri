@@ -3,6 +3,7 @@ import Import from 'lucide-react/icons/import';
 import Inbox from 'lucide-react/icons/inbox';
 import Settings from 'lucide-react/icons/settings';
 import Trash2 from 'lucide-react/icons/trash-2';
+import type { MouseEvent } from 'react';
 import { SidebarCollapsedItemTooltip } from '$components/sidebar/SidebarCollapsedItemTooltip';
 import { Tooltip } from '$components/Tooltip';
 import { getIconByName } from '$constants/icons';
@@ -33,7 +34,7 @@ interface SidebarCollapsedViewProps {
   onSelectTag: (tagId: string) => void;
   onSelectFilter: (filterId: string) => void;
   onContextMenu: (
-    e: React.MouseEvent,
+    e: MouseEvent,
     type: 'calendar' | 'tag' | 'filter',
     id: string,
     accountId?: string,

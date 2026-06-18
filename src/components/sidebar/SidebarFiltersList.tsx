@@ -10,7 +10,7 @@ import {
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Plus from 'lucide-react/icons/plus';
-import { useCallback, useRef, useState } from 'react';
+import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import { SidebarFilterItem } from '$components/sidebar/SidebarFilterItem';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderFilters } from '$hooks/queries/useFilters';
@@ -28,7 +28,7 @@ interface SidebarFiltersListProps {
   onToggle: () => void;
   onSelectFilter: (filterId: string) => void;
   onAddFilter: () => void;
-  onContextMenu: (e: React.MouseEvent, type: 'filter', id: string) => void;
+  onContextMenu: (e: MouseEvent, type: 'filter', id: string) => void;
 }
 
 const isActiveTask = (task: Task) =>

@@ -1,6 +1,7 @@
 import Check from 'lucide-react/icons/check';
 import Loader from 'lucide-react/icons/loader';
 import X from 'lucide-react/icons/x';
+import type { MouseEvent } from 'react';
 import type { TaskStatus } from '$types';
 
 interface TaskItemCheckboxProps {
@@ -8,7 +9,7 @@ interface TaskItemCheckboxProps {
   flashComplete: boolean;
   checkmarkColor: string;
   useAccentColor: boolean;
-  onClick: (e: React.MouseEvent) => void;
+  onClick: (e: MouseEvent) => void;
   disabled?: boolean;
   nativeDisabled?: boolean;
   selectionMode?: boolean;

@@ -3,7 +3,14 @@ import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import Check from 'lucide-react/icons/check';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import X from 'lucide-react/icons/x';
-import { useRef, useState } from 'react';
+import {
+  type CSSProperties,
+  type Dispatch,
+  type KeyboardEvent,
+  type SetStateAction,
+  useRef,
+  useState,
+} from 'react';
 import { useChildTasks } from '$hooks/queries/useTasks';
 import type { Task } from '$types';
 import { getSortableItemDisabled, getSortableItemId } from '$utils/sortable';
@@ -61,7 +68,7 @@ interface TaskEditorSubtaskItemProps {
   checkmarkColor: string;
   useAccentColorForCheckboxes: boolean;
   expandedSubtasks: Set<string>;
-  setExpandedSubtasks: React.Dispatch<React.SetStateAction<Set<string>>>;
+  setExpandedSubtasks: Dispatch<SetStateAction<Set<string>>>;
   updateTask: (id: string, updates: Partial<Task>) => void;
   moveTaskToRecentlyDeleted: (id: string) => Promise<boolean>;
   isDragEnabled: boolean;
@@ -104,7 +111,7 @@ export const TaskEditorSubtaskItem = ({
   // This prevents the "jumping" animation when drag ends and displaced items
   // return to their natural positions.
   // Use opacity: 0 instead of visibility: hidden for instant hiding without flash.
-  const style: React.CSSProperties = {
+  const style: CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition: 'none',
     opacity: isDragging ? 0 : undefined,
@@ -140,7 +147,7 @@ export const TaskEditorSubtaskItem = ({
     setIsEditing(false);
   };
 
-  const handleEditKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleEditKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleCommitEdit();

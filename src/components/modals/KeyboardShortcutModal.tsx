@@ -1,5 +1,5 @@
 import X from 'lucide-react/icons/x';
-import { useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, useEffect, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import type { KeyboardShortcut } from '$types';
@@ -60,7 +60,7 @@ export const KeyboardShortcutModal = ({
     }
   };
 
-  const handleKeyCapture = (e: React.KeyboardEvent) => {
+  const handleKeyCapture = (e: KeyboardEvent) => {
     e.preventDefault();
     e.stopPropagation();
 

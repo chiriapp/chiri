@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { type MouseEvent, useCallback, useEffect, useState } from 'react';
 import { MAX_EDITOR_WIDTH, MIN_EDITOR_WIDTH } from '$constants';
 
 export const useTaskEditorResize = (onWidthChange: (width: number) => void) => {
   const [isResizing, setIsResizing] = useState(false);
 
   useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
+    // we use globalThis.MouseEvent to avoid conflicts with React's MouseEvent type
+    const handleMouseMove = (event: globalThis.MouseEvent) => {
       if (!isResizing) return;
 
       const newWidth = Math.min(
@@ -32,7 +33,7 @@ export const useTaskEditorResize = (onWidthChange: (width: number) => void) => {
     };
   }, [isResizing, onWidthChange]);
 
-  const handleResizeStart = useCallback((event: React.MouseEvent) => {
+  const handleResizeStart = useCallback((event: MouseEvent) => {
     event.preventDefault();
     setIsResizing(true);
     document.body.style.cursor = 'col-resize';

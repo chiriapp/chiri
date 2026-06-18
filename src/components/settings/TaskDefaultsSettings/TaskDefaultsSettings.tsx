@@ -6,7 +6,7 @@ import Plus from 'lucide-react/icons/plus';
 import Repeat from 'lucide-react/icons/repeat';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import X from 'lucide-react/icons/x';
-import { useState } from 'react';
+import { type CSSProperties, useState } from 'react';
 import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { RepeatModal } from '$components/modals/RepeatModal';
 import { TaskDefaultsReminderPickerModal } from '$components/modals/TaskDefaultsReminderPickerModal';
@@ -235,7 +235,7 @@ export const TaskDefaultsSettings = () => {
               max={100}
               step={5}
               value={defaultPercentComplete}
-              style={{ '--pct': `${defaultPercentComplete}%` } as React.CSSProperties}
+              style={{ '--pct': `${defaultPercentComplete}%` } as CSSProperties}
               onChange={(e) => setDefaultPercentComplete(Number(e.target.value))}
               className="w-full"
             />

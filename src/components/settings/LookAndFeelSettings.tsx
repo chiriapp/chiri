@@ -1,5 +1,6 @@
 import AlignJustify from 'lucide-react/icons/align-justify';
 import LayoutList from 'lucide-react/icons/layout-list';
+import type { ReactNode } from 'react';
 import { ColorSchemeSelect } from '$components/ColorSchemeSelect';
 import { ColorSwatchPicker } from '$components/ColorSwatchPicker';
 import { TaskListDensityPreview } from '$components/settings/TaskListDensityPreview';
@@ -12,7 +13,7 @@ import {
   THEME_OPTIONS,
 } from '$utils/color/scheme';
 
-const DENSITY_OPTIONS: { value: TaskListDensity; label: string; icon: React.ReactNode }[] = [
+const DENSITY_OPTIONS: { value: TaskListDensity; label: string; icon: ReactNode }[] = [
   { value: 'comfortable', label: 'Comfortable', icon: <LayoutList className="h-4 w-4" /> },
   { value: 'compact', label: 'Compact', icon: <AlignJustify className="h-4 w-4" /> },
 ];

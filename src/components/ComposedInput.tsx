@@ -1,7 +1,7 @@
-import { forwardRef } from 'react';
+import { forwardRef, type InputHTMLAttributes } from 'react';
 import { useComposition } from '$hooks/ui/useComposition';
 
-interface ComposedInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+interface ComposedInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
   value: string;
   onChange: (value: string, cursorPos?: number | null) => void;
 }

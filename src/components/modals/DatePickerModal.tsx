@@ -21,7 +21,7 @@ import Moon from 'lucide-react/icons/moon';
 import Sun from 'lucide-react/icons/sun';
 import Sunrise from 'lucide-react/icons/sunrise';
 import Sunset from 'lucide-react/icons/sunset';
-import { type PointerEvent, useRef, useState } from 'react';
+import { type ComponentType, type PointerEvent, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
@@ -48,7 +48,7 @@ const DEFAULT_QUICK_TIME_PRESETS: QuickTimePresets = {
 
 const CATEGORY_PRESETS: {
   id: keyof QuickTimePresets;
-  Icon: React.ComponentType<{ className?: string }>;
+  Icon: ComponentType<{ className?: string }>;
 }[] = [
   { id: 'morning', Icon: Sunrise },
   { id: 'afternoon', Icon: Sun },

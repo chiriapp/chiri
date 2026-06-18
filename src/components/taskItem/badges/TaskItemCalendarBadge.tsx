@@ -1,3 +1,4 @@
+import type { MouseEvent } from 'react';
 import { getIconByName } from '$constants/icons';
 import type { Calendar } from '$types';
 
@@ -9,7 +10,7 @@ export const TaskItemCalendarBadge = ({
 }: {
   calendar: Calendar;
   calendarColor: string;
-  onCalendarClick: (calendarId: string, event: React.MouseEvent) => void;
+  onCalendarClick: (calendarId: string, event: MouseEvent) => void;
   readOnly?: boolean;
 }) => {
   const CalendarIcon = getIconByName(calendar.icon || 'calendar');

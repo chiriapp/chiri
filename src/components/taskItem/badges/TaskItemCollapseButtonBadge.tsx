@@ -1,5 +1,6 @@
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
+import type { MouseEvent } from 'react';
 import { pluralize } from '$utils/misc';
 
 export const TaskItemCollapseButtonBadge = ({
@@ -9,7 +10,7 @@ export const TaskItemCollapseButtonBadge = ({
 }: {
   isCollapsed: boolean;
   childCount: number;
-  onToggleCollapsed: (e: React.MouseEvent) => void;
+  onToggleCollapsed: (e: MouseEvent) => void;
 }) => (
   <button
     type="button"

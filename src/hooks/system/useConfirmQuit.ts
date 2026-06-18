@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event';
 import type { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { getAllWebviewWindows } from '@tauri-apps/api/webviewWindow';
 import Info from 'lucide-react/icons/info';
-import { createElement, useEffect, useRef } from 'react';
+import { createElement, type RefObject, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { useSettingsStore } from '$context/settingsContext';
 import {
@@ -37,9 +37,7 @@ const checkWindowVisibility = async () => {
 /**
  * Ensure notification permission and update the cached state
  */
-const ensureNotificationPermission = async (
-  permissionRef: React.RefObject<NotificationPermission>,
-) => {
+const ensureNotificationPermission = async (permissionRef: RefObject<NotificationPermission>) => {
   if (permissionRef.current !== 'unknown') {
     return permissionRef.current === 'granted';
   }
@@ -62,9 +60,7 @@ const ensureNotificationPermission = async (
 /**
  * Try to send a native notification for quit confirmation
  */
-const trySendNativeNotification = async (
-  permissionRef: React.RefObject<NotificationPermission>,
-) => {
+const trySendNativeNotification = async (permissionRef: RefObject<NotificationPermission>) => {
   if (!isProductionMode()) return false;
 
   const hasPermission = await ensureNotificationPermission(permissionRef);

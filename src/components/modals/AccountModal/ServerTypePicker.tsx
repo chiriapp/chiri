@@ -2,6 +2,7 @@ import ArrowRight from 'lucide-react/icons/arrow-right';
 import Cloud from 'lucide-react/icons/cloud';
 import Globe from 'lucide-react/icons/globe';
 import Server from 'lucide-react/icons/server';
+import type { ReactNode } from 'react';
 import type { ServerType } from '$types';
 
 interface ServerTypeCard {
@@ -12,7 +13,7 @@ interface ServerTypeCard {
 interface ServerTypeCategory {
   title: string;
   subtitle: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   iconBg: string;
   servers: ServerTypeCard[];
 }

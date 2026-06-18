@@ -11,7 +11,7 @@ import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Share2 from 'lucide-react/icons/share-2';
 import Tag from 'lucide-react/icons/tag';
 import Trash2 from 'lucide-react/icons/trash-2';
-import { useEffect, useRef, useState } from 'react';
+import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { FloatingLayerFrame } from '$components/FloatingLayerFrame';
 import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { ExportModal } from '$components/modals/ExportModal';
@@ -116,7 +116,7 @@ export const TaskItemContextMenu = ({
     setContextMenu(null);
   };
 
-  const handlePriorityMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handlePriorityMouseEnter = (e: MouseEvent<HTMLButtonElement>) => {
     clearTimeout(priorityHideTimer.current);
     const rect = e.currentTarget.getBoundingClientRect();
     const flyoutWidth = 160;
@@ -155,7 +155,7 @@ export const TaskItemContextMenu = ({
     { value: 'cancelled' as const, label: 'Cancelled', Icon: Ban },
   ];
 
-  const handleStatusMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleStatusMouseEnter = (e: MouseEvent<HTMLButtonElement>) => {
     clearTimeout(statusHideTimer.current);
     const rect = e.currentTarget.getBoundingClientRect();
     const flyoutWidth = 170;

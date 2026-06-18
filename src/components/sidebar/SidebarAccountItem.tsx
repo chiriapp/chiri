@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import MoreVertical from 'lucide-react/icons/more-vertical';
 import Plus from 'lucide-react/icons/plus';
+import type { HTMLAttributes, MouseEvent } from 'react';
 import { SidebarCalendarList } from '$components/sidebar/SidebarCalendarList';
 import { Tooltip } from '$components/Tooltip';
 import { getIconByName } from '$constants/icons';
@@ -28,7 +29,7 @@ interface SidebarAccountItemProps {
   onSelectCalendar: (accountId: string, calendarId: string) => void;
   onCreateCalendar: (accountId: string) => void;
   onContextMenu: (
-    e: React.MouseEvent,
+    e: MouseEvent,
     type: 'account' | 'calendar' | 'tag' | 'accounts-section',
     id: string,
     accountId?: string,
@@ -58,7 +59,7 @@ export const SidebarAccountItem = ({
   const AccountIcon = getIconByName(account.icon ?? 'user');
   const transformStr = sortable && transform ? `translate3d(0, ${transform.y}px, 0)` : undefined;
   const dragHandleProps = sortable
-    ? ({ ...attributes, ...listeners } as React.HTMLAttributes<HTMLButtonElement>)
+    ? ({ ...attributes, ...listeners } as HTMLAttributes<HTMLButtonElement>)
     : undefined;
   const isAccountContextMenuOpen = contextMenu?.type === 'account' && contextMenu.id === account.id;
   const isAccountMenuButtonContextMenuOpen =

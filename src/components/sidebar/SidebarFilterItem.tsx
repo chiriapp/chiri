@@ -1,4 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable';
+import type { HTMLAttributes, MouseEvent } from 'react';
 import { getIconByName } from '$constants/icons';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Filter } from '$types/filter';
@@ -12,7 +13,7 @@ interface SidebarFilterItemProps {
   taskCount: number;
   sortable?: boolean;
   onSelect: () => void;
-  onContextMenu: (e: React.MouseEvent) => void;
+  onContextMenu: (e: MouseEvent) => void;
 }
 
 export const SidebarFilterItem = ({
@@ -39,7 +40,7 @@ export const SidebarFilterItem = ({
       ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX}) scaleY(${transform.scaleY})`
       : undefined;
   const dragHandleProps = sortable
-    ? ({ ...attributes, ...listeners } as React.HTMLAttributes<HTMLButtonElement>)
+    ? ({ ...attributes, ...listeners } as HTMLAttributes<HTMLButtonElement>)
     : undefined;
 
   const item = (

@@ -1,5 +1,5 @@
 import AlertTriangle from 'lucide-react/icons/triangle-alert';
-import { useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 import { ColorSwatchPicker } from '$components/ColorSwatchPicker';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
@@ -167,7 +167,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setWarning('');

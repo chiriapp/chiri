@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, type MouseEvent, type ReactNode } from 'react';
 import { TaskItemCalendarBadge } from '$components/taskItem/badges/TaskItemCalendarBadge';
 import { TaskItemCollapseButtonBadge } from '$components/taskItem/badges/TaskItemCollapseButtonBadge';
 import { TaskItemDueDateBadge } from '$components/taskItem/badges/TaskItemDueDateBadge';
@@ -23,9 +23,9 @@ interface TaskItemBadgesProps {
   activeCalendarId: string | null;
   activeTagId: string | null;
   showCompletedTasks: boolean;
-  onTagClick: (tagId: string, event: React.MouseEvent) => void;
-  onCalendarClick: (calendarId: string, event: React.MouseEvent) => void;
-  onToggleCollapsed: (e: React.MouseEvent) => void;
+  onTagClick: (tagId: string, event: MouseEvent) => void;
+  onCalendarClick: (calendarId: string, event: MouseEvent) => void;
+  onToggleCollapsed: (e: MouseEvent) => void;
   compact: boolean;
   badgeVisibility: TaskBadgeVisibility;
   badgeOrder: TaskBadgeKey[];
@@ -81,7 +81,7 @@ export const TaskItemBadges = ({
     return null;
   }
 
-  const badgeRenderers: Record<TaskBadgeKey, () => React.ReactNode> = {
+  const badgeRenderers: Record<TaskBadgeKey, () => ReactNode> = {
     startDate: () =>
       badgeVisibility.startDate && startDateDisplay ? (
         <TaskItemStartDateBadge startDateDisplay={startDateDisplay} />

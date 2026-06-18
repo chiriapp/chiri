@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { type ChangeEvent, type CompositionEvent, useCallback, useRef, useState } from 'react';
 
 /**
  * hook to handle IME composition events for proper dead key input handling
@@ -16,7 +16,7 @@ export const useComposition = <T extends HTMLInputElement | HTMLTextAreaElement>
   const value = localValue !== null ? localValue : externalValue;
 
   const handleChange = useCallback(
-    (e: React.ChangeEvent<T>) => {
+    (e: ChangeEvent<T>) => {
       const newValue = e.target.value;
       const cursorPos = e.target.selectionStart;
 
@@ -39,7 +39,7 @@ export const useComposition = <T extends HTMLInputElement | HTMLTextAreaElement>
   }, [externalValue]);
 
   const onCompositionEnd = useCallback(
-    (e: React.CompositionEvent<T>) => {
+    (e: CompositionEvent<T>) => {
       isComposingRef.current = false;
       const finalValue = e.currentTarget.value;
       const cursorPos = e.currentTarget.selectionStart;

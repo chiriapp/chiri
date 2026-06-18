@@ -1,6 +1,6 @@
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronUp from 'lucide-react/icons/chevron-up';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { ModalWrapper } from '$components/ModalWrapper';
 
 interface TimePickerModalProps {
@@ -104,7 +104,7 @@ export const TimePickerModal = ({
     }
   };
 
-  const handleHourKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleHourKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       const newHour = (hour + 1) % 24;
@@ -137,7 +137,7 @@ export const TimePickerModal = ({
     }
   };
 
-  const handleMinuteKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleMinuteKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'ArrowUp') {
       e.preventDefault();
       const newMinute = (minute + 1) % 60;

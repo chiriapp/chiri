@@ -1,5 +1,5 @@
 import { QueryClientProvider } from '@tanstack/react-query';
-import React, { type ReactNode } from 'react';
+import { type ReactNode, StrictMode } from 'react';
 import ReactDOM, { type Root } from 'react-dom/client';
 import { BootstrapErrorScreen } from '$components/BootstrapErrorScreen';
 import { ErrorBoundary } from '$components/ErrorBoundary';
@@ -37,7 +37,7 @@ const renderRoot = (children: ReactNode) => {
   }
 
   root ??= ReactDOM.createRoot(rootElement);
-  root.render(<React.StrictMode>{children}</React.StrictMode>);
+  root.render(<StrictMode>{children}</StrictMode>);
 };
 
 const renderApp = () => {

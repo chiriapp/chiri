@@ -1,7 +1,7 @@
 import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import ChevronRight from 'lucide-react/icons/chevron-right';
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, type MouseEvent, useEffect, useRef, useState } from 'react';
 import { TaskItemBadges } from '$components/taskItem/TaskItemBadges';
 import { TaskItemCheckbox } from '$components/taskItem/TaskItemCheckbox';
 import { TaskItemContextMenu } from '$components/taskItem/TaskItemContextMenu';
@@ -42,9 +42,9 @@ interface TaskItemProps {
   isOverlay?: boolean;
   isMultiSelected?: boolean;
   isSelectionMode?: boolean;
-  onTaskClick?: (task: Task, e: React.MouseEvent) => void;
-  onSelectionCheckboxClick?: (task: Task, e: React.MouseEvent) => void;
-  onTaskContextMenu?: (task: Task, e: React.MouseEvent) => void;
+  onTaskClick?: (task: Task, e: MouseEvent) => void;
+  onSelectionCheckboxClick?: (task: Task, e: MouseEvent) => void;
+  onTaskContextMenu?: (task: Task, e: MouseEvent) => void;
 }
 
 const getBackgroundClass = (
@@ -145,7 +145,7 @@ export const TaskItem = ({
 
   // Disable all transitions - items will snap to positions immediately.
   // Prevents the "jumping" animation when drag ends and displaced items return to their natural positions.
-  const style: React.CSSProperties = {
+  const style: CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition: 'none',
     opacity: isDragging ? 0 : undefined,
@@ -154,7 +154,7 @@ export const TaskItem = ({
 
   const isUnstarted = !!(task.startDate && new Date(task.startDate) > new Date());
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = (e: MouseEvent) => {
     if (
       (e.target as HTMLElement).closest('.task-checkbox-wrapper') ||
       (e.target as HTMLElement).closest('.collapse-button')
@@ -165,7 +165,7 @@ export const TaskItem = ({
     onTaskClick?.(task, e);
   };
 
-  const handleTaskContextMenu = (e: React.MouseEvent) => {
+  const handleTaskContextMenu = (e: MouseEvent) => {
     onTaskContextMenu?.(task, e);
     handleContextMenu(e);
   };
@@ -173,7 +173,7 @@ export const TaskItem = ({
   const [flashComplete, setFlashComplete] = useState(false);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleCheckboxClick = (e: React.MouseEvent) => {
+  const handleCheckboxClick = (e: MouseEvent) => {
     e.stopPropagation();
     if (isSelectionMode) {
       onSelectionCheckboxClick?.(task, e);
@@ -197,24 +197,24 @@ export const TaskItem = ({
     };
   }, []);
 
-  const handleToggleCollapsed = (e: React.MouseEvent) => {
+  const handleToggleCollapsed = (e: MouseEvent) => {
     e.stopPropagation();
     toggleTaskCollapsed(task.id);
   };
 
-  const resetStaleBadgeCursor = (event: React.MouseEvent) => {
+  const resetStaleBadgeCursor = (event: MouseEvent) => {
     // WebKit can keep a badge's pointer cursor after switching to the tag/calendar view.
     refreshStaleCursorAfterLayoutAtEventPoint(event, {
       delayFrames: BADGE_VIEW_SWITCH_CURSOR_RESET_DELAY_FRAMES,
     });
   };
 
-  const handleTagClick = (tagId: string, event: React.MouseEvent) => {
+  const handleTagClick = (tagId: string, event: MouseEvent) => {
     resetStaleBadgeCursor(event);
     setActiveTagMutation.mutate(tagId);
   };
 
-  const handleCalendarClick = (calendarId: string, event: React.MouseEvent) => {
+  const handleCalendarClick = (calendarId: string, event: MouseEvent) => {
     resetStaleBadgeCursor(event);
     const account = accounts.find((a: Account) => a.calendars.some((c) => c.id === calendarId));
     if (account) setActiveAccountMutation.mutate(account.id);
@@ -260,7 +260,7 @@ export const TaskItem = ({
         {...attributes}
         {...(isDragEnabled ? listeners : {})}
         onClick={handleClick}
-        onKeyDown={(e) => e.key === 'Enter' && handleClick(e as unknown as React.MouseEvent)}
+        onKeyDown={(e) => e.key === 'Enter' && handleClick(e as unknown as MouseEvent)}
         onContextMenu={handleTaskContextMenu}
         role="button"
         aria-pressed={isVisuallySelected}

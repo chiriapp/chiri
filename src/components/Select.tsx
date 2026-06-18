@@ -1,8 +1,8 @@
 import ChevronDown from 'lucide-react/icons/chevron-down';
-import { useRef } from 'react';
+import { type MouseEvent, type ReactNode, type SelectHTMLAttributes, useRef } from 'react';
 
-interface AppSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  children: React.ReactNode;
+interface AppSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  children: ReactNode;
 }
 
 // WebKitGTK (Linux) bug: clicking a <select> twice in quick succession closes
@@ -27,7 +27,7 @@ export const Select = ({ className = '', children, onMouseDown, ...props }: AppS
     )
     .join(' ');
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLSelectElement>) => {
+  const handleMouseDown = (e: MouseEvent<HTMLSelectElement>) => {
     const now = Date.now();
     if (now - lastMouseDownAt.current < WEBKIT_DOUBLE_OPEN_THRESHOLD_MS) {
       e.preventDefault();

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 import { ColorSwatchPicker } from '$components/ColorSwatchPicker';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
@@ -32,7 +32,7 @@ export const FilterModal = ({ filterId, onClose }: FilterModalProps) => {
 
   if (!existingFilter) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     updateFilterMutation.mutate({

@@ -3,7 +3,7 @@ import ArrowLeft from 'lucide-react/icons/arrow-left';
 import CheckCircle from 'lucide-react/icons/check-circle';
 import Cloud from 'lucide-react/icons/cloud';
 import KeyRound from 'lucide-react/icons/key-round';
-import { useRef, useState } from 'react';
+import { type SyntheticEvent, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { CredentialsForm } from '$components/modals/AccountModal/CredentialsForm';
@@ -528,7 +528,7 @@ export function AccountModal({
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SyntheticEvent) => {
     e.preventDefault();
     setSetupError(null);
     setSetupNotice(null);

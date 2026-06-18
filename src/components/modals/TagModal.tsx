@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 import { ColorSwatchPicker } from '$components/ColorSwatchPicker';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
@@ -38,7 +38,7 @@ export const TagModal = ({ tagId, initialName, onClose, onSave }: TagModalProps)
   const [emoji, setEmoji] = useState(existingTag?.emoji || '');
   const nameInputRef = useInitialFocusRef<HTMLInputElement>();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const handleSave = (tag: Tag | undefined) => {

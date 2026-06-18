@@ -1,4 +1,5 @@
 import { useSortable } from '@dnd-kit/sortable';
+import type { HTMLAttributes, MouseEvent } from 'react';
 import { getIconByName } from '$constants/icons';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Tag } from '$types';
@@ -12,7 +13,7 @@ interface SidebarTagItemProps {
   isAnyTagDragging?: boolean;
   sortable?: boolean;
   onSelect: () => void;
-  onContextMenu: (e: React.MouseEvent) => void;
+  onContextMenu: (e: MouseEvent) => void;
 }
 
 export const SidebarTagItem = ({
@@ -39,7 +40,7 @@ export const SidebarTagItem = ({
       ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX}) scaleY(${transform.scaleY})`
       : undefined;
   const dragHandleProps = sortable
-    ? ({ ...attributes, ...listeners } as React.HTMLAttributes<HTMLButtonElement>)
+    ? ({ ...attributes, ...listeners } as HTMLAttributes<HTMLButtonElement>)
     : undefined;
 
   const item = (

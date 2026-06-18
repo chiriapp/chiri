@@ -1,5 +1,6 @@
 import CircleX from 'lucide-react/icons/circle-x';
 import Info from 'lucide-react/icons/info';
+import type { ReactNode, SubmitEvent } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { AdvancedSection } from '$components/modals/AccountModal/AdvancedSection';
@@ -33,10 +34,10 @@ interface CredentialsFormProps {
   testSuccess: boolean;
   testedCalendarCount: number;
   testedPushSupportedCount: number;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: SubmitEvent<HTMLFormElement>) => void;
 }
 
-const SERVER_HINTS: Partial<Record<ServerType, { text: React.ReactNode; href: string }>> = {
+const SERVER_HINTS: Partial<Record<ServerType, { text: ReactNode; href: string }>> = {
   fastmail: {
     text: (
       <>

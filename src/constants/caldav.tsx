@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react';
 import type { ServerType } from '$types';
 
 export interface CalDAVWarning {
   title: string;
-  message: React.ReactNode;
+  message: ReactNode;
   confirmLabel: string;
   delayConfirmSeconds?: number;
 }
