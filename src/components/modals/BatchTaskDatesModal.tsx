@@ -118,6 +118,19 @@ export const BatchTaskDatesModal = ({
     return { [dateKey]: resolvedDate, [allDayKey]: allDay } as Partial<Task>;
   };
 
+  const handleClear = () => {
+    setDueDate(undefined);
+    setDueDateAllDay(true);
+    setStartDate(undefined);
+    setStartDateAllDay(true);
+    setPreserveDueTime(false);
+    setPreserveStartTime(false);
+    setHasSetDueDate(true);
+    setHasSetStartDate(true);
+  };
+
+  const hasAnyExistingDate = tasks.some((task) => task.dueDate || task.startDate);
+
   const handleSave = () => {
     const updates = tasks.flatMap((task) => {
       const taskUpdates: Partial<Task> = {};
@@ -195,7 +208,7 @@ export const BatchTaskDatesModal = ({
         <button
           type="button"
           onClick={() => setEditingField(field)}
-          className="flex w-full items-center gap-2 rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-left text-sm transition-colors hover:border-surface-300 focus:border-primary-500 focus:bg-white focus:outline-hidden dark:bg-surface-800 dark:focus:bg-surface-800 dark:hover:border-surface-500"
+          className="flex w-full items-center gap-2 rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-left text-sm transition-colors hover:border-surface-300 focus:border-primary-500 focus:bg-white focus:outline-hidden dark:bg-surface-700 dark:focus:bg-surface-700 dark:hover:border-surface-500"
         >
           {date ? (
             <span className="text-surface-700 dark:text-surface-300">
@@ -238,6 +251,17 @@ export const BatchTaskDatesModal = ({
         description={`${selectedCount} selected ${selectedCount === 1 ? 'task' : 'tasks'}`}
         zIndex="z-60"
         className="max-w-sm"
+        footerLeft={
+          hasAnyExistingDate ? (
+            <ModalButton
+              variant="ghost"
+              onClick={handleClear}
+              className="text-surface-500 hover:bg-semantic-error/10 hover:text-semantic-error dark:text-surface-400"
+            >
+              Clear
+            </ModalButton>
+          ) : null
+        }
         footer={
           <>
             <ModalButton variant="ghost" onClick={onClose}>
@@ -249,9 +273,9 @@ export const BatchTaskDatesModal = ({
           </>
         }
       >
-        <div className="space-y-6 p-4">
-          {renderDateRow('dueDate')}
+        <div className="space-y-6">
           {renderDateRow('startDate')}
+          {renderDateRow('dueDate')}
         </div>
       </ModalWrapper>
 
