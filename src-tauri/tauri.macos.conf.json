@@ -3,7 +3,7 @@
     "beforeBundleCommand": "cd src-tauri && ./fix-libs.sh"
   },
   "bundle": {
-    "targets": ["dmg", "app"],
+    "targets": ["dmg"],
     "icon": ["gen/Chiri.icns"],
     "resources": {
       "gen/Assets.car": "Assets.car",
