@@ -17,7 +17,7 @@ tauri-plugin-http = { version = "2", default-features = false, features = ["cook
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-notification = "2"
-tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-sql = { version = "2", default-features = false, features = ["sqlite"] }
 tauri-plugin-log = { version = "2", features = ["colored"] }
 tauri-plugin-autostart = "2"
 serde = { version = "1.0", features = ["derive"] }
