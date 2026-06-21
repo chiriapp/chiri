@@ -4,17 +4,18 @@ import { useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
+import { RepeatFrequencyList } from '$components/modals/repeat/RepeatFrequencyList';
+import { RepeatRuleSummary } from '$components/modals/repeat/RepeatRuleSummary';
 import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import type { RecurrenceFrequency } from '$types/recurrence';
 import { formatDate } from '$utils/date';
 import {
+  classifyRRule,
   frequencyToRRule,
-  getNextOccurrences,
   mergeRRuleParts,
   parseRRule,
   rruleToFrequency,
-  rruleToText,
 } from '$utils/recurrence';
 
 interface RepeatModalProps {
@@ -83,15 +84,6 @@ const PRESET_PERIOD_LABEL: Partial<
   monthly: { singular: 'month', plural: 'months' },
   yearly: { singular: 'year', plural: 'years' },
 };
-
-const FREQUENCY_OPTIONS: { value: RecurrenceFrequency; label: string }[] = [
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekdays', label: 'Weekdays' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Yearly' },
-  { value: 'custom', label: 'Custom…' },
-];
 
 const parseToUIState = (
   rrule: string | undefined,
@@ -166,7 +158,11 @@ const parseToUIState = (
 
 const MANAGED_RRULE_KEYS = ['FREQ', 'INTERVAL', 'BYDAY', 'BYMONTHDAY', 'COUNT', 'UNTIL'] as const;
 
-const buildFromUIState = (state: RepeatUIState, originalRrule?: string) => {
+const buildFromUIState = (
+  state: RepeatUIState,
+  originalRrule?: string,
+  initialState?: RepeatUIState,
+) => {
   if (state.freq === 'none') return undefined;
 
   let base: Record<string, string>;
@@ -178,6 +174,9 @@ const buildFromUIState = (state: RepeatUIState, originalRrule?: string) => {
     }
   } else {
     base = parseRRule(frequencyToRRule(state.freq));
+    if (state.freq === 'weekly' && state.byday.length > 0) {
+      base.BYDAY = state.byday.join(',');
+    }
   }
 
   const isMonthly =
@@ -198,7 +197,46 @@ const buildFromUIState = (state: RepeatUIState, originalRrule?: string) => {
     base.UNTIL = `${state.until.replace(/-/g, '')}T000000Z`;
   }
 
-  return mergeRRuleParts(originalRrule, MANAGED_RRULE_KEYS, base);
+  if (!originalRrule || !initialState) {
+    return mergeRRuleParts(originalRrule, MANAGED_RRULE_KEYS, base);
+  }
+
+  const frequencyChanged =
+    state.freq !== initialState.freq || state.customPeriod !== initialState.customPeriod;
+  const selectorChanged =
+    frequencyChanged ||
+    state.monthlyMode !== initialState.monthlyMode ||
+    state.monthlyDay !== initialState.monthlyDay ||
+    state.monthlyOrdinal !== initialState.monthlyOrdinal ||
+    state.monthlyWeekday !== initialState.monthlyWeekday ||
+    state.byday.join(',') !== initialState.byday.join(',');
+  const endChanged =
+    state.endMode !== initialState.endMode ||
+    state.count !== initialState.count ||
+    state.until !== initialState.until;
+  const managedKeys: string[] = [];
+  const updates: Record<string, string | undefined> = {};
+
+  if (frequencyChanged) {
+    managedKeys.push('FREQ');
+    updates.FREQ = base.FREQ;
+  }
+  if (selectorChanged) {
+    managedKeys.push('BYDAY', 'BYMONTHDAY');
+    updates.BYDAY = base.BYDAY;
+    updates.BYMONTHDAY = base.BYMONTHDAY;
+  }
+  if (state.interval !== initialState.interval) {
+    managedKeys.push('INTERVAL');
+    updates.INTERVAL = base.INTERVAL;
+  }
+  if (endChanged) {
+    managedKeys.push('COUNT', 'UNTIL');
+    updates.COUNT = base.COUNT;
+    updates.UNTIL = base.UNTIL;
+  }
+
+  return mergeRRuleParts(originalRrule, managedKeys, updates);
 };
 
 const inputCls =
@@ -232,7 +270,7 @@ export const RepeatModal = ({
   dueDate,
   initialCustom = false,
   onSave,
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: recurrence controls intentionally coordinate one shared draft state
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: top-level coordinator delegates the major visual sections and owns their shared draft state
 }: RepeatModalProps) => {
   const [ui, setUI] = useState<RepeatUIState>(() => parseToUIState(rrule, dueDate, initialCustom));
   const [localRepeatFrom, setLocalRepeatFrom] = useState(repeatFrom);
@@ -270,12 +308,14 @@ export const RepeatModal = ({
   const handleDone = () => {
     const initialState = parseToUIState(rrule, dueDate, initialCustom);
     const ruleChanged = JSON.stringify(ui) !== JSON.stringify(initialState);
-    onSave(!ruleChanged && rrule ? rrule : buildFromUIState(ui, rrule), localRepeatFrom);
+    onSave(
+      !ruleChanged && rrule ? rrule : buildFromUIState(ui, rrule, initialState),
+      localRepeatFrom,
+    );
     onClose();
   };
 
   const isRecurring = ui.freq !== 'none';
-  const isDoneDisabled = ui.endMode === 'until' && !ui.until;
 
   const periodLabels = PRESET_PERIOD_LABEL[ui.freq];
   const periodLabel = periodLabels
@@ -291,12 +331,30 @@ export const RepeatModal = ({
     ui.freq === 'monthly' || (ui.freq === 'custom' && ui.customPeriod === 'MONTHLY');
   const initialState = parseToUIState(rrule, dueDate, initialCustom);
   const ruleChanged = JSON.stringify(ui) !== JSON.stringify(initialState);
-  const draftRrule = !ruleChanged && rrule ? rrule : buildFromUIState(ui, rrule);
-  const previewStart = dueDate ?? new Date();
-  const occurrencePreview =
-    draftRrule && localRepeatFrom !== 1
-      ? getNextOccurrences(draftRrule, previewStart, previewStart, 3)
-      : [];
+  const draftRrule = !ruleChanged && rrule ? rrule : buildFromUIState(ui, rrule, initialState);
+  const capability = classifyRRule(rrule);
+  const frequencyChanged =
+    ui.freq !== initialState.freq || ui.customPeriod !== initialState.customPeriod;
+  const selectorChanged =
+    ui.monthlyMode !== initialState.monthlyMode ||
+    ui.monthlyDay !== initialState.monthlyDay ||
+    ui.monthlyOrdinal !== initialState.monthlyOrdinal ||
+    ui.monthlyWeekday !== initialState.monthlyWeekday ||
+    ui.byday.join(',') !== initialState.byday.join(',');
+  const hasUnsafeImportedEdit =
+    ruleChanged &&
+    (capability.invalidParts.length > 0 ||
+      (capability.preservedKeys.length > 0 && (frequencyChanged || selectorChanged)));
+  const hasInvalidMonthlyDay =
+    showMonthlyPattern &&
+    ui.monthlyMode === 'monthday' &&
+    (!Number.isInteger(ui.monthlyDay) || ui.monthlyDay < 1 || ui.monthlyDay > 31);
+  const validationError = hasInvalidMonthlyDay
+    ? 'Choose a day from 1 to 31.'
+    : hasUnsafeImportedEdit
+      ? 'This imported rule cannot be safely changed in the visual editor.'
+      : null;
+  const isDoneDisabled = (ui.endMode === 'until' && !ui.until) || validationError !== null;
 
   // reorder weekdays to respect the user's week start preference
   // WEEKDAY_OPTIONS is MO-first (index 0=MO, ..., 6=SU)
@@ -351,51 +409,21 @@ export const RepeatModal = ({
         }
       >
         <div className="flex min-h-100">
-          <div className="flex w-40 shrink-0 flex-col gap-1.5 border-surface-200 border-r p-4 dark:border-surface-700">
-            {FREQUENCY_OPTIONS.map(({ value, label }) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={ui.freq === value}
-                onClick={() => {
-                  const byday =
-                    value === 'weekdays'
-                      ? ['MO', 'TU', 'WE', 'TH', 'FR']
-                      : value === 'weekly'
-                        ? (parseRRule(frequencyToRRule('weekly', dueDate)).BYDAY?.split(',') ?? [])
-                        : [];
-                  update({ freq: value, byday });
-                }}
-                className={`w-full rounded-lg px-2 py-1.5 text-left font-medium text-xs outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                  ui.freq === value
-                    ? 'bg-primary-500 text-primary-contrast'
-                    : 'bg-surface-100 text-surface-700 hover:bg-surface-200 dark:bg-surface-700 dark:text-surface-300 dark:hover:bg-surface-600'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          <RepeatFrequencyList
+            value={ui.freq}
+            dueDate={dueDate}
+            onChange={(freq, byday) => update({ freq, byday })}
+          />
           <div className="min-w-0 flex-1 space-y-4 p-4">
-            {draftRrule && (
-              <div className="rounded-lg bg-primary-500/10 px-3 py-2.5">
-                <p className="font-medium text-sm text-surface-800 dark:text-surface-100">
-                  {rruleToText(draftRrule, localRepeatFrom, dateFormat)}
-                </p>
-                {localRepeatFrom === 1 ? (
-                  <p className="mt-1 text-surface-500 text-xs dark:text-surface-400">
-                    Future dates depend on when the task is completed.
-                  </p>
-                ) : occurrencePreview.length > 0 ? (
-                  <p className="mt-1 text-surface-500 text-xs dark:text-surface-400">
-                    Next:{' '}
-                    {occurrencePreview
-                      .map((date) => formatDate(date, true, dateFormat))
-                      .join(' · ')}
-                  </p>
-                ) : null}
-              </div>
-            )}
+            <RepeatRuleSummary
+              rrule={draftRrule}
+              repeatFrom={localRepeatFrom}
+              dueDate={dueDate}
+              dateFormat={dateFormat}
+              preservedKeys={capability.preservedKeys}
+              invalidParts={capability.invalidParts}
+              validationError={validationError}
+            />
             {showInterval && (
               <div className="flex items-center gap-2">
                 <span className="shrink-0 text-sm text-surface-600 dark:text-surface-400">

@@ -11,6 +11,7 @@ vi.mock('$utils/date', () => ({
 
 import {
   buildRRule,
+  classifyRRule,
   frequencyToRRule,
   getNextOccurrence,
   getNextOccurrences,
@@ -95,6 +96,40 @@ describe('mergeRRuleParts', () => {
     expect(mergeRRuleParts('FREQ=DAILY;COUNT=5;X-FOO=bar', ['COUNT'], {})).toBe(
       'FREQ=DAILY;X-FOO=bar',
     );
+  });
+});
+
+describe('classifyRRule', () => {
+  it('separates editable, preserved, and invalid fields', () => {
+    expect(
+      classifyRRule('FREQ=MONTHLY;BYDAY=MO;BYSETPOS=1;BYMONTH=6;WKST=SU;X-FOO=bar'),
+    ).toMatchObject({
+      editableKeys: ['FREQ', 'BYDAY'],
+      preservedKeys: ['BYSETPOS', 'BYMONTH', 'WKST'],
+      invalidParts: ['X-FOO'],
+    });
+  });
+
+  it('recognizes editable fields and rejects mutually exclusive endings', () => {
+    expect(
+      classifyRRule('FREQ=MONTHLY;INTERVAL=2;BYMONTHDAY=15;COUNT=3;UNTIL=20270101T000000Z'),
+    ).toMatchObject({
+      preservedKeys: [],
+      invalidParts: ['COUNT+UNTIL'],
+    });
+  });
+
+  it('reports malformed, duplicate, and unknown RRULE parts', () => {
+    expect(classifyRRule('FREQ=DAILY;INTERVAL=2;INTERVAL=3;GARBAGE;X-APPLE-FOO=1')).toMatchObject({
+      invalidParts: ['INTERVAL', 'GARBAGE', 'X-APPLE-FOO'],
+    });
+  });
+
+  it('requires an editable frequency', () => {
+    expect(classifyRRule('INTERVAL=2')).toMatchObject({ invalidParts: ['FREQ'] });
+    expect(classifyRRule('FREQ=SECONDLY')).toMatchObject({
+      invalidParts: ['FREQ=SECONDLY'],
+    });
   });
 });
 

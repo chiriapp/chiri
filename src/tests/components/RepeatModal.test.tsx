@@ -98,4 +98,63 @@ describe('RepeatModal', () => {
 
     expect(onSave).toHaveBeenCalledWith('FREQ=MONTHLY;BYDAY=3MO', 0);
   });
+
+  it('preserves imported options unchanged and blocks unsafe visual edits', async () => {
+    const onSave = vi.fn();
+    const importedRule = 'FREQ=MONTHLY;BYDAY=MO;BYSETPOS=1';
+    await act(async () => {
+      root.render(
+        <RepeatModal
+          isOpen
+          onClose={vi.fn()}
+          rrule={importedRule}
+          repeatFrom={0}
+          onSave={onSave}
+        />,
+      );
+    });
+
+    expect(container.textContent).toContain('BYSETPOS');
+    const done = Array.from(container.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Done',
+    );
+    await act(async () => done?.click());
+    expect(onSave).toHaveBeenCalledWith(importedRule, 0);
+
+    const daily = Array.from(container.querySelectorAll('button')).find(
+      (button) => button.textContent?.trim() === 'Daily',
+    );
+    await act(async () => daily?.click());
+    expect(done?.hasAttribute('disabled')).toBe(true);
+    expect(container.querySelector('[role="alert"]')?.textContent).toContain(
+      'cannot be safely changed',
+    );
+  });
+
+  it('allows ending-only edits while preserving hidden recurrence fields', async () => {
+    const onSave = vi.fn();
+    const importedRule = 'FREQ=MONTHLY;BYDAY=MO;BYSETPOS=1;WKST=SU';
+    await act(async () => {
+      root.render(
+        <RepeatModal
+          isOpen
+          onClose={vi.fn()}
+          rrule={importedRule}
+          repeatFrom={0}
+          onSave={onSave}
+        />,
+      );
+    });
+
+    const button = (label: string) =>
+      Array.from(container.querySelectorAll('button')).find(
+        (candidate) => candidate.textContent?.trim() === label,
+      );
+    await act(async () => button('After')?.click());
+
+    const done = button('Done');
+    expect(done?.hasAttribute('disabled')).toBe(false);
+    await act(async () => done?.click());
+    expect(onSave).toHaveBeenCalledWith(`${importedRule};COUNT=5`, 0);
+  });
 });

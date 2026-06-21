@@ -1,9 +1,51 @@
 import { loggers } from '$lib/logger';
 import type { Task } from '$types';
+import type { ParsedTaskWithStatus } from '$types/import';
 import { generateUUID } from '$utils/misc';
 import { extractVTodos, parsedVTodoToTask, parseVTodo } from './vtodo';
 
 const log = loggers.iCal;
+
+/** materialize a parsed import task without dropping fields that are not shown in the review UI */
+export const createImportedTask = (
+  partialTask: ParsedTaskWithStatus,
+  uidMap: Map<string, string>,
+  accountId: string,
+  calendarId: string,
+): Task => {
+  const {
+    importStatus: _importStatus,
+    importError: _importError,
+    id: _id,
+    uid: originalUid,
+    accountId: _accountId,
+    calendarId: _calendarId,
+    synced: _synced,
+    parentUid: originalParentUid,
+    modifiedAt: _modifiedAt,
+    ...imported
+  } = partialTask;
+  const uid = originalUid ? uidMap.get(originalUid) : undefined;
+  const parentUid = originalParentUid ? uidMap.get(originalParentUid) : undefined;
+
+  return {
+    ...imported,
+    id: generateUUID(),
+    uid: uid || `${generateUUID()}@chiri`,
+    title: partialTask.title || 'Untitled Task',
+    description: partialTask.description || '',
+    status: partialTask.status || 'needs-action',
+    completed: partialTask.completed || false,
+    priority: partialTask.priority || 'none',
+    createdAt: partialTask.createdAt || new Date(),
+    modifiedAt: new Date(),
+    parentUid,
+    sortOrder: partialTask.sortOrder ?? Date.now(),
+    accountId,
+    calendarId,
+    synced: false,
+  };
+};
 
 /**
  * parse an ICS file and extract all tasks (VTODOs)

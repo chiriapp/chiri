@@ -123,6 +123,101 @@ export const parseRRule = (rruleValue: string) => {
   return result;
 };
 
+const VISUALLY_EDITABLE_RRULE_KEYS = new Set([
+  'FREQ',
+  'INTERVAL',
+  'BYDAY',
+  'BYMONTHDAY',
+  'COUNT',
+  'UNTIL',
+]);
+
+const PRESERVED_RRULE_KEYS = new Set([
+  'BYSETPOS',
+  'BYMONTH',
+  'BYYEARDAY',
+  'BYWEEKNO',
+  'BYHOUR',
+  'BYMINUTE',
+  'BYSECOND',
+  'WKST',
+]);
+
+const VISUALLY_EDITABLE_FREQUENCIES = new Set([
+  'MINUTELY',
+  'HOURLY',
+  'DAILY',
+  'WEEKLY',
+  'MONTHLY',
+  'YEARLY',
+]);
+
+export interface RRuleCapability {
+  editableKeys: string[];
+  preservedKeys: string[];
+  invalidParts: string[];
+  issues: string[];
+}
+
+/**
+ * classify an RRULE by what the visual editor owns, what it can round-trip opaquely,
+ * and what cannot be safely interpreted. X-* properties belong to the surrounding
+ * iCalendar component; an X-* token inside RRULE is therefore invalid here
+ */
+export const classifyRRule = (rruleValue: string | undefined): RRuleCapability => {
+  const result: RRuleCapability = {
+    editableKeys: [],
+    preservedKeys: [],
+    invalidParts: [],
+    issues: [],
+  };
+  if (!rruleValue) return result;
+
+  const seen = new Set<string>();
+  const values: Record<string, string> = {};
+  for (const rawPart of rruleValue.split(';')) {
+    const eq = rawPart.indexOf('=');
+    if (eq <= 0 || eq === rawPart.length - 1) {
+      result.invalidParts.push(rawPart || '(empty)');
+      result.issues.push(`Malformed RRULE part: ${rawPart || '(empty)'}`);
+      continue;
+    }
+
+    const key = rawPart.slice(0, eq).toUpperCase();
+    const value = rawPart.slice(eq + 1);
+    if (seen.has(key)) {
+      result.invalidParts.push(key);
+      result.issues.push(`Duplicate RRULE field: ${key}`);
+      continue;
+    }
+    seen.add(key);
+    values[key] = value;
+
+    if (VISUALLY_EDITABLE_RRULE_KEYS.has(key)) {
+      result.editableKeys.push(key);
+    } else if (PRESERVED_RRULE_KEYS.has(key)) {
+      result.preservedKeys.push(key);
+    } else {
+      result.invalidParts.push(key);
+      result.issues.push(`Unknown RRULE field: ${key}`);
+    }
+  }
+
+  if (!values.FREQ) {
+    result.invalidParts.push('FREQ');
+    result.issues.push('RRULE is missing FREQ');
+  } else if (!VISUALLY_EDITABLE_FREQUENCIES.has(values.FREQ.toUpperCase())) {
+    result.invalidParts.push(`FREQ=${values.FREQ}`);
+    result.issues.push(`Frequency cannot be edited visually: ${values.FREQ}`);
+  }
+  if (values.COUNT && values.UNTIL) {
+    result.invalidParts.push('COUNT+UNTIL');
+    result.issues.push('COUNT and UNTIL cannot be used together');
+  }
+
+  return result;
+};
+
 /**
  * build an RRULE value string from a key→value map
  * FREQ is always placed first as required by RFC 5545

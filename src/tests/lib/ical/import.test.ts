@@ -6,7 +6,12 @@ vi.mock('$utils/misc', () => ({
   generateUUID: () => `uuid-${++uuidCounter}`,
 }));
 
-import { parseIcsFile, parseJsonTasksFile, parseTasksOrgBackup } from '$lib/ical/import';
+import {
+  createImportedTask,
+  parseIcsFile,
+  parseJsonTasksFile,
+  parseTasksOrgBackup,
+} from '$lib/ical/import';
 
 const wrapVTodo = (lines: string[]) =>
   ['BEGIN:VCALENDAR', 'VERSION:2.0', 'BEGIN:VTODO', ...lines, 'END:VTODO', 'END:VCALENDAR'].join(
@@ -51,6 +56,47 @@ describe('parseIcsFile', () => {
 
     expect(result).toHaveLength(2);
     expect(result.map((t) => t.uid)).toEqual(['a', 'b']);
+  });
+});
+
+describe('createImportedTask', () => {
+  it('preserves recurrence and other non-previewed iCalendar fields', () => {
+    const uidMap = new Map([
+      ['original', 'new-task@chiri'],
+      ['parent', 'new-parent@chiri'],
+    ]);
+    const result = createImportedTask(
+      {
+        uid: 'original',
+        parentUid: 'parent',
+        title: 'Recurring import',
+        rrule: 'FREQ=MONTHLY;BYDAY=MO;BYSETPOS=1',
+        repeatFrom: 1,
+        startDateAllDay: true,
+        dueDateAllDay: true,
+        url: 'https://example.test/task',
+        reminders: [{ id: 'reminder', trigger: new Date('2026-06-23T08:00:00Z') }],
+        importStatus: 'pending',
+      },
+      uidMap,
+      'account',
+      'calendar',
+    );
+
+    expect(result).toMatchObject({
+      uid: 'new-task@chiri',
+      parentUid: 'new-parent@chiri',
+      rrule: 'FREQ=MONTHLY;BYDAY=MO;BYSETPOS=1',
+      repeatFrom: 1,
+      startDateAllDay: true,
+      dueDateAllDay: true,
+      url: 'https://example.test/task',
+      accountId: 'account',
+      calendarId: 'calendar',
+      synced: false,
+    });
+    expect(result.reminders).toHaveLength(1);
+    expect(result).not.toHaveProperty('importStatus');
   });
 });
 

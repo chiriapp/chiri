@@ -11,7 +11,7 @@ import { ReviewStep } from '$components/modals/ImportModal/ReviewStep';
 import { StepIndicator } from '$components/modals/ImportModal/StepIndicator';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useCreateTask } from '$hooks/queries/useTasks';
-import { parseIcsFile, parseJsonTasksFile } from '$lib/ical/import';
+import { createImportedTask, parseIcsFile, parseJsonTasksFile } from '$lib/ical/import';
 import { loggers } from '$lib/logger';
 import type { Calendar, Task } from '$types';
 import type { ImportStep, ParsedTaskWithStatus } from '$types/import';
@@ -143,38 +143,6 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     setSelectedCalendarId(calendarId);
   }, []);
 
-  // helper to create a Task from a partial task
-  const createTaskFromPartial = (
-    partialTask: ParsedTaskWithStatus,
-    uidMap: Map<string, string>,
-  ): Task => {
-    const newUid = partialTask.uid ? uidMap.get(partialTask.uid) : `${generateUUID()}@chiri`;
-    const newParentUid = partialTask.parentUid ? uidMap.get(partialTask.parentUid) : undefined;
-
-    return {
-      id: generateUUID(),
-      uid: newUid || `${generateUUID()}@chiri`,
-      title: partialTask.title || 'Untitled Task',
-      description: partialTask.description || '',
-      status: partialTask.status || 'needs-action',
-      completed: partialTask.completed || false,
-      completedAt: partialTask.completedAt,
-      percentComplete: partialTask.percentComplete,
-      priority: partialTask.priority || 'none',
-      categoryId: partialTask.categoryId,
-      startDate: partialTask.startDate,
-      dueDate: partialTask.dueDate,
-      createdAt: partialTask.createdAt || new Date(),
-      modifiedAt: new Date(),
-      parentUid: newParentUid,
-      isCollapsed: partialTask.isCollapsed || false,
-      sortOrder: partialTask.sortOrder || Date.now(),
-      accountId: selectedAccountId,
-      calendarId: selectedCalendarId,
-      synced: false,
-    };
-  };
-
   const handleImport = async () => {
     if (!selectedCalendarId || parsedTasks.length === 0) return;
 
@@ -211,7 +179,12 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
         setParsedTasks([...updatedTasks]);
 
         try {
-          const task = createTaskFromPartial(partialTask, uidMap);
+          const task = createImportedTask(
+            partialTask,
+            uidMap,
+            selectedAccountId,
+            selectedCalendarId,
+          );
           createTaskMutation.mutate(task);
 
           // update status to success
