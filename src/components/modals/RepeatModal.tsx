@@ -5,6 +5,7 @@ import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { RepeatFrequencyList } from '$components/modals/repeat/RepeatFrequencyList';
+import { RepeatRuleAlerts } from '$components/modals/repeat/RepeatRuleAlerts';
 import { RepeatRuleSummary } from '$components/modals/repeat/RepeatRuleSummary';
 import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
@@ -415,11 +416,7 @@ export const RepeatModal = ({
             onChange={(freq, byday) => update({ freq, byday })}
           />
           <div className="min-w-0 flex-1 space-y-4 p-4">
-            <RepeatRuleSummary
-              rrule={draftRrule}
-              repeatFrom={localRepeatFrom}
-              dueDate={dueDate}
-              dateFormat={dateFormat}
+            <RepeatRuleAlerts
               preservedKeys={capability.preservedKeys}
               invalidParts={capability.invalidParts}
               validationError={validationError}
@@ -672,6 +669,13 @@ export const RepeatModal = ({
                 </div>
               </div>
             )}
+
+            <RepeatRuleSummary
+              rrule={draftRrule}
+              repeatFrom={localRepeatFrom}
+              dueDate={dueDate}
+              dateFormat={dateFormat}
+            />
           </div>
         </div>
       </ModalWrapper>
