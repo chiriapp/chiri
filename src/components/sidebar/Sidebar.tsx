@@ -47,11 +47,13 @@ import {
   resetStaleCursorAfterLayout,
   resetStaleCursorOnLayerClose,
 } from '$hooks/ui/useStaleCursorReset';
+import { MOBILE_CONFIG_MIME_TYPE } from '$lib/mobileconfig';
+import { getMobileConfigFileName } from '$lib/mobileconfig/export';
+import { generateMobileConfig } from '$lib/mobileconfig/generate';
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account, Calendar, KeyboardShortcut } from '$types';
 import { formatShortcut, getModifierJoiner } from '$utils/keyboard';
 import { downloadFile } from '$utils/misc';
-import { generateMobileConfig } from '$utils/mobileconfig';
 
 interface SidebarProps {
   onOpenSettings?: () => void;
@@ -255,8 +257,7 @@ export const Sidebar = ({
 
     try {
       const xml = generateMobileConfig(account, includePassword);
-      const safeName = account.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const fileName = `${safeName}_caldav.mobileconfig`;
+      const fileName = getMobileConfigFileName(account);
 
       try {
         const path = await save({
@@ -270,7 +271,7 @@ export const Sidebar = ({
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('cancelled') || msg.includes('user closed')) return;
-        downloadFile(xml, fileName, 'application/x-apple-aspen-config');
+        downloadFile(xml, fileName, MOBILE_CONFIG_MIME_TYPE);
         setMobileConfigAccountId(null);
       }
     } catch (err) {

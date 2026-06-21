@@ -3,20 +3,29 @@ import { listen } from '@tauri-apps/api/event';
 import { platform } from '@tauri-apps/plugin-os';
 import { type DragEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { loggers } from '$lib/logger';
-import {
-  type MobileConfigCalDAVSettings,
-  type MobileConfigParseFailureReason,
-  parseAppleConfigProfileResult,
-} from '$utils/mobileconfig';
+import { isMobileConfigFileName, MOBILE_CONFIG_EXTENSION } from '$lib/mobileconfig';
+import { importMobileConfig } from '$lib/mobileconfig/import';
+import type {
+  MobileConfigCalDAVSettings,
+  MobileConfigImportFailureReason,
+} from '$types/mobileconfig';
 
 const log = loggers.fileDrop;
 
 // Supported file extensions for import
-const SUPPORTED_EXTENSIONS = ['.ics', '.ical', '.json', '.mobileconfig'];
-const CONFIG_PROFILE_PARSE_ERRORS: Record<MobileConfigParseFailureReason, string> = {
-  'invalid-xml': 'This configuration profile is not valid XML.',
+const SUPPORTED_EXTENSIONS = ['.ics', '.ical', '.json', MOBILE_CONFIG_EXTENSION];
+const CONFIG_PROFILE_IMPORT_ERRORS: Record<MobileConfigImportFailureReason, string> = {
+  'file-too-large': 'This configuration profile is too large to import.',
+  'invalid-profile': 'This file is not a valid configuration profile.',
+  'invalid-cms': 'This signed configuration profile is invalid.',
+  'encrypted-profile-unsupported': 'Encrypted configuration profiles are not supported yet.',
   'missing-payload-content': 'This configuration profile does not contain payload data.',
   'missing-caldav-payload': 'This configuration profile does not contain CalDAV account settings.',
+  'invalid-caldav-payload': 'This configuration profile contains invalid CalDAV account settings.',
+  'missing-hostname': 'A CalDAV account in this profile does not specify a server hostname.',
+  'invalid-hostname': 'A CalDAV account in this profile has an invalid server hostname.',
+  'invalid-port': 'A CalDAV account in this profile has an invalid server port.',
+  'invalid-principal-url': 'A CalDAV account in this profile has an invalid principal URL.',
   'unexpected-error': 'The file may be corrupted or may not be a configuration profile.',
 };
 const CONFIG_PROFILE_READ_ERROR = 'The file could not be read as a configuration profile.';
@@ -68,42 +77,18 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
 
       if (!isSupportedFile(fileName)) return;
 
-      const isMobileConfig = fileName.toLowerCase().endsWith('.mobileconfig');
+      const isMobileConfig = isMobileConfigFileName(fileName);
       if (isMobileConfig) {
         try {
           const rawBytes = await invoke<number[]>('read_file_bytes', { path: filePath });
           const bytes = new Uint8Array(rawBytes);
-          const textDecoder = new TextDecoder('utf-8');
-          const preview = textDecoder.decode(bytes.slice(0, 100));
-
-          let xmlContent: string;
-          if (preview.trimStart().startsWith('<?xml') || preview.includes('<!DOCTYPE plist')) {
-            xmlContent = textDecoder.decode(bytes);
-            log.debug('Detected XML format mobileconfig');
-          } else {
-            log.debug('Detected binary format mobileconfig, converting...');
-            try {
-              xmlContent = await invoke<string>('convert_plist_to_xml', {
-                data: Array.from(bytes),
-              });
-              log.debug('Binary plist converted successfully, XML length:', xmlContent.length);
-            } catch (err) {
-              log.error('Failed to convert binary plist:', err);
-              throw err;
-            }
-          }
-
-          if (!xmlContent || xmlContent.trim().length === 0) {
-            log.error('XML content is empty after conversion');
-            throw new Error('Empty XML content');
-          }
-
-          const result = parseAppleConfigProfileResult(xmlContent);
+          const result = await importMobileConfig(bytes);
           if (result.ok) {
-            onConfigProfileDrop?.(result.config);
+            // Step 5 adds a chooser for profiles containing more than one account.
+            onConfigProfileDrop?.(result.candidates[0]);
           } else {
-            log.warn(`Failed to parse Apple Configuration Profile: ${result.reason}`);
-            onConfigProfileError?.(CONFIG_PROFILE_PARSE_ERRORS[result.reason]);
+            log.warn(`Failed to import Apple Configuration Profile: ${result.reason}`);
+            onConfigProfileError?.(CONFIG_PROFILE_IMPORT_ERRORS[result.reason]);
           }
         } catch (err) {
           log.error('Failed to read Apple Configuration Profile:', err);
@@ -201,46 +186,19 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
       }
 
       // Check if it's an Apple Configuration Profile
-      const isMobileConfig = file.name.toLowerCase().endsWith('.mobileconfig');
+      const isMobileConfig = isMobileConfigFileName(file.name);
       if (isMobileConfig) {
         try {
           // Read file as array buffer first
           const arrayBuffer = await file.arrayBuffer();
           const bytes = new Uint8Array(arrayBuffer);
-
-          // Try to detect if it's XML by checking the first few bytes
-          const textDecoder = new TextDecoder('utf-8');
-          const preview = textDecoder.decode(bytes.slice(0, 100));
-
-          let xmlContent: string;
-
-          if (preview.trimStart().startsWith('<?xml') || preview.includes('<!DOCTYPE plist')) {
-            xmlContent = textDecoder.decode(bytes);
-            log.debug('Detected XML format mobileconfig');
-          } else {
-            log.debug('Detected binary format mobileconfig, converting...');
-            try {
-              xmlContent = await invoke<string>('convert_plist_to_xml', {
-                data: Array.from(bytes),
-              });
-              log.debug('Binary plist converted successfully, XML length:', xmlContent.length);
-            } catch (err) {
-              log.error('Failed to convert binary plist:', err);
-              throw err;
-            }
-          }
-
-          if (!xmlContent || xmlContent.trim().length === 0) {
-            log.error('XML content is empty after conversion');
-            throw new Error('Empty XML content');
-          }
-
-          const result = parseAppleConfigProfileResult(xmlContent);
+          const result = await importMobileConfig(bytes);
           if (result.ok) {
-            onConfigProfileDrop?.(result.config);
+            // Step 5 adds a chooser for profiles containing more than one account.
+            onConfigProfileDrop?.(result.candidates[0]);
           } else {
-            log.warn(`Failed to parse Apple Configuration Profile: ${result.reason}`);
-            onConfigProfileError?.(CONFIG_PROFILE_PARSE_ERRORS[result.reason]);
+            log.warn(`Failed to import Apple Configuration Profile: ${result.reason}`);
+            onConfigProfileError?.(CONFIG_PROFILE_IMPORT_ERRORS[result.reason]);
           }
         } catch (err) {
           log.error('Failed to read Apple Configuration Profile:', err);

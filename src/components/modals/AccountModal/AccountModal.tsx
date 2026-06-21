@@ -32,8 +32,8 @@ import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
 import { isCertError, tauriRequest } from '$lib/tauriHttp';
 import type { Account, Calendar, ServerType } from '$types';
+import type { MobileConfigCalDAVSettings } from '$types/mobileconfig';
 import { generateUUID } from '$utils/misc';
-import type { MobileConfigCalDAVSettings } from '$utils/mobileconfig';
 
 const log = loggers.account;
 

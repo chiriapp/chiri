@@ -18,9 +18,11 @@ import { useConnectionStore } from '$context/connectionContext';
 import { useAccountDeletion } from '$hooks/deletion/useAccountDeletion';
 import { useTasks } from '$hooks/queries/useTasks';
 import { CalDAVClient } from '$lib/caldav';
+import { MOBILE_CONFIG_MIME_TYPE } from '$lib/mobileconfig';
+import { getMobileConfigFileName } from '$lib/mobileconfig/export';
+import { generateMobileConfig } from '$lib/mobileconfig/generate';
 import type { Account } from '$types';
 import { downloadFile, pluralize } from '$utils/misc';
-import { generateMobileConfig } from '$utils/mobileconfig';
 
 interface ConnectionsSettingsProps {
   accounts: Account[];
@@ -119,8 +121,7 @@ export const ConnectionsSettings = ({
 
     try {
       const xml = generateMobileConfig(account, includePassword);
-      const safeName = account.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const fileName = `${safeName}_caldav.mobileconfig`;
+      const fileName = getMobileConfigFileName(account);
 
       try {
         const path = await save({
@@ -138,7 +139,7 @@ export const ConnectionsSettings = ({
         if (msg.includes('cancelled') || msg.includes('user closed')) return;
 
         // Fall back to blob download if Tauri APIs are unavailable
-        downloadFile(xml, fileName, 'application/x-apple-aspen-config');
+        downloadFile(xml, fileName, MOBILE_CONFIG_MIME_TYPE);
         setExportingAccount(null);
       }
     } catch (err) {

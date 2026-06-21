@@ -99,6 +99,7 @@ pub fn run() {
             tray::commands::update_tray_sync_time,
             utils::fs::read_file_bytes,
             utils::markdown::parse_and_sanitize_markdown,
+            utils::mobileconfig::decode_mobile_config,
             utils::plist::convert_plist_to_xml,
             #[cfg(target_os = "macos")]
             window::set_hide_dock_icon_when_window_closed,

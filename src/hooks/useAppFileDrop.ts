@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { type FileDropResult, useFileDrop } from '$hooks/system/useFileDrop';
 import { toastManager } from '$hooks/ui/useToast';
 import type { OpenAccountOptions } from '$types/controller';
-import type { MobileConfigCalDAVSettings } from '$utils/mobileconfig';
+import type { MobileConfigCalDAVSettings } from '$types/mobileconfig';
 
 interface UseAppFileDropOptions {
   isAnyModalOpen: boolean;

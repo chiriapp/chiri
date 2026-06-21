@@ -12,7 +12,7 @@ import type { UpdateError, UpdateInfo } from '$hooks/system/useUpdateChecker';
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account } from '$types';
 import type { AppModalActions, AppModalState } from '$types/controller';
-import type { MobileConfigCalDAVSettings } from '$utils/mobileconfig';
+import type { MobileConfigCalDAVSettings } from '$types/mobileconfig';
 
 interface AppModalsOnboarding {
   show: boolean;
