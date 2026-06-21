@@ -38,7 +38,7 @@ const getCheckboxAriaLabel = (task: Task, readOnly: boolean) => {
   if (readOnly) return 'Task status';
   if (task.status === 'cancelled') return 'Cancelled';
   if (task.status === 'in-process') return 'In Progress';
-  if (task.status === 'completed') return 'Completed — click to reopen';
+  if (task.status === 'completed') return 'Completed, click to reopen';
   return 'Mark complete';
 };
 
@@ -60,11 +60,11 @@ export const TaskEditorTitle = ({
     }
   }, [readOnly, task.id, task.title]);
 
-  // Auto-resize title textarea based on content
+  // auto-resize title textarea based on content
   useEffect(() => {
     const textarea = titleRef.current;
     if (!textarea) return;
-    // Skip if DOM value has not reflected the latest state yet.
+    // skip if DOM value has not reflected the latest state yet
     if (textarea.value !== pendingTitle) return;
     textarea.style.height = 'auto';
     textarea.style.height = `${textarea.scrollHeight}px`;

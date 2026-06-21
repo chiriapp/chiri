@@ -43,8 +43,8 @@ const hasReorderPersistenceChange = (before: Task | undefined, after: Task) => {
 };
 
 /**
- * Hook to get sorted children of a task, reactive to any task store changes.
- * Uses a queryKey under queryKeys.tasks.all so it is invalidated alongside other task queries.
+ * hook to get sorted children of a task, reactive to any task store changes
+ * uses a queryKey under queryKeys.tasks.all so it is invalidated alongside other task queries
  */
 export const useChildTasks = (parentUid: string, filter: ChildTaskFilter = 'all') => {
   return useQuery({
@@ -55,7 +55,7 @@ export const useChildTasks = (parentUid: string, filter: ChildTaskFilter = 'all'
 };
 
 /**
- * Hook to get all tasks
+ * hook to get all tasks
  */
 export const useTasks = () => {
   const queryClient = useQueryClient();
@@ -74,7 +74,7 @@ export const useTasks = () => {
 };
 
 /**
- * Hook to get filtered tasks based on current UI state
+ * hook to get filtered tasks based on current UI state
  */
 export const useFilteredTasks = () => {
   const queryClient = useQueryClient();
@@ -93,7 +93,7 @@ export const useFilteredTasks = () => {
 };
 
 /**
- * Hook to create a task
+ * hook to create a task
  */
 export const useCreateTask = () => {
   const queryClient = useQueryClient();
@@ -120,7 +120,7 @@ export const useCreateTask = () => {
 };
 
 /**
- * Hook to update a task
+ * hook to update a task
  */
 export const useUpdateTask = () => {
   const queryClient = useQueryClient();
@@ -145,7 +145,7 @@ export const useUpdateTask = () => {
 };
 
 /**
- * Hook to update multiple tasks while preserving the normal task update side effects.
+ * hook to update multiple tasks while preserving the normal task update side effects
  */
 export const useBatchUpdateTasks = () => {
   const queryClient = useQueryClient();
@@ -178,7 +178,7 @@ export const useBatchUpdateTasks = () => {
 };
 
 /**
- * Hook to delete a task
+ * hook to delete a task
  */
 export const useDeleteTask = () => {
   const queryClient = useQueryClient();
@@ -202,7 +202,7 @@ export const useDeleteTask = () => {
 };
 
 /**
- * Hook to restore a deleted task
+ * hook to restore a deleted task
  */
 export const useRestoreTask = () => {
   const queryClient = useQueryClient();
@@ -229,7 +229,7 @@ export const useRestoreTask = () => {
 };
 
 /**
- * Hook to permanently delete a task
+ * hook to permanently delete a task
  */
 export const usePermanentDeleteTask = () => {
   const queryClient = useQueryClient();
@@ -251,7 +251,7 @@ export const usePermanentDeleteTask = () => {
 };
 
 /**
- * Hook to toggle task completion
+ * hook to toggle task completion
  */
 export const useToggleTaskComplete = () => {
   const queryClient = useQueryClient();
@@ -280,7 +280,7 @@ export const useToggleTaskComplete = () => {
 };
 
 /**
- * Hook to reorder tasks
+ * hook to reorder tasks
  */
 export const useReorderTasks = () => {
   const queryClient = useQueryClient();

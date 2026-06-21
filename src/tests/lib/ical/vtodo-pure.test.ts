@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 
-// vtodo.ts transitively pulls in the store/settings → DOM theming chain.
-// Cut the chain at $lib/store/tags so the module evaluates in plain Node.
-// (Logger mocks come from src/tests/setup.ts.)
+// vtodo.ts transitively pulls in the store/settings → DOM theming chain
+// cut the chain at $lib/store/tags so the module evaluates in plain Node
+// (logger mocks come from src/tests/setup.ts)
 vi.mock('$lib/store/tags', () => ({ getAllTags: () => [] }));
 vi.mock('$utils/misc', () => ({ generateUUID: () => 'test-uuid' }));
 
@@ -89,7 +89,7 @@ describe('isDefaultCalDavDescription', () => {
   });
 
   it('is case-sensitive', () => {
-    // Documents current behavior — these are not treated as defaults.
+    // documents current behavior. these are not treated as defaults
     expect(isDefaultCalDavDescription('default chiri description')).toBe(false);
     expect(isDefaultCalDavDescription('EVENT REMINDER')).toBe(false);
   });

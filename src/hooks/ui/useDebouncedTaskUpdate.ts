@@ -17,11 +17,11 @@ export const useDebouncedTaskUpdate = <T>(
   const pendingValueRef = useRef(pendingValue);
   const initialValueRef = useRef(initialValue);
 
-  // Keep refs current
+  // keep refs current
   pendingValueRef.current = pendingValue;
   initialValueRef.current = initialValue;
 
-  // Sync pending value when task or initial value changes (e.g., switching tasks)
+  // sync pending value when task or initial value changes (e.g., switching tasks)
   const [prevTaskId, setPrevTaskId] = useState(taskId);
   const [prevInitialValue, setPrevInitialValue] = useState(initialValue);
   if (taskId !== prevTaskId || initialValue !== prevInitialValue) {

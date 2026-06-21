@@ -42,7 +42,7 @@ export const applyHiddenWindowDockIconState = async () => {
 };
 
 export const initializeApp = async () => {
-  // Initialize logger first so all subsequent logs are captured
+  // initialize logger first so all subsequent logs are captured
   await initLogger();
   log.info('Starting application initialization...');
 
@@ -64,7 +64,7 @@ export const initializeApp = async () => {
   try {
     await invoke('initialize_tray', { enabled: enableSystemTray });
     log.debug(`System tray initialized (enabled: ${enableSystemTray})`);
-    // Sync the applied value with the current setting on app start
+    // sync the applied value with the current setting on app start
     settingsStore.setSystemTrayAppliedValue(enableSystemTray);
   } catch (error) {
     log.error('Failed to initialize system tray:', error);
@@ -77,7 +77,7 @@ export const initializeApp = async () => {
   const shortcuts = settingsStore.getState().keyboardShortcuts;
   log.debug('Loaded keyboard shortcuts');
 
-  // Initialize app menu only on macOS.
+  // initialize app menu only on macOS
   const isWindows = isWindowsPlatform();
   const isMac = isMacPlatform();
 
@@ -154,12 +154,12 @@ export const deleteDatabase = async () => {
     await remove('chiri.db', { baseDir });
     log.info('Database file deleted successfully');
 
-    // Reset user preferences along with the database
+    // reset user preferences along with the database
     log.info('Resetting user preferences...');
     settingsStore.resetSettings();
     log.info('User preferences reset successfully');
 
-    // Relaunch the app so migrations run on the fresh database
+    // relaunch the app so migrations run on the fresh database
     log.info('Relaunching app to reinitialize database...');
     await relaunch();
   } catch (error) {

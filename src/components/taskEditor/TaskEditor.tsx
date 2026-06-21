@@ -84,7 +84,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   const resolvedAccentColor = useResolvedAccentColor();
   const { moveTaskToRecentlyDeleted, deleteTaskPermanently } = useTaskDeletion();
 
-  // Determine if parent task is visible in the current view
+  // determine if parent task is visible in the current view
   const visibleTasks = useVisibleTasks();
   const visibleTaskUids = new Set(visibleTasks.map((t) => t.uid));
   const parentTask =
@@ -103,22 +103,22 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
 
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const editorScrollRef = useRef<HTMLDivElement>(null);
-  // WebKit can keep a task row's grab cursor after the editor appears under a stationary mouse.
+  // WebKit can keep a task row's grab cursor after the editor appears under a stationary mouse
   useResetStaleCursorOnLayerOpen(true);
   usePreserveScrollOnWindowFocus(editorScrollRef);
 
   const [showTagsModal, setShowTagsModal] = useState(false);
 
-  // Date picker state
+  // date picker state
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showDueDatePicker, setShowDueDatePicker] = useState(false);
   const [showMoveCalendarModal, setShowMoveCalendarModal] = useState(false);
 
-  // Repeat modal state
+  // repeat modal state
   const [showRepeatModal, setShowRepeatModal] = useState(false);
   const [openRepeatAsCustom, setOpenRepeatAsCustom] = useState(false);
 
-  // Reminder picker state
+  // reminder picker state
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
   const [editReminderDate, setEditReminderDate] = useState<Date | undefined>(undefined);
@@ -152,7 +152,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   };
 
   const handleClose = () => {
-    // WebKit can keep the close button's pointer cursor after the task row appears underneath.
+    // WebKit can keep the close button's pointer cursor after the task row appears underneath
     resetStaleCursorOnLayerClose();
     setEditorOpenMutation.mutate(false);
   };

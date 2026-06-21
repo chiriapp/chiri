@@ -53,7 +53,7 @@ const App = () => {
     tasks,
   });
 
-  // Derived app state used by the shell and global integrations.
+  // derived app state used by the shell and global integrations
   const isSyncInProgress = isSyncing || syncingCalendarId !== null;
   const hasCalDAVAccounts = accounts.some((account) => account.caldav);
   const visibleTask = useVisibleEditorTask(tasks);

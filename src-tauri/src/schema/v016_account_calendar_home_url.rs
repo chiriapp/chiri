@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds optional calendar_home_url override to accounts
+/// adds optional calendar_home_url override to accounts
 pub fn migration() -> Migration {
     Migration {
         version: 16,

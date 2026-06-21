@@ -2,8 +2,8 @@ use der::{Decode, Encode};
 use std::io::Cursor;
 use tauri::command;
 
-/// Convert a binary or signed plist to XML format
-/// Takes raw bytes and returns XML string if successful
+/// convert a binary or signed plist to XML format
+/// takes raw bytes and returns XML string if successful
 #[command]
 pub fn convert_plist_to_xml(data: Vec<u8>) -> Result<String, String> {
     log::debug!(
@@ -11,11 +11,11 @@ pub fn convert_plist_to_xml(data: Vec<u8>) -> Result<String, String> {
         data.len()
     );
 
-    // First, try to parse as a standard plist (binary or XML)
+    // first, try to parse as a standard plist (binary or XML)
     let cursor = Cursor::new(&data);
     match plist::from_reader::<_, plist::Value>(cursor) {
         Ok(value) => {
-            // Successfully parsed as plist, convert to XML
+            // successfully parsed as plist, convert to XML
             let mut xml_data = Vec::new();
             plist::to_writer_xml(&mut xml_data, &value).map_err(|e| {
                 log::warn!("[Plist] Failed to convert plist to XML: {e}");
@@ -39,12 +39,12 @@ pub fn convert_plist_to_xml(data: Vec<u8>) -> Result<String, String> {
         }
     }
 
-    // If standard plist parsing failed, try to decode as CMS-signed profile
-    // This is common for signed configuration profiles from services like Fastmail
+    // if standard plist parsing failed, try to decode as CMS-signed profile
+    // this is common for signed configuration profiles from services like Fastmail
     use cms::content_info::ContentInfo;
     use cms::signed_data::SignedData;
 
-    // Parse the outer ContentInfo wrapper using BER (more lenient than DER)
+    // parse the outer ContentInfo wrapper using BER (more lenient than DER)
     // Apple's signed mobileconfig files may have unordered SET OF elements
     let content_info = ContentInfo::from_ber(&data)
         .map_err(|e| format!("Failed to parse as CMS ContentInfo: {}", e))?;
@@ -54,7 +54,7 @@ pub fn convert_plist_to_xml(data: Vec<u8>) -> Result<String, String> {
         content_info.content_type
     );
 
-    // Re-encode the content to DER bytes for SignedData parsing
+    // re-encode the content to DER bytes for SignedData parsing
     let content_bytes = content_info
         .content
         .to_der()
@@ -62,11 +62,11 @@ pub fn convert_plist_to_xml(data: Vec<u8>) -> Result<String, String> {
 
     log::debug!("[Plist] Content DER bytes length: {}", content_bytes.len());
 
-    // Parse as SignedData (also use BER for leniency)
+    // parse as SignedData (also use BER for leniency)
     let signed_data = SignedData::from_ber(&content_bytes)
         .map_err(|e| format!("Failed to decode SignedData: {}", e))?;
 
-    // Get the encapsulated content
+    // get the encapsulated content
     let encap_content = signed_data
         .encap_content_info
         .econtent
@@ -75,12 +75,12 @@ pub fn convert_plist_to_xml(data: Vec<u8>) -> Result<String, String> {
     let decoded_bytes = encap_content.value();
     log::debug!("[Plist] Decoded CMS content, {} bytes", decoded_bytes.len());
 
-    // Now try to parse the decoded content as plist
+    // now try to parse the decoded content as plist
     let cursor = Cursor::new(decoded_bytes);
     let value: plist::Value =
         plist::from_reader(cursor).map_err(|e| format!("Failed to parse decoded plist: {}", e))?;
 
-    // Convert to XML
+    // convert to XML
     let mut xml_data = Vec::new();
     plist::to_writer_xml(&mut xml_data, &value)
         .map_err(|e| format!("Failed to convert decoded plist to XML: {}", e))?;

@@ -14,14 +14,14 @@ interface ToastOptions {
 }
 
 /**
- * Toast manager for showing notifications using Sonner
- * Provides a simple API for displaying different types of toasts
+ * toast manager for showing notifications using Sonner
+ * provides a simple API for displaying different types of toasts
  */
 class ToastManager {
   private activeToastIds: Map<string, string | number> = new Map();
 
   /**
-   * Show a toast notification
+   * show a toast notification
    * @param groupKey - Optional key to prevent duplicate toasts for the same event
    * @param action - Optional action button with label and onClick handler
    * @param closeButton - Whether to show the close button (defaults to true)
@@ -39,7 +39,7 @@ class ToastManager {
       `[${type.toUpperCase()}] Showing toast: "${title}" | "${message}" | groupKey: ${groupKey || 'none'}`,
     );
 
-    // If groupKey is provided, dismiss any existing toast for this group
+    // if groupKey is provided, dismiss any existing toast for this group
     if (groupKey) {
       const existingToastId = this.activeToastIds.get(groupKey);
       if (existingToastId) {
@@ -48,7 +48,7 @@ class ToastManager {
       }
     }
 
-    // Map our type to the appropriate sonner method
+    // map our type to the appropriate sonner method
     const toastFn = toast[type];
 
     const toastId = toastFn(title, {
@@ -64,10 +64,10 @@ class ToastManager {
         : undefined,
     });
 
-    // Track the toast ID if groupKey is provided
+    // track the toast ID if groupKey is provided
     if (groupKey && toastId) {
       this.activeToastIds.set(groupKey, toastId);
-      // Clean up after toast is dismissed
+      // clean up after toast is dismissed
       setTimeout(() => {
         this.activeToastIds.delete(groupKey);
       }, 6000);
@@ -121,7 +121,7 @@ class ToastManager {
   }
 
   /**
-   * Dismiss a toast by its group key
+   * dismiss a toast by its group key
    */
   dismiss(groupKey: string) {
     const toastId = this.activeToastIds.get(groupKey);
@@ -135,7 +135,7 @@ class ToastManager {
 export const toastManager = new ToastManager();
 
 /**
- * Hook for showing toast notifications
+ * hook for showing toast notifications
  */
 export const useToast = () => {
   return {

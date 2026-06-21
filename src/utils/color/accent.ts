@@ -2,10 +2,10 @@ import type { AccentColor, ColorSchemeAccent } from '$types/color';
 import { getContrastTextColor, hslToRgb, parseCssColor, rgbToHsl } from '$utils/color';
 
 /**
- * resolve a stored accent value to a hex color.
- * presets are stored by name (e.g. "Rose"); custom colors are stored as hex.
- * if the stored value matches a preset name, returns its current hex — making
- * the palette resilient to hex changes without orphaning user selections.
+ * resolve a stored accent value to a hex color
+ * presets are stored by name (e.g. "Rose"); custom colors are stored as hex
+ * if the stored value matches a preset name, returns its current hex, making
+ * the palette resilient to hex changes without orphaning user selections
  */
 export const resolveAccentColor = (
   stored: AccentColor,
@@ -50,11 +50,7 @@ const applyPrimaryPalette = (color: AccentColor, lightnessMultiplier: number) =>
 
 /**
  * like applyAccentColor, but anchors primary-500 to the exact chosen color by using
- * a 1.0× lightness shift. This means every element using primary-500 shows exactly
- * the color the user picked from the scheme's palette (e.g. Catppuccin's light pink
- * #f5c2e7 at L≈86% produces primary-500 at L=86%), with darker/lighter shades
- * radiating naturally from that anchor point.
- * Operates directly on parsed RGB — no intermediate string conversion.
+ * a 1.0× lightness shift. operates directly on parsed RGB. no intermediate string conversion
  */
 export const applySchemeAccentColor = (color: AccentColor) => {
   applyPrimaryPalette(color, 1);

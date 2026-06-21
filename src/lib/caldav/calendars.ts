@@ -31,11 +31,11 @@ export const calendarExists = async (conn: Connection, calendarUrl: string) => {
 };
 
 /**
- * Parse WebDAV Push properties from a single calendar's already-extracted prop values.
+ * parse WebDAV Push properties from a single calendar's already-extracted prop values
  *
- * Uses the per-calendar `topic` and `transports` values from parseMultiStatus rather than
+ * uses the per-calendar `topic` and `transports` values from parseMultiStatus rather than
  * scanning the full response body, which would cause all calendars to inherit the first
- * match found anywhere in the document.
+ * match found anywhere in the document
  */
 const parsePushProperties = (
   topicProp: string | null | undefined,
@@ -80,7 +80,7 @@ export const discoverCalendars = async (
   conn: Connection,
   accountId: string,
 ): Promise<CalendarDiscoveryResult> => {
-  // Include WebDAV Push properties in the PROPFIND request
+  // include WebDAV Push properties in the PROPFIND request
   const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
 <d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:a="http://apple.com/ns/ical/" xmlns:P="${NS_WEBDAV_PUSH}">
   <d:prop>

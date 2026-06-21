@@ -13,16 +13,16 @@ export interface ConfirmOptions {
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
-  // Optional third action for special cases (e.g., "Keep subtasks" when deleting)
+  // optional third action for special cases (e.g., "Keep subtasks" when deleting)
   alternateLabel?: string;
   alternateDestructive?: boolean;
-  // Optional delay before confirm button becomes enabled (in seconds)
+  // optional delay before confirm button becomes enabled (in seconds)
   delayConfirmSeconds?: number;
-  // Optional info notice banner shown between message and buttons
+  // optional info notice banner shown between message and buttons
   notice?: ConfirmNotice;
-  // Disable the confirm button (e.g. when the action is not supported)
+  // disable the confirm button (e.g. when the action is not supported)
   disableConfirm?: boolean;
-  // Keep dialog open after confirm so the caller can drive loading/error state.
+  // keep dialog open after confirm so the caller can drive loading/error state
   keepOpenOnConfirm?: boolean;
 }
 

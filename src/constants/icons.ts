@@ -60,10 +60,10 @@ import Zap from 'lucide-react/icons/zap';
 import type { LucideIcon } from '$types/lucide';
 
 /**
- * Available icons for calendars and tags
+ * available icons for calendars and tags
  */
 export const CALENDAR_ICONS: { name: string; icon: LucideIcon }[] = [
-  // Organization
+  // organization
   { name: 'calendar', icon: Calendar },
   { name: 'calendar-check', icon: CalendarCheck },
   { name: 'calendar-clock', icon: CalendarClock },
@@ -74,20 +74,20 @@ export const CALENDAR_ICONS: { name: string; icon: LucideIcon }[] = [
   { name: 'bookmark', icon: Bookmark },
   { name: 'tag', icon: Tag },
   { name: 'flag', icon: Flag },
-  // Work & Productivity
+  // work & Productivity
   { name: 'briefcase', icon: Briefcase },
   { name: 'target', icon: Target },
   { name: 'zap', icon: Zap },
   { name: 'building', icon: Building2 },
   { name: 'laptop', icon: Laptop },
   { name: 'code', icon: Code },
-  // Goals & Motivation
+  // goals & Motivation
   { name: 'star', icon: Star },
   { name: 'trophy', icon: Trophy },
   { name: 'flame', icon: Flame },
   { name: 'sparkles', icon: Sparkles },
   { name: 'lightbulb', icon: Lightbulb },
-  // Personal & Home
+  // personal & Home
   { name: 'home', icon: Home },
   { name: 'heart', icon: Heart },
   { name: 'coffee', icon: Coffee },
@@ -96,28 +96,28 @@ export const CALENDAR_ICONS: { name: string; icon: LucideIcon }[] = [
   { name: 'sofa', icon: Sofa },
   { name: 'wrench', icon: Wrench },
   { name: 'hammer', icon: Hammer },
-  // Health & Wellness
+  // health & Wellness
   { name: 'dumbbell', icon: Dumbbell },
   { name: 'activity', icon: Activity },
   { name: 'apple', icon: Apple },
   { name: 'pill', icon: Pill },
-  // Finance
+  // finance
   { name: 'wallet', icon: Wallet },
   { name: 'shopping-cart', icon: ShoppingCart },
   { name: 'credit-card', icon: CreditCard },
   { name: 'trending-up', icon: TrendingUp },
   { name: 'receipt', icon: Receipt },
-  // Education & Learning
+  // education & Learning
   { name: 'book', icon: Book },
   { name: 'graduation-cap', icon: GraduationCap },
-  // Social & Communication
+  // social & Communication
   { name: 'user', icon: User },
   { name: 'users', icon: Users },
   { name: 'gift', icon: Gift },
   { name: 'message-circle', icon: MessageCircle },
   { name: 'mail', icon: Mail },
   { name: 'phone', icon: Phone },
-  // Travel & Outdoors
+  // travel & Outdoors
   { name: 'plane', icon: Plane },
   { name: 'car', icon: Car },
   { name: 'map-pin', icon: MapPin },
@@ -125,7 +125,7 @@ export const CALENDAR_ICONS: { name: string; icon: LucideIcon }[] = [
   { name: 'tree-pine', icon: TreePine },
   { name: 'leaf', icon: Leaf },
   { name: 'dog', icon: Dog },
-  // Creative & Entertainment
+  // creative & Entertainment
   { name: 'music', icon: Music },
   { name: 'camera', icon: Camera },
   { name: 'paintbrush', icon: Paintbrush },
@@ -135,7 +135,7 @@ export const CALENDAR_ICONS: { name: string; icon: LucideIcon }[] = [
 ];
 
 /**
- * Get icon component by name, fallback to Calendar icon
+ * get icon component by name, fallback to Calendar icon
  * @param name - Icon name
  * @returns Icon component
  */

@@ -1,6 +1,6 @@
 /**
- * parse any valid CSS color string to [r, g, b] using a canvas element.
- * returns null if the color is invalid.
+ * parse any valid CSS color string to [r, g, b] using a canvas element
+ * returns null if the color is invalid
  */
 export const parseCssColor = (color: string): [number, number, number] | null => {
   try {

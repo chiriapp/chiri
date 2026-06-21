@@ -24,7 +24,7 @@ class Database {
   private listeners: Set<DataChangeListener> = new Set();
   private log = loggers.database;
 
-  // Connection
+  // connection
   async init() {
     if (this.connection) return;
     try {
@@ -41,7 +41,7 @@ class Database {
     return this.connection!;
   }
 
-  // Listeners
+  // listeners
   subscribe(listener: DataChangeListener): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
@@ -51,7 +51,7 @@ class Database {
     for (const listener of this.listeners) listener();
   }
 
-  // Accounts
+  // accounts
   async getAllAccounts() {
     return accountOps.getAllAccounts(await this.conn());
   }
@@ -77,7 +77,7 @@ class Database {
     this.notify();
   }
 
-  // Calendars
+  // calendars
   async addCalendar(accountId: string, data: Partial<Calendar>) {
     await calendarOps.addCalendar(await this.conn(), accountId, data);
     this.notify();
@@ -93,7 +93,7 @@ class Database {
     this.notify();
   }
 
-  // Tasks
+  // tasks
   async getAllTasks() {
     return taskOps.getAllTasks(await this.conn());
   }
@@ -160,7 +160,7 @@ class Database {
     this.notify();
   }
 
-  // Tags
+  // tags
   async getAllTags() {
     return tagOps.getAllTags(await this.conn());
   }
@@ -186,7 +186,7 @@ class Database {
     this.notify();
   }
 
-  // Filters
+  // filters
   async getAllFilters() {
     return filterOps.getAllFilters(await this.conn());
   }
@@ -292,7 +292,7 @@ class Database {
     this.notify();
   }
 
-  // History
+  // history
   async logHistoryForTaskUpdate(taskUid: string, oldTask: Task, updates: Partial<Task>) {
     return historyOps.logHistoryForTaskUpdate(await this.conn(), taskUid, oldTask, updates);
   }
@@ -310,7 +310,7 @@ class Database {
     return historyOps.getTaskHistory(await this.conn(), taskUid);
   }
 
-  // Pending deletions
+  // pending deletions
   async getPendingDeletions() {
     return pendingOps.getPendingDeletions(await this.conn());
   }
@@ -354,7 +354,7 @@ class Database {
     this.notify();
   }
 
-  // Push subscriptions
+  // push subscriptions
   async getAllPushSubscriptions() {
     return pushOps.getAllPushSubscriptions(await this.conn());
   }
@@ -378,7 +378,7 @@ class Database {
     this.notify();
   }
 
-  // Snapshot
+  // snapshot
   async getSnapshot() {
     return snapshotOps.getSnapshot(await this.conn());
   }

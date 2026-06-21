@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds local saved task filters and one-time bootstrap metadata.
+/// adds local saved task filters and one-time bootstrap metadata
 pub fn migration() -> Migration {
     Migration {
         version: 24,

@@ -32,7 +32,7 @@ export default defineConfig({
       $types: path.resolve(__dirname, './src/types'),
       $utils: path.resolve(__dirname, './src/utils'),
 
-      // Tree-shake lucide-react by resolving icons/* to individual ESM files
+      // tree-shake lucide-react by resolving icons/* to individual ESM files
       'lucide-react/icons': fileURLToPath(
         new URL('./node_modules/lucide-react/dist/esm/icons', import.meta.url),
       ),

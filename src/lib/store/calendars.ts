@@ -50,7 +50,7 @@ const maybeAdoptRemoteCalendarAsTaskDefault = (
 export const addCalendar = async (accountId: string, calendarData: Partial<Calendar>) => {
   const data = dataStore.load();
 
-  // Compute sortOrder: use provided value, or place after all existing calendars in this account
+  // compute sortOrder: use provided value, or place after all existing calendars in this account
   const existingCalendars = data.accounts.find((a) => a.id === accountId)?.calendars ?? [];
   const maxExistingOrder = existingCalendars.reduce((max, c) => Math.max(max, c.sortOrder), 0);
   const sortOrder = calendarData.sortOrder || maxExistingOrder + 100;
@@ -66,11 +66,11 @@ export const addCalendar = async (accountId: string, calendarData: Partial<Calen
 
   log.info(`Adding calendar: ${calendar.displayName} with ID: ${calendar.id}`);
 
-  // Check if this is the first calendar being added
+  // check if this is the first calendar being added
   const allCalendars = data.accounts.flatMap((acc) => acc.calendars);
   const isFirstCalendar = allCalendars.length === 0;
 
-  // Assign orphan tasks to this calendar if it's the first one
+  // assign orphan tasks to this calendar if it's the first one
   const account = data.accounts.find((a) => a.id === accountId);
   const isLocal = !account?.caldav;
   maybeAdoptRemoteCalendarAsTaskDefault(data.accounts, account, calendar);
@@ -130,7 +130,7 @@ export const updateCalendar = (
     log.error('Failed to persist calendar update:', e),
   );
 
-  // Update in-memory store
+  // update in-memory store
   dataStore.save({
     ...data,
     accounts: data.accounts.map((acc) =>
@@ -153,7 +153,7 @@ export const deleteCalendar = (accountId: string, calendarId: string) => {
     log.error('Failed to persist calendar deletion:', e),
   );
 
-  // Get all tasks to delete and track for server deletion
+  // get all tasks to delete and track for server deletion
   const tasksToDelete = data.tasks.filter((t) => t.calendarId === calendarId);
   const deletedAt = new Date();
   const newPendingDeletions = [

@@ -118,7 +118,7 @@ export const createMacMenu = async (options?: {
   const isAppActionEnabled = (enabled = true) =>
     isEnabledOutsideModal(options?.isModalOpen ?? false, enabled);
 
-  // App menu (Chiri)
+  // app menu (Chiri)
   const appSubmenu = await Submenu.new({
     text: 'Chiri',
     items: [
@@ -170,7 +170,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // File menu
+  // file menu
   const fileSubmenu = await Submenu.new({
     text: 'File',
     items: [
@@ -201,7 +201,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // Edit menu
+  // edit menu
   const editSubmenu = await Submenu.new({
     text: 'Edit',
     items: [
@@ -257,7 +257,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // View menu
+  // view menu
   const toggleCompletedItem = await CheckMenuItem.new({
     id: 'toggle-completed',
     text: 'Show Completed Tasks',
@@ -429,7 +429,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // Accounts menu (CalDAV accounts and calendars)
+  // accounts menu (CalDAV accounts and calendars)
   const syncItem = await MenuItem.new({
     id: 'sync',
     text: 'Sync',
@@ -441,7 +441,7 @@ export const createMacMenu = async (options?: {
   });
   menuItemRefs.sync = syncItem;
 
-  // One submenu per account with account-scoped actions
+  // one submenu per account with account-scoped actions
   const accountSubmenus = await Promise.all(
     accounts.map(async (account) => {
       const calendars = account.calendars ?? [];
@@ -563,7 +563,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // Go menu (list navigation)
+  // go menu (list navigation)
   const goSubmenu = await Submenu.new({
     text: 'Go',
     items: [
@@ -588,7 +588,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // Window menu
+  // window menu
   const windowSubmenu = await Submenu.new({
     text: 'Window',
     items: [
@@ -605,7 +605,7 @@ export const createMacMenu = async (options?: {
 
   await windowSubmenu.setAsWindowsMenuForNSApp();
 
-  // Help submenu
+  // help submenu
   const helpSubmenu = await Submenu.new({
     text: 'Help',
     items: [
@@ -638,7 +638,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // Create the main menu
+  // create the main menu
   const menu = await Menu.new({
     items: [
       appSubmenu,
@@ -656,8 +656,8 @@ export const createMacMenu = async (options?: {
 };
 
 /**
- * Initializes the application menu
- * Should be called during app bootstrap
+ * initializes the application menu
+ * should be called during app bootstrap
  */
 export const initAppMenu = async (options?: {
   showCompleted?: boolean;
@@ -670,14 +670,14 @@ export const initAppMenu = async (options?: {
   isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
-  // Only create menu on macOS
+  // only create menu on macOS
   if (!isMacPlatform()) return;
 
   try {
     const menu = await createMacMenu(options);
     await menu.setAsAppMenu();
-    // Fix macOS Help menu search bar — muda's setAsHelpMenuForNSApp() is broken,
-    // so we call NSApp.setHelpMenu() directly from Rust after the menu is live.
+    // fix macOS Help menu search bar; muda's setAsHelpMenuForNSApp() is broken,
+    // so we call NSApp.setHelpMenu() directly from Rust after the menu is live
     await invoke('apply_macos_menu_fixes').catch(() => {});
   } catch (error) {
     log.error('Failed to initialize menu:', error);
@@ -685,8 +685,8 @@ export const initAppMenu = async (options?: {
 };
 
 /**
- * Rebuilds the app menu with new shortcuts
- * Call this when keyboard shortcuts are changed in settings
+ * rebuilds the app menu with new shortcuts
+ * call this when keyboard shortcuts are changed in settings
  */
 export const rebuildAppMenu = async (options?: {
   showCompleted?: boolean;
@@ -704,7 +704,7 @@ export const rebuildAppMenu = async (options?: {
 };
 
 /**
- * Updates a specific menu item's state
+ * updates a specific menu item's state
  */
 export const updateMenuItem = async (
   menuId: string,
@@ -715,7 +715,7 @@ export const updateMenuItem = async (
   },
 ) => {
   try {
-    // Use stored references instead of searching the menu
+    // use stored references instead of searching the menu
     let item: MenuItem | IconMenuItem | CheckMenuItem | Submenu | undefined;
 
     switch (menuId) {
@@ -831,7 +831,7 @@ export const updateMenuState = async (options: {
       });
     }
 
-    // Enable/disable sort direction submenu and items based on sort mode
+    // enable/disable sort direction submenu and items based on sort mode
     const directionSubmenuEnabled = options.sortMode !== 'manual';
     const directionItemEnabled = isAppActionEnabled(directionSubmenuEnabled);
     await updateMenuItem('sort-direction-submenu', { enabled: directionSubmenuEnabled });

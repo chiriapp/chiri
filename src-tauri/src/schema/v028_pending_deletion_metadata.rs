@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Tracks CalDAV DELETE retry metadata for queued task tombstones.
+/// tracks CalDAV DELETE retry metadata for queued task tombstones
 pub fn migration() -> Migration {
     Migration {
         version: 28,

@@ -42,7 +42,7 @@ export const consumeSelectedTaskTitleAutofocus = (taskId: string) => {
 };
 
 /**
- * Hook to get the full UI state
+ * hook to get the full UI state
  */
 export const useUIState = () => {
   const queryClient = useQueryClient();
@@ -61,7 +61,7 @@ export const useUIState = () => {
 };
 
 /**
- * Hook to get selected calendar ID
+ * hook to get selected calendar ID
  */
 export const useActiveCalendarId = () => {
   const { data: uiState } = useUIState();
@@ -69,7 +69,7 @@ export const useActiveCalendarId = () => {
 };
 
 /**
- * Hook to get active tag ID
+ * hook to get active tag ID
  */
 export const useActiveTagId = () => {
   const { data: uiState } = useUIState();
@@ -77,7 +77,7 @@ export const useActiveTagId = () => {
 };
 
 /**
- * Hook to get active filter ID
+ * hook to get active filter ID
  */
 export const useActiveFilterId = () => {
   const { data: uiState } = useUIState();
@@ -85,7 +85,7 @@ export const useActiveFilterId = () => {
 };
 
 /**
- * Hook to get active account ID
+ * hook to get active account ID
  */
 export const useActiveAccountId = () => {
   const { data: uiState } = useUIState();
@@ -93,7 +93,7 @@ export const useActiveAccountId = () => {
 };
 
 /**
- * Hook to get selected task ID
+ * hook to get selected task ID
  */
 export const useSelectedTaskId = () => {
   const { data: uiState } = useUIState();
@@ -101,7 +101,7 @@ export const useSelectedTaskId = () => {
 };
 
 /**
- * Hook to get editor open state
+ * hook to get editor open state
  */
 export const useIsEditorOpen = () => {
   const { data: uiState } = useUIState();
@@ -109,7 +109,7 @@ export const useIsEditorOpen = () => {
 };
 
 /**
- * Hook to get search query
+ * hook to get search query
  */
 export const useSearchQuery = () => {
   const { data: uiState } = useUIState();
@@ -117,7 +117,7 @@ export const useSearchQuery = () => {
 };
 
 /**
- * Hook to get sort config
+ * hook to get sort config
  */
 export const useSortConfig = () => {
   const { data: uiState } = useUIState();
@@ -125,7 +125,7 @@ export const useSortConfig = () => {
 };
 
 /**
- * Hook to get account sort config
+ * hook to get account sort config
  */
 export const useAccountSortConfig = () => {
   const { data: uiState } = useUIState();
@@ -133,7 +133,7 @@ export const useAccountSortConfig = () => {
 };
 
 /**
- * Hook to set account sort config
+ * hook to set account sort config
  */
 export const useSetAccountSortConfig = () => {
   const queryClient = useQueryClient();
@@ -150,7 +150,7 @@ export const useSetAccountSortConfig = () => {
 };
 
 /**
- * Hook to get calendar sort config
+ * hook to get calendar sort config
  */
 export const useCalendarSortConfig = () => {
   const { data: uiState } = useUIState();
@@ -158,7 +158,7 @@ export const useCalendarSortConfig = () => {
 };
 
 /**
- * Hook to get show completed tasks setting
+ * hook to get show completed tasks setting
  */
 export const useShowCompletedTasks = () => {
   const { data: uiState } = useUIState();
@@ -166,7 +166,7 @@ export const useShowCompletedTasks = () => {
 };
 
 /**
- * Hook to set active account
+ * hook to set active account
  */
 export const useSetActiveAccount = () => {
   const queryClient = useQueryClient();
@@ -183,7 +183,7 @@ export const useSetActiveAccount = () => {
 };
 
 /**
- * Hook to set selected calendar
+ * hook to set selected calendar
  */
 export const useSetActiveCalendar = () => {
   const queryClient = useQueryClient();
@@ -201,7 +201,7 @@ export const useSetActiveCalendar = () => {
 };
 
 /**
- * Hook to set active tag
+ * hook to set active tag
  */
 export const useSetActiveTag = () => {
   const queryClient = useQueryClient();
@@ -219,7 +219,7 @@ export const useSetActiveTag = () => {
 };
 
 /**
- * Hook to set active filter
+ * hook to set active filter
  */
 export const useSetActiveFilter = () => {
   const queryClient = useQueryClient();
@@ -237,7 +237,7 @@ export const useSetActiveFilter = () => {
 };
 
 /**
- * Hook to set all tasks view
+ * hook to set all tasks view
  */
 export const useSetAllTasksView = () => {
   const queryClient = useQueryClient();
@@ -255,7 +255,7 @@ export const useSetAllTasksView = () => {
 };
 
 /**
- * Hook to set recently deleted view
+ * hook to set recently deleted view
  */
 export const useSetRecentlyDeletedView = () => {
   const queryClient = useQueryClient();
@@ -273,7 +273,7 @@ export const useSetRecentlyDeletedView = () => {
 };
 
 /**
- * Hook to set selected task
+ * hook to set selected task
  */
 export const useSetSelectedTask = () => {
   const queryClient = useQueryClient();
@@ -295,7 +295,7 @@ export const useSetSelectedTask = () => {
 };
 
 /**
- * Hook to set editor open state
+ * hook to set editor open state
  */
 export const useSetEditorOpen = () => {
   const queryClient = useQueryClient();
@@ -313,7 +313,7 @@ export const useSetEditorOpen = () => {
 };
 
 /**
- * Hook to set search query
+ * hook to set search query
  */
 export const useSetSearchQuery = () => {
   const queryClient = useQueryClient();
@@ -331,7 +331,7 @@ export const useSetSearchQuery = () => {
 };
 
 /**
- * Hook to set sort config
+ * hook to set sort config
  */
 export const useSetSortConfig = () => {
   const queryClient = useQueryClient();
@@ -348,7 +348,7 @@ export const useSetSortConfig = () => {
 };
 
 /**
- * Hook to set calendar sort config
+ * hook to set calendar sort config
  */
 export const useSetCalendarSortConfig = () => {
   const queryClient = useQueryClient();
@@ -365,7 +365,7 @@ export const useSetCalendarSortConfig = () => {
 };
 
 /**
- * Hook to get tag sort config
+ * hook to get tag sort config
  */
 export const useTagSortConfig = () => {
   const { data: uiState } = useUIState();
@@ -373,7 +373,7 @@ export const useTagSortConfig = () => {
 };
 
 /**
- * Hook to set tag sort config
+ * hook to set tag sort config
  */
 export const useSetTagSortConfig = () => {
   const queryClient = useQueryClient();
@@ -390,7 +390,7 @@ export const useSetTagSortConfig = () => {
 };
 
 /**
- * Hook to set show completed tasks
+ * hook to set show completed tasks
  */
 export const useSetShowCompletedTasks = () => {
   const queryClient = useQueryClient();
@@ -408,7 +408,7 @@ export const useSetShowCompletedTasks = () => {
 };
 
 /**
- * Hook to set show unstarted tasks
+ * hook to set show unstarted tasks
  */
 export const useSetShowUnstartedTasks = () => {
   const queryClient = useQueryClient();

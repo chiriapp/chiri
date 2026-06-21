@@ -43,7 +43,7 @@ let
     nodejs
     pnpm
 
-    # Build tools
+    # build tools
     pkgs.just
     pkgs.pkg-config
     pkgs.openssl
@@ -99,10 +99,10 @@ pkgs.mkShell {
     fi
   '';
 
-  # Required for Tauri on macOS
+  # required for Tauri on macOS
   RUST_BACKTRACE = 1;
 
-  # For pkg-config to find libraries
+  # for pkg-config to find libraries
   PKG_CONFIG_PATH = lib.makeSearchPath "lib/pkgconfig" (
     [
       pkgs.openssl.dev
@@ -110,7 +110,7 @@ pkgs.mkShell {
     ++ linuxDeps
   );
 
-  # Avoid Nix's host cc-wrapper injecting Darwin/Linux flags into Windows ARM cross builds.
+  # avoid Nix's host cc-wrapper injecting Darwin/Linux flags into Windows ARM cross builds
   CC_aarch64_pc_windows_msvc = "${llvm.clang-unwrapped}/bin/clang";
   CXX_aarch64_pc_windows_msvc = "${llvm.clang-unwrapped}/bin/clang++";
   AR_aarch64_pc_windows_msvc = "${llvm.llvm}/bin/llvm-lib";

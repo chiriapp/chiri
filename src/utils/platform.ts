@@ -34,21 +34,21 @@ export const formatPlatformName = (platformName: string) => {
 };
 
 /**
- * Detect if running on macOS platform
+ * detect if running on macOS platform
  */
 export const isMacPlatform = () => {
   return platform() === 'macos';
 };
 
 /**
- * Detect if running on Linux platform
+ * detect if running on Linux platform
  */
 export const isLinuxPlatform = () => {
   return platform() === 'linux';
 };
 
 /**
- * Detect if running on Windows platform
+ * detect if running on Windows platform
  */
 export const isWindowsPlatform = () => {
   return platform() === 'windows';
@@ -81,8 +81,8 @@ export const getPackageManagerName = (installType: InstallType | null | undefine
 };
 
 /**
- * Check if in-app updates should be disabled.
- * Returns true for installations managed by external package managers.
+ * check if in-app updates should be disabled
+ * returns true for installations managed by external package managers
  */
 export const shouldDisableUpdates = async () => {
   try {

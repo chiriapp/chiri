@@ -115,14 +115,14 @@ export const FloatingLayerFrame = ({
   );
 
   const handleLayerClickCapture: MouseEventHandler<HTMLDivElement> = useCallback((event) => {
-    // Menu items often close themselves from their own click handler. Wait for
+    // menu items often close themselves from their own click handler. Wait for
     // that state update, then reset only if no pointer target remains under the
-    // stationary mouse.
+    // stationary mouse
     refreshStaleCursorAfterPointerMutation(event);
   }, []);
 
   // WebKit can keep showing the clicked trigger's cursor after a portal/backdrop
-  // appears under a stationary pointer.
+  // appears under a stationary pointer
   useResetStaleCursorOnLayerOpen(resetCursorOnOpen);
 
   const updatePosition = useCallback(() => {

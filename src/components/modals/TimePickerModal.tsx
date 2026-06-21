@@ -31,7 +31,7 @@ export const TimePickerModal = ({
   const hourInputRef = useRef<HTMLInputElement>(null);
   const minuteInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset state when modal opens with new initial values
+  // reset state when modal opens with new initial values
   useEffect(() => {
     if (isOpen) {
       setHour(initialHour);
@@ -46,7 +46,7 @@ export const TimePickerModal = ({
   const incrementMinute = useCallback(() => setMinute((m) => (m + 1) % 60), []);
   const decrementMinute = useCallback(() => setMinute((m) => (m - 1 + 60) % 60), []);
 
-  // Sync input fields with actual values only when not focused
+  // sync input fields with actual values only when not focused
   useEffect(() => {
     if (document.activeElement !== hourInputRef.current) {
       setHourInput(hour.toString().padStart(2, '0'));
@@ -59,7 +59,7 @@ export const TimePickerModal = ({
     }
   }, [minute]);
 
-  // Cleanup intervals on unmount
+  // cleanup intervals on unmount
   useEffect(() => {
     return () => {
       if (holdIntervalRef.current) clearInterval(holdIntervalRef.current);

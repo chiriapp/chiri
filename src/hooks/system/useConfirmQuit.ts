@@ -23,7 +23,7 @@ const QUIT_MESSAGE = {
 const isProductionMode = () => window.location.protocol === 'tauri:';
 
 /**
- * Check if any webview window is currently visible
+ * check if any webview window is currently visible
  */
 const checkWindowVisibility = async () => {
   const windows = await getAllWebviewWindows();
@@ -35,7 +35,7 @@ const checkWindowVisibility = async () => {
 };
 
 /**
- * Ensure notification permission and update the cached state
+ * ensure notification permission and update the cached state
  */
 const ensureNotificationPermission = async (permissionRef: RefObject<NotificationPermission>) => {
   if (permissionRef.current !== 'unknown') {
@@ -58,7 +58,7 @@ const ensureNotificationPermission = async (permissionRef: RefObject<Notificatio
 };
 
 /**
- * Try to send a native notification for quit confirmation
+ * try to send a native notification for quit confirmation
  */
 const trySendNativeNotification = async (permissionRef: RefObject<NotificationPermission>) => {
   if (!isProductionMode()) return false;
@@ -78,7 +78,7 @@ const trySendNativeNotification = async (permissionRef: RefObject<NotificationPe
 };
 
 /**
- * Show a toast notification for quit confirmation
+ * show a toast notification for quit confirmation
  */
 const showQuitToast = () =>
   toast.info(
@@ -100,7 +100,7 @@ const showQuitToast = () =>
   );
 
 /**
- * Show window and display quit confirmation toast as fallback
+ * show window and display quit confirmation toast as fallback
  */
 const showWindowWithToast = async (windows: WebviewWindow[]) => {
   if (windows.length === 0) return undefined;
@@ -112,13 +112,13 @@ const showWindowWithToast = async (windows: WebviewWindow[]) => {
 };
 
 /**
- * Intercepts all quit requests (Cmd+Q, Dock quit, window close) emitted by the
+ * intercepts all quit requests (Cmd+Q, Dock quit, window close) emitted by the
  * Rust backend via RunEvent::ExitRequested. When confirmBeforeQuit is enabled,
- * requires a second quit action within 2 seconds to confirm. Otherwise exits immediately.
+ * requires a second quit action within 2 seconds to confirm. Otherwise exits immediately
  *
- * The Rust backend always prevents the default exit and emits 'app:quit-requested',
+ * the Rust backend always prevents the default exit and emits 'app:quit-requested',
  * so this hook is the single exit point for the app. It calls the `force_quit` Tauri
- * command which uses std::process::exit(0) directly, bypassing ExitRequested entirely.
+ * command which uses std::process::exit(0) directly, bypassing ExitRequested entirely
  * (tauri-plugin-process's exit() calls AppHandle::exit() which re-triggers ExitRequested,
  * causing an infinite prevent/exit loop.)
  */
@@ -131,7 +131,7 @@ export const useConfirmQuit = () => {
   const toastIdRef = useRef<string | number | undefined>(undefined);
   const notificationPermissionRef = useRef<NotificationPermission>('unknown');
 
-  // Keep ref in sync so the listener always reads the latest value without re-registering
+  // keep ref in sync so the listener always reads the latest value without re-registering
   confirmBeforeQuitRef.current = confirmBeforeQuit;
 
   useEffect(() => {
@@ -146,7 +146,7 @@ export const useConfirmQuit = () => {
       }
 
       if (pendingQuit.current) {
-        // Second quit request - confirm quit
+        // second quit request - confirm quit
         if (timerRef.current) clearTimeout(timerRef.current);
         if (toastIdRef.current !== undefined) toast.dismiss(toastIdRef.current);
         pendingQuit.current = false;
@@ -154,7 +154,7 @@ export const useConfirmQuit = () => {
         return;
       }
 
-      // First quit request - show confirmation
+      // first quit request - show confirmation
       pendingQuit.current = true;
       const { hasVisible, windows } = await checkWindowVisibility();
 
@@ -175,7 +175,7 @@ export const useConfirmQuit = () => {
 
     const unlisten = listen('app:quit-requested', handleQuitRequested);
 
-    // store the resolved unlisten fn so beforeunload can call it synchronously.
+    // store the resolved unlisten fn so beforeunload can call it synchronously
     unlisten.then((fn) => {
       unlistenFn = fn;
     });

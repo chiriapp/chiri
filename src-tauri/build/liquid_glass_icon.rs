@@ -1,10 +1,10 @@
 /// macOS Liquid Glass icon compilation
 ///
-/// This module handles compiling the .icon format to Assets.car using Apple's actool.
-/// The Liquid Glass icon system supports appearance variants (Default, Dark, Tinted)
-/// and is new in macOS 26 Tahoe.
+/// this module handles compiling the .icon format to Assets.car using Apple's actool
+/// the Liquid Glass icon system supports appearance variants (Default, Dark, Tinted)
+/// and is new in macOS 26 Tahoe
 ///
-/// Reference:
+/// reference:
 /// - https://developer.apple.com/documentation/xcode/configuring-your-app-icon-for-macos
 use std::process::Command;
 
@@ -33,7 +33,7 @@ pub fn compile() {
 
     println!("cargo:rerun-if-env-changed={REGENERATE_ICON_ENV}");
 
-    // Create gen directory if it doesn't exist
+    // create gen directory if it doesn't exist
     std::fs::create_dir_all(&gen_dir).expect("Failed to create gen directory");
 
     if std::path::Path::new(&icon_source).exists() {
@@ -65,7 +65,7 @@ pub fn compile() {
             icon_source.as_str(),
         ];
 
-        // Prefer actool from PATH (Nix/native), then fall back to xcrun actool.
+        // prefer actool from PATH (Nix/native), then fall back to xcrun actool
         let output = Command::new("actool")
             .args(actool_args)
             .output()

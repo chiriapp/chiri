@@ -34,11 +34,11 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
 
     close();
     if (confirmed) {
-      // Close the task editor if open
+      // close the task editor if open
       setEditorOpen(false);
-      // Reset settings
+      // reset settings
       resetSettings();
-      // Close the settings modal (and any other modals)
+      // close the settings modal (and any other modals)
       onClose();
     }
   };

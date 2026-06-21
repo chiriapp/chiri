@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Tracks which built-in preset created a saved filter.
+/// tracks which built-in preset created a saved filter
 pub fn migration() -> Migration {
     Migration {
         version: 25,

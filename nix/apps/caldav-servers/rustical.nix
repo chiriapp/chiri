@@ -57,8 +57,8 @@ let
       enabled = true
       EOF
 
-      # Create or refresh the principal. The hidden flag is intentionally used
-      # by RustiCal itself for integration-test setups like this one.
+      # create or refresh the principal. The hidden flag is intentionally used
+      # by RustiCal itself for integration-test setups like this one
       rustical --config-file "$CONFIG" principals edit "$USERNAME" \
         --name "$USERNAME" \
         --for-testing-password-from-arg "$PASSWORD" \

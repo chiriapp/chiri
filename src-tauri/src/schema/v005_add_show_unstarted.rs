@@ -1,7 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds show_unstarted_tasks field to ui_state table
-/// Controls whether tasks with future start dates are displayed
+/// adds show_unstarted_tasks field to ui_state table
+/// controls whether tasks with future start dates are displayed
 pub fn migration() -> Migration {
     Migration {
         version: 5,

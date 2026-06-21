@@ -1,7 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds sort_order field to tags table
-/// Allows users to manually reorder tags in the sidebar
+/// adds sort_order field to tags table
+/// allows users to manually reorder tags in the sidebar
 pub fn migration() -> Migration {
     Migration {
         version: 11,

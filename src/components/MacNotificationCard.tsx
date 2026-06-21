@@ -56,7 +56,7 @@ export const MacNotificationCard = ({
       const result = await requestPermission();
 
       // A granted=false result whose status string contains "error" means macOS
-      // silently blocked the dialog due to a cached decision.
+      // silently blocked the dialog due to a cached decision
       if (!result.granted && result.status.toLowerCase().includes('error')) {
         alert(
           'The notification permission request was blocked by macOS. This usually means a previous decision was cached.\n\n' +

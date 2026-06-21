@@ -1,7 +1,7 @@
 /**
- * Consistent logging system for the application
- * Provides pretty, categorized logging with different levels
- * Logs are forwarded to Tauri's logging plugin for persistent file storage
+ * consistent logging system for the application
+ * provides pretty, categorized logging with different levels
+ * logs are forwarded to Tauri's logging plugin for persistent file storage
  */
 
 import {
@@ -15,9 +15,9 @@ import {
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LoggerOptions {
-  /** Minimum log level to display */
+  /** minimum log level to display */
   minLevel?: LogLevel;
-  /** Whether to include timestamps */
+  /** whether to include timestamps */
   timestamps?: boolean;
 }
 
@@ -28,10 +28,10 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   error: 3,
 };
 
-// Get log level from environment or default to 'info' in production, 'debug' in development
+// get log level from environment or default to 'info' in production, 'debug' in development
 const getDefaultMinLevel = (): LogLevel => {
-  // In development (Vite), show debug logs. In production, show info+
-  // Check for common development indicators
+  // in development (Vite), show debug logs. In production, show info+
+  // check for common development indicators
   const isDev =
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' ||
@@ -40,7 +40,7 @@ const getDefaultMinLevel = (): LogLevel => {
   return isDev ? 'debug' : 'info';
 };
 
-// Forward logs to Tauri's logging plugin for file persistence
+// forward logs to Tauri's logging plugin for file persistence
 const forwardToTauri = (level: LogLevel, category: string, message: string) => {
   const formattedMessage = `[${category}] ${message}`;
   switch (level) {
@@ -59,7 +59,7 @@ const forwardToTauri = (level: LogLevel, category: string, message: string) => {
   }
 };
 
-// Attach console to receive logs from Rust side (for Webview target)
+// attach console to receive logs from Rust side (for Webview target)
 let consoleAttached = false;
 export const initLogger = async () => {
   if (consoleAttached) return;
@@ -135,12 +135,12 @@ class Logger {
             ? console.debug
             : console.log;
 
-    // Format message with args for Tauri logging
+    // format message with args for Tauri logging
     const fullMessage =
       args.length > 0
         ? `${message} ${args
             .map((a) => {
-              // Handle Error objects specially since JSON.stringify returns {}
+              // handle Error objects specially since JSON.stringify returns {}
               if (a instanceof Error) {
                 return JSON.stringify({
                   ...a, // Include any custom properties
@@ -154,7 +154,7 @@ class Logger {
             .join(' ')}`
         : message;
 
-    // Forward to Tauri for file persistence
+    // forward to Tauri for file persistence
     forwardToTauri(level, this.category, fullMessage);
 
     if (args.length > 0) {
@@ -180,12 +180,12 @@ class Logger {
     this.log('error', message, ...args);
   }
 
-  /** Create a child logger with a sub-category */
+  /** create a child logger with a sub-category */
   child(subCategory: string, color?: string) {
     return new Logger(`${this.category}:${subCategory}`, color ?? this.color, this.options);
   }
 
-  /** Log a group of related messages */
+  /** log a group of related messages */
   group(label: string, fn: () => void) {
     if (!this.shouldLog('debug')) return;
     console.group(`%c[${this.category}] ${label}`, `color: ${this.color}; font-weight: bold;`);
@@ -193,7 +193,7 @@ class Logger {
     console.groupEnd();
   }
 
-  /** Log with timing information */
+  /** log with timing information */
   time<T>(label: string, fn: () => T) {
     if (!this.shouldLog('debug')) return fn();
 
@@ -205,7 +205,7 @@ class Logger {
     return result;
   }
 
-  /** Async version of time */
+  /** async version of time */
   async timeAsync<T>(label: string, fn: () => Promise<T>) {
     if (!this.shouldLog('debug')) return fn();
 
@@ -219,7 +219,7 @@ class Logger {
 }
 
 /**
- * Create a logger for a specific category
+ * create a logger for a specific category
  *
  * @example
  * const log = createLogger('DataStore', '#10b981');
@@ -230,7 +230,7 @@ export const createLogger = (category: string, color?: string, options?: LoggerO
   return new Logger(category, color, options);
 };
 
-// Pre-configured loggers for common modules
+// pre-configured loggers for common modules
 export const loggers = {
   account: createLogger('Account', '#f97316'),
   app: createLogger('App', '#6366f1'),

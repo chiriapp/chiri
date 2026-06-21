@@ -1,4 +1,4 @@
-// Note: 'ephemeral' is iOS-only and not available on macOS.
+// note: 'ephemeral' is iOS-only and not available on macOS
 export type NotificationPermissionStatus = 'granted' | 'denied' | 'default' | 'provisional';
 
 export interface NotificationPermissionStatusResult {

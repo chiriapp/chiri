@@ -18,8 +18,8 @@ import { getSortableItemDisabled, getSortableItemId } from '$utils/sortable';
 const animateLayoutChanges: AnimateLayoutChanges = (args) =>
   defaultAnimateLayoutChanges({ ...args, wasDragging: true });
 
-// Each depth level adds 20px of left-padding. The chevron/spacer (w-4) + gap (gap-1.5)
-// is always shown before the checkbox so all levels align consistently.
+// each depth level adds 20px of left-padding. The chevron/spacer (w-4) + gap (gap-1.5)
+// is always shown before the checkbox so all levels align consistently
 const getPaddingLeft = (depth: number) => 8 + depth * 20;
 
 const getRowClassName = (isDragEnabled: boolean, isOverlay: boolean) => `
@@ -107,10 +107,10 @@ export const TaskEditorSubtaskItem = ({
     animateLayoutChanges,
   });
 
-  // Disable all transitions - items will snap to positions immediately.
-  // This prevents the "jumping" animation when drag ends and displaced items
-  // return to their natural positions.
-  // Use opacity: 0 instead of visibility: hidden for instant hiding without flash.
+  // disable all transitions - items will snap to positions immediately
+  // this prevents the "jumping" animation when drag ends and displaced items
+  // return to their natural positions
+  // use opacity: 0 instead of visibility: hidden for instant hiding without flash
   const style: CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition: 'none',

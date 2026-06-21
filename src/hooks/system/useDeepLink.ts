@@ -5,7 +5,7 @@ import { loggers } from '$lib/logger';
 const log = loggers.http;
 
 /**
- * Initialises the deep link system.
+ * initialises the deep link system
  */
 export const useDeepLink = () => {
   useEffect(() => {

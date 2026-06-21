@@ -57,8 +57,8 @@ describe('parseDigestChallenge', () => {
 });
 
 describe('buildDigestAuth', () => {
-  // RFC 2617 §3.5 worked example. Note: cnonce/nc are deterministic here only
-  // when qop is absent — we test the qop path separately for shape.
+  // RFC 2617 §3.5 worked example. note: cnonce/nc are deterministic here only
+  // when qop is absent. we test the qop path separately for shape
   it('produces correct response for legacy (no-qop) digest', () => {
     const challenge = {
       realm: 'testrealm@host.com',

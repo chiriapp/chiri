@@ -1,7 +1,7 @@
 /**
  * WebDAV Push Subscription Manager
  *
- * Handles the lifecycle of push subscriptions:
+ * handles the lifecycle of push subscriptions:
  * - Registration of new subscriptions
  * - Refresh of expired or expiring subscriptions
  * - Removal of subscriptions
@@ -54,17 +54,17 @@ const DEFAULT_PUSH_PROVIDER_CONFIG: PushProviderConfig = {
 };
 
 /**
- * Default subscription expiration request (3 days)
+ * default subscription expiration request (3 days)
  */
 const DEFAULT_EXPIRATION_HOURS = 72;
 
 /**
- * Renew subscriptions this many hours before they expire
+ * renew subscriptions this many hours before they expire
  */
 const RENEWAL_THRESHOLD_HOURS = 48;
 
 /**
- * Global message handler - set via initializePushManager
+ * global message handler - set via initializePushManager
  */
 let globalMessageHandler: PushMessageHandler | null = null;
 const pushEnableInFlight = new Map<string, Promise<boolean>>();
@@ -94,7 +94,7 @@ const getFreshAllSubscriptions = async () => {
 };
 
 /**
- * Invalidate push subscription caches after mutations
+ * invalidate push subscription caches after mutations
  */
 const invalidatePushCaches = (calendarId?: string) => {
   queryClient.invalidateQueries({ queryKey: queryKeys.pushSubscriptions.all });
@@ -116,10 +116,10 @@ const removeSubscriptionFromCaches = (subscription: PushSubscription) => {
 };
 
 /**
- * Generate Web Push subscription details for a calendar
+ * generate Web Push subscription details for a calendar
  *
- * Creates a provider subscription and returns the Web Push subscription
- * details needed for CalDAV push registration.
+ * creates a provider subscription and returns the Web Push subscription
+ * details needed for CalDAV push registration
  */
 export const createWebPushSubscription = async (
   calendar: Calendar,
@@ -475,20 +475,20 @@ const recreateCalendarPushSubscription = async (
 };
 
 /**
- * Subscribe a calendar to WebDAV Push
+ * subscribe a calendar to WebDAV Push
  */
 export const subscribeCalendarToPush = async (
   accountId: string,
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
 ) => {
-  // Check if calendar supports push
+  // check if calendar supports push
   if (!calendar.pushSupported || !calendar.pushTopic) {
     log.debug(`Calendar ${calendar.displayName} does not support push`);
     return null;
   }
 
-  // Check fresh storage so stale query data can't race a just-created subscription.
+  // check fresh storage so stale query data can't race a just-created subscription
   const existingSubscriptions = await getFreshCalendarSubscriptions(calendar.id);
   const validSubscription = existingSubscriptions.find((sub) =>
     isRenewablyValidSubscription(sub, providerConfig),
@@ -508,7 +508,7 @@ export const subscribeCalendarToPush = async (
     return validSubscription;
   }
 
-  // Get connection
+  // get connection
   if (!isConnected(accountId)) {
     log.warn(`Account ${accountId} not connected, cannot subscribe to push`);
     return null;
@@ -544,7 +544,7 @@ export const subscribeCalendarToPush = async (
 };
 
 /**
- * Unsubscribe a calendar from WebDAV Push
+ * unsubscribe a calendar from WebDAV Push
  */
 export const unsubscribeCalendarFromPush = async (accountId: string, calendarId: string) => {
   const subscriptions = await getFreshCalendarSubscriptions(calendarId);
@@ -554,20 +554,20 @@ export const unsubscribeCalendarFromPush = async (accountId: string, calendarId:
     return;
   }
 
-  // Get connection if available
+  // get connection if available
   let conn: Connection | null = null;
   if (isConnected(accountId)) {
     conn = getConnection(accountId);
   }
 
-  // Unregister from server and delete locally
+  // unregister from server and delete locally
   for (const subscription of subscriptions) {
     if (conn) {
       try {
         await unregisterPushSubscription(subscription.registrationUrl, conn.credentials);
       } catch (error) {
         log.warn(`Failed to unregister push subscription from server:`, error);
-        // Continue anyway - we'll delete locally
+        // continue anyway - we'll delete locally
       }
     }
 
@@ -575,7 +575,7 @@ export const unsubscribeCalendarFromPush = async (accountId: string, calendarId:
     removeSubscriptionFromCaches(subscription);
   }
 
-  // Invalidate caches
+  // invalidate caches
   invalidatePushCaches(calendarId);
 
   log.info(`Removed ${subscriptions.length} push subscriptions for calendar ${calendarId}`);
@@ -624,7 +624,7 @@ export const startPushListeningForSubscription = (
 };
 
 /**
- * Stop listening for push messages on a calendar
+ * stop listening for push messages on a calendar
  */
 export const stopPushListening = (calendarId: string) => {
   stopNtfyProviderListening(calendarId);
@@ -632,10 +632,10 @@ export const stopPushListening = (calendarId: string) => {
 };
 
 /**
- * Initialize the push manager with a message handler
+ * initialize the push manager with a message handler
  *
- * The handler will be called when push messages are received,
- * typically to trigger a sync for the affected calendar.
+ * the handler will be called when push messages are received,
+ * typically to trigger a sync for the affected calendar
  */
 export const initializePushManager = (onPushMessage: PushMessageHandler) => {
   globalMessageHandler = onPushMessage;
@@ -643,9 +643,9 @@ export const initializePushManager = (onPushMessage: PushMessageHandler) => {
 };
 
 /**
- * Subscribe and start listening for a calendar
+ * subscribe and start listening for a calendar
  *
- * This is a convenience function that:
+ * this is a convenience function that:
  * 1. Creates the provider subscription
  * 2. Registers with the CalDAV server
  * 3. Starts listening for messages
@@ -711,13 +711,13 @@ const enablePushForCalendarInner = async (
     return startPushListeningForSubscription(replacement, providerConfig, calendar);
   }
 
-  // Subscribe to push
+  // subscribe to push
   const subscription = await subscribeCalendarToPush(accountId, calendar, providerConfig);
   if (!subscription) {
     return false;
   }
 
-  // Start listening
+  // start listening
   const listening = startPushListeningForSubscription(subscription, providerConfig, calendar);
   if (!listening) {
     log.warn(`Push subscribed but not listening for ${calendar.displayName}`);
@@ -751,21 +751,21 @@ export const enablePushForCalendar = async (
 };
 
 /**
- * Disable push for a calendar
+ * disable push for a calendar
  *
- * Unsubscribes from the CalDAV server and stops listening.
+ * unsubscribes from the CalDAV server and stops listening
  */
 export const disablePushForCalendar = async (accountId: string, calendarId: string) => {
-  // Stop listening first
+  // stop listening first
   stopPushListening(calendarId);
 
-  // Remove provider subscription
+  // remove provider subscription
   const subscriptions = await getFreshCalendarSubscriptions(calendarId);
   for (const subscription of subscriptions) {
     await removeProviderSubscription(subscription);
   }
 
-  // Unsubscribe from server
+  // unsubscribe from server
   await unsubscribeCalendarFromPush(accountId, calendarId);
 };
 
@@ -857,10 +857,10 @@ const restoreCalendarPushListener = async (
 };
 
 /**
- * Restore push listening for all active subscriptions
+ * restore push listening for all active subscriptions
  *
- * Should be called on app startup to reconnect provider listeners for
- * calendars that still have valid push subscriptions.
+ * should be called on app startup to reconnect provider listeners for
+ * calendars that still have valid push subscriptions
  */
 export const restorePushListeners = async (
   calendars: Calendar[],
@@ -882,7 +882,7 @@ export const restorePushListeners = async (
   }
 
   for (const [calendarId, subscriptions] of subscriptionsByCalendar) {
-    // Find the calendar
+    // find the calendar
     const calendar = calendars.find((c) => c.id === calendarId);
     if (!calendar) {
       log.warn(`Calendar ${calendarId} not found for push subscription`);

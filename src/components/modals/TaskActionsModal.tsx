@@ -37,7 +37,7 @@ export const TaskActionsModal = ({ isOpen, onClose, taskId }: TaskActionsModalPr
   };
 
   const handleSnooze = async () => {
-    // Emit the same event that native snooze actions use
+    // emit the same event that native snooze actions use
     const event: NotificationActionEvent = {
       action: 'snooze-15min',
       taskId: taskId,

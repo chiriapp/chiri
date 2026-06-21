@@ -12,7 +12,7 @@ import { createTag, deleteTag, getAllTags, updateTag } from '$lib/store/tags';
 import type { Tag } from '$types';
 
 /**
- * Hook to get all tags
+ * hook to get all tags
  */
 export const useTags = () => {
   const queryClient = useQueryClient();
@@ -31,7 +31,7 @@ export const useTags = () => {
 };
 
 /**
- * Hook to create a tag
+ * hook to create a tag
  */
 export const useCreateTag = () => {
   const queryClient = useQueryClient();
@@ -47,7 +47,7 @@ export const useCreateTag = () => {
 };
 
 /**
- * Hook to update a tag
+ * hook to update a tag
  */
 export const useUpdateTag = () => {
   const queryClient = useQueryClient();
@@ -64,7 +64,7 @@ export const useUpdateTag = () => {
 };
 
 /**
- * Hook to reorder tags (manual sort mode)
+ * hook to reorder tags (manual sort mode)
  */
 export const useReorderTags = () => {
   const queryClient = useQueryClient();
@@ -87,7 +87,7 @@ export const useReorderTags = () => {
 };
 
 /**
- * Hook to delete a tag
+ * hook to delete a tag
  */
 export const useDeleteTag = () => {
   const queryClient = useQueryClient();

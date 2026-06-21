@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds OAuth token fields to accounts for bearer-token-based auth (e.g. Fastmail OAuth 2.0)
+/// adds OAuth token fields to accounts for bearer-token-based auth (e.g. Fastmail OAuth 2.0)
 pub fn migration() -> Migration {
     Migration {
         version: 21,

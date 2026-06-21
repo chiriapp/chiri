@@ -1,7 +1,7 @@
-/** The container format Chiri decoded the configuration profile from. */
+/** the container format Chiri decoded the configuration profile from */
 export type MobileConfigFormat = 'xml' | 'binary-plist' | 'signed-cms';
 
-/** Chiri can currently identify CMS signatures, but does not verify their trust chain. */
+/** Chiri can currently identify CMS signatures, but does not verify their trust chain */
 export type MobileConfigSignatureStatus = 'unsigned' | 'signed-unverified';
 
 export type MobileConfigDecodeFailureReason =
@@ -14,7 +14,7 @@ export type MobileConfigDecodeFailureReason =
   | 'invalid-caldav-payload'
   | 'unexpected-error';
 
-/** A structurally decoded com.apple.caldav.account payload. */
+/** a structurally decoded com.apple.caldav.account payload */
 export interface DecodedMobileConfigCalDAVPayload {
   accountDescription?: string;
   hostname?: string;
@@ -37,7 +37,7 @@ export type MobileConfigDecodeResult =
   | { ok: true; profile: DecodedMobileConfig }
   | { ok: false; reason: MobileConfigDecodeFailureReason };
 
-/** Account setup values produced from a decoded CalDAV payload. */
+/** account setup values produced from a decoded CalDAV payload */
 export interface MobileConfigCalDAVSettings {
   accountName?: string;
   serverUrl: string;

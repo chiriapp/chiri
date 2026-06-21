@@ -59,7 +59,7 @@ export const ConfirmDialogModal = ({
       ? 'secondary'
       : 'primary';
 
-  // Countdown timer
+  // countdown timer
   useEffect(() => {
     if (!isOpen || remainingSeconds <= 0) return;
 

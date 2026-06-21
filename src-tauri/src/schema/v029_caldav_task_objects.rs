@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Stores remote CalDAV object metadata and the last synced VTODO baseline.
+/// stores remote CalDAV object metadata and the last synced VTODO baseline
 pub fn migration() -> Migration {
     Migration {
         version: 29,

@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// tauri-http imports invoke + tauriFetch at top level. Stub to no-ops so the
-// module evaluates without needing a Tauri runtime. (Logger mocks come from
-// src/tests/setup.ts.)
+// tauri-http imports invoke + tauriFetch at top level. stub to no-ops so the
+// module evaluates without needing a Tauri runtime (logger mocks come from src/tests/setup.ts)
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 vi.mock('@tauri-apps/plugin-http', () => ({ fetch: vi.fn() }));
 

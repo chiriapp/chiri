@@ -8,7 +8,7 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       id: 'latte',
       name: 'Latte',
       mode: 'light',
-      // Mapped so surface-200 is a visible border on Base, and surface-800 is readable primary text.
+      // mapped so surface-200 is a visible border on Base, and surface-800 is readable primary text
       // light → dark: Base → … → Text
       surfaces: {
         50: '#eff1f5', // Base (main bg / hover tint)

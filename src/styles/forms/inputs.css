@@ -1,16 +1,16 @@
-/* Prevent text selection on all UI elements by default, only allow in input fields */
+/* prevent text selection on all UI elements by default, only allow in input fields */
 * {
   user-select: none;
   -webkit-user-select: none;
 }
 
-/* Date picker styling */
+/* date picker styling */
 input[type="date"],
 input[type="datetime-local"] {
   color-scheme: light;
 }
 
-/* Explicitly allow selection only in input fields and editable content */
+/* explicitly allow selection only in input fields and editable content */
 input,
 textarea,
 [contenteditable="true"],
@@ -19,7 +19,7 @@ textarea,
   -webkit-user-select: text;
 }
 
-/* Accent-colored checkboxes */
+/* accent-colored checkboxes */
 input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -67,7 +67,7 @@ input[type="checkbox"] {
   }
 }
 
-/* Range sliders */
+/* range sliders */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;

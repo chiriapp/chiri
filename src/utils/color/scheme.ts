@@ -57,7 +57,7 @@ export const getFallbackItemColor = () => {
 };
 
 /**
- * Theme options for appearance settings
+ * theme options for appearance settings
  */
 export const THEME_OPTIONS: Array<{
   value: Theme;
@@ -186,7 +186,7 @@ export const shouldResetAccentForFlavor = (accentColor: AccentColor, flavor: Col
   !flavor.accentColors.some((color) => color.name === accentColor);
 
 /**
- * apply a color scheme's surface palette as CSS custom properties.
+ * apply a color scheme's surface palette as CSS custom properties
  */
 export const applyColorScheme = (
   schemeId: string,

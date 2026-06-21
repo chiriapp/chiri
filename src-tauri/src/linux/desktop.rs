@@ -3,8 +3,8 @@ use log::debug;
 #[cfg(target_os = "linux")]
 use tauri::Theme;
 
-/// Returns true when running inside a GNOME session.
-/// Checks XDG_CURRENT_DESKTOP first, then XDG_SESSION_DESKTOP.
+/// returns true when running inside a GNOME session
+/// checks XDG_CURRENT_DESKTOP first, then XDG_SESSION_DESKTOP
 #[cfg(target_os = "linux")]
 fn is_gnome() -> bool {
     linux_desktop_session_values()
@@ -12,7 +12,7 @@ fn is_gnome() -> bool {
         .any(|desktop| desktop.contains("gnome"))
 }
 
-/// Returns true when running inside a KDE Plasma session.
+/// returns true when running inside a KDE Plasma session
 #[cfg(target_os = "linux")]
 fn is_kde() -> bool {
     let kde_full_session = std::env::var("KDE_FULL_SESSION")
@@ -47,24 +47,24 @@ fn linux_desktop_session_values() -> Vec<String> {
     .collect()
 }
 
-/// Returns true when running on Linux/GNOME.
+/// returns true when running on Linux/GNOME
 #[tauri::command]
 pub async fn is_gnome_desktop() -> Result<bool, String> {
     Ok(is_gnome())
 }
 
-/// Returns true when running on Linux/KDE Plasma.
+/// returns true when running on Linux/KDE Plasma
 #[tauri::command]
 pub async fn is_kde_desktop() -> Result<bool, String> {
     Ok(is_kde())
 }
 
-/// Returns the appropriate tray icon theme for the current Linux desktop.
-/// GNOME's top bar is always dark; other DEs query the XDG portal or gsettings.
+/// returns the appropriate tray icon theme for the current Linux desktop
+/// GNOME's top bar is always dark; other DEs query the XDG portal or gsettings
 #[cfg(target_os = "linux")]
 pub fn get_tray_theme() -> Theme {
     if is_gnome() {
-        debug!("[Linux] GNOME detected — top bar is always dark, using light icon");
+        debug!("[Linux] GNOME detected; top bar is always dark, using light icon");
         return Theme::Dark;
     }
     if let Some(theme) = query_portal_color_scheme() {
@@ -73,8 +73,8 @@ pub fn get_tray_theme() -> Theme {
     query_gsettings_color_scheme()
 }
 
-/// Queries color-scheme from the XDG Settings portal via gdbus.
-/// Returns None if the portal is unavailable or returns no preference.
+/// queries color-scheme from the XDG Settings portal via gdbus
+/// returns None if the portal is unavailable or returns no preference
 #[cfg(target_os = "linux")]
 fn query_portal_color_scheme() -> Option<Theme> {
     let output = std::process::Command::new("gdbus")
@@ -112,7 +112,7 @@ fn query_portal_color_scheme() -> Option<Theme> {
     }
 }
 
-/// Falls back to gsettings for environments where the XDG portal isn't available.
+/// falls back to gsettings for environments where the XDG portal isn't available
 #[cfg(target_os = "linux")]
 fn query_gsettings_color_scheme() -> Theme {
     match std::process::Command::new("gsettings")

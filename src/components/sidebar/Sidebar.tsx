@@ -146,10 +146,10 @@ export const Sidebar = ({
     keyboardShortcuts,
   } = useSettingsStore();
 
-  // Track which account IDs we've already initialized (to avoid re-processing)
+  // track which account IDs we've already initialized (to avoid re-processing)
   const initializedAccountIdsRef = useRef<Set<string>>(new Set(expandedAccountIds));
 
-  // Initialize expanded accounts: new accounts should follow defaultAccountsExpanded setting
+  // initialize expanded accounts: new accounts should follow defaultAccountsExpanded setting
   useEffect(() => {
     const newAccountIds = accounts
       .map((a) => a.id)
@@ -165,7 +165,7 @@ export const Sidebar = ({
     }
   }, [accounts, defaultAccountsExpanded, expandedAccountIds, setExpandedAccountIds]);
 
-  // Convert expandedAccountIds array to a Set for efficient lookups
+  // convert expandedAccountIds array to a Set for efficient lookups
   const expandedAccounts = useMemo(() => new Set(expandedAccountIds), [expandedAccountIds]);
 
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -200,15 +200,15 @@ export const Sidebar = ({
   const { isResizing, resizeHandleRef, handleResizeStart } = useSidebarResize(onWidthChange);
   const prefersReducedMotion = usePrefersReducedMotion();
 
-  // Track last menu close time to prevent immediate reopening
+  // track last menu close time to prevent immediate reopening
   const lastMenuCloseTimeRef = useRef<number>(0);
 
-  // Track transition state for smoother animations
+  // track transition state for smoother animations
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showExpandedContent, setShowExpandedContent] = useState(!isCollapsed);
   const [showCollapsedContent, setShowCollapsedContent] = useState(isCollapsed);
 
-  // Handle content visibility during transitions
+  // handle content visibility during transitions
   useEffect(() => {
     if (prefersReducedMotion) {
       setShowExpandedContent(!isCollapsed);

@@ -41,7 +41,7 @@ type Step = 'pick-type' | 'connect-method' | 'quick-connect' | 'credentials' | '
 
 const QUICK_CONNECT_SERVER_TYPES = new Set<ServerType>(['nextcloud', 'rustical']);
 const OAUTH_SERVER_TYPES = new Set<ServerType>(['fastmail']);
-/** All server types that go through the connect-method chooser step */
+/** all server types that go through the connect-method chooser step */
 const CONNECT_METHOD_SERVER_TYPES = new Set<ServerType>([
   ...QUICK_CONNECT_SERVER_TYPES,
   ...OAUTH_SERVER_TYPES,
@@ -54,7 +54,7 @@ interface AccountModalProps {
   zIndex?: 'z-60' | 'z-70';
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This modal owns a multi-step account setup flow whose branches share state and confirmation dialogs.
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: This modal owns a multi-step account setup flow whose branches share state and confirmation dialogs
 export function AccountModal({
   account,
   onClose,
@@ -108,7 +108,7 @@ export function AccountModal({
     () => account?.caldav?.acceptInvalidCerts ?? false,
   );
 
-  // Reset test state when credentials change
+  // reset test state when credentials change
   const [prevCredentials, setPrevCredentials] = useState({
     serverUrl,
     username,
@@ -297,7 +297,7 @@ export function AccountModal({
         });
         serverReachable = true;
       } catch {
-        // Also failed with bypass - genuinely unreachable.
+        // also failed with bypass - genuinely unreachable
       }
 
       if (!serverReachable) throw err;

@@ -18,15 +18,15 @@ const log = loggers.iCal;
 type ParsedProperty = NonNullable<ReturnType<typeof parseProperty>>;
 
 // Apple epoch: January 1, 2001 00:00:00 GMT in milliseconds since Unix epoch
-// Used for X-APPLE-SORT-ORDER which stores seconds since Apple epoch
+// used for X-APPLE-SORT-ORDER which stores seconds since Apple epoch
 export const APPLE_EPOCH = 978307200000;
 
-// Convert Unix timestamp (milliseconds) to Apple epoch (seconds)
+// convert Unix timestamp (milliseconds) to Apple epoch (seconds)
 export const toAppleEpoch = (timestamp: number) => {
   return Math.floor((timestamp - APPLE_EPOCH) / 1000);
 };
 
-// Convert Apple epoch (seconds) to Unix timestamp (milliseconds)
+// convert Apple epoch (seconds) to Unix timestamp (milliseconds)
 export const fromAppleEpoch = (appleSeconds: number) => {
   return appleSeconds * 1000 + APPLE_EPOCH;
 };
@@ -83,8 +83,8 @@ const parseICalDuration = (value: string) => {
 };
 
 /**
- * Format millisecond offset as an RFC 5545 duration string.
- * Examples: -900000 → "-PT15M", 3600000 → "PT1H"
+ * format millisecond offset as an RFC 5545 duration string
+ * examples: -900000 → "-PT15M", 3600000 → "PT1H"
  */
 const formatICalDuration = (offsetMs: number) => {
   const sign = offsetMs < 0 ? '-' : '';
@@ -106,7 +106,7 @@ const formatICalDuration = (offsetMs: number) => {
   return result;
 };
 
-// Status mapping: iCalendar VTODO STATUS ↔ TaskStatus
+// status mapping: iCalendar VTODO STATUS ↔ TaskStatus
 const icalStatusToTaskStatus = (icalStatus: string | undefined): TaskStatus => {
   switch (icalStatus?.toUpperCase()) {
     case 'COMPLETED':
@@ -133,8 +133,8 @@ const taskStatusToIcal = (status: TaskStatus) => {
   }
 };
 
-// Priority mapping: iCalendar uses 1-9 (1 = highest, 9 = lowest)
-// We map: high = 1, medium = 5, low = 9, none = 0
+// priority mapping: iCalendar uses 1-9 (1 = highest, 9 = lowest)
+// we map: high = 1, medium = 5, low = 9, none = 0
 const priorityToIcal: Record<Priority, number> = {
   high: 1,
   medium: 5,
@@ -264,7 +264,7 @@ interface ParsedVTodo {
 }
 
 /**
- * Parse VALARM content into structured data
+ * parse VALARM content into structured data
  */
 const parseVAlarm = (valarmContent: string) => {
   const result: ParsedVAlarm = {};
@@ -293,7 +293,7 @@ const parseVAlarm = (valarmContent: string) => {
           prop.value.startsWith('-P') ||
           prop.value.startsWith('+P')
         ) {
-          // Relative duration trigger (e.g. -PT15M, PT1H, RELATED=END:-PT15M)
+          // relative duration trigger (e.g. -PT15M, PT1H, RELATED=END:-PT15M)
           const offsetMs = parseICalDuration(prop.value);
           if (offsetMs !== null) {
             result.relativeOffset = offsetMs;
@@ -324,7 +324,7 @@ const parseVAlarm = (valarmContent: string) => {
 };
 
 /**
- * Extract VALARM blocks from VTODO content
+ * extract VALARM blocks from VTODO content
  */
 const extractVAlarms = (vtodoContent: string) => {
   const alarms: string[] = [];
@@ -431,13 +431,13 @@ const applyVTodoProp = (result: ParsedVTodo, prop: ParsedProperty) => {
 };
 
 /**
- * Parse VTODO content into structured data
+ * parse VTODO content into structured data
  */
 export const parseVTodo = (vtodoContent: string) => {
   const result: ParsedVTodo = {};
   const lines = unfoldLines(vtodoContent).split('\n');
 
-  // Extract and parse VALARMs first
+  // extract and parse VALARMs first
   const alarmContents = extractVAlarms(vtodoContent);
   if (alarmContents.length > 0) {
     result.alarms = alarmContents.map(parseVAlarm).filter((a) => a.trigger);
@@ -450,7 +450,7 @@ export const parseVTodo = (vtodoContent: string) => {
 
     const trimmedUpper = line.trim().toUpperCase();
 
-    // Track nested components (VALARM, etc.) so their properties don't leak into VTODO
+    // track nested components (VALARM, etc.) so their properties don't leak into VTODO
     if (trimmedUpper.startsWith('BEGIN:') && trimmedUpper !== 'BEGIN:VTODO') {
       inSubComponent = true;
       continue;
@@ -471,12 +471,12 @@ export const parseVTodo = (vtodoContent: string) => {
 };
 
 /**
- * Extract VTODO blocks from iCalendar content.
+ * extract VTODO blocks from iCalendar content
  *
- * When a VCALENDAR contains multiple VTODOs with the same UID (the two-VTODO
+ * when a VCALENDAR contains multiple VTODOs with the same UID (the two-VTODO
  * format used for completed recurring instances: master + RECURRENCE-ID override),
  * we return only the master (the one with RRULE / without RECURRENCE-ID) so the
- * app always works with the live series, not a completed snapshot.
+ * app always works with the live series, not a completed snapshot
  */
 export const extractVTodos = (icalContent: string) => {
   const all: string[] = [];
@@ -505,8 +505,8 @@ export const extractVTodos = (icalContent: string) => {
 
   if (all.length <= 1) return all;
 
-  // Multiple VTODOs: prefer the master (has RRULE, no RECURRENCE-ID).
-  // If none qualifies fall back to returning all of them.
+  // multiple VTODOs: prefer the master (has RRULE, no RECURRENCE-ID)
+  // if none qualifies fall back to returning all of them
   const masters = all.filter((block) => {
     const upper = block.toUpperCase();
     return upper.includes('RRULE:') && !upper.includes('RECURRENCE-ID:');
@@ -515,7 +515,7 @@ export const extractVTodos = (icalContent: string) => {
 };
 
 /**
- * Generate a VALARM component as string
+ * generate a VALARM component as string
  */
 const generateVAlarm = (reminder: Reminder) => {
   const lines: string[] = [];
@@ -542,7 +542,7 @@ const generateVAlarm = (reminder: Reminder) => {
 };
 
 /**
- * Generate date property line (DTSTART or DUE)
+ * generate date property line (DTSTART or DUE)
  */
 const generateDateLine = (property: 'DTSTART' | 'DUE', date: Date, allDay: boolean) => {
   if (allDay) {
@@ -552,7 +552,7 @@ const generateDateLine = (property: 'DTSTART' | 'DUE', date: Date, allDay: boole
 };
 
 /**
- * Generate CATEGORIES and tag color lines
+ * generate CATEGORIES and tag color lines
  */
 const generateTagLines = (taskTagIds: string[]) => {
   const lines: string[] = [];
@@ -580,12 +580,12 @@ const generateTagLines = (taskTagIds: string[]) => {
 };
 
 /**
- * Generate a VTODO component as string
+ * generate a VTODO component as string
  */
 export const generateVTodo = (task: Task) => {
   const lines: string[] = [];
 
-  // Core properties
+  // core properties
   lines.push('BEGIN:VTODO');
   lines.push(`UID:${task.uid}`);
   lines.push(`DTSTAMP:${formatICalDate(new Date())}`);
@@ -597,7 +597,7 @@ export const generateVTodo = (task: Task) => {
     lines.push(`DESCRIPTION:${escapeICalText(task.description)}`);
   }
 
-  // Status and completion
+  // status and completion
   lines.push(
     `STATUS:${taskStatusToIcal(task.status ?? (task.completed ? 'completed' : 'needs-action'))}`,
   );
@@ -612,7 +612,7 @@ export const generateVTodo = (task: Task) => {
 
   lines.push(`PRIORITY:${priorityToIcal[task.priority]}`);
 
-  // Dates
+  // dates
   if (task.startDate) {
     lines.push(generateDateLine('DTSTART', new Date(task.startDate), !!task.startDateAllDay));
   }
@@ -623,12 +623,12 @@ export const generateVTodo = (task: Task) => {
 
   lines.push(`X-APPLE-SORT-ORDER:${task.sortOrder}`);
 
-  // Tags as CATEGORIES
+  // tags as CATEGORIES
   if (task.tags && task.tags.length > 0) {
     lines.push(...generateTagLines(task.tags));
   }
 
-  // Optional properties
+  // optional properties
   if (task.parentUid) {
     lines.push(`RELATED-TO;RELTYPE=PARENT:${task.parentUid}`);
   }
@@ -641,7 +641,7 @@ export const generateVTodo = (task: Task) => {
     lines.push(`RRULE:${task.rrule}`);
   }
 
-  // Reminders as VALARMs
+  // reminders as VALARMs
   if (task.reminders && task.reminders.length > 0) {
     for (const reminder of task.reminders) {
       lines.push(generateVAlarm(reminder));
@@ -650,12 +650,12 @@ export const generateVTodo = (task: Task) => {
 
   lines.push('END:VTODO');
 
-  // Fold long lines
+  // fold long lines
   return lines.map(foldLine).join('\r\n');
 };
 
 /**
- * Generate a complete VCALENDAR with VTODOs
+ * generate a complete VCALENDAR with VTODOs
  */
 export const generateVCalendar = (vtodos: string[]) => {
   const lines: string[] = [];
@@ -673,8 +673,8 @@ export const generateVCalendar = (vtodos: string[]) => {
 };
 
 /**
- * Shared helper: convert a ParsedVTodo into a Task or Partial<Task>.
- * Used by both vtodoToTask (full Task) and parseIcsFile (Partial<Task>).
+ * shared helper: convert a ParsedVTodo into a Task or Partial<Task>
+ * used by both vtodoToTask (full Task) and parseIcsFile (Partial<Task>)
  */
 export const parsedVTodoToTask = (
   parsed: ParsedVTodo,
@@ -700,7 +700,7 @@ export const parsedVTodoToTask = (
       }));
   }
 
-  // Calculate sort order
+  // calculate sort order
   const createdDate = parsed.created ?? new Date();
   let sortOrder: number;
   if (parsed.sortOrder !== undefined && !Number.isNaN(parsed.sortOrder)) {
@@ -744,7 +744,7 @@ export const parsedVTodoToTask = (
 };
 
 /**
- * Convert a Task to iCalendar VTODO format
+ * convert a Task to iCalendar VTODO format
  */
 export const taskToVTodo = (task: Task) => {
   const vtodo = generateVTodo(task);
@@ -752,7 +752,7 @@ export const taskToVTodo = (task: Task) => {
 };
 
 /**
- * Parse iCalendar string and convert to Task
+ * parse iCalendar string and convert to Task
  */
 export const vtodoToTask = (
   icalString: string,
@@ -775,7 +775,7 @@ export const vtodoToTask = (
 };
 
 /**
- * Generate a unique iCalendar UID
+ * generate a unique iCalendar UID
  */
 export const generateICalUid = () => {
   return `${generateUUID()}@chiri`;

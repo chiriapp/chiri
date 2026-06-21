@@ -3,7 +3,7 @@ import type { DateFormat, StartOfWeek } from '$types/preference';
 import type { ServerTypeGroup, ServerTypeOption } from '$types/settings';
 
 /**
- * Date format options
+ * date format options
  */
 export const DATE_FORMAT_OPTIONS: Array<{ value: DateFormat; label: string; example: string }> = [
   { value: 'MMM d, yyyy', label: 'Jan 15, 2025', example: 'Jan 15, 2025' },
@@ -14,7 +14,7 @@ export const DATE_FORMAT_OPTIONS: Array<{ value: DateFormat; label: string; exam
 ];
 
 /**
- * Days of week options for calendar start day
+ * days of week options for calendar start day
  */
 export const WEEK_START_OPTIONS: Array<{ value: StartOfWeek; label: string }> = [
   { value: 'sunday', label: 'Sunday' },
@@ -27,7 +27,7 @@ export const WEEK_START_OPTIONS: Array<{ value: StartOfWeek; label: string }> = 
 ];
 
 /**
- * Connectivity check interval options (in seconds)
+ * connectivity check interval options (in seconds)
  */
 export const CONNECTIVITY_CHECK_INTERVAL_OPTIONS: Array<{ value: number; label: string }> = [
   { value: 15, label: 'Every 15 seconds' },
@@ -38,7 +38,7 @@ export const CONNECTIVITY_CHECK_INTERVAL_OPTIONS: Array<{ value: number; label: 
 ];
 
 /**
- * Sync interval options (in minutes)
+ * sync interval options (in minutes)
  */
 export const SYNC_INTERVAL_OPTIONS: Array<{ value: number; label: string }> = [
   { value: 1, label: 'Every 1 minute' },
@@ -118,13 +118,13 @@ export const SERVER_TYPE_GROUPS: ServerTypeGroup[] = [
   },
 ];
 
-// Flat list for convenience
+// flat list for convenience
 export const SERVER_TYPE_OPTIONS: ServerTypeOption[] = SERVER_TYPE_GROUPS.flatMap(
   (group) => group.options,
 );
 
 /**
- * Predefined server URLs for known server types
+ * predefined server URLs for known server types
  */
 export const PREDEFINED_SERVER_URLS: Partial<Record<ServerType, string>> = {
   fastmail: 'https://caldav.fastmail.com',
@@ -136,7 +136,7 @@ export const PREDEFINED_SERVER_URLS: Partial<Record<ServerType, string>> = {
 };
 
 /**
- * Get predefined server URL for a server type
+ * get predefined server URL for a server type
  */
 export const getPredefinedServerUrl = (type: ServerType) => {
   return PREDEFINED_SERVER_URLS[type];

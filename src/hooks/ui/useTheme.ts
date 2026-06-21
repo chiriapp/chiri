@@ -7,11 +7,11 @@ import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
 
 /**
  * applies the theme, color scheme surface palette, and accent color, and
- * listens for system preference changes.
+ * listens for system preference changes
  *
  * when the theme mode changes (light ↔ dark), any active scheme flavor that
  * is incompatible with the new mode is automatically swapped to the first
- * compatible one.
+ * compatible one
  */
 export const useTheme = () => {
   const { theme, accentColor, colorScheme, colorSchemeFlavor, setColorScheme } = useSettingsStore();
@@ -30,11 +30,11 @@ export const useTheme = () => {
       if (currentFlavor && currentFlavor.mode !== effectiveMode) {
         const compatible = scheme.flavors.find((f) => f.mode === effectiveMode);
         if (compatible) {
-          // Pass the compatible flavor's defaultAccent as the fallback so that
-          // setColorScheme restores the saved accent (if any) or uses the default.
+          // pass the compatible flavor's defaultAccent as the fallback so that
+          // setColorScheme restores the saved accent (if any) or uses the default
           setColorScheme(colorScheme, compatible.id, compatible.defaultAccent);
         } else {
-          // No flavor supports this mode - fall back to the default scheme
+          // no flavor supports this mode - fall back to the default scheme
           setColorScheme(DEFAULT_COLOR_SCHEME_ID, null);
         }
       }
@@ -69,7 +69,7 @@ export const useTheme = () => {
     applyColorScheme(colorScheme, colorSchemeFlavor, resolveEffectiveTheme(theme));
   }, [colorScheme, colorSchemeFlavor, theme]);
 
-  // apply accent color — resolve name→hex first, then normalize pastel scheme colors
+  // apply accent color. resolve name→hex first, then normalize pastel scheme colors
   useEffect(() => {
     const flavor = getColorSchemeFlavor(
       colorScheme,

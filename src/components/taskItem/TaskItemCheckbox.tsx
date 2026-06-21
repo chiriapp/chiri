@@ -48,7 +48,7 @@ export const TaskItemCheckbox = ({
     if (selectionMode) return selected ? 'Remove from selection' : 'Select task';
     if (isCancelled) return 'Cancelled';
     if (isInProcess) return 'In Progress';
-    if (status === 'completed') return 'Completed — click to reopen';
+    if (status === 'completed') return 'Completed, click to reopen';
     return 'Mark complete';
   };
 

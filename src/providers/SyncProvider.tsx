@@ -46,7 +46,7 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
     initialSyncCallbackRef.current = callback;
   }, []);
 
-  // Trigger initial sync once when callback is registered
+  // trigger initial sync once when callback is registered
   useEffect(() => {
     if (initialSyncTriggeredRef.current || !initialSyncCallbackRef.current) {
       return;
@@ -67,7 +67,7 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
 
     initialSyncTriggeredRef.current = true;
 
-    // Wait for React to finish render cycle and browser to paint
+    // wait for React to finish render cycle and browser to paint
     requestAnimationFrame(() => {
       setTimeout(() => {
         log.debug('Initial sync starting after render cycle complete...');

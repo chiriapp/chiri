@@ -121,7 +121,7 @@ describe('parsedVTodoToTask', () => {
       { accountId: 'a', calendarId: 'c', synced: true },
     );
 
-    // Apple epoch is Jan 1 2001 UTC. createdAt = Jan 1 2025 UTC = 24 years later.
+    // Apple epoch is Jan 1 2001 UTC. createdAt = Jan 1 2025 UTC = 24 years later
     expect(result.sortOrder).toBeGreaterThan(0);
     // sortOrder is in Apple-epoch seconds (~24 years × 31_557_600s)
     expect(result.sortOrder).toBeGreaterThan(700_000_000);

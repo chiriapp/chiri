@@ -1,5 +1,5 @@
 # Nextcloud test server. Full PHP groupware stack with CalDAV/CardDAV
-# and the DAV Push extension enabled for WebDAV Push integration tests.
+# and the DAV Push extension enabled for WebDAV Push integration tests
 #
 # defaults:
 #   - port 8081 (so it doesn't collide with Baikal on 8080)
@@ -28,9 +28,9 @@ let
 
   nextcloud = pkgs.${nextcloudPackageName}.overrideAttrs (old: {
     meta = old.meta // {
-      # The derivation is just the upstream PHP source tree. It is useful for
+      # the derivation is just the upstream PHP source tree. It is useful for
       # local test servers on Darwin too, even though the NixOS service is
-      # Linux-only.
+      # Linux-only
       platforms = pkgs.lib.platforms.unix;
     };
   });
@@ -118,8 +118,8 @@ let
         occ config:system:set overwrite.cli.url --value="http://localhost:$PORT"
         occ config:system:set maintenance_window_start --type=integer --value=1
 
-        # Give CalDAV discovery something useful immediately. Ignore failure in
-        # case a future Nextcloud version creates it during installation.
+        # give CalDAV discovery something useful immediately. Ignore failure in
+        # case a future Nextcloud version creates it during installation
         occ dav:create-calendar "$USERNAME" default || true
       fi
 

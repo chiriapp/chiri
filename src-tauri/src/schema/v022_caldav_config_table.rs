@@ -1,7 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Splits CalDAV-specific fields from accounts into a dedicated caldav_configs table.
-/// Local-only accounts will simply have no row in caldav_configs.
+/// splits CalDAV-specific fields from accounts into a dedicated caldav_configs table
+/// local-only accounts will simply have no row in caldav_configs
 pub fn migration() -> Migration {
     Migration {
         version: 22,

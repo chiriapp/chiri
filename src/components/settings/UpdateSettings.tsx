@@ -178,7 +178,7 @@ export const UpdateSettings = () => {
             <Download className="mt-0.5 h-5 w-5 shrink-0 text-primary-500" />
             <div>
               <p className="font-semibold text-sm text-surface-800 dark:text-surface-200">
-                Update available — {updateAvailable.version}
+                Update available: {updateAvailable.version}
               </p>
               <p className="mt-0.5 text-surface-500 text-xs dark:text-surface-400">
                 A new version is ready to download and install.

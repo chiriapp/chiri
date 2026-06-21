@@ -14,7 +14,7 @@ const resolveReminderOffsets = (
   offsets: DefaultReminderOffset[],
   due: { date: Date; allDay: boolean },
 ): Reminder[] => {
-  // Base time: 9am on the due date for all-day, or the exact due datetime otherwise
+  // base time: 9am on the due date for all-day, or the exact due datetime otherwise
   const { allDayReminderNotificationsEnabled, defaultAllDayReminderHour } =
     settingsStore.getState();
 
@@ -63,7 +63,7 @@ const resolveDateOffset = (
 
 const log = loggers.dataStore;
 
-// Helper: resolve tags including active tag and defaults
+// helper: resolve tags including active tag and defaults
 const resolveTaskTags = (
   providedTags: string[] | undefined,
   activeTagId: string | null,
@@ -79,7 +79,7 @@ const resolveTaskTags = (
   return tags;
 };
 
-// Helper: find calendar and account to use for new task
+// helper: find calendar and account to use for new task
 const resolveCalendarAndAccount = (
   taskCalendarId: string | undefined,
   taskAccountId: string | undefined,
@@ -92,7 +92,7 @@ const resolveCalendarAndAccount = (
   let accountId = taskAccountId ?? uiActiveAccountId ?? undefined;
 
   if (!calendarId && accounts.length > 0) {
-    // Try default calendar first
+    // try default calendar first
     if (defaultCalendarId) {
       for (const account of accounts) {
         const calendar = account.calendars.find((c) => c.id === defaultCalendarId);
@@ -103,7 +103,7 @@ const resolveCalendarAndAccount = (
         }
       }
     }
-    // Fallback to first available
+    // fallback to first available
     if (!calendarId) {
       const firstAccount = accounts.find((a) => a.calendars.length > 0);
       if (firstAccount) {
@@ -116,12 +116,12 @@ const resolveCalendarAndAccount = (
   return { calendarId, accountId };
 };
 
-// Helper: handle recurring task completion (advance to next occurrence)
+// helper: handle recurring task completion (advance to next occurrence)
 const handleRecurringTaskCompletion = (task: Task, data: ReturnType<typeof dataStore.load>) => {
   const rruleParts = parseRRule(task.rrule!);
   const count = rruleParts.COUNT ? parseInt(rruleParts.COUNT, 10) : undefined;
 
-  // If COUNT=1 this is the last instance — fall through to normal completion
+  // if COUNT=1 this is the last instance, fall through to normal completion
   if (count === 1) return false;
 
   const now = new Date();
@@ -134,7 +134,7 @@ const handleRecurringTaskCompletion = (task: Task, data: ReturnType<typeof dataS
 
   if (!next) return false;
 
-  // Build an updated RRULE with COUNT decremented if applicable
+  // build an updated RRULE with COUNT decremented if applicable
   let updatedRrule = task.rrule!;
   if (count !== undefined && count > 1) {
     updatedRrule = task.rrule!.replace(/COUNT=\d+/, `COUNT=${count - 1}`);
@@ -183,7 +183,7 @@ const matchesChildTaskFilter = (task: Task, filter: ChildTaskFilter) => {
   return true;
 };
 
-// Task getters
+// task getters
 export const getAllTasks = () => {
   return dataStore.load().tasks;
 };
@@ -229,12 +229,12 @@ export const getAllDescendants = (parentUid: string) => {
   return getDescendants(parentUid);
 };
 
-// Task create
+// task create
 export const createTask = (taskData: Partial<Task>) => {
   const data = dataStore.load();
   const now = new Date();
 
-  // Get default calendar and task defaults from settings
+  // get default calendar and task defaults from settings
   const {
     defaultCalendarId,
     defaultPriority,
@@ -248,10 +248,10 @@ export const createTask = (taskData: Partial<Task>) => {
     defaultRepeatFrom,
   } = settingsStore.getState();
 
-  // Resolve tags using helper
+  // resolve tags using helper
   const tags = resolveTaskTags(taskData.tags, data.ui.activeTagId, defaultTags);
 
-  // Resolve calendar and account using helper
+  // resolve calendar and account using helper
   const { calendarId, accountId } = resolveCalendarAndAccount(
     taskData.calendarId,
     taskData.accountId,
@@ -264,7 +264,7 @@ export const createTask = (taskData: Partial<Task>) => {
   const targetAccount = accountId ? data.accounts.find((a) => a.id === accountId) : undefined;
   const isLocalOnly = !calendarId || !accountId || !targetAccount?.caldav;
 
-  // Calculate sort order using Apple epoch format
+  // calculate sort order using Apple epoch format
   const maxSortOrder =
     data.tasks.length > 0
       ? Math.max(...data.tasks.map((t) => t.sortOrder))
@@ -306,7 +306,7 @@ export const createTask = (taskData: Partial<Task>) => {
     rrule: taskData.rrule ?? defaultRrule,
     repeatFrom: taskData.repeatFrom ?? defaultRepeatFrom,
     ...taskData,
-    // Apply tags and reminders after spread to ensure defaults are included
+    // apply tags and reminders after spread to ensure defaults are included
     tags,
     reminders:
       taskData.reminders ??
@@ -320,7 +320,7 @@ export const createTask = (taskData: Partial<Task>) => {
     tasks: [...data.tasks, task],
   });
 
-  // Persist to SQLite including local-only tasks
+  // persist to SQLite including local-only tasks
   if (dataStore.getIsInitialized()) {
     db.createTask(task).catch((e) => log.error('Failed to sync task to database:', e));
   }
@@ -328,7 +328,7 @@ export const createTask = (taskData: Partial<Task>) => {
   return task;
 };
 
-// Task update
+// task update
 export const updateTask = (id: string, updates: Partial<Task>) => {
   const data = dataStore.load();
   let updatedTask: Task | undefined;
@@ -373,9 +373,9 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
       updatedTask = {
         ...task,
         ...updates,
-        // Only update modifiedAt if not provided in updates (local changes)
+        // only update modifiedAt if not provided in updates (local changes)
         modifiedAt: updates.modifiedAt !== undefined ? updates.modifiedAt : new Date(),
-        // Only mark as unsynced if synced is not explicitly set in updates
+        // only mark as unsynced if synced is not explicitly set in updates
         synced: updates.synced !== undefined ? updates.synced : false,
       };
       return updatedTask;
@@ -391,7 +391,7 @@ export const updateTask = (id: string, updates: Partial<Task>) => {
   return updatedTask;
 };
 
-// Task delete
+// task delete
 export const deleteTask = (id: string, deleteChildren: boolean = true) => {
   const data = dataStore.load();
   const task = data.tasks.find((t) => t.id === id);
@@ -399,7 +399,7 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
 
   db.deleteTask(id, deleteChildren).catch((e) => log.error('Failed to persist task deletion:', e));
 
-  // Get all descendants recursively
+  // get all descendants recursively
   const getAllDescendantIds = (parentUid: string): string[] => {
     const children = data.tasks.filter((t) => t.parentUid === parentUid);
     const childIds = children.map((c) => c.id);
@@ -411,7 +411,7 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
   const tasksToDelete = deleteChildren ? [id, ...descendantIds] : [id];
   const deletedAt = new Date();
 
-  // Collect all tasks that need to be tracked for server deletion
+  // collect all tasks that need to be tracked for server deletion
   const tasksWithHref = data.tasks.filter((t) => tasksToDelete.includes(t.id) && t.href);
 
   const newPendingDeletions = [
@@ -426,7 +426,7 @@ export const deleteTask = (id: string, deleteChildren: boolean = true) => {
     })),
   ];
 
-  // If not deleting children, orphan them (move to root level)
+  // if not deleting children, orphan them (move to root level)
   let updatedTasks = data.tasks;
   if (!deleteChildren) {
     updatedTasks = updatedTasks.map((t) =>
@@ -559,9 +559,9 @@ export const deleteExpiredRecentlyDeletedTasks = (now: Date = new Date()) => {
 };
 
 /**
- * Remove a task from local storage only, without queuing a server-side DELETE.
- * Use this when the server has already removed the task (e.g. detected during sync)
- * so we don't mistakenly send a DELETE request for a resource that's gone or repurposed.
+ * remove a task from local storage only, without queuing a server-side DELETE
+ * use this when the server has already removed the task (e.g. detected during sync)
+ * so we don't mistakenly send a DELETE request for a resource that's gone or repurposed
  */
 export const removeLocalTask = (id: string) => {
   const data = dataStore.load();
@@ -593,7 +593,7 @@ export const removeLocalTask = (id: string) => {
   });
 };
 
-// Task toggles
+// task toggles
 export const toggleTaskComplete = (id: string) => {
   const data = dataStore.load();
   const task = data.tasks.find((t) => t.id === id);
@@ -601,7 +601,7 @@ export const toggleTaskComplete = (id: string) => {
 
   const isCompleting = task.status !== 'completed';
 
-  // Handle recurring task completion with helper
+  // handle recurring task completion with helper
   if (isCompleting && task.rrule) {
     const handled = handleRecurringTaskCompletion(task, data);
     if (handled) return;
@@ -644,7 +644,7 @@ export const toggleTaskCollapsed = (id: string) => {
   dataStore.save({ ...data, tasks });
 };
 
-// Task tags
+// task tags
 export const addTagToTask = (taskId: string, tagId: string) => {
   const task = getTaskById(taskId);
   if (!task) return undefined;
@@ -663,7 +663,7 @@ export const removeTagFromTask = (taskId: string, tagId: string) => {
   });
 };
 
-// Export helpers
+// export helpers
 export const exportTaskAndChildren = (taskId: string) => {
   const data = dataStore.load();
   const task = data.tasks.find((t) => t.id === taskId);

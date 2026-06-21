@@ -26,7 +26,7 @@ interface SyncActions {
 
 export type SyncStore = SyncState & SyncActions;
 
-// Context for React components
+// context for React components
 export const SyncContext = createContext<SyncStore | null>(null);
 
 export const useSyncStore = (): SyncStore => {

@@ -1,5 +1,5 @@
 /**
- * task CRUD against a CalDAV server.
+ * task CRUD against a CalDAV server
  *
  * cross-server quirks observed via the integration suite (src/tests/integration):
  *
@@ -7,21 +7,21 @@
  *   `If-None-Match: *` failures. createTask() handles both. see the recovery
  *   branch below
  *
- * - Rustical, Radicale: do NOT enforce `If-Match` on PUT. a stale-etag
+ * - RustiCal, Radicale: do NOT enforce `If-Match` on PUT. a stale-etag
  *   update silently succeeds with a fresh etag. this means lost-update conflicts
- *   are not surfaced as 412. chiri relies on the next syncCalendar pass to
+ *   are not surfaced as 412. Chiri relies on the next syncCalendar pass to
  *   reconcile via etag comparison
  *
  * - Xandikos: uses a 2-level URL layout (/{principal}/calendars/{cal}/) that
- *   doesn't match any builtin chiri serverType. users must pass `calendarHomeUrl`
+ *   doesn't match any builtin Chiri serverType. users must pass `calendarHomeUrl`
  *   to `connect()` to point directly at the calendar collection. also serializes
  *   writes through dulwich/git and returns 423 Locked on concurrent updates to
- *   the same collection. chiri's sync is sequential per task so this never
+ *   the same collection. Chiri's sync is sequential per task so this never
  *   trips production code, but parallel push attempts will fail
  *
- * - all servers: respond differently to depth-1 PROPFIND on the principal.
- *   some list calendars under it (Nextcloud/Baikal), some don't (Xandikos).
- *   chiri queries `calendarHome`, not the principal, to enumerate
+ * - all servers: respond differently to depth-1 PROPFIND on the principal
+ *   some list calendars under it (Nextcloud/Baikal), some don't (Xandikos)
+ *   Chiri queries `calendarHome`, not the principal, to enumerate
  */
 
 import type { Connection } from '$lib/caldav/connection';
@@ -166,7 +166,7 @@ export const createTask = async (conn: Connection, calendar: Calendar, task: Tas
       return { href: url, etag };
     }
 
-    // RFC 7232 §3.2: "If-None-Match: *" failure may return 409 OR 412. Rustical /
+    // RFC 7232 §3.2: "If-None-Match: *" failure may return 409 OR 412. RustiCal /
     // Radicale return 409; Nextcloud / SabreDAV return 412. either means the task
     // already exists on the server (app was killed after PUT but before synced=1
     // was written). fetch the current etag so we can mark it synced correctly
@@ -212,7 +212,7 @@ export const updateTask = async (conn: Connection, task: Task) => {
     }
 
     // 412 from a spec-compliant server means the local etag is stale (someone
-    // else updated the task). some servers (Rustical, Radicale) don't enforce
+    // else updated the task). some servers (RustiCal, Radicale) don't enforce
     // If-Match and silently succeed instead. those lost-update conflicts get
     // caught on the next syncCalendar via etag comparison
     log.error(`Failed to update task: HTTP ${response.status}`);

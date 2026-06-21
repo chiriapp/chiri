@@ -1,6 +1,6 @@
 # Xandikos test server. Lightweight Python CalDAV/CardDAV
-# Storage: dulwich (a pure-Python git backend, writes to data dir)
-# Auth: none. anyone can read/write the principal collection
+# storage: dulwich (a pure-Python git backend, writes to data dir)
+# auth: none. anyone can read/write the principal collection
 #
 # defaults:
 #   - port 5232
@@ -57,8 +57,8 @@ let
       echo ""
 
       # dulwich (xandikos's git backend) reads ~/.gitconfig and will try to
-      # invoke commit-signing helpers (op-ssh-sign etc.) on every write.
-      # Override with a throwaway gitconfig that disables signing.
+      # invoke commit-signing helpers (op-ssh-sign etc.) on every write
+      # override with a throwaway gitconfig that disables signing
       GITCONFIG_OVERRIDE=$(mktemp)
       printf '[commit]\n\tgpgsign = false\n[user]\n\tname = xandikos-test\n\temail = test@localhost\n' > "$GITCONFIG_OVERRIDE"
       export GIT_CONFIG_GLOBAL="$GITCONFIG_OVERRIDE"

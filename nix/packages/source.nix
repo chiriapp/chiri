@@ -67,7 +67,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     pnpmConfigHook
     pnpm
 
-    # build tools (linux)
+    # build tools (Linux)
     pkg-config
   ]
   ++ lib.optionals stdenv.hostPlatform.isLinux [
@@ -101,8 +101,8 @@ rustPlatform.buildRustPackage (finalAttrs: {
       done
     ''
     + ''
-      # Disable updater artifact creation to avoid requiring signing keys
-      # Regular users don't have the private signing key, and don't need updater artifacts
+      # disable updater artifact creation to avoid requiring signing keys
+      # regular users don't have the private signing key, and don't need updater artifacts
       substituteInPlace src-tauri/tauri.conf.json \
         --replace-fail '"createUpdaterArtifacts": true' '"createUpdaterArtifacts": false'
     '';

@@ -1,11 +1,11 @@
-// Logging configuration for the application
+// logging configuration for the application
 //
-// This module configures tauri-plugin-log with appropriate targets, filters,
-// and log levels for development and production builds.
+// this module configures tauri-plugin-log with appropriate targets, filters,
+// and log levels for development and production builds
 
 use tauri_plugin_log::{Target, TargetKind, TimezoneStrategy};
 
-// List of crates to exclude from logs to reduce noise
+// list of crates to exclude from logs to reduce noise
 const LOGGING_TARGET_IGNORE_LIST: [&str; 10] = [
     "tauri",
     "sqlx",
@@ -37,14 +37,14 @@ pub fn scoped_message(scope: &str, message: &str) -> String {
     format!("[{scope}] {message}")
 }
 
-/// Build the configured logging plugin
+/// build the configured logging plugin
 ///
-/// Logging targets:
+/// logging targets:
 /// - Stdout: Console output for development
 /// - LogDir: Persistent log files (chiri.log)
 /// - Webview: Browser console for frontend debugging
 ///
-/// Log levels:
+/// log levels:
 /// - Debug builds: Debug level (verbose)
 /// - Release builds: Info level (less verbose)
 pub fn build_logging_plugin() -> tauri_plugin_log::Builder {

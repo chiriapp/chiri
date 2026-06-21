@@ -33,7 +33,7 @@ import {
 } from '$utils/keyboard';
 import { isMacPlatform } from '$utils/platform';
 
-// Shortcuts that should NOT work when a modal is open
+// shortcuts that should NOT work when a modal is open
 const BLOCKED_IN_MODAL = new Set([
   'new-task',
   'select-all-tasks',
@@ -54,13 +54,13 @@ const BLOCKED_IN_MODAL = new Set([
 ]);
 
 /**
- * Check if the current event target is an input element
+ * check if the current event target is an input element
  */
 const isInputElement = (target: HTMLElement) =>
   target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
 
 /**
- * Check if a keyboard event matches a shortcut's modifier requirements
+ * check if a keyboard event matches a shortcut's modifier requirements
  */
 const matchesModifiers = (e: KeyboardEvent, shortcut: KeyboardShortcut) => {
   const isMac = isMacPlatform();
@@ -75,7 +75,7 @@ const matchesModifiers = (e: KeyboardEvent, shortcut: KeyboardShortcut) => {
 };
 
 /**
- * Find matching shortcut for a keyboard event
+ * find matching shortcut for a keyboard event
  */
 const findMatchingShortcut = (
   e: KeyboardEvent,
@@ -152,7 +152,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   const handleSearch = useCallback(() => {
     const searchInput = document.querySelector<HTMLInputElement>('[data-search-input]');
     if (searchInput) {
-      // Toggle focus: if already focused, blur it; otherwise focus it
+      // toggle focus: if already focused, blur it; otherwise focus it
       if (document.activeElement === searchInput) {
         searchInput.blur();
       } else {
@@ -315,12 +315,12 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   }, [toggleSidebarCollapsed]);
 
   const handleOpenSettings = useCallback(() => {
-    // If settings is already open, this will close it (toggle behavior)
+    // if settings is already open, this will close it (toggle behavior)
     onOpenSettings?.();
   }, [onOpenSettings]);
 
   const handleOpenKeyboardShortcuts = useCallback(() => {
-    // If keyboard shortcuts is already open, this will close it (toggle behavior)
+    // if keyboard shortcuts is already open, this will close it (toggle behavior)
     onOpenKeyboardShortcuts?.();
   }, [onOpenKeyboardShortcuts]);
 
@@ -340,7 +340,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
     setShowUnstartedMutation.mutate(!showUnstartedTasks);
   }, [setShowUnstartedMutation, showUnstartedTasks]);
 
-  // Map shortcut IDs to their handler functions
+  // map shortcut IDs to their handler functions
   const actionHandlers: Record<string, () => void> = useMemo(
     () => ({
       'new-task': handleNewTask,
@@ -382,7 +382,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // If confirm dialog is open, let it consume keys (Esc/Enter) without triggering app shortcuts
+      // if confirm dialog is open, let it consume keys (Esc/Enter) without triggering app shortcuts
       if (isConfirmDialogOpen) {
         if (e.key === 'Escape' || e.key === 'Enter') {
           e.preventDefault();
@@ -398,7 +398,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
         return;
       }
 
-      // Don't trigger shortcuts when typing in inputs
+      // don't trigger shortcuts when typing in inputs
       const target = e.target as HTMLElement;
       if (isInputElement(target)) {
         return;

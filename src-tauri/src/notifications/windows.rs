@@ -5,19 +5,19 @@ use super::{
     types::{NotificationType, SendNotificationRequest, SimpleNotificationRequest},
 };
 
-/// Ensure the app notification icon is present at a stable, known path.
+/// ensure the app notification icon is present at a stable, known path
 ///
-/// Embeds the 128x128 PNG at compile time and writes it to
+/// embeds the 128x128 PNG at compile time and writes it to
 /// `%LOCALAPPDATA%\Chiri\notification-icon.png` on every launch so the path
-/// is always valid regardless of install type or working directory.
-/// Returns the absolute path to the icon file, or `None` if writing failed.
+/// is always valid regardless of install type or working directory
+/// returns the absolute path to the icon file, or `None` if writing failed
 pub fn ensure_notification_icon() -> Option<std::path::PathBuf> {
     const ICON_BYTES: &[u8] = include_bytes!("../../icons/128x128.png");
 
     let icon_dir = match dirs::data_local_dir() {
         Some(d) => d.join("Chiri"),
         None => {
-            log::info!("[Notifications] Could not determine %LOCALAPPDATA% — icon will not be set");
+            log::info!("[Notifications] Could not determine %LOCALAPPDATA%, icon will not be set");
             return None;
         }
     };
@@ -74,7 +74,7 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
                     Some(action_name) => action_name,
                     None => return,
                 },
-                // Body click with no button arg → treat as view/open
+                // body click with no button arg → treat as view/open
                 None => actions::VIEW,
             };
 

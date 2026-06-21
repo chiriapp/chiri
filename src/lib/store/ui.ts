@@ -16,7 +16,7 @@ export const getUIState = () => {
 export const setActiveAccount = (id: string | null) => {
   const data = dataStore.load();
 
-  // Validate that the account exists before setting it
+  // validate that the account exists before setting it
   if (id !== null) {
     const accountExists = data.accounts.some((account) => account.id === id);
     if (!accountExists) {
@@ -43,7 +43,7 @@ export const setActiveAccount = (id: string | null) => {
 export const setActiveCalendar = (id: string | null) => {
   const data = dataStore.load();
 
-  // Validate that the calendar exists before setting it
+  // validate that the calendar exists before setting it
   if (id !== null) {
     const calendarExists = data.accounts.some((account) =>
       account.calendars.some((calendar) => calendar.id === id),
@@ -73,7 +73,7 @@ export const setActiveCalendar = (id: string | null) => {
 export const setActiveTag = (id: string | null) => {
   const data = dataStore.load();
 
-  // Validate that the tag exists before setting it
+  // validate that the tag exists before setting it
   if (id !== null) {
     const tagExists = data.tags.some((tag) => tag.id === id);
     if (!tagExists) {
@@ -170,7 +170,7 @@ export const setRecentlyDeletedView = () => {
 export const setSelectedTask = (id: string | null) => {
   const data = dataStore.load();
 
-  // Validate that the task exists before setting it
+  // validate that the task exists before setting it
   if (id !== null) {
     const taskExists = data.tasks.some((task) => task.id === id);
     if (!taskExists) {

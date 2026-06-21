@@ -14,7 +14,7 @@ import { reorderCalendars } from '$lib/store/reorder/calendars';
 import type { Account, Calendar } from '$types';
 
 /**
- * Hook to get all accounts
+ * hook to get all accounts
  */
 export const useAccounts = () => {
   const queryClient = useQueryClient();
@@ -33,7 +33,7 @@ export const useAccounts = () => {
 };
 
 /**
- * Hook to create an account
+ * hook to create an account
  */
 export const useCreateAccount = () => {
   const queryClient = useQueryClient();
@@ -49,7 +49,7 @@ export const useCreateAccount = () => {
 };
 
 /**
- * Hook to update an account
+ * hook to update an account
  */
 export const useUpdateAccount = () => {
   const queryClient = useQueryClient();
@@ -66,7 +66,7 @@ export const useUpdateAccount = () => {
 };
 
 /**
- * Hook to delete an account
+ * hook to delete an account
  */
 export const useDeleteAccount = () => {
   const queryClient = useQueryClient();
@@ -84,7 +84,7 @@ export const useDeleteAccount = () => {
 };
 
 /**
- * Hook to reorder accounts via drag-and-drop
+ * hook to reorder accounts via drag-and-drop
  */
 export const useReorderAccounts = () => {
   const queryClient = useQueryClient();
@@ -107,7 +107,7 @@ export const useReorderAccounts = () => {
 };
 
 /**
- * Hook to reorder calendars within an account via drag-and-drop
+ * hook to reorder calendars within an account via drag-and-drop
  */
 export const useReorderCalendars = () => {
   const queryClient = useQueryClient();
@@ -151,7 +151,7 @@ export const useReorderCalendars = () => {
 };
 
 /**
- * Hook to add a calendar to an account
+ * hook to add a calendar to an account
  */
 export const useAddCalendar = () => {
   const queryClient = useQueryClient();

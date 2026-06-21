@@ -5,15 +5,15 @@ export interface Calendar {
   ctag?: string;
   syncToken?: string;
   color?: string;
-  icon?: string; // Icon name from lucide-react
-  emoji?: string; // Emoji character(s)
+  icon?: string; // icon name from lucide-react
+  emoji?: string; // emoji character(s)
   accountId: string;
   supportedComponents?: string[]; // e.g., ['VTODO', 'VEVENT']
   sortOrder: number; // apple-calendar-order
 
   // WebDAV Push support (draft spec)
-  pushTopic?: string; // Unique topic identifier for WebDAV Push messages
-  pushSupported?: boolean; // Whether server supports WebDAV Push
+  pushTopic?: string; // unique topic identifier for WebDAV Push messages
+  pushSupported?: boolean; // whether server supports WebDAV Push
   pushVapidKey?: string; // VAPID public key for Web Push (base64url)
 }
 
@@ -45,9 +45,9 @@ export interface Task {
   percentComplete?: number; // 0-100, RFC 5545 PERCENT-COMPLETE
 
   // categorization
-  tags?: string[]; // Array of tag IDs (maps to iCal CATEGORIES)
-  categoryId?: string; // Raw CATEGORIES string from CalDAV (used during sync, mapped to tags)
-  tagColorsByName?: Record<string, string>; // Lowercase tag name -> #RRGGBB from X-TASKS-TAG-COLOR
+  tags?: string[]; // array of tag IDs (maps to iCal CATEGORIES)
+  categoryId?: string; // raw CATEGORIES string from CalDAV (used during sync, mapped to tags)
+  tagColorsByName?: Record<string, string>; // lowercase tag name -> #RRGGBB from X-TASKS-TAG-COLOR
   priority: Priority;
 
   // dates
@@ -64,7 +64,7 @@ export interface Task {
 
   // parent-child relationship (RELATED-TO in CalDAV)
   parentUid?: string; // UID of parent task
-  isCollapsed?: boolean; // Whether subtasks are collapsed in UI
+  isCollapsed?: boolean; // whether subtasks are collapsed in UI
 
   // sorting
   sortOrder: number; // x-apple-sort-order

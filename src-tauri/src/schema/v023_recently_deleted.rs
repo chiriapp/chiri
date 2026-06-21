@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds soft-deletion support for tasks and a sidebar view selector.
+/// adds soft-deletion support for tasks and a sidebar view selector
 pub fn migration() -> Migration {
     Migration {
         version: 23,

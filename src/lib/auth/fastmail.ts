@@ -1,7 +1,7 @@
 /**
  * Fastmail OAuth 2.0 + PKCE authentication
  *
- * Flow:
+ * flow:
  *  1. Generate PKCE verifier + S256 challenge + random state
  *  2. Open browser to Fastmail's auth endpoint
  *  3. Fastmail redirects to garden.chiri:/oauth/fastmail?code=...&state=...
@@ -78,7 +78,7 @@ export const startFastmailOAuth = async (): Promise<FastmailTokens> => {
 
   return new Promise((resolve, reject) => {
     const handler = async (url: URL) => {
-      // Clean up before doing anything async so a second stray callback can't fire
+      // clean up before doing anything async so a second stray callback can't fire
       unregisterDeepLinkHandler(OAUTH_PATH);
 
       const returnedState = url.searchParams.get('state');
@@ -184,7 +184,7 @@ const parseTokenResponse = (
 };
 
 /**
- * Extract the username (email) from a Fastmail CalDAV principal URL.
+ * extract the username (email) from a Fastmail CalDAV principal URL
  * Fastmail principal URLs look like:
  *   https://caldav.fastmail.com/dav/principals/user/user@fastmail.com/
  */

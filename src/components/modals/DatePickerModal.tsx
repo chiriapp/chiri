@@ -82,7 +82,7 @@ const getDayButtonClass = (
 };
 
 /**
- * Compute the selected time from a value
+ * compute the selected time from a value
  */
 const getSelectedTime = (
   value: Date | undefined,
@@ -95,7 +95,7 @@ const getSelectedTime = (
 };
 
 /**
- * Check if a time is a custom (non-preset) time
+ * check if a time is a custom (non-preset) time
  */
 const isTimeCustom = (
   timeSelected: boolean,
@@ -108,7 +108,7 @@ const isTimeCustom = (
 };
 
 /**
- * Compute quick date selection state
+ * compute quick date selection state
  */
 const getQuickDateState = (localValue: Date | undefined, today: Date) => ({
   isToday: localValue ? isSameDay(localValue, today) : false,

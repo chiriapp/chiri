@@ -19,7 +19,7 @@ export const TaskEditorUrl = ({ task, readOnly = false }: UrlProps) => {
   useEffect(() => {
     const textarea = urlRef.current;
     if (!textarea) return;
-    // Skip if DOM value has not reflected the latest state yet.
+    // skip if DOM value has not reflected the latest state yet
     if (textarea.value !== pendingUrl) return;
     textarea.style.height = 'auto';
     textarea.style.height = `${textarea.scrollHeight}px`;

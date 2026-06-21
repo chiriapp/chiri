@@ -209,7 +209,7 @@ export const TaskEditorSubtasks = ({
           >
             <div className="h-4 w-4 shrink-0 rounded-sm border border-surface-300 border-dashed dark:border-surface-600" />
             <input
-              // biome-ignore lint/a11y/noAutofocus: intentional — user just clicked "Add subtask"
+              // biome-ignore lint/a11y/noAutofocus: intentional. user just clicked "Add subtask"
               autoFocus
               type="text"
               value={newSubtaskTitle}

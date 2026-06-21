@@ -65,7 +65,7 @@ export const TaskItemContextMenu = ({
   } | null>(null);
   const statusHideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Clear timers on unmount
+  // clear timers on unmount
   useEffect(
     () => () => {
       clearTimeout(priorityHideTimer.current);

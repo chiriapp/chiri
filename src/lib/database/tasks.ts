@@ -54,7 +54,7 @@ export const countChildren = async (conn: DatabasePlugin, parentUid: string) => 
 };
 
 /**
- * Resolve tags for a new task, applying active tag and defaults
+ * resolve tags for a new task, applying active tag and defaults
  */
 const resolveTaskTags = (
   taskTags: string[] | undefined,
@@ -72,7 +72,7 @@ const resolveTaskTags = (
 };
 
 /**
- * Resolve calendar and account for a new task
+ * resolve calendar and account for a new task
  */
 const resolveCalendarAndAccount = async (
   conn: DatabasePlugin,
@@ -86,7 +86,7 @@ const resolveCalendarAndAccount = async (
 
   const accounts = await getAllAccounts(conn);
 
-  // Try default calendar first
+  // try default calendar first
   if (defaultCalendarId) {
     for (const account of accounts) {
       const cal = account.calendars.find((c) => c.id === defaultCalendarId);
@@ -96,7 +96,7 @@ const resolveCalendarAndAccount = async (
     }
   }
 
-  // Fall back to first available calendar
+  // fall back to first available calendar
   const first = accounts.find((a) => a.calendars.length > 0);
   if (first) {
     return { calendarId: first.calendars[0].id, accountId: first.id };
@@ -106,7 +106,7 @@ const resolveCalendarAndAccount = async (
 };
 
 /**
- * Build task insert parameters array
+ * build task insert parameters array
  */
 const buildTaskInsertParams = (task: Task): unknown[] => [
   task.id,
@@ -196,7 +196,7 @@ export const createTask = async (conn: DatabasePlugin, taskData: Partial<Task>) 
 };
 
 /**
- * Build task update parameters array
+ * build task update parameters array
  */
 const buildTaskUpdateParams = (task: Task, id: string): unknown[] => [
   task.uid,
@@ -232,7 +232,7 @@ const buildTaskUpdateParams = (task: Task, id: string): unknown[] => [
 ];
 
 /**
- * Merge task updates with existing task, handling status/completed sync
+ * merge task updates with existing task, handling status/completed sync
  */
 const mergeTaskUpdates = (existing: Task, updates: Partial<Task>) => {
   const merged: Task = {

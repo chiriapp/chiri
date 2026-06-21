@@ -23,7 +23,7 @@ interface ImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   preloadedFile?: { name: string; content: string } | null;
-  /** Callback when file is dropped directly on the modal's drop zone */
+  /** callback when file is dropped directly on the modal's drop zone */
   onFileDrop?: () => void;
 }
 
@@ -31,7 +31,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   const { data: accounts = [] } = useAccounts();
   const createTaskMutation = useCreateTask();
 
-  // State
+  // state
   const [step, setStep] = useState<ImportStep>('upload');
   const [fileName, setFileName] = useState('');
   const [parsedTasks, setParsedTasks] = useState<ParsedTaskWithStatus[]>([]);
@@ -44,12 +44,12 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   const [importSuccess, setImportSuccess] = useState(false);
   const [isDraggingInDropZone, setIsDraggingInDropZone] = useState(false);
 
-  // Get all calendars and find selected calendar
+  // get all calendars and find selected calendar
   const allCalendars: Calendar[] = accounts.flatMap((account) => account.calendars);
   const hasAccounts = accounts.length > 0;
   const selectedCalendar = allCalendars.find((c) => c.id === selectedCalendarId);
 
-  // Auto-select first account/calendar if none selected
+  // auto-select first account/calendar if none selected
   useEffect(() => {
     if (isOpen && hasAccounts && !selectedAccountId) {
       const firstAccount = accounts[0];
@@ -60,10 +60,10 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     }
   }, [isOpen, hasAccounts, selectedAccountId, accounts]);
 
-  // Reset state when modal closes (including via parent setting isOpen to false)
+  // reset state when modal closes (including via parent setting isOpen to false)
   useEffect(() => {
     if (!isOpen) {
-      // Reset all state when modal is closed
+      // reset all state when modal is closed
       setStep('upload');
       setParsedTasks([]);
       setFileName('');
@@ -74,7 +74,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
       setIsImporting(false);
       setIsDraggingInDropZone(false);
 
-      // Clear App's drag state if user was dragging when modal closed
+      // clear App's drag state if user was dragging when modal closed
       onFileDrop?.();
     }
   }, [isOpen, onFileDrop]);
@@ -93,7 +93,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
       } else if (name.endsWith('.json')) {
         tasks = parseJsonTasksFile(content);
       } else {
-        // Try to detect format by content
+        // try to detect format by content
         if (content.trim().startsWith('BEGIN:VCALENDAR')) {
           tasks = parseIcsFile(content);
         } else if (content.trim().startsWith('[') || content.trim().startsWith('{')) {
@@ -115,10 +115,10 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     }
 
     setParsedTasks(tasks.map((t) => ({ ...t, importStatus: 'pending' })));
-    // Stay on upload step - let user click Continue to proceed
+    // stay on upload step - let user click Continue to proceed
   }, []);
 
-  // Handle preloaded file
+  // handle preloaded file
   useEffect(() => {
     if (isOpen && preloadedFile) {
       handleFileContent(preloadedFile.name, preloadedFile.content);
@@ -143,7 +143,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     setSelectedCalendarId(calendarId);
   }, []);
 
-  // Helper to create a Task from a partial task
+  // helper to create a Task from a partial task
   const createTaskFromPartial = (
     partialTask: ParsedTaskWithStatus,
     uidMap: Map<string, string>,
@@ -191,7 +191,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
         return;
       }
 
-      // Create UID mapping for parent-child relationships
+      // create UID mapping for parent-child relationships
       const uidMap = new Map<string, string>();
       for (const task of parsedTasks) {
         if (task.uid) {
@@ -199,14 +199,14 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
         }
       }
 
-      // Import tasks with progress tracking
+      // import tasks with progress tracking
       const totalTasks = parsedTasks.length;
       const updatedTasks = [...parsedTasks];
 
       for (let i = 0; i < parsedTasks.length; i++) {
         const partialTask = parsedTasks[i];
 
-        // Update status to importing
+        // update status to importing
         updatedTasks[i] = { ...updatedTasks[i], importStatus: 'importing' };
         setParsedTasks([...updatedTasks]);
 
@@ -214,7 +214,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
           const task = createTaskFromPartial(partialTask, uidMap);
           createTaskMutation.mutate(task);
 
-          // Update status to success
+          // update status to success
           updatedTasks[i] = { ...updatedTasks[i], importStatus: 'success' };
         } catch (err) {
           log.error(`Failed to import task: ${partialTask.title}`, err);
@@ -228,7 +228,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
         setParsedTasks([...updatedTasks]);
         setImportProgress(((i + 1) / totalTasks) * 100);
 
-        // Small delay for visual feedback
+        // small delay for visual feedback
         if (totalTasks > 1) {
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
@@ -236,7 +236,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
 
       setImportSuccess(true);
 
-      // Auto-close after success
+      // auto-close after success
       setTimeout(() => {
         handleClose();
       }, 1500);
@@ -249,7 +249,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
   };
 
   const handleClose = useCallback(() => {
-    // Reset all state
+    // reset all state
     setStep('upload');
     setParsedTasks([]);
     setFileName('');
@@ -260,7 +260,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     setIsImporting(false);
     setIsDraggingInDropZone(false);
 
-    // Clear App's drag state if user was dragging when modal closed
+    // clear App's drag state if user was dragging when modal closed
     onFileDrop?.();
 
     onClose();
@@ -296,28 +296,28 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     }
   };
 
-  // Handle drops anywhere on the modal (only for preventing default behavior)
+  // handle drops anywhere on the modal (only for preventing default behavior)
   const handleModalDrop = useCallback(async (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    // Don't process drops at modal level - let the drop zone handle it
-    // This just prevents the browser from trying to open the file
+    // don't process drops at modal level - let the drop zone handle it
+    // this just prevents the browser from trying to open the file
   }, []);
 
-  // Handle drag over the modal - just prevent default
+  // handle drag over the modal - just prevent default
   const handleModalDragOver = useCallback((e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
 
-  // Handle drag leave from modal - just prevent default
+  // handle drag leave from modal - just prevent default
   const handleModalDragLeave = useCallback((e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   }, []);
 
-  // Callbacks for drop zone to update drag state
+  // callbacks for drop zone to update drag state
   const handleDropZoneDragEnter = useCallback(() => {
     setIsDraggingInDropZone(true);
   }, []);
@@ -326,7 +326,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
     setIsDraggingInDropZone(false);
   }, []);
 
-  // Handle drops in the drop zone only
+  // handle drops in the drop zone only
   const handleDropZoneDrop = useCallback(
     async (e: DragEvent) => {
       e.preventDefault();
@@ -335,10 +335,10 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
       const file = e.dataTransfer?.files?.[0];
       if (!file) return;
 
-      // Process the file
+      // process the file
       await handleFileSelect(file);
 
-      // Clear the app's drag state
+      // clear the app's drag state
       onFileDrop?.();
     },
     [handleFileSelect, onFileDrop],
@@ -346,7 +346,7 @@ export const ImportModal = ({ isOpen, onClose, preloadedFile, onFileDrop }: Impo
 
   if (!isOpen) return null;
 
-  // Show drop zone highlight only when dragging directly over the drop zone
+  // show drop zone highlight only when dragging directly over the drop zone
   const showDropZoneHighlight = isDraggingInDropZone && step === 'upload';
 
   return (

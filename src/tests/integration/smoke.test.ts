@@ -116,8 +116,8 @@ integration('CalDAV integration smoke (real server)', () => {
     const first = await createTask(conn(), testCalendar, task);
     expect(first).not.toBeNull();
 
-    // Second create with same UID — Nextcloud returns 412, Rustical/Radicale return 409.
-    // Either way, chiri's recovery branch should return href+etag.
+    // second create with same UID. Nextcloud returns 412, RustiCal/Radicale return 409
+    // either way, Chiri's recovery branch should return href+etag
     const second = await createTask(conn(), testCalendar, task);
     expect(second).not.toBeNull();
     expect(second?.href).toBe(first?.href);

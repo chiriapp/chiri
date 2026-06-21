@@ -24,12 +24,12 @@ interface NotificationOptions {
 
 const showNotification = async (options: NotificationOptions) => {
   try {
-    // Use our native permission check
+    // use our native permission check
     const permissionStatus = await checkNotificationPermission();
     let permissionGranted = permissionStatus.status === 'granted';
 
     if (!permissionGranted) {
-      // Request permission using native API
+      // request permission using native API
       const result = await requestNotificationPermission();
       permissionGranted = result.granted;
 
@@ -55,7 +55,7 @@ const showNotification = async (options: NotificationOptions) => {
   }
 };
 
-// Helper: Check if current time is within quiet hours
+// helper: Check if current time is within quiet hours
 const isInQuietHours = (
   quietHoursEnabled: boolean,
   quietHoursStart: number,
@@ -68,7 +68,7 @@ const isInQuietHours = (
     : hour >= quietHoursStart || hour < quietHoursEnd;
 };
 
-// Helper: Process reminders for a task
+// helper: Process reminders for a task
 const processTaskReminders = (
   task: Task,
   now: Date,
@@ -88,7 +88,7 @@ const processTaskReminders = (
     const reminderDate = new Date(reminder.trigger);
     const secondsUntilReminder = differenceInSeconds(reminderDate, now);
 
-    // Fire reminder when the time has arrived (0 or past, within 60 second window to avoid missing)
+    // fire reminder when the time has arrived (0 or past, within 60 second window to avoid missing)
     // OR if the task was just unsnoozed
     const shouldNotify =
       (secondsUntilReminder <= 0 && secondsUntilReminder >= -60) || stillJustUnsnoozed;
@@ -108,7 +108,7 @@ const processTaskReminders = (
   return stillJustUnsnoozed;
 };
 
-// Helper: Process overdue notification for a task
+// helper: Process overdue notification for a task
 const processOverdueNotification = (
   task: Task,
   justUnsnoozed: boolean,
@@ -122,7 +122,7 @@ const processOverdueNotification = (
   // skip if we already notified about this task
   if (notifiedTasks.has(taskKey)) return;
 
-  // Notify when task is overdue or just unsnoozed
+  // notify when task is overdue or just unsnoozed
   if (isPast(dueDate) || justUnsnoozed) {
     showNotification({
       title: justUnsnoozed ? 'Snoozed Task Overdue' : 'Task Overdue',
@@ -134,7 +134,7 @@ const processOverdueNotification = (
   }
 };
 
-// Helper: Handle notification action events
+// helper: Handle notification action events
 const handleNotificationAction = (
   action: string,
   taskId: string,
@@ -154,7 +154,7 @@ const handleNotificationAction = (
   }
 };
 
-// Helper: Clean up notification refs to prevent memory leaks
+// helper: Clean up notification refs to prevent memory leaks
 const cleanupNotificationRefs = (notifiedTasks: Set<string>, notifiedReminders: Set<string>) => {
   if (notifiedTasks.size > 1000) {
     notifiedTasks.clear();
@@ -168,7 +168,7 @@ interface UseNotificationsOptions {
   onOpenTaskActions?: (taskId: string) => void;
 }
 
-// Helper: Clear snooze notification keys for a task
+// helper: Clear snooze notification keys for a task
 const clearSnoozeKeys = (
   taskId: string,
   notifiedReminders: Set<string>,
@@ -205,7 +205,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
   const notifiedRemindersRef = useRef<Set<string>>(new Set());
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Helper function to handle snoozing a task
+  // helper function to handle snoozing a task
   const handleSnoozeTask = useCallback((taskId: string, durationMinutes: number) => {
     snoozeTaskFor(taskId, durationMinutes);
 

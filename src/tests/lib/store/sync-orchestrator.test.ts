@@ -3,15 +3,15 @@ import type { CalDAVTaskObject, TaskWithCalDAVObject } from '$types';
 import { makeCalendar, makeTask } from '../../fixtures';
 
 /**
- * Tests for `syncCalendarTasks` — the orchestrator that stitches the CalDAV
- * layer to the local store. Verifies the four-step flow:
+ * tests for `syncCalendarTasks`. the orchestrator that stitches the CalDAV
+ * layer to the local store. verifies the four-step flow:
  *   0. processPendingDeletions (DELETE on server, clear only after confirmation)
  *   1. pushUnsyncedTasks (createTask / updateTask, mark synced)
  *   2. fetchTasks
  *   3. createTask locally for new remote, updateTask for changed, removeLocalTask for gone
  */
 
-// vi.mock factories hoist — set up mock refs via vi.hoisted.
+// vi.mock factories hoist. set up mock refs via vi.hoisted
 const mocks = vi.hoisted(() => ({
   // CalDAV client (mocked at the class level)
   clientCreateTask: vi.fn(),
@@ -23,7 +23,7 @@ const mocks = vi.hoisted(() => ({
   isConnected: vi.fn(() => true),
   reconnect: vi.fn(),
 
-  // Store accessors
+  // store accessors
   getAllAccounts: vi.fn(),
   getUIState: vi.fn(() => ({
     activeCalendarId: null,
@@ -153,7 +153,7 @@ vi.mock('$utils/color/theme', () => ({
 }));
 
 import { taskToVTodo } from '$lib/ical/vtodo';
-// Import AFTER mocks are set up.
+// import AFTER mocks are set up
 import { syncCalendarsForAccount, syncCalendarTasks } from '$lib/store/sync';
 
 const testCalendar = makeCalendar({
@@ -402,8 +402,8 @@ describe('syncCalendarTasks orchestrator', () => {
   });
 
   it('returns early without removing local tasks when fetchTasks returns null', async () => {
-    // Critical: a server fetch failure must NOT cause us to think the calendar
-    // is empty and locally delete every synced task.
+    // critical: a server fetch failure must NOT cause us to think the calendar
+    // is empty and locally delete every synced task
     const synced = makeTask({
       id: 'local-keep',
       uid: 'keep',
@@ -458,11 +458,11 @@ describe('syncCalendarTasks orchestrator', () => {
   });
 
   it('step 3: preserves local changes when push failed (local stays unsynced)', async () => {
-    // Scenario: user has local pending edits (synced=false, has href). Step 1
-    // attempts the push but the server rejects it (returns null). Step 3 then
-    // sees a remote task with a different etag. The orchestrator MUST NOT
-    // overwrite the unsynced local task with the remote version — that would
-    // silently lose the user's pending edits.
+    // scenario: user has local pending edits (synced=false, has href). step 1
+    // attempts the push but the server rejects it (returns null). step 3 then
+    // sees a remote task with a different etag. the orchestrator MUST NOT
+    // overwrite the unsynced local task with the remote version. that would
+    // silently lose the user's pending edits
     const local = makeTask({
       id: 'local-y',
       uid: 'conflict',
@@ -576,8 +576,8 @@ describe('syncCalendarTasks orchestrator', () => {
   });
 
   it('step 4: does NOT remove unsynced local tasks even when missing from server', async () => {
-    // Brand-new local task that hasn't synced yet. Server doesn't know about it.
-    // Must be preserved, not deleted as "missing remotely".
+    // brand-new local task that hasn't synced yet. Server doesn't know about it
+    // must be preserved, not deleted as "missing remotely"
     const fresh = makeTask({
       id: 'local-fresh',
       uid: 'fresh',
@@ -615,10 +615,8 @@ describe('syncCalendarTasks orchestrator', () => {
   });
 });
 
-// ---------------------------------------------------------------------------
-// pushTaskToServer + removeTaskFromServer — single-task entry points used by
-// the UI for optimistic-write flows (create, complete, delete).
-// ---------------------------------------------------------------------------
+// pushTaskToServer + removeTaskFromServer. single-task entry points used by
+// the UI for optimistic-write flows (create, complete, delete)
 
 import { pushTaskToServer, removeTaskFromServer } from '$lib/store/sync';
 
@@ -718,7 +716,7 @@ describe('removeTaskFromServer', () => {
     mocks.isConnected.mockReturnValue(true);
   });
 
-  it('returns true immediately for tasks never pushed (no href) — nothing to delete', async () => {
+  it('returns true immediately for tasks never pushed (no href), nothing to delete', async () => {
     const task = makeTask({ accountId: 'acct-1', calendarId: 'cal-1', href: undefined });
 
     expect(await removeTaskFromServer(task)).toBe(true);

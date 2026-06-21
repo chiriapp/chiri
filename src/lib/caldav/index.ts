@@ -13,7 +13,7 @@ export class CalDAVClient {
     this.conn = conn;
   }
 
-  // Connection management
+  // connection management
   static getForAccount(accountId: string): CalDAVClient {
     const conn = connectionOps.getConnection(accountId);
     return new CalDAVClient(accountId, conn);
@@ -77,7 +77,7 @@ export class CalDAVClient {
     return connectionOps.reconnect(account);
   }
 
-  // Calendars
+  // calendars
   async fetchCalendars() {
     return calendarOps.fetchCalendars(this.conn, this.accountId);
   }
@@ -109,7 +109,7 @@ export class CalDAVClient {
     return calendarOps.deleteCalendar(this.conn, calendarUrl);
   }
 
-  // Tasks
+  // tasks
   async fetchTasks(calendar: Calendar) {
     return taskOps.fetchTasks(this.conn, this.accountId, calendar);
   }

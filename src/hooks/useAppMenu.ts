@@ -57,7 +57,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
     isAnyModalOpen,
   ]);
 
-  // Full rebuild when shortcuts or account list (id/name) changes
+  // full rebuild when shortcuts or account list (id/name) changes
   useEffect(() => {
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
     const sortDirection = uiState?.sortConfig?.direction ?? 'asc';

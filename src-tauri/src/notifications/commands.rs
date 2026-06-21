@@ -14,7 +14,7 @@ use super::types::{
     USER_INFO_TASK_ID,
 };
 
-/// Send a notification with action buttons (Complete / Snooze / View Task).
+/// send a notification with action buttons (Complete / Snooze / View Task)
 #[tauri::command]
 pub async fn send_notification_with_actions(
     app: tauri::AppHandle,
@@ -71,8 +71,8 @@ pub async fn send_notification_with_actions(
     }
 }
 
-/// Send a simple notification without actions or task metadata.
-/// Used for system notifications like quit confirmation.
+/// send a simple notification without actions or task metadata
+/// used for system notifications like quit confirmation
 #[tauri::command]
 pub async fn send_simple_notification(
     app: tauri::AppHandle,

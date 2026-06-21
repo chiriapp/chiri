@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds WebDAV Push support fields to calendars table and creates push_subscriptions table
+/// adds WebDAV Push support fields to calendars table and creates push_subscriptions table
 pub fn migration() -> Migration {
     Migration {
         version: 19,

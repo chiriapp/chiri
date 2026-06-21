@@ -8,7 +8,7 @@ type DeepLinkHandler = (url: URL) => void;
 
 const handlers = new Map<string, DeepLinkHandler>();
 
-/** Register a handler for a specific deep link path prefix, e.g. "/oauth2/redirect". */
+/** register a handler for a specific deep link path prefix, e.g. "/oauth2/redirect" */
 export const registerDeepLinkHandler = (pathPrefix: string, handler: DeepLinkHandler) => {
   handlers.set(pathPrefix, handler);
 };
@@ -30,8 +30,8 @@ const bringToFront = async () => {
 const dispatch = async (rawUrl: string) => {
   log.info('Deep link received', { url: rawUrl });
 
-  // Always bring the window forward — the user just completed an action in
-  // their browser (e.g. OAuth) and expects the app to appear.
+  // always bring the window forward. the user just completed an action in
+  // their browser (e.g. OAuth) and expects the app to appear
   await bringToFront();
 
   let parsed: URL;
@@ -41,7 +41,7 @@ const dispatch = async (rawUrl: string) => {
     log.warn('Received malformed deep link URL', { url: rawUrl });
     return;
   }
-  // Match longest prefix first so specific handlers win over catch-all ones.
+  // match longest prefix first so specific handlers win over catch-all ones
   const sorted = [...handlers.entries()].sort((a, b) => b[0].length - a[0].length);
   for (const [prefix, handler] of sorted) {
     if (parsed.pathname.startsWith(prefix)) {
@@ -53,11 +53,11 @@ const dispatch = async (rawUrl: string) => {
 };
 
 /**
- * Initialise the deep link listener. Call once at app startup.
- * Returns a cleanup function.
+ * initialise the deep link listener. Call once at app startup
+ * returns a cleanup function
  */
 export const initDeepLink = async (): Promise<() => void> => {
-  // Handle URLs that launched the app cold (e.g. clicked a link while app was closed)
+  // handle URLs that launched the app cold (e.g. clicked a link while app was closed)
   const launchUrls = await getCurrent();
   if (launchUrls) {
     for (const url of launchUrls) {
@@ -65,7 +65,7 @@ export const initDeepLink = async (): Promise<() => void> => {
     }
   }
 
-  // Handle URLs delivered to a running instance
+  // handle URLs delivered to a running instance
   const unlisten = await onOpenUrl((urls) => {
     for (const url of urls) {
       void dispatch(url);

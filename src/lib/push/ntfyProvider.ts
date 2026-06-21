@@ -1,7 +1,7 @@
 /**
- * ntfy push provider.
+ * ntfy push provider
  *
- * Provides WebDAV Push message reception through an ntfy UnifiedPush endpoint.
+ * provides WebDAV Push message reception through an ntfy UnifiedPush endpoint
  */
 
 import { invoke } from '@tauri-apps/api/core';
@@ -74,30 +74,30 @@ export const isNtfyProviderPushResource = (
 };
 
 /**
- * Active local ntfy subscription state.
+ * active local ntfy subscription state
  */
 interface NtfyProviderSubscription {
   /** ntfy topic */
   topic: string;
-  /** Full push endpoint URL */
+  /** full push endpoint URL */
   endpoint: string;
-  /** Key pair for Web Push registration */
+  /** key pair for Web Push registration */
   keyPair: WebPushKeyPair;
-  /** Whether the native ntfy SSE listener has been requested but not connected yet */
+  /** whether the native ntfy SSE listener has been requested but not connected yet */
   starting?: boolean;
-  /** Whether the native ntfy SSE listener is active */
+  /** whether the native ntfy SSE listener is active */
   listening?: boolean;
-  /** When the current listener was started */
+  /** when the current listener was started */
   listenerStartedAt?: Date;
-  /** Last successful SSE connection */
+  /** last successful SSE connection */
   lastConnectedAt?: Date;
-  /** Last received WebDAV Push message */
+  /** last received WebDAV Push message */
   lastMessageAt?: Date;
-  /** Number of WebDAV Push messages received in this app runtime */
+  /** number of WebDAV Push messages received in this app runtime */
   receivedMessages: number;
-  /** Last provider/listener error in this app runtime */
+  /** last provider/listener error in this app runtime */
   lastError?: string;
-  /** When the last provider/listener error happened */
+  /** when the last provider/listener error happened */
   lastErrorAt?: Date;
 }
 
@@ -256,7 +256,7 @@ const createActiveNtfyProviderSubscription = async (
 };
 
 /**
- * Create an ntfy provider subscription for CalDAV registration.
+ * create an ntfy provider subscription for CalDAV registration
  */
 export const createNtfyProviderSubscription = async (
   calendar: Calendar,
@@ -267,7 +267,7 @@ export const createNtfyProviderSubscription = async (
 };
 
 /**
- * Restore an ntfy provider subscription using an existing push endpoint.
+ * restore an ntfy provider subscription using an existing push endpoint
  */
 export const restoreNtfyProviderSubscription = async (
   subscription: PushSubscription,
@@ -308,7 +308,7 @@ export const isNtfyProviderListening = (calendarId: string) => {
 };
 
 /**
- * Start listening for push messages on an ntfy provider subscription.
+ * start listening for push messages on an ntfy provider subscription
  */
 export const startNtfyProviderListening = (
   subscription: PushSubscription,

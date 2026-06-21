@@ -9,14 +9,14 @@ interface ModalBackdropProps {
   className?: string;
   backdropClassName?: string;
   zIndex?: string;
-  /** Whether clicking the backdrop closes the modal. Default: false */
+  /** whether clicking the backdrop closes the modal. Default: false */
   closeOnBackdropClick?: boolean;
 }
 
 /**
- * Accessible modal backdrop component.
- * Uses a button element for the backdrop to satisfy accessibility requirements.
- * By default, clicking the backdrop does NOT close the modal - users close via X button or Escape key.
+ * accessible modal backdrop component
+ * uses a button element for the backdrop to satisfy accessibility requirements
+ * by default, clicking the backdrop does NOT close the modal - users close via X button or Escape key
  */
 export const ModalBackdrop = ({
   children,
@@ -29,7 +29,7 @@ export const ModalBackdrop = ({
   zIndex = 'z-60',
   closeOnBackdropClick = false,
 }: ModalBackdropProps) => (
-  // biome-ignore lint/a11y/noStaticElementInteractions: Import modals need drag handlers on the backdrop to prevent browser file navigation.
+  // biome-ignore lint/a11y/noStaticElementInteractions: Import modals need drag handlers on the backdrop to prevent browser file navigation
   <div
     role="presentation"
     className={`fixed inset-0 ${zIndex} flex animate-fade-in items-center justify-center ${className}`}

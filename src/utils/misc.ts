@@ -3,14 +3,14 @@ export const generateUUID = () => {
 };
 
 /**
- * Pluralize a word based on count
+ * pluralize a word based on count
  */
 export const pluralize = (count: number, singular: string, plural?: string) => {
   return count === 1 ? singular : (plural ?? `${singular}s`);
 };
 
 /**
- * Clamp a position to the viewport bounds
+ * clamp a position to the viewport bounds
  */
 export const clampToViewport = (
   x: number,
@@ -29,7 +29,7 @@ export const clampToViewport = (
 };
 
 /**
- * Download a file to the user's computer
+ * download a file to the user's computer
  */
 export const downloadFile = (
   content: string,

@@ -5,12 +5,12 @@ import type {
 } from '$types/notification';
 
 interface NotificationContextValue {
-  /** macOS system permission status. Always null on Windows/Linux. */
+  /** macOS system permission status. Always null on Windows/Linux */
   permissionStatus: NotificationPermissionStatus | null;
   isCheckingPermission: boolean;
-  /** Re-check the current system permission and sync app state. */
+  /** re-check the current system permission and sync app state */
   checkPermission: () => Promise<void>;
-  /** Trigger the macOS permission request dialog. */
+  /** trigger the macOS permission request dialog */
   requestPermission: () => Promise<NotificationPermissionResult>;
 }
 

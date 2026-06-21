@@ -1,8 +1,8 @@
 /**
  * WebDAV Push Hook
  *
- * Manages WebDAV Push subscriptions and message handling.
- * Connects incoming push messages to calendar sync operations.
+ * manages WebDAV Push subscriptions and message handling
+ * connects incoming push messages to calendar sync operations
  */
 
 import { invoke } from '@tauri-apps/api/core';
@@ -86,17 +86,17 @@ const subscribeToPushEnabledCalendars = async (
 };
 
 interface UseWebDAVPushProps {
-  /** Called when a push message triggers sync for a calendar */
+  /** called when a push message triggers sync for a calendar */
   onSyncCalendar: (calendarId: string, trigger?: SyncTrigger) => void;
-  /** Last sync time - used to trigger push subscriptions after successful sync */
+  /** last sync time - used to trigger push subscriptions after successful sync */
   lastSyncTime: Date | null;
 }
 
 /**
- * Hook to manage WebDAV Push
+ * hook to manage WebDAV Push
  *
- * Initializes push manager on mount, subscribes to push-enabled calendars,
- * and routes incoming push messages to sync operations.
+ * initializes push manager on mount, subscribes to push-enabled calendars,
+ * and routes incoming push messages to sync operations
  */
 export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushProps) => {
   const { data: accounts = [] } = useAccounts();
@@ -109,7 +109,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
   const previousEnablePushRef = useRef(enablePush);
   const accountsRef = useRef(accounts);
 
-  // Keep accounts ref in sync
+  // keep accounts ref in sync
   accountsRef.current = accounts;
 
   const pushSubscriptionTargetKey = useMemo(
@@ -122,7 +122,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
   );
   const previousPushProviderConfigKeyRef = useRef(pushProviderConfigKey);
 
-  // Push message handler - triggers sync for the affected calendar
+  // push message handler - triggers sync for the affected calendar
   const handlePushMessage = useCallback(
     (calendarId: string, message: string) => {
       const preview = message.length > 80 ? `${message.slice(0, 80)}...` : message;
@@ -130,9 +130,9 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
         `WebDAV Push message received for calendar ${calendarId} (bytes=${message.length}, preview=${preview})`,
       );
 
-      // The message from WebDAV Push is typically minimal
-      // The mere receipt of a message indicates changes on the server
-      // Trigger a sync for this calendar
+      // the message from WebDAV Push is typically minimal
+      // the mere receipt of a message indicates changes on the server
+      // trigger a sync for this calendar
       onSyncCalendar(calendarId, {
         source: 'webdav-push',
         reason: `WebDAV Push message received (${message.length} bytes)`,
@@ -142,7 +142,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     [onSyncCalendar],
   );
 
-  // Initialize push manager once
+  // initialize push manager once
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
@@ -160,20 +160,20 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     lastPushSetupKeyRef.current = null;
   }, [isResolvingKUnifiedPush, kunifiedPushAllowed, pushProvider, setPushProvider]);
 
-  // Subscribe to push for push-enabled calendars after sync completes
+  // subscribe to push for push-enabled calendars after sync completes
   useEffect(() => {
     if (isResolvingKUnifiedPush) return;
 
-    // Skip if push is disabled
+    // skip if push is disabled
     if (!enablePush) return;
 
-    // Skip if no accounts
+    // skip if no accounts
     if (accountsRef.current.length === 0) return;
 
-    // Skip if no sync has completed yet
+    // skip if no sync has completed yet
     if (!lastSyncTime) return;
 
-    // Skip if we've already processed this sync
+    // skip if we've already processed this sync
     const pushSetupKey = `${lastSyncTime.getTime()}|${pushProviderConfigKey}|${pushSubscriptionTargetKey}`;
     if (lastPushSetupKeyRef.current === pushSetupKey) {
       return;
@@ -187,7 +187,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
         () => cancelled,
       );
 
-      // Mark this sync time as processed
+      // mark this sync time as processed
       if (completed) {
         lastPushSetupKeyRef.current = pushSetupKey;
       }
@@ -309,7 +309,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     };
   }, [accounts, enablePush, isResolvingKUnifiedPush]);
 
-  // Restore push listeners on app startup (for existing subscriptions)
+  // restore push listeners on app startup (for existing subscriptions)
   useEffect(() => {
     if (
       isResolvingKUnifiedPush ||
@@ -332,7 +332,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     restore();
   }, [accounts, enablePush, isResolvingKUnifiedPush, pushProviderConfig]);
 
-  // Cleanup on unmount
+  // cleanup on unmount
   useEffect(() => {
     return () => {
       stopAllPushSubscriptions();

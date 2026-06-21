@@ -43,11 +43,11 @@ export const KeyboardShortcutModal = ({
     : null;
   const hasShortcutError = Boolean(conflictingShortcut || reservedShortcutMessage);
 
-  // Reset pending shortcut when modal opens with new shortcut
+  // reset pending shortcut when modal opens with new shortcut
   useEffect(() => {
     if (isOpen && shortcut) {
       setPendingShortcut(null);
-      // Focus input after animation
+      // focus input after animation
       setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [isOpen, shortcut]);
@@ -64,12 +64,12 @@ export const KeyboardShortcutModal = ({
     e.preventDefault();
     e.stopPropagation();
 
-    // Escape is handled by the modal layer.
+    // escape is handled by the modal layer
     if (e.key === 'Escape') {
       return;
     }
 
-    // Enter saves the current shortcut
+    // enter saves the current shortcut
     if (e.key === 'Enter') {
       if (pendingShortcut && shortcut && !conflictingShortcut && !reservedShortcutMessage) {
         onSave(shortcut.id, pendingShortcut);
@@ -78,7 +78,7 @@ export const KeyboardShortcutModal = ({
       return;
     }
 
-    // Ignore modifier-only keypresses
+    // ignore modifier-only keypresses
     if (['Control', 'Meta', 'Alt', 'Shift'].includes(e.key)) {
       return;
     }

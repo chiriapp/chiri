@@ -69,7 +69,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   const updateExistingCalendar = async () => {
     if (!calendar) return true;
 
-    // edit mode — only send properties that have actually changed (to server)
+    // edit mode. only send properties that have actually changed (to server)
     const serverUpdates: { displayName?: string; color?: string } = {};
 
     if (displayName !== calendar.displayName) {

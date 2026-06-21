@@ -1,7 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds URL field to tasks table for RFC 7986 support
-/// The URL property allows tasks to link to external resources
+/// adds URL field to tasks table for RFC 7986 support
+/// the URL property allows tasks to link to external resources
 pub fn migration() -> Migration {
     Migration {
         version: 3,

@@ -40,7 +40,7 @@ describe('normalizeUrl', () => {
     expect(normalizeUrl('https://example.com/path/')).toBe('https://example.com/path');
   });
 
-  it('only strips one trailing slash — leaves multiple', () => {
+  it('only strips one trailing slash, leaves multiple', () => {
     expect(normalizeUrl('https://example.com/path//')).toBe('https://example.com/path/');
   });
 

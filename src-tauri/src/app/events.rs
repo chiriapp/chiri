@@ -6,15 +6,15 @@ use tauri::{Emitter, Manager, RunEvent};
 #[cfg(target_os = "macos")]
 pub(super) fn handle_run_event(app_handle: &tauri::AppHandle<AppRuntime>, event: RunEvent) {
     match event {
-        // Intercept all quit requests (Cmd+Q, Dock quit, window close) so the
+        // intercept all quit requests (Cmd+Q, Dock quit, window close) so the
         // frontend can apply double-press confirmation when enabled. The frontend
-        // calls exit(0) via tauri-plugin-process, which bypasses this handler.
+        // calls exit(0) via tauri-plugin-process, which bypasses this handler
         RunEvent::ExitRequested { api, .. } => {
             api.prevent_exit();
             let _ = app_handle.emit("app:quit-requested", ());
         }
 
-        // Handle app reactivation (e.g., from Spotlight, Dock, Cmd+Tab).
+        // handle app reactivation (e.g., from Spotlight, Dock, Cmd+Tab)
         RunEvent::Reopen { .. } => {
             if let Some(window) = app_handle.get_webview_window("main") {
                 let _ = window.show();

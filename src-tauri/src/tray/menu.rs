@@ -17,8 +17,8 @@ pub(in crate::tray) fn initialize(
 ) -> Result<(), String> {
     debug!("[Tray] initialize_tray called with enabled={}", enabled);
 
-    // In dev mode the frontend can reload while the Rust process stays alive.
-    // Guard against creating a second tray icon on top of the existing one.
+    // in dev mode the frontend can reload while the Rust process stays alive
+    // guard against creating a second tray icon on top of the existing one
     let tray_id = TrayIconId::new("main");
     if app_handle.tray_by_id(&tray_id).is_some() {
         debug!("[Tray] Tray already exists, skipping re-initialization");
@@ -87,8 +87,8 @@ pub(in crate::tray) fn initialize(
     #[cfg(target_os = "macos")]
     let tray_builder = tray_builder.icon_as_template(true);
 
-    // Inside Flatpak, the default tray-icon temp path is private to the sandbox.
-    // /tmp is shared with the host tray manager, so the SNI icon path resolves.
+    // inside Flatpak, the default tray-icon temp path is private to the sandbox
+    // /tmp is shared with the host tray manager, so the SNI icon path resolves
     #[cfg(target_os = "linux")]
     let tray_builder = tray_builder.temp_dir_path("/tmp");
 
@@ -127,7 +127,7 @@ pub(in crate::tray) fn initialize(
         })
         .on_tray_icon_event(|_tray, event| {
             if let TrayIconEvent::Click { .. } = event {
-                // Menu display is platform-handled.
+                // menu display is platform-handled
             }
         })
         .build(&app_handle)

@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds local display icon fields to accounts
+/// adds local display icon fields to accounts
 pub fn migration() -> Migration {
     Migration {
         version: 20,

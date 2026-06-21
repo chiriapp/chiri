@@ -22,7 +22,7 @@ export const useContextMenuDismissal = (onClose: () => void, isOpen: boolean) =>
 };
 
 /**
- * Hook for managing context menu state and handlers
+ * hook for managing context menu state and handlers
  * @returns Object with contextMenu state, handlers, and setter
  */
 export const useContextMenu = () => {

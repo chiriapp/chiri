@@ -16,7 +16,7 @@ export const queryClient = new QueryClient({
   },
 });
 
-// Query keys
+// query keys
 export const queryKeys = {
   tasks: {
     all: ['tasks'] as const,

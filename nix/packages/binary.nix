@@ -16,15 +16,15 @@
   glib-networking,
   libsoup_3,
 
-  # This tracks signed/notarized release artifacts, not the checkout version.
-  # Update the version and per-platform hashes when publishing new artifacts.
+  # this tracks signed/notarized release artifacts, not the checkout version
+  # update the version and per-platform hashes when publishing new artifacts
   version ? "0.9.2",
 }:
 
 let
   inherit (stdenvNoCC.hostPlatform) system;
 
-  # Map Nix system to release asset info
+  # map Nix system to release asset info
   platformInfo = {
     "x86_64-linux" = {
       asset = "Chiri_${version}_amd64.deb";
@@ -71,7 +71,7 @@ if stdenvNoCC.isDarwin then
       mkdir -p $out/Applications
       cp -r "Chiri.app" $out/Applications/
 
-      # Create wrapper script in bin
+      # create wrapper script in bin
       mkdir -p $out/bin
       makeWrapper "$out/Applications/Chiri.app/Contents/MacOS/chiri" "$out/bin/chiri"
 
@@ -130,7 +130,7 @@ else
         mv $out/bin/Chiri $out/bin/chiri
       fi
 
-      # Copy desktop file and icons if present
+      # copy desktop file and icons if present
       if [ -d "usr/share" ]; then
         cp -r usr/share $out/
       fi
@@ -138,7 +138,7 @@ else
       runHook postInstall
     '';
 
-    # Wrap to set required environment variables
+    # wrap to set required environment variables
     postFixup = ''
       if [ -f "$out/bin/chiri" ]; then
         wrapProgram $out/bin/chiri \

@@ -22,12 +22,12 @@ interface ModalWrapperProps {
   onClose: () => void;
   title?: ReactNode;
   description?: ReactNode;
-  /** Optional content rendered before the title, e.g. a back button. */
+  /** optional content rendered before the title, e.g. a back button */
   headerLeft?: ReactNode;
   children: ReactNode;
-  /** Footer content - rendered in a flex container with gap-3. Use footerLeft for split layouts. */
+  /** footer content - rendered in a flex container with gap-3. Use footerLeft for split layouts */
   footer?: ReactNode;
-  /** Left side of footer for split layouts (e.g., Clear button). When provided, footer is right-aligned. */
+  /** left side of footer for split layouts (e.g., Clear button). When provided, footer is right-aligned */
   footerLeft?: ReactNode;
   size?: 'sm' | 'md' | 'lg' | 'xl';
   preventClose?: boolean;
@@ -84,7 +84,7 @@ export const ModalWrapper = ({
   };
 
   // WebKit can keep showing the cursor from the element that opened the modal
-  // until the mouse moves, even when the modal now sits under the pointer.
+  // until the mouse moves, even when the modal now sits under the pointer
   useResetStaleCursorOnLayerOpen(isOpen);
 
   useDismissableLayer({

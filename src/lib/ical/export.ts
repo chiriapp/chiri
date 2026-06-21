@@ -3,7 +3,7 @@ import { formatDate } from '$utils/date';
 import { generateVCalendar, generateVTodo } from './vtodo';
 
 /**
- * Export a single task as iCalendar format with all its child tasks
+ * export a single task as iCalendar format with all its child tasks
  */
 export const exportTaskAsIcs = (task: Task, childTasks: Task[] = []) => {
   const vtodos: string[] = [];
@@ -17,7 +17,7 @@ export const exportTaskAsIcs = (task: Task, childTasks: Task[] = []) => {
 };
 
 /**
- * Export multiple tasks as iCalendar format
+ * export multiple tasks as iCalendar format
  */
 export const exportTasksAsIcs = (tasks: Task[]) => {
   const vtodos = tasks.map((task) => generateVTodo(task));
@@ -25,14 +25,14 @@ export const exportTasksAsIcs = (tasks: Task[]) => {
 };
 
 /**
- * Export tasks as JSON for backup/export
+ * export tasks as JSON for backup/export
  */
 export const exportTasksAsJson = (tasks: Task[]) => {
   return JSON.stringify(tasks, null, 2);
 };
 
 /**
- * Export tasks as Markdown checklist format
+ * export tasks as Markdown checklist format
  */
 export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0) => {
   let markdown = '';
@@ -43,7 +43,7 @@ export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0) => {
       task.status === 'completed' ? '[x]' : task.status === 'cancelled' ? '[-]' : '[ ]';
     let line = `${indent}${checkbox} ${task.title}`;
 
-    // Add metadata if present
+    // add metadata if present
     const metadata: string[] = [];
     if (task.priority !== 'none') {
       metadata.push(`Priority: ${task.priority}`);
@@ -70,7 +70,7 @@ export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0) => {
 };
 
 /**
- * Export tasks as CSV format
+ * export tasks as CSV format
  */
 export const exportTasksAsCsv = (tasks: Task[]) => {
   const headers = [

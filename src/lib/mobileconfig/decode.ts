@@ -1,11 +1,11 @@
 import { invoke } from '@tauri-apps/api/core';
 import type { MobileConfigDecodeResult } from '$types/mobileconfig';
 
-/** Decode a configuration profile into typed CalDAV payload candidates. */
+/** decode a configuration profile into typed CalDAV payload candidates */
 export const decodeMobileConfig = async (bytes: Uint8Array) =>
   await invoke<MobileConfigDecodeResult>('decode_mobile_config', { data: Array.from(bytes) });
 
-/** Legacy XML bridge retained until the frontend import mapper migrates. */
+/** legacy XML bridge retained until the frontend import mapper migrates */
 export const decodeMobileConfigXml = async (bytes: Uint8Array) => {
   const textDecoder = new TextDecoder('utf-8');
   const preview = textDecoder.decode(bytes.slice(0, 100));

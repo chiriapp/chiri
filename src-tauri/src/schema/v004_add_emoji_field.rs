@@ -1,7 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds emoji field to tags and calendars tables
-/// Allows users to use emojis alongside or instead of icons
+/// adds emoji field to tags and calendars tables
+/// allows users to use emojis alongside or instead of icons
 pub fn migration() -> Migration {
     Migration {
         version: 4,

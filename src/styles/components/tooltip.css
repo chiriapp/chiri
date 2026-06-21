@@ -1,4 +1,4 @@
-/* Custom tooltip animation */
+/* custom tooltip animation */
 .tooltip-anim {
   transform: var(--tooltip-transform, translate(-50%, -100%));
 }

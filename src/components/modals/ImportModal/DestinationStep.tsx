@@ -40,7 +40,7 @@ export const DestinationStep = ({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Build flat list of calendar options grouped by account
+  // build flat list of calendar options grouped by account
   const calendarOptions: CalendarOption[] = accounts.flatMap((account) =>
     account.calendars.map((cal) => ({
       accountId: account.id,
@@ -51,7 +51,7 @@ export const DestinationStep = ({
     })),
   );
 
-  // Find currently selected option
+  // find currently selected option
   const selectedOption = calendarOptions.find(
     (opt) => opt.accountId === selectedAccountId && opt.calendarId === selectedCalendarId,
   );
@@ -61,7 +61,7 @@ export const DestinationStep = ({
       : resolvedAccentColor
     : resolvedAccentColor;
 
-  // Group calendars by account for display
+  // group calendars by account for display
   const groupedOptions = accounts.map((account) => ({
     account,
     calendars: account.calendars,
@@ -107,7 +107,7 @@ export const DestinationStep = ({
     }
   };
 
-  // Close dropdown when clicking outside
+  // close dropdown when clicking outside
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -123,7 +123,7 @@ export const DestinationStep = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Keyboard navigation
+  // keyboard navigation
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       closeDropdown();

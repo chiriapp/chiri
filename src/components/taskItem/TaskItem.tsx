@@ -26,7 +26,7 @@ import type { Account, Task } from '$types';
 import { getContrastTextColor } from '$utils/color';
 import { getSortableItemDisabled, getSortableItemId } from '$utils/sortable';
 
-// Moved outside component — does not close over any component state
+// moved outside component. does not close over any component state
 const animateLayoutChanges: AnimateLayoutChanges = (args) => {
   const { isSorting, wasDragging } = args;
   if (wasDragging || !isSorting) return false;
@@ -106,7 +106,7 @@ export const TaskItem = ({
   const { contextMenu, handleContextMenu, handleCloseContextMenu, setContextMenu } =
     useContextMenu();
 
-  // Ref for the task element to manage focus
+  // ref for the task element to manage focus
   const taskElementRef = useRef<HTMLDivElement>(null);
 
   const selectedTaskId = uiState?.selectedTaskId ?? null;
@@ -116,7 +116,7 @@ export const TaskItem = ({
   const isSelected = selectedTaskId === task.id;
   const isVisuallySelected = isSelected || isMultiSelected;
 
-  // Focus the task element when it becomes selected via keyboard navigation
+  // focus the task element when it becomes selected via keyboard navigation
   useEffect(() => {
     if (
       isSelected &&
@@ -145,8 +145,8 @@ export const TaskItem = ({
     taskElementRef.current = node;
   };
 
-  // Disable all transitions - items will snap to positions immediately.
-  // Prevents the "jumping" animation when drag ends and displaced items return to their natural positions.
+  // disable all transitions - items will snap to positions immediately
+  // prevents the "jumping" animation when drag ends and displaced items return to their natural positions
   const style: CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition: 'none',
@@ -206,7 +206,7 @@ export const TaskItem = ({
   };
 
   const resetStaleBadgeCursor = (event: MouseEvent) => {
-    // WebKit can keep a badge's pointer cursor after switching to the tag/calendar view.
+    // WebKit can keep a badge's pointer cursor after switching to the tag/calendar view
     refreshStaleCursorAfterLayoutAtEventPoint(event, {
       delayFrames: BADGE_VIEW_SWITCH_CURSOR_RESET_DELAY_FRAMES,
     });

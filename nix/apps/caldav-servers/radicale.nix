@@ -28,9 +28,9 @@ let
       mkdir -p "$DATA_DIR"
 
       # htpasswd file with the configured credentials. Regenerate on every run
-      # so password changes pick up automatically.
+      # so password changes pick up automatically
       HTPASSWD="$DATA_DIR/htpasswd"
-      # -B = bcrypt (matches radicale's htpasswd_encryption setting below)
+      # -B = bcrypt (matches Radicale's htpasswd_encryption setting below)
       htpasswd -Bbc "$HTPASSWD" "$USERNAME" "$PASSWORD" > /dev/null 2>&1
 
       CONFIG=$(mktemp)

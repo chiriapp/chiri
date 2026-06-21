@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Removes legacy boolean completion entries from task history.
+/// removes legacy boolean completion entries from task history
 pub fn migration() -> Migration {
     Migration {
         version: 27,

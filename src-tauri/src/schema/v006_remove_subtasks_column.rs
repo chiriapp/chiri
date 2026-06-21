@@ -1,7 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Removes the legacy subtasks column from tasks table
-/// Subtasks are now implemented as separate Task records with parent_uid set,
+/// removes the legacy subtasks column from tasks table
+/// subtasks are now implemented as separate Task records with parent_uid set,
 /// following RFC 5545 RELATED-TO property standard instead of the non-standard
 /// X-CALDAV-TASKS-SUBTASKS approach
 pub fn migration() -> Migration {

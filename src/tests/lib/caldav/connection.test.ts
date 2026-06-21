@@ -69,7 +69,7 @@ describe('handleCommonHttpErrors', () => {
   });
 
   it('does NOT throw on 400 (caller decides)', () => {
-    // 400 isn't handled here - the function only maps the "common" ones.
+    // 400 isn't handled here - the function only maps the "common" ones
     expect(() => handleCommonHttpErrors({ status: 400 })).not.toThrow();
   });
 });
@@ -146,7 +146,7 @@ describe('detectVikunja', () => {
   });
 });
 
-describe('connect — explicit server type URL construction', () => {
+describe('connect: explicit server type URL construction', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // connect() does a final PROPFIND to verify principal - make it succeed
@@ -263,7 +263,7 @@ describe('connect — explicit server type URL construction', () => {
   });
 });
 
-describe('connect — generic server URL path stripping', () => {
+describe('connect: generic server URL path stripping', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // generic flow makes 3 PROPFINDs: well-known (principal), principal (calendar-home),

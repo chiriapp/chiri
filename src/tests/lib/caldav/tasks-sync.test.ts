@@ -131,7 +131,7 @@ describe('syncCalendar', () => {
   });
 
   it('does NOT delete an UNSYNCED local task absent remotely (new local task)', async () => {
-    // critical: protects newly-created local tasks that haven't been pushed yet.
+    // critical: protects newly-created local tasks that haven't been pushed yet
     // they show up as "missing" remotely but they're brand new, not deleted
     const local = makeTask({ id: 'fresh-id', uid: 'fresh', synced: false });
     stubRemote([]);

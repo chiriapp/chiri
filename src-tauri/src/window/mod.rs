@@ -11,13 +11,13 @@ pub fn set_hide_dock_icon_when_window_closed(enabled: bool) {
     HIDE_DOCK_ICON_WHEN_WINDOW_CLOSED.store(enabled, Ordering::Relaxed);
 }
 
-/// Show the dock icon on macOS when the window is shown
+/// show the dock icon on macOS when the window is shown
 #[cfg(target_os = "macos")]
 pub fn show_dock_icon<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) {
     let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Regular);
 }
 
-/// Hide the dock icon on macOS when the window is hidden
+/// hide the dock icon on macOS when the window is hidden
 #[cfg(target_os = "macos")]
 fn hide_dock_icon<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>) {
     let _ = app_handle.set_activation_policy(tauri::ActivationPolicy::Accessory);
@@ -49,14 +49,14 @@ fn is_tray_enabled<R: tauri::Runtime>(window: &tauri::Window<R>) -> bool {
     }
 }
 
-/// Handle window focus event
+/// handle window focus event
 ///
-/// Workaround for KDE/Wayland environments on Linux:
-/// On KDE with Wayland, after hiding and showing the window,
-/// the title-bar buttons (close, minimize, maximize) may stop working.
-/// Toggling the resizable property appears to resolve this issue.
+/// workaround for KDE/Wayland environments on Linux:
+/// on KDE with Wayland, after hiding and showing the window,
+/// the title-bar buttons (close, minimize, maximize) may stop working
+/// toggling the resizable property appears to resolve this issue
 ///
-/// References:
+/// references:
 /// - https://github.com/tauri-apps/tao/issues/1046
 /// - https://github.com/safing/portmaster/issues/1909
 /// - https://github.com/nymtech/nym-vpn-client/issues/2768
@@ -72,8 +72,8 @@ pub fn handle_focus_event<R: tauri::Runtime>(_window: &tauri::Window<R>) {}
 pub fn handle_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &WindowEvent) {
     match event {
         WindowEvent::CloseRequested { api, .. } if is_tray_enabled(window) => {
-            // Handle close request with tray integration
-            // When the close button is clicked:
+            // handle close request with tray integration
+            // when the close button is clicked:
             // - If tray is enabled: hide the window instead of closing
             // - If tray is disabled: allow normal close behavior
             api.prevent_close();

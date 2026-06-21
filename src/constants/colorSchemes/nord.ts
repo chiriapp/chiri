@@ -10,15 +10,15 @@ export const nordColorScheme: ColorSchemeDefinition = {
       mode: 'dark',
       // 50–200: nord6 (primary fg per Nord docs); 300–400: nord5/4 (secondary fg); 500+: Polar Night surfaces/bg
       surfaces: {
-        50: '#eceff4', // nord6 — Snow Storm 3
-        100: '#eceff4', // nord6 — selected/highlighted text
-        200: '#eceff4', // nord6 — primary text (per nordtheme.com)
-        300: '#e5e9f0', // nord5 — Snow Storm 2
-        400: '#d8dee9', // nord4 — Snow Storm 1     ← secondary text
-        500: '#4c566a', // nord3 — Polar Night 4
-        600: '#434c5e', // nord2 — Polar Night 3
-        700: '#3b4252', // nord1 — Polar Night 2     ← borders / hover
-        800: '#2e3440', // nord0 — Polar Night 1     ← main bg
+        50: '#eceff4', // nord6 (Snow Storm 3)
+        100: '#eceff4', // nord6 (selected/highlighted text)
+        200: '#eceff4', // nord6 (primary text)     (per nordtheme.com)
+        300: '#e5e9f0', // nord5 (Snow Storm 2)
+        400: '#d8dee9', // nord4 (Snow Storm 1)     ← secondary text
+        500: '#4c566a', // nord3 (Polar Night 4)
+        600: '#434c5e', // nord2 (Polar Night 3)
+        700: '#3b4252', // nord1 (Polar Night 2)    ← borders / hover
+        800: '#2e3440', // nord0 (Polar Night 1)    ← main bg
         900: '#252b35', // derived darker
       },
       accentColors: [

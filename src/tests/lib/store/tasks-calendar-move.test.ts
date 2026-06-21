@@ -82,7 +82,7 @@ const seedStore = (tasks: Task[], pendingDeletions: PendingDeletion[] = []) => {
  * lost it after multiple syncs). CalDAV addresses tasks by URL, so the only
  * way to "move" is delete-from-old + create-in-new
  */
-describe('updateTask — calendar move detection', () => {
+describe('updateTask: calendar move detection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetSettingsState.mockReturnValue(mockSettingsState);
@@ -277,7 +277,7 @@ describe('updateTask — calendar move detection', () => {
   });
 });
 
-describe('task mutation helpers — persistence', () => {
+describe('task mutation helpers: persistence', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetSettingsState.mockReturnValue(mockSettingsState);
@@ -380,7 +380,7 @@ describe('task mutation helpers — persistence', () => {
   });
 });
 
-describe('createTask — all-day reminder notifications', () => {
+describe('createTask: all-day reminder notifications', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGetSettingsState.mockReturnValue({

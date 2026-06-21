@@ -72,7 +72,7 @@ export const getFilteredTasks = () => {
       return false;
     }
 
-    // Filter by completion status (completed and cancelled are both "done")
+    // filter by completion status (completed and cancelled are both "done")
     if (
       !activeFilterControlsStatus &&
       !showCompletedTasks &&
@@ -81,14 +81,14 @@ export const getFilteredTasks = () => {
       return false;
     }
 
-    // Filter by start date (hide unstarted tasks with future start dates)
+    // filter by start date (hide unstarted tasks with future start dates)
     if (!activeFilterControlsStartDate && !showUnstartedTasks && task.startDate) {
       if (new Date(task.startDate) > new Date()) {
         return false;
       }
     }
 
-    // Filter by search query
+    // filter by search query
     if (searchQuery) return matchesSearchQuery(task, data.tasks, activeView, searchQuery);
 
     return true;

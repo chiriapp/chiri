@@ -5,8 +5,8 @@ use super::{
     types::{NotificationType, SendNotificationRequest, SimpleNotificationRequest},
 };
 
-/// Search the system hicolor icon theme for the first matching candidate name.
-/// The icon name differs by package type:
+/// search the system hicolor icon theme for the first matching candidate name
+/// the icon name differs by package type:
 ///   Flatpak  → garden.chiri.Chiri (bundle ID, detected separately via FLATPAK_ID)
 ///   AUR      → chiri              (lowercase binary name)
 ///   deb/rpm  → Chiri              (package name)
@@ -46,7 +46,7 @@ fn apply_notification_identity(app: &AppHandle, notif: &mut notify_rust::Notific
     notif.appname(&app.package_info().name);
 
     // Flatpak uses the bundle ID as the icon name; other installs vary (AUR uses
-    // the binary name, deb/rpm use the package name), so probe the hicolor theme.
+    // the binary name, deb/rpm use the package name), so probe the hicolor theme
     if std::env::var("FLATPAK_ID").is_ok() {
         notif.icon(&app.config().identifier);
     } else {

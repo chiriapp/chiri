@@ -4,7 +4,7 @@ import type { Task } from '$types';
 import { generateUUID } from '$utils/misc';
 
 /**
- * Add a subtask by creating a new child Task
+ * add a subtask by creating a new child Task
  */
 export const addSubtask = async (parentTaskId: string, title: string) => {
   const parentTask = await db.getTaskById(parentTaskId);
@@ -33,7 +33,7 @@ export const addSubtask = async (parentTaskId: string, title: string) => {
 
   await db.createTask(childTask);
 
-  // Mark parent as modified
+  // mark parent as modified
   await db.updateTask(parentTaskId, {
     modifiedAt: now,
     synced: false,
@@ -41,7 +41,7 @@ export const addSubtask = async (parentTaskId: string, title: string) => {
 };
 
 /**
- * Update a subtask (child task)
+ * update a subtask (child task)
  */
 export const updateSubtask = async (
   taskId: string,
@@ -55,7 +55,7 @@ export const updateSubtask = async (
     synced: false,
   });
 
-  // Mark parent as modified
+  // mark parent as modified
   await db.updateTask(taskId, {
     modifiedAt: now,
     synced: false,
@@ -63,12 +63,12 @@ export const updateSubtask = async (
 };
 
 /**
- * Delete a subtask (child task)
+ * delete a subtask (child task)
  */
 export const deleteSubtask = async (taskId: string, subtaskId: string) => {
   await db.deleteTask(subtaskId, true); // Delete the child task and its children
 
-  // Mark parent as modified
+  // mark parent as modified
   const now = new Date();
   await db.updateTask(taskId, {
     modifiedAt: now,
@@ -77,7 +77,7 @@ export const deleteSubtask = async (taskId: string, subtaskId: string) => {
 };
 
 /**
- * Toggle subtask completion status
+ * toggle subtask completion status
  */
 export const toggleSubtaskComplete = async (taskId: string, subtaskId: string) => {
   const subtask = await db.getTaskById(subtaskId);
@@ -100,7 +100,7 @@ export const toggleSubtaskComplete = async (taskId: string, subtaskId: string) =
     synced: false,
   });
 
-  // Mark parent as modified
+  // mark parent as modified
   await db.updateTask(taskId, {
     modifiedAt: now,
     synced: false,

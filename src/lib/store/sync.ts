@@ -99,7 +99,7 @@ const removeTaskObject = async (taskUid: string) => {
   }
 };
 
-// Helper: process pending deletions for a calendar
+// helper: process pending deletions for a calendar
 const processPendingDeletions = async (
   client: ReturnType<typeof CalDAVClient.getForAccount>,
   calendarId: string,
@@ -146,7 +146,7 @@ const processPendingDeletions = async (
   }
 };
 
-// Helper: push unsynced local tasks to server
+// helper: push unsynced local tasks to server
 const pushUnsyncedTasks = async (
   client: ReturnType<typeof CalDAVClient.getForAccount>,
   calendar: Calendar,
@@ -225,7 +225,7 @@ const buildBaselineMergeUpdates = (
   return updates;
 };
 
-// Helper: process a new task from server
+// helper: process a new task from server
 const processNewRemoteTask = async (remoteTask: TaskWithCalDAVObject) => {
   const remoteTaskData = stripRemoteTaskMetadata(remoteTask);
   const categoryNames = getRemoteCategoryNames(remoteTask);
@@ -243,7 +243,7 @@ const processNewRemoteTask = async (remoteTask: TaskWithCalDAVObject) => {
   }
 };
 
-// Helper: process an existing task from server (update if needed)
+// helper: process an existing task from server (update if needed)
 const processExistingRemoteTask = async (remoteTask: TaskWithCalDAVObject, localTask: Task) => {
   const remoteTaskData = stripRemoteTaskMetadata(remoteTask);
   const categoryNames = getRemoteCategoryNames(remoteTask);
@@ -419,7 +419,7 @@ const applyRemoteTagColors = (remoteTask: Task, categoryNames: string[]) => {
 };
 
 /**
- * Check if a calendar needs updates based on remote vs local comparison
+ * check if a calendar needs updates based on remote vs local comparison
  */
 const getCalendarUpdates = (
   localCalendar: Calendar,
@@ -459,7 +459,7 @@ const getCalendarUpdates = (
     ctag: remoteCalendar.ctag,
     syncToken: remoteCalendar.syncToken,
     ...(serverOrderChanged ? { sortOrder: remoteCalendar.sortOrder } : {}),
-    // Always update push properties when they change
+    // always update push properties when they change
     ...(pushPropertiesChanged
       ? {
           pushTopic: remoteCalendar.pushTopic,
@@ -471,7 +471,7 @@ const getCalendarUpdates = (
 };
 
 /**
- * Remove locally-deleted calendars that no longer exist on the server
+ * remove locally-deleted calendars that no longer exist on the server
  */
 const removeDeletedCalendars = async (
   localCalendars: Calendar[],
@@ -520,7 +520,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
   const account = accounts.find((a) => a.id === accountId);
   if (!account) return;
 
-  // Ensure we're connected
+  // ensure we're connected
   if (!CalDAVClient.isConnected(accountId)) {
     await CalDAVClient.reconnect(account);
   }
@@ -545,12 +545,12 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
 
   const localCalendars = account.calendars;
 
-  // Build the set of confirmed-existing calendar IDs. Start with what the
+  // build the set of confirmed-existing calendar IDs. Start with what the
   // server listing returned, then verify any "missing" local calendars via a
-  // direct PROPFIND before treating them as deleted. Unreliable servers (e.g.
+  // direct PROPFIND before treating them as deleted. Unreliable servers (e.g
   // Vikunja) sometimes return an incomplete listing; the extra PROPFIND lets
   // us distinguish a real deletion from a transient omission, including the
-  // case where a flaky listing returns zero calendars.
+  // case where a flaky listing returns zero calendars
   const confirmedExistingIds = new Set(remoteCalendars.map((c) => c.id));
   const potentiallyDeleted = localCalendars.filter((c) => !confirmedExistingIds.has(c.id));
 
@@ -575,12 +575,12 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
   const remoteCalendarIds = confirmedExistingIds;
   const calendarSortMode = getUIState().calendarSortConfig.mode;
 
-  // Build updated calendar list
+  // build updated calendar list
   const updatedCalendars: Calendar[] = [];
   const calendarUpdates: Map<string, Partial<Calendar>> = new Map();
   const newCalendars: Calendar[] = [];
 
-  // Add/update calendars from server
+  // add/update calendars from server
   for (const remoteCalendar of remoteCalendars) {
     const localCalendar = localCalendars.find((c) => c.id === remoteCalendar.id);
 
@@ -593,7 +593,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
         updatedCalendars.push(localCalendar);
       }
     } else {
-      // New calendar from server
+      // new calendar from server
       updatedCalendars.push(remoteCalendar);
       newCalendars.push(remoteCalendar);
     }
@@ -608,7 +608,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
     }
   }
 
-  // Remove calendars deleted on server and check if redirect is needed
+  // remove calendars deleted on server and check if redirect is needed
   const currentUIState = getUIState();
   const needsRedirectToAllTasks = await removeDeletedCalendars(
     localCalendars,
@@ -655,11 +655,11 @@ export const syncCalendarTasks = async (
     return;
   }
 
-  // Set syncing state for this calendar
+  // set syncing state for this calendar
   setSyncingCalendarId(calendarId);
 
   try {
-    // Ensure we're connected
+    // ensure we're connected
     if (!CalDAVClient.isConnected(account.id)) {
       await CalDAVClient.reconnect(account);
     }
@@ -675,7 +675,7 @@ export const syncCalendarTasks = async (
     // STEP 2: Fetch tasks from server
     const remoteTasks = await client.fetchTasks(calendar);
 
-    // If fetchTasks returns null, it indicates a server error (not just empty)
+    // if fetchTasks returns null, it indicates a server error (not just empty)
     if (remoteTasks === null) {
       syncLog.warn(
         `Failed to fetch tasks from ${calendar.displayName}. Local changes were pushed successfully, but skipping server comparison to prevent data loss.`,
@@ -683,7 +683,7 @@ export const syncCalendarTasks = async (
       return;
     }
 
-    // Re-get local tasks (may have been updated by push)
+    // re-get local tasks (may have been updated by push)
     const updatedLocalTasks = getTasksByCalendar(calendarId);
     const localUids = new Set(updatedLocalTasks.map((t) => t.uid));
     const remoteUids = new Set(remoteTasks.map((t) => t.uid));
@@ -700,10 +700,10 @@ export const syncCalendarTasks = async (
       }
     }
 
-    // STEP 4: Find tasks deleted on server (in local but not in remote)
-    // Use removeLocalTask (not deleteTask) so we don't queue a server-side DELETE —
+    // STEP 4: find tasks deleted on server (in local but not in remote)
+    // use removeLocalTask (not deleteTask) so we don't queue a server-side DELETE
     // the server already removed the resource, and queuing a DELETE could accidentally
-    // destroy a resource that was repurposed (e.g. fruux reassigns the UID on the same href).
+    // destroy a resource that was repurposed (e.g. fruux reassigns the UID on the same href)
     for (const localTask of updatedLocalTasks) {
       if (!localTask.deletedAt && localTask.synced && !remoteUids.has(localTask.uid)) {
         await removeTaskObject(localTask.uid);
@@ -711,12 +711,12 @@ export const syncCalendarTasks = async (
       }
     }
 
-    // Invalidate queries after sync
+    // invalidate queries after sync
     queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
   } finally {
-    // Clear syncing state
+    // clear syncing state
     setSyncingCalendarId(null);
   }
 };
@@ -812,14 +812,14 @@ export const pushTaskToServer = async (task: Task, queryClient: QueryClient) => 
   const client = CalDAVClient.getForAccount(account.id);
 
   if (task.href) {
-    // Update existing
+    // update existing
     const result = await client.updateTask(task);
     if (result) {
       await persistTaskObject(buildSyncedTaskObject(task, task.href, result.etag));
       updateTask(task.id, { etag: result.etag, synced: true });
     }
   } else {
-    // Create new
+    // create new
     const result = await client.createTask(calendar, task);
     if (result) {
       await persistTaskObject(buildSyncedTaskObject(task, result.href, result.etag));

@@ -1,7 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds tag sort config columns to ui_state table
-/// Allows persisting the user's preferred tag sort mode and direction
+/// adds tag sort config columns to ui_state table
+/// allows persisting the user's preferred tag sort mode and direction
 pub fn migration() -> Migration {
     Migration {
         version: 12,

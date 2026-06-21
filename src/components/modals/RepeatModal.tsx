@@ -248,7 +248,7 @@ export const RepeatModal = ({
 
   const { dateFormat, startOfWeek } = useSettingsStore();
 
-  // Reset local state whenever the modal opens
+  // reset local state whenever the modal opens
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
@@ -298,7 +298,7 @@ export const RepeatModal = ({
       ? getNextOccurrences(draftRrule, previewStart, previewStart, 3)
       : [];
 
-  // Reorder weekdays to respect the user's week start preference
+  // reorder weekdays to respect the user's week start preference
   // WEEKDAY_OPTIONS is MO-first (index 0=MO, ..., 6=SU)
   const WEEK_START_TO_RRULE_IDX: Record<string, number> = {
     monday: 0,

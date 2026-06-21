@@ -35,7 +35,7 @@ export const createErrorReportIssueUrl = ({
 };
 
 /**
- * Remove the generated download footer from GitHub release notes.
+ * remove the generated download footer from GitHub release notes
  */
 export const cleanChangelog = (text: string) =>
   text

@@ -36,9 +36,9 @@ let
       INSTALL_DIR="$DATA_DIR/baikal"
       DB_FILE="$INSTALL_DIR/Specific/db/db.sqlite"
 
-      # Copy baikal source into a writable location on first run (or refresh
+      # copy baikal source into a writable location on first run (or refresh
       # source on package upgrade). Specific/ + config/ hold per-install state
-      # and MUST persist across runs.
+      # and MUST persist across runs
       if [ ! -d "$INSTALL_DIR" ]; then
         echo "First run: copying Baikal source to $INSTALL_DIR ..."
         mkdir -p "$INSTALL_DIR"
@@ -48,12 +48,12 @@ let
       fi
       chmod -R u+w "$INSTALL_DIR/Specific" "$INSTALL_DIR/config"
 
-      # Auto-seed: write config + SQLite DB if not present. Skips the install
-      # wizard so the server is ready for tests immediately.
+      # auto-seed: write config + SQLite DB if not present. Skips the install
+      # wizard so the server is ready for tests immediately
       if [ ! -f "$DB_FILE" ]; then
         echo "Auto-seeding Baikal: admin/admin + $USERNAME/$PASSWORD ..."
 
-        # Digest auth hash: md5("$user:$realm:$pass") — Baikal default realm is BaikalDAV.
+        # digest auth hash: md5("$user:$realm:$pass"). Baikal default realm is BaikalDAV
         ADMIN_HASH=$(printf '%s' "admin:BaikalDAV:admin" | md5sum | awk '{print $1}')
         USER_HASH=$(printf '%s' "$USERNAME:BaikalDAV:$PASSWORD" | md5sum | awk '{print $1}')
 
@@ -74,7 +74,7 @@ let
           sqlite_file: '$DB_FILE'
       EOF
 
-        # Build the SQLite DB from the schema + seed the admin and test user.
+        # build the SQLite DB from the schema + seed the admin and test user
         sqlite3 "$DB_FILE" < "$INSTALL_DIR/Core/Resources/Db/SQLite/db.sql"
         sqlite3 "$DB_FILE" <<EOF
       INSERT INTO principals (uri, displayname, email) VALUES

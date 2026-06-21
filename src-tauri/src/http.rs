@@ -38,12 +38,12 @@ pub struct HttpResponse {
     pub body: String,
 }
 
-/// Low-level HTTP request executor with optional certificate validation bypass.
+/// low-level HTTP request executor with optional certificate validation bypass
 ///
-/// This command is used instead of the Tauri HTTP plugin when the account has
+/// this command is used instead of the Tauri HTTP plugin when the account has
 /// `accept_invalid_certs = true`, allowing connections to servers with self-signed
-/// or privately-signed certificates. Redirect following is disabled — the TypeScript
-/// layer handles redirects to keep behaviour consistent with the normal path.
+/// or privately-signed certificates. redirect following is disabled. the TypeScript
+/// layer handles redirects to keep behaviour consistent with the normal path
 #[tauri::command]
 pub async fn http_request(
     url: String,

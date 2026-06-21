@@ -1,25 +1,25 @@
 use std::env;
 use std::path::Path;
 
-/// Represents the detected installation method
+/// represents the detected installation method
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InstallType {
-    /// Installed from AUR (Arch User Repository)
+    /// installed from AUR (Arch User Repository)
     Aur,
-    /// Installed via Flatpak
+    /// installed via Flatpak
     Flatpak,
-    /// Installed via Homebrew Cask
+    /// installed via Homebrew Cask
     Homebrew,
-    /// Installed via Nix package manager
+    /// installed via Nix package manager
     Nix,
-    /// Installed via Scoop package manager
+    /// installed via Scoop package manager
     Scoop,
-    /// Standard installation (AppImage, .deb, .rpm, .dmg, .exe, etc.)
+    /// standard installation (AppImage, .deb, .rpm, .dmg, .exe, etc.)
     Standard,
 }
 
 impl InstallType {
-    /// Returns true if this installation type should have updates managed externally
+    /// returns true if this installation type should have updates managed externally
     pub fn has_external_updates(self) -> bool {
         matches!(
             self,
@@ -32,27 +32,27 @@ impl InstallType {
     }
 }
 
-/// Detect the installation type based on environment and binary location
+/// detect the installation type based on environment and binary location
 pub fn detect_install_type() -> InstallType {
-    // Check for AUR installation marker
+    // check for AUR installation marker
     // AUR package creates a marker file during installation
     if Path::new("/usr/share/chiri/.aur-install").exists() {
         return InstallType::Aur;
     }
 
-    // Check for Flatpak (FLATPAK_ID environment variable is set by Flatpak runtime)
+    // check for Flatpak (FLATPAK_ID environment variable is set by Flatpak runtime)
     if env::var("FLATPAK_ID").is_ok() {
         return InstallType::Flatpak;
     }
 
-    // Check for Homebrew Cask (Homebrew always creates a Caskroom directory for managed apps)
+    // check for Homebrew Cask (Homebrew always creates a Caskroom directory for managed apps)
     if Path::new("/opt/homebrew/Caskroom/chiri").exists()
         || Path::new("/usr/local/Caskroom/chiri").exists()
     {
         return InstallType::Homebrew;
     }
 
-    // Check for Nix or Scoop via binary path
+    // check for Nix or Scoop via binary path
     if let Ok(exe_path) = env::current_exe() {
         if let Some(path_str) = exe_path.to_str() {
             if path_str.starts_with("/nix/store/") {

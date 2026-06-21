@@ -50,7 +50,7 @@ export const ShortcutsSettings = ({
   const trimmedQuery = searchQuery.trim().toLowerCase();
   const isSearching = !!trimmedQuery;
 
-  // Filter shortcuts within each group if searching, and only keep groups that have matching shortcuts
+  // filter shortcuts within each group if searching, and only keep groups that have matching shortcuts
   const renderedGroups = SHORTCUT_GROUPS.map((group) => {
     const shortcuts = group.ids
       .map((id) => keyboardShortcuts.find((s) => s.id === id))
@@ -62,7 +62,7 @@ export const ShortcutsSettings = ({
     };
   }).filter((g) => g.shortcuts.length > 0);
 
-  // Ensure shortcuts are up-to-date with defaults when component mounts
+  // ensure shortcuts are up-to-date with defaults when component mounts
   useEffect(() => {
     ensureLatestShortcuts();
   }, [ensureLatestShortcuts]);

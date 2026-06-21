@@ -1,7 +1,7 @@
 import type { WebPushKeyPair } from '$types/push';
 
 /**
- * Generate a Web Push key pair using the Web Crypto API.
+ * generate a Web Push key pair using the Web Crypto API
  */
 export const generateWebPushKeyPair = async (): Promise<WebPushKeyPair> => {
   const keyPair = await crypto.subtle.generateKey(

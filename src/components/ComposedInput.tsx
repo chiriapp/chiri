@@ -7,7 +7,7 @@ interface ComposedInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>,
 }
 
 /**
- * input component with built-in dead key composition handling.
+ * input component with built-in dead key composition handling
  * using this instead of regular <textarea> to fix issues with IME layouts which rely on dead keys
  */
 export const ComposedInput = forwardRef<HTMLInputElement, ComposedInputProps>(

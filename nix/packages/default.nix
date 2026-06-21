@@ -17,7 +17,7 @@ let
 in
 {
   # on macOS, default to the signed/notarized release artifact to avoid
-  # Gatekeeper surprises. users can use .#source to build the current checkout
+  # gatekeeper surprises. users can use .#source to build the current checkout
   default = if pkgs.stdenv.hostPlatform.isDarwin then bin else source;
   inherit source bin;
 }

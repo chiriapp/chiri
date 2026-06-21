@@ -241,7 +241,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
           await new Promise((r) => setTimeout(r, 150));
           setDownloadProgress((i / steps) * 100);
         }
-        log.info('[dev] Fake update complete — skipping relaunch');
+        log.info('[dev] Fake update complete, skipping relaunch');
         return;
       }
 
@@ -382,7 +382,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
   }, [queryClient]);
 
   useEffect(() => {
-    // Check if automatic updates are enabled
+    // check if automatic updates are enabled
     const { checkForUpdatesAutomatically } = settingsStore.getState();
     if (!checkForUpdatesAutomatically) {
       log.info('Automatic update checks are disabled');

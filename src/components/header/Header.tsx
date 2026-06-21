@@ -42,7 +42,7 @@ const SYNC_SOURCE_LABELS: Record<string, string> = {
   'auto-reconnect': 'on reconnect',
 };
 
-// Extracted helper: get sync button tooltip content
+// extracted helper: get sync button tooltip content
 const getSyncTooltip = (
   disableSync: boolean,
   isOffline: boolean,
@@ -73,7 +73,7 @@ const getSyncTooltip = (
   return `Sync with ${pluralize(accountCount, 'server')} (${syncShortcut})`;
 };
 
-// Extracted helper: get sync button class
+// extracted helper: get sync button class
 const getSyncButtonClass = (
   isSyncing: boolean,
   isOffline: boolean,
@@ -156,10 +156,10 @@ export const Header = ({
     }
   }, [selectedTasks.length]);
 
-  // Track when sync completes and show "just now" for 3 seconds
+  // track when sync completes and show "just now" for 3 seconds
   useEffect(() => {
     if (!isSyncing && justSyncedRef.current) {
-      // Sync just completed
+      // sync just completed
       setShowJustNow(true);
       justSyncedRef.current = false;
 
@@ -167,7 +167,7 @@ export const Header = ({
 
       return () => clearTimeout(timer);
     } else if (isSyncing) {
-      // Mark that we're syncing
+      // mark that we're syncing
       justSyncedRef.current = true;
     }
   }, [isSyncing]);
@@ -185,7 +185,7 @@ export const Header = ({
 
   const toggleSortDirection = () => {
     const newDirection = sortConfig.direction === 'asc' ? 'desc' : 'asc';
-    // Save direction preference for non-manual modes
+    // save direction preference for non-manual modes
     if (sortConfig.mode !== 'manual') {
       lastNonManualDirectionRef.current = newDirection;
     }

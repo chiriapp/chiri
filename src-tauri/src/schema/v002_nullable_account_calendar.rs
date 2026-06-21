@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Makes account_id and calendar_id nullable in tasks table
+/// makes account_id and calendar_id nullable in tasks table
 /// to support local-only tasks without a CalDAV account
 pub fn migration() -> Migration {
     Migration {

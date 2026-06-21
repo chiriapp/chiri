@@ -6,8 +6,8 @@ import { extractVTodos, parsedVTodoToTask, parseVTodo } from './vtodo';
 const log = loggers.iCal;
 
 /**
- * Parse an ICS file and extract all tasks (VTODOs)
- * Returns parsed tasks without accountId/calendarId - caller must assign them
+ * parse an ICS file and extract all tasks (VTODOs)
+ * returns parsed tasks without accountId/calendarId - caller must assign them
  */
 export const parseIcsFile = (icsContent: string) => {
   try {
@@ -27,7 +27,7 @@ export const parseIcsFile = (icsContent: string) => {
 };
 
 /**
- * Detect whether a parsed JSON object is a Tasks.org backup file
+ * detect whether a parsed JSON object is a Tasks.org backup file
  */
 const isTasksOrgBackup = (data: unknown) => {
   if (typeof data !== 'object' || data === null) return false;
@@ -39,8 +39,8 @@ const isTasksOrgBackup = (data: unknown) => {
 };
 
 /**
- * Parse a Tasks.org backup JSON file and extract all tasks
- * Each task entry contains a fully-formed VCALENDAR/VTODO string in the `vtodo` field
+ * parse a Tasks.org backup JSON file and extract all tasks
+ * each task entry contains a fully-formed VCALENDAR/VTODO string in the `vtodo` field
  */
 export const parseTasksOrgBackup = (data: unknown) => {
   try {
@@ -67,18 +67,18 @@ export const parseTasksOrgBackup = (data: unknown) => {
 };
 
 /**
- * Parse a JSON file containing tasks (exported from this app or Tasks.org backup)
+ * parse a JSON file containing tasks (exported from this app or Tasks.org backup)
  */
 export const parseJsonTasksFile = (jsonContent: string): Partial<Task>[] => {
   try {
     const data = JSON.parse(jsonContent);
 
-    // Detect Tasks.org backup format
+    // detect Tasks.org backup format
     if (isTasksOrgBackup(data)) {
       return parseTasksOrgBackup(data);
     }
 
-    // Handle array of tasks directly
+    // handle array of tasks directly
     if (Array.isArray(data)) {
       return data.map((task) => ({
         ...task,

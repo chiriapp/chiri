@@ -10,7 +10,7 @@ import { settingsStore } from '$context/settingsContext';
 import type { DateFormat, TimeFormat } from '$types/preference';
 
 /**
- * Standard date format strings for consistent formatting across the app
+ * standard date format strings for consistent formatting across the app
  */
 const DATE_FORMATS = {
   shortDate: 'MMM d',
@@ -24,7 +24,7 @@ const DATE_FORMATS = {
 } as const;
 
 /**
- * Mapping from full date format to its month/year header equivalent
+ * mapping from full date format to its month/year header equivalent
  * (used in calendar picker navigation)
  */
 const DATE_FORMAT_MONTH_YEAR: Record<DateFormat, string> = {
@@ -36,7 +36,7 @@ const DATE_FORMAT_MONTH_YEAR: Record<DateFormat, string> = {
 };
 
 /**
- * Mapping from full date format to its short (no-year) equivalent
+ * mapping from full date format to its short (no-year) equivalent
  */
 const DATE_FORMAT_SHORT: Record<DateFormat, string> = {
   'MMM d, yyyy': 'MMM d',
@@ -47,10 +47,10 @@ const DATE_FORMAT_SHORT: Record<DateFormat, string> = {
 };
 
 /**
- * Format a date according to the user's date format preference.
- * @param date - The date to format
- * @param withYear - Whether to include the year in the output
- * @param dateFormat - Override; defaults to the setting from the store
+ * format a date according to the user's date format preference
+ * @param date - the date to format
+ * @param withYear - whether to include the year in the output
+ * @param dateFormat - override; defaults to the setting from the store
  */
 export const formatDate = (date: Date, withYear: boolean, dateFormat?: DateFormat) => {
   const fmt = dateFormat ?? settingsStore.getState().dateFormat;
@@ -59,8 +59,8 @@ export const formatDate = (date: Date, withYear: boolean, dateFormat?: DateForma
 };
 
 /**
- * Format a month/year header for calendar pickers, respecting the user's date format preference.
- * e.g. "March 2026" for MMM-style formats, "03/2026" for numeric, "2026-03" for ISO.
+ * format a month/year header for calendar pickers, respecting the user's date format preference
+ * e.g. "March 2026" for MMM-style formats, "03/2026" for numeric, "2026-03" for ISO
  */
 export const formatMonthYear = (date: Date, dateFormat?: DateFormat) => {
   const fmt = dateFormat ?? settingsStore.getState().dateFormat;
@@ -68,7 +68,7 @@ export const formatMonthYear = (date: Date, dateFormat?: DateFormat) => {
 };
 
 /**
- * Format time according to user's time format preference
+ * format time according to user's time format preference
  */
 export const formatTime = (date: Date, timeFormat?: TimeFormat) => {
   const format12or24 = timeFormat ?? settingsStore.getState().timeFormat;
@@ -121,7 +121,7 @@ export const formatDueDate = (date: Date, timeFormat?: TimeFormat) => {
 };
 
 /**
- * Format start date for unstarted tasks
+ * format start date for unstarted tasks
  */
 export const formatStartDate = (date: Date, timeFormat?: TimeFormat) => {
   const d = new Date(date);
@@ -132,7 +132,7 @@ export const formatStartDate = (date: Date, timeFormat?: TimeFormat) => {
     textColor: '#10b981',
   };
 
-  // Check if date has a meaningful time component (not midnight)
+  // check if date has a meaningful time component (not midnight)
   const hasTime = d.getHours() !== 0 || d.getMinutes() !== 0 || d.getSeconds() !== 0;
   const timeStr = hasTime ? ` ${formatTime(d, timeFormat)}` : '';
 

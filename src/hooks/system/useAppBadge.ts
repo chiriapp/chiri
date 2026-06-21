@@ -5,8 +5,8 @@ import { updateAppBadge } from '$lib/badge';
 import { getTaskSnoozeStatus } from '$lib/notifications/snoozes';
 
 /**
- * Hook that keeps the app icon badge synchronized with the overdue task count
- * and the user's badge visibility setting.
+ * hook that keeps the app icon badge synchronized with the overdue task count
+ * and the user's badge visibility setting
  */
 export const useAppBadge = () => {
   const { data: tasks = [] } = useTasks();
@@ -25,27 +25,27 @@ export const useAppBadge = () => {
     const nowTime = Date.now();
 
     const overdueCount = tasks.filter((task) => {
-      // Only active tasks
+      // only active tasks
       if (task.status === 'completed' || task.status === 'cancelled') {
         return false;
       }
 
-      // Do not count deleted tasks
+      // do not count deleted tasks
       if (task.deletedAt) {
         return false;
       }
 
-      // Must have a due date
+      // must have a due date
       if (!task.dueDate) {
         return false;
       }
 
-      // Check if it's strictly in the past
+      // check if it's strictly in the past
       if (task.dueDate.getTime() >= nowTime) {
         return false;
       }
 
-      // Check if the task is currently snoozed
+      // check if the task is currently snoozed
       const snoozeStatus = getTaskSnoozeStatus(task.id, nowTime);
       if (snoozeStatus.isSnoozed) {
         return false;
@@ -61,10 +61,10 @@ export const useAppBadge = () => {
   }, [tasks, showAppIconBadge]);
 
   useEffect(() => {
-    // Initial update
+    // initial update
     updateBadge();
 
-    // Set up polling interval to catch tasks that become overdue while the app is open
+    // set up polling interval to catch tasks that become overdue while the app is open
     const intervalId = setInterval(updateBadge, 60 * 1000);
 
     return () => {

@@ -1,7 +1,7 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds calendar sort config columns to ui_state table
-/// Allows persisting the user's preferred calendar sort mode and direction
+/// adds calendar sort config columns to ui_state table
+/// allows persisting the user's preferred calendar sort mode and direction
 pub fn migration() -> Migration {
     Migration {
         version: 10,

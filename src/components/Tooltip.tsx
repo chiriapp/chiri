@@ -113,26 +113,26 @@ export const Tooltip = ({
         break;
     }
 
-    // Keep tooltip within viewport bounds
+    // keep tooltip within viewport bounds
     if (position === 'top' || position === 'bottom') {
-      // Constrain horizontal position
+      // constrain horizontal position
       x = Math.max(
         padding + tooltipWidth / 2,
         Math.min(x, window.innerWidth - padding - tooltipWidth / 2),
       );
-      // Constrain vertical position
+      // constrain vertical position
       if (position === 'top') {
         y = Math.max(padding + tooltipHeight, y);
       } else {
         y = Math.min(window.innerHeight - padding - tooltipHeight, y);
       }
     } else {
-      // Constrain vertical position for left/right tooltips
+      // constrain vertical position for left/right tooltips
       y = Math.max(
         padding + tooltipHeight / 2,
         Math.min(y, window.innerHeight - padding - tooltipHeight / 2),
       );
-      // Constrain horizontal position
+      // constrain horizontal position
       if (position === 'left') {
         x = Math.max(padding + tooltipWidth, x);
       } else {
@@ -146,7 +146,7 @@ export const Tooltip = ({
   const showTooltip = useCallback(() => {
     if (!hasContent || isDismissed) return;
 
-    // Don't show tooltip when a modal or context menu is open (unless allowInModal is true)
+    // don't show tooltip when a modal or context menu is open (unless allowInModal is true)
     if (!allowInModal && (isAnyModalOpen || isContextMenuOpen)) return;
 
     clearShowTimeout();

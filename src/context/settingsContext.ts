@@ -42,7 +42,7 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
       const { confirmBeforeDelete: _confirmBeforeDelete, ...storedState } = parsed.state ?? {};
       const loadedState = { ...defaultState, ...storedState };
 
-      // Migrate old number[] quickTimePresets to object format
+      // migrate old number[] quickTimePresets to object format
       if (Array.isArray(loadedState.quickTimePresets)) {
         loadedState.quickTimePresets = defaultState.quickTimePresets;
       }
@@ -64,7 +64,7 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
         defaultState.taskBadgeOrder,
       );
 
-      // Merge keyboard shortcuts to include any new defaults
+      // merge keyboard shortcuts to include any new defaults
       let migrated = false;
       if (parsed.state?.keyboardShortcuts) {
         const originalLength = parsed.state.keyboardShortcuts.length;
@@ -86,7 +86,7 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
           (id: string) => !loadedState.keyboardShortcuts.find((s: KeyboardShortcut) => s.id === id),
         );
 
-        // Mark if shortcuts were added or deprecated shortcuts were removed during merge
+        // mark if shortcuts were added or deprecated shortcuts were removed during merge
         const changedIds = loadedState.keyboardShortcuts
           .filter((s: KeyboardShortcut) => {
             const original = originalShortcutsById.get(s.id);
@@ -119,12 +119,12 @@ const saveToStorage = (state: SettingsState) => {
   }
 };
 
-// Singleton store for accessing state outside React
+// singleton store for accessing state outside React
 const loadResult = loadFromStorage();
 let state: SettingsState = loadResult.state;
 let pendingMigrationSave = loadResult.migrated;
 
-// Apply theme, color scheme, and accent color immediately on module load
+// apply theme, color scheme, and accent color immediately on module load
 applyTheme(state.theme);
 const _initEffectiveMode = resolveEffectiveTheme(state.theme);
 applyColorScheme(state.colorScheme, state.colorSchemeFlavor, _initEffectiveMode);
@@ -152,12 +152,12 @@ const subscribe = (listener: () => void) => {
   const isFirstSubscriber = listeners.size === 0;
   listeners.add(listener);
 
-  // If migration happened during load and hasn't been saved yet,
+  // if migration happened during load and hasn't been saved yet,
   // save and notify all subscribers (including the new one)
   if (pendingMigrationSave && isFirstSubscriber) {
     saveToStorage(state);
     pendingMigrationSave = false; // Clear flag so we don't save again
-    // Notify all subscribers about the migrated state
+    // notify all subscribers about the migrated state
     emitChange();
   }
 
@@ -174,7 +174,7 @@ const setState = (partial: Partial<SettingsState>) => {
   emitChange();
 };
 
-// Actions that can be called from anywhere
+// actions that can be called from anywhere
 export const settingsStore = {
   getState: () => state,
   subscribe,
@@ -227,11 +227,11 @@ export const settingsStore = {
     setState({ keyboardShortcuts: shortcuts });
   },
   resetShortcuts: () => {
-    // Use current DEFAULT_SHORTCUTS to ensure latest defaults are applied
+    // use current DEFAULT_SHORTCUTS to ensure latest defaults are applied
     setState({ keyboardShortcuts: DEFAULT_SHORTCUTS });
   },
   ensureLatestShortcuts: () => {
-    // Force a check and merge of shortcuts with current defaults
+    // force a check and merge of shortcuts with current defaults
     const merged = mergeShortcuts(state.keyboardShortcuts, DEFAULT_SHORTCUTS);
     const hasNewShortcuts = merged.some((m) => !state.keyboardShortcuts.find((s) => s.id === m.id));
     const hasDeprecatedShortcuts = state.keyboardShortcuts.some(
@@ -304,9 +304,9 @@ export const settingsStore = {
     colorSchemeFlavor: string | null,
     fallbackAccent?: string,
   ) => {
-    // Save the current scheme's accent before switching
+    // save the current scheme's accent before switching
     const savedAccents = { ...state.accentColorByScheme, [state.colorScheme]: state.accentColor };
-    // Restore the target scheme's saved accent, or use the provided fallback
+    // restore the target scheme's saved accent, or use the provided fallback
     const restoredAccent = savedAccents[colorScheme] ?? fallbackAccent;
     setState({
       colorScheme,
@@ -357,7 +357,7 @@ export const settingsStore = {
   },
 };
 
-// Context for React components
+// context for React components
 export const SettingsContext = createContext<SettingsStore | null>(null);
 
 export const useSettingsStore = (): SettingsStore => {

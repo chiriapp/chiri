@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useMemo, useRef } from 'react';
 import { useDismissableLayerState } from '$context/dismissableLayerContext';
 import { ModalStateContext } from '$context/modalStateContext';
 
-// This provider tracks modal state and manages hover state resets
+// this provider tracks modal state and manages hover state resets
 export const ModalStateProvider = ({ children }: { children: ReactNode }) => {
   const { isAnyModalOpen, isContextMenuOpen } = useDismissableLayerState();
   const wasAnyModalOpenRef = useRef(false);

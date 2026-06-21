@@ -2,23 +2,23 @@ use tauri::Manager;
 
 use crate::utils::fs::{copy_dir_recursive, is_dir_empty};
 
-/// Migrate data from caldav-tasks to Chiri.
+/// migrate data from caldav-tasks to Chiri
 ///
-/// This includes:
-/// - App data directory (database + localStorage/WebView data)
-/// - Renaming caldav-tasks.db to chiri.db
-/// - On macOS: WebKit directory (separate from app data)
+/// this includes:
+/// - app data directory (database + localStorage/WebView data)
+/// - renaming caldav-tasks.db to chiri.db
+/// - on macOS: WebKit directory (separate from app data)
 pub fn migrate_name<R: tauri::Runtime>(app: &tauri::App<R>) {
     let old_dir_name = "caldav-tasks";
     let old_db_name = "caldav-tasks.db";
     let new_db_name = "chiri.db";
 
-    // Migrate main app data directory
+    // migrate main app data directory
     if let Ok(app_local_data_dir) = app.path().app_local_data_dir() {
         if let Some(parent_dir) = app_local_data_dir.parent() {
             let old_app_dir = parent_dir.join(old_dir_name);
 
-            // Only migrate if old directory exists and new one doesn't (or is empty)
+            // only migrate if old directory exists and new one doesn't (or is empty)
             let should_migrate = old_app_dir.exists()
                 && (!app_local_data_dir.exists()
                     || is_dir_empty(&app_local_data_dir).unwrap_or(false));
@@ -56,7 +56,7 @@ pub fn migrate_name<R: tauri::Runtime>(app: &tauri::App<R>) {
         }
     }
 
-    // Migrate WebKit/WebView data (macOS only - uses different location)
+    // migrate WebKit/WebView data (macOS only - uses different location)
     #[cfg(target_os = "macos")]
     {
         if let Some(home_dir) = dirs::home_dir() {

@@ -8,7 +8,7 @@ mod objc_bridge;
 
 fn main() {
     // compile macOS liquid glass icon first: tauri_build::build() checks for
-    // gen/Assets.car as a resource and will panic if it doesn't exist yet.
+    // gen/Assets.car as a resource and will panic if it doesn't exist yet
     if target_os() == Some("macos") {
         #[cfg(target_os = "macos")]
         {

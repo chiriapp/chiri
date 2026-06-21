@@ -105,7 +105,7 @@ const mapPayload = (payload: DecodedMobileConfigCalDAVPayload): PayloadMappingRe
   };
 };
 
-/** Validate and map every decoded CalDAV payload into Chiri's account setup shape. */
+/** validate and map every decoded CalDAV payload into Chiri's account setup shape */
 export const mapDecodedMobileConfig = (profile: DecodedMobileConfig): MobileConfigImportResult => {
   const candidates: MobileConfigCalDAVSettings[] = [];
   for (const payload of profile.caldavPayloads) {
@@ -124,7 +124,7 @@ export const mapDecodedMobileConfig = (profile: DecodedMobileConfig): MobileConf
   };
 };
 
-/** Decode, validate, and map a configuration profile's CalDAV accounts. */
+/** decode, validate, and map a configuration profile's CalDAV accounts */
 export const importMobileConfig = async (bytes: Uint8Array): Promise<MobileConfigImportResult> => {
   const decoded = await decodeMobileConfig(bytes);
   return decoded.ok ? mapDecodedMobileConfig(decoded.profile) : decoded;

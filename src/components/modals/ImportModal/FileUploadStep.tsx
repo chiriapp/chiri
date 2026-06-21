@@ -70,12 +70,12 @@ export const FileUploadStep = ({
 
   const getFileIcon = () => {
     if (!fileName) return null;
-    // Could extend with different icons per file type based on extension
+    // could extend with different icons per file type based on extension
     return <FileText className="h-5 w-5" />;
   };
 
   const handleDragLeave = (e: DragEvent) => {
-    // Only trigger leave if we're actually leaving the drop zone
+    // only trigger leave if we're actually leaving the drop zone
     if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
       onDragLeave();
     }
@@ -94,7 +94,7 @@ export const FileUploadStep = ({
         onDragOver={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          // Show copy cursor when dragging over drop zone
+          // show copy cursor when dragging over drop zone
           if (e.dataTransfer) {
             e.dataTransfer.dropEffect = 'copy';
           }

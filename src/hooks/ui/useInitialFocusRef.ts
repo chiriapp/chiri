@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 /**
- * Focus an element once after it first mounts.
- * Useful for modal inputs without letting later rerenders steal focus back.
+ * focus an element once after it first mounts
+ * useful for modal inputs without letting later rerenders steal focus back
  */
 export const useInitialFocusRef = <T extends HTMLElement>(delayMs = 100) => {
   const elementRef = useRef<T | null>(null);

@@ -46,7 +46,7 @@ export const ConnectionsSettings = ({
   >({});
   const [exportingAccount, setExportingAccount] = useState<Account | null>(null);
 
-  // Calculate task counts per account
+  // calculate task counts per account
   const accountStats = useMemo(() => {
     const stats: Record<string, number> = {};
     for (const account of accounts) {
@@ -134,11 +134,11 @@ export const ConnectionsSettings = ({
           setExportingAccount(null);
         }
       } catch (err: unknown) {
-        // Silently handle user cancellation
+        // silently handle user cancellation
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('cancelled') || msg.includes('user closed')) return;
 
-        // Fall back to blob download if Tauri APIs are unavailable
+        // fall back to blob download if Tauri APIs are unavailable
         downloadFile(xml, fileName, MOBILE_CONFIG_MIME_TYPE);
         setExportingAccount(null);
       }

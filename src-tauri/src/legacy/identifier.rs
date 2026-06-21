@@ -3,12 +3,12 @@ use tauri::Manager;
 
 use crate::utils::fs::{copy_dir_recursive, is_dir_empty};
 
-/// Derive the legacy source path by substituting `old_id` for `new_id` in
-/// the Tauri-resolved path. Using rfind means we target the rightmost
+/// derive the legacy source path by substituting `old_id` for `new_id` in
+/// the Tauri-resolved path. using rfind means we target the rightmost
 /// occurrence, the identifier segment, without touching any parent dirs
-/// that happen to contain a matching substring.
+/// that happen to contain a matching substring
 ///
-/// Returns `None` if `new_id` does not appear in the path.
+/// returns `None` if `new_id` does not appear in the path
 fn legacy_path_for(new: &Path, old_id: &str, new_id: &str) -> Option<PathBuf> {
     let s = new.to_str()?;
     let pos = s.rfind(new_id)?;
@@ -20,9 +20,9 @@ fn legacy_path_for(new: &Path, old_id: &str, new_id: &str) -> Option<PathBuf> {
     )))
 }
 
-/// Copy `old` to `new` when old exists and new is absent or empty.
-/// Non-destructive: old is left in place as an implicit backup.
-/// Idempotent: a populated target is always skipped.
+/// copy `old` to `new` when old exists and new is absent or empty
+/// non-destructive: old is left in place as an implicit backup
+/// idempotent: a populated target is always skipped
 fn migrate_path_pair(label: &str, old: &Path, new: &Path) {
     log::info!(
         "[Legacy] Evaluating {label}: source={} target={}",
@@ -84,16 +84,16 @@ fn log_path_state(label: &str, path: &Path) {
     }
 }
 
-/// Migrate app data from the old `moe.sapphic.Chiri` identifier to the
-/// current identifier introduced in 0.9.0.
+/// migrate app data from the old `moe.sapphic.Chiri` identifier to the
+/// current identifier introduced in 0.9.0
 ///
-/// Scopes migrated:
+/// scopes migrated:
 /// - `app_local_data_dir`: chiri.db and WebView data
 /// - `app_config_dir`: roaming config on Windows; ~/.config/<id> on Linux
 /// - `app_log_dir`: log files
 /// - `~/Library/WebKit`: WebKit storage on macOS only
 ///
-/// Migration is non-destructive and runs at most once, gated by a marker file.
+/// migration is non-destructive and runs at most once, gated by a marker file
 pub fn migrate_identifier<R: tauri::Runtime>(app: &tauri::App<R>) {
     const OLD_IDENTIFIER: &str = "moe.sapphic.Chiri";
     const MARKER_FILE: &str = ".legacy_migration_v1_done";

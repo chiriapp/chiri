@@ -5,8 +5,8 @@ import { getInstallType } from '$utils/platform';
 const log = loggers.platform;
 
 /**
- * Hook to detect if the app is running under a managed installation
- * where updates are handled externally.
+ * hook to detect if the app is running under a managed installation
+ * where updates are handled externally
  */
 export const useManagedInstallation = () => {
   const query = useQuery({

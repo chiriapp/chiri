@@ -3,7 +3,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { platform } from '@tauri-apps/plugin-os';
 
 /**
- * Updates the application icon badge count across platforms.
+ * updates the application icon badge count across platforms
  * @param count The number to display, or 0/undefined to clear the badge
  */
 export const updateAppBadge = async (count: number) => {
@@ -31,7 +31,7 @@ export const updateAppBadge = async (count: number) => {
 };
 
 /**
- * Renders a small badge image with the given count for Windows taskbar overlays.
+ * renders a small badge image with the given count for Windows taskbar overlays
  * @param count The number to display
  * @returns A Tauri Image object or null if rendering fails
  */
@@ -44,25 +44,25 @@ const renderBadgeIcon = async (count: number) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    // Draw background circle
+    // draw background circle
     ctx.fillStyle = '#ef4444'; // Red (Tailwind semantic-error)
     ctx.beginPath();
     ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
     ctx.fill();
 
-    // Draw number
+    // draw number
     ctx.fillStyle = '#ffffff'; // White text
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Adjust font size based on number length
+    // adjust font size based on number length
     const text = count > 99 ? '99+' : count.toString();
     const fontSize = text.length > 2 ? 14 : text.length > 1 ? 16 : 20;
     ctx.font = `bold ${fontSize}px sans-serif`;
 
     ctx.fillText(text, size / 2, size / 2 + 1); // +1 for visual vertical centering
 
-    // Export to Uint8Array
+    // export to Uint8Array
     const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
     if (!blob) return null;
 

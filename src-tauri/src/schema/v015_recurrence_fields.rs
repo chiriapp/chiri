@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds RFC 5545 recurrence fields to tasks
+/// adds RFC 5545 recurrence fields to tasks
 pub fn migration() -> Migration {
     Migration {
         version: 15,

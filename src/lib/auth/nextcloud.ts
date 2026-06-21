@@ -5,7 +5,7 @@ import { loggers } from '$lib/logger';
 
 const log = loggers.http;
 
-// Track active polling to allow cancellation
+// track active polling to allow cancellation
 let activePollingController: AbortController | null = null;
 
 interface LoginFlowInit {
@@ -23,8 +23,8 @@ interface LoginCredentials {
 }
 
 /**
- * Normalizes a Nextcloud server URL
- * Requires an explicit http/https scheme and removes trailing slashes
+ * normalizes a Nextcloud server URL
+ * requires an explicit http/https scheme and removes trailing slashes
  */
 export const normalizeNextcloudUrl = (url: string) => {
   const normalized = url.trim();
@@ -36,7 +36,7 @@ export const normalizeNextcloudUrl = (url: string) => {
 };
 
 /**
- * Initiates Nextcloud Login Flow v2
+ * initiates Nextcloud Login Flow v2
  * @param serverUrl The Nextcloud server URL
  * @returns Promise that resolves with login credentials
  */
@@ -45,7 +45,7 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
 
   log.info('Initiating Nextcloud Login Flow v2', { serverUrl: normalizedUrl });
 
-  // Cancel any existing polling operation
+  // cancel any existing polling operation
   if (activePollingController) {
     log.info('Cancelling previous polling operation');
     activePollingController.abort();
@@ -53,7 +53,7 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
   }
 
   try {
-    // Step 1: Initiate login flow
+    // step 1: Initiate login flow
     const initResponse = await tauriFetch(`${normalizedUrl}/index.php/login/v2`, {
       method: 'POST',
       headers: {
@@ -70,19 +70,19 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
 
     log.debug('Login flow initiated', { loginUrl: flowData.login });
 
-    // Step 2: Open browser for user authentication
+    // step 2: Open browser for user authentication
     await openUrl(flowData.login);
 
     log.info('Opened browser for authentication');
 
-    // Step 3: Create new abort controller for this polling operation
+    // step 3: Create new abort controller for this polling operation
     const controller = new AbortController();
     activePollingController = controller;
 
-    // Poll for credentials
+    // poll for credentials
     const credentials = await pollForCredentials(flowData.poll, controller.signal);
 
-    // Clear the controller on success
+    // clear the controller on success
     if (activePollingController === controller) {
       activePollingController = null;
     }
@@ -94,7 +94,7 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
 
-    // Clear the controller on error
+    // clear the controller on error
     if (activePollingController) {
       activePollingController = null;
     }
@@ -109,8 +109,8 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
 };
 
 /**
- * Polls the Nextcloud server for login credentials
- * Continues polling until credentials are received or timeout occurs
+ * polls the Nextcloud server for login credentials
+ * continues polling until credentials are received or timeout occurs
  */
 const pollForCredentials = async (
   poll: {
@@ -129,7 +129,7 @@ const pollForCredentials = async (
   });
 
   while (attempts < maxAttempts) {
-    // Check if polling was cancelled
+    // check if polling was cancelled
     if (signal.aborted) {
       log.info('Polling cancelled');
       throw new Error('Login flow cancelled');
@@ -149,14 +149,14 @@ const pollForCredentials = async (
 
       log.debug('Poll response received', { status: response.status });
 
-      // Status 200 means authentication successful
+      // status 200 means authentication successful
       if (response.status === 200) {
         const credentials: LoginCredentials = await response.json();
         log.info('Credentials received');
         return credentials;
       }
 
-      // Status 404 means still waiting for user to authenticate
+      // status 404 means still waiting for user to authenticate
       if (response.status === 404) {
         attempts++;
         log.debug('Still waiting for authentication', {
@@ -164,7 +164,7 @@ const pollForCredentials = async (
           maxAttempts,
         });
 
-        // Check for cancellation before waiting
+        // check for cancellation before waiting
         if (signal.aborted) {
           log.info('Polling cancelled during wait');
           throw new Error('Login flow cancelled');
@@ -174,16 +174,16 @@ const pollForCredentials = async (
         continue;
       }
 
-      // Any other status is an error
+      // any other status is an error
       const errorText = await response.text();
       throw new Error(`Unexpected polling status: ${response.status}. Response: ${errorText}`);
     } catch (error) {
-      // If polling was cancelled, don't retry
+      // if polling was cancelled, don't retry
       if (error instanceof Error && error.message === 'Login flow cancelled') {
         throw error;
       }
 
-      // Network errors or other issues
+      // network errors or other issues
       if (error instanceof Error && error.message.includes('Unexpected polling status')) {
         throw error;
       }
@@ -204,8 +204,8 @@ const pollForCredentials = async (
 };
 
 /**
- * Cancels any active Nextcloud login polling operation
- * Useful when closing the login modal or starting a new login
+ * cancels any active Nextcloud login polling operation
+ * useful when closing the login modal or starting a new login
  */
 export const cancelNextcloudLogin = () => {
   if (activePollingController) {
@@ -216,7 +216,7 @@ export const cancelNextcloudLogin = () => {
 };
 
 /**
- * Validates that the provided URL is a valid Nextcloud server
+ * validates that the provided URL is a valid Nextcloud server
  * by attempting to fetch the status endpoint
  */
 export const validateNextcloudServer = async (serverUrl: string): Promise<boolean> => {
@@ -233,7 +233,7 @@ export const validateNextcloudServer = async (serverUrl: string): Promise<boolea
 
     const status = await response.json();
 
-    // Check if it's a Nextcloud server
+    // check if it's a Nextcloud server
     return status && typeof status.installed === 'boolean' && typeof status.version === 'string';
   } catch (error) {
     log.debug('Server validation failed', { error });
@@ -242,7 +242,7 @@ export const validateNextcloudServer = async (serverUrl: string): Promise<boolea
 };
 
 /**
- * Deletes an app password on logout (optional cleanup)
+ * deletes an app password on logout (optional cleanup)
  * @param serverUrl The Nextcloud server URL
  * @param username The username
  * @param appPassword The app password to delete
@@ -266,7 +266,7 @@ export const deleteAppPassword = async (
 
     log.info('App password deleted');
   } catch (error) {
-    // Don't throw - deletion is best-effort
+    // don't throw - deletion is best-effort
     log.warn('Failed to delete app password', { error });
   }
 };

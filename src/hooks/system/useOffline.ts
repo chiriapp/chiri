@@ -24,10 +24,10 @@ const tryUrl = async (url: string, signal: AbortSignal) => {
 };
 
 /**
- * 1. Try each active CalDAV account — any response means we're online.
- * 2. If all fail, hit a single external tiebreaker to distinguish
+ * 1. try each active CalDAV account. any response means we're online
+ * 2. if all fail, hit a single external tiebreaker to distinguish
  *    "server(s) down" from "no network."
- * 3. No accounts configured → go straight to tiebreaker.
+ * 3. no accounts configured → go straight to tiebreaker
  */
 const checkConnectivity = async (controller: AbortController, tiebreakerEnabled: boolean) => {
   const accounts = getAllAccounts().filter((a) => a.isActive && a.caldav);
@@ -47,11 +47,11 @@ const checkConnectivity = async (controller: AbortController, tiebreakerEnabled:
   }
 
   if (!tiebreakerEnabled) {
-    log.debug('All CalDAV probes failed — tiebreaker disabled, assuming offline');
+    log.debug('All CalDAV probes failed; tiebreaker disabled, assuming offline');
     return false;
   }
 
-  // All CalDAV probes failed (or no accounts) — use tiebreaker
+  // all CalDAV probes failed (or no accounts): use tiebreaker
   const tiebreakerUrl =
     settingsStore.getState().connectivityCheckUrl || DEFAULT_CONNECTIVITY_CHECK_URL;
   log.debug(`Falling back to tiebreaker: ${tiebreakerUrl}`);
@@ -61,7 +61,7 @@ const checkConnectivity = async (controller: AbortController, tiebreakerEnabled:
     return result;
   } catch (_) {
     if (controller.signal.aborted) throw new Error('Aborted');
-    log.debug('Tiebreaker failed — offline');
+    log.debug('Tiebreaker failed; offline');
     return false;
   }
 };
@@ -81,7 +81,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
   const onOnlineRef = useRef(options.onOnline);
   const onOfflineRef = useRef(options.onOffline);
 
-  // Keep refs current without triggering re-renders
+  // keep refs current without triggering re-renders
   onOnlineRef.current = options.onOnline;
   onOfflineRef.current = options.onOffline;
 
@@ -90,7 +90,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
     isOfflineRef.current = false;
     setIsOffline(false);
     if (wasOffline) {
-      log.info('Network restored — now online');
+      log.info('Network restored, now online');
       onOnlineRef.current?.();
     }
   }, []);
@@ -100,7 +100,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
     isOfflineRef.current = true;
     setIsOffline(true);
     if (wasOnline) {
-      log.info('Network lost — now offline');
+      log.info('Network lost, now offline');
       onOfflineRef.current?.();
     }
   }, []);
@@ -119,7 +119,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
         setOffline();
       }
     } catch (_) {
-      // aborted — don't change state
+      // aborted, don't change state
     } finally {
       isCheckingRef.current = false;
     }
@@ -131,7 +131,7 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
 
     checkIntervalRef.current = window.setInterval(runCheck, connectivityCheckInterval * 1000);
 
-    // These may not fire reliably in Tauri/WKWebView, but use as fast paths when they do
+    // these may not fire reliably in Tauri/WKWebView, but use as fast paths when they do
     const handleOnline = () => runCheck();
     const handleOffline = () => setOffline();
 

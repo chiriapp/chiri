@@ -1,6 +1,6 @@
 /**
- * Format a Date as iCalendar datetime (UTC)
- * Format: YYYYMMDDTHHMMSSZ
+ * format a Date as iCalendar datetime (UTC)
+ * format: YYYYMMDDTHHMMSSZ
  */
 export const formatICalDate = (date: Date) => {
   const pad = (n: number) => n.toString().padStart(2, '0');
@@ -17,23 +17,23 @@ export const formatICalDate = (date: Date) => {
 };
 
 /**
- * Format a Date as iCalendar date (no time component)
- * Format: YYYYMMDD (VALUE=DATE)
+ * format a Date as iCalendar date (no time component)
+ * format: YYYYMMDD (VALUE=DATE)
  */
 export const formatICalDateOnly = (date: Date) => {
   const pad = (n: number) => n.toString().padStart(2, '0');
-  // Use local date parts for all-day dates
+  // use local date parts for all-day dates
   return date.getFullYear().toString() + pad(date.getMonth() + 1) + pad(date.getDate());
 };
 
 /**
- * Parse an iCalendar datetime string to Date
- * Supports: YYYYMMDDTHHMMSSZ, YYYYMMDDTHHMMSS, YYYYMMDD
+ * parse an iCalendar datetime string to Date
+ * supports: YYYYMMDDTHHMMSSZ, YYYYMMDDTHHMMSS, YYYYMMDD
  */
 export const parseICalDate = (value: string) => {
   if (!value) return undefined;
 
-  // Remove any parameters before the value (e.g., TZID=...)
+  // remove any parameters before the value (e.g., TZID=...)
   const cleanValue = value.trim();
 
   // UTC format: 20231225T120000Z
@@ -59,7 +59,7 @@ export const parseICalDate = (value: string) => {
     }
   }
 
-  // Local datetime: 20231225T120000
+  // local datetime: 20231225T120000
   const dtMatch = cleanValue.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);
   if (dtMatch) {
     const [, yearStr, monthStr, dayStr, hourStr, minuteStr, secondStr] = dtMatch;
@@ -76,7 +76,7 @@ export const parseICalDate = (value: string) => {
     return date;
   }
 
-  // Date only: 20231225
+  // date only: 20231225
   const dateMatch = cleanValue.match(/^(\d{4})(\d{2})(\d{2})$/);
   if (dateMatch) {
     const [, yearStr, monthStr, dayStr] = dateMatch;
@@ -94,8 +94,8 @@ export const parseICalDate = (value: string) => {
 };
 
 /**
- * Escape text for iCalendar format
- * Escapes: backslash, semicolon, comma, newline
+ * escape text for iCalendar format
+ * escapes: backslash, semicolon, comma, newline
  */
 export const escapeICalText = (text: string) => {
   return text
@@ -106,7 +106,7 @@ export const escapeICalText = (text: string) => {
 };
 
 /**
- * Unescape iCalendar text
+ * unescape iCalendar text
  */
 export const unescapeICalText = (text: string) => {
   return text
@@ -117,7 +117,7 @@ export const unescapeICalText = (text: string) => {
 };
 
 /**
- * Fold long lines according to RFC 5545 (max 75 octets per line)
+ * fold long lines according to RFC 5545 (max 75 octets per line)
  */
 export const foldLine = (line: string) => {
   const maxLength = 75;
@@ -126,11 +126,11 @@ export const foldLine = (line: string) => {
   const lines: string[] = [];
   let remaining = line;
 
-  // First line can be up to 75 chars
+  // first line can be up to 75 chars
   lines.push(remaining.slice(0, maxLength));
   remaining = remaining.slice(maxLength);
 
-  // Continuation lines start with space and can have 74 more chars
+  // continuation lines start with space and can have 74 more chars
   while (remaining.length > 0) {
     lines.push(` ${remaining.slice(0, maxLength - 1)}`);
     remaining = remaining.slice(maxLength - 1);
@@ -140,10 +140,10 @@ export const foldLine = (line: string) => {
 };
 
 /**
- * Unfold iCalendar content lines (join lines that start with space/tab)
+ * unfold iCalendar content lines (join lines that start with space/tab)
  */
 export const unfoldLines = (content: string) => {
-  // Normalize line endings
+  // normalize line endings
   return content
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
@@ -157,8 +157,8 @@ interface ICalProperty {
 }
 
 /**
- * Parse a single iCalendar property line
- * Format: NAME;PARAM=value:VALUE or NAME:VALUE
+ * parse a single iCalendar property line
+ * format: NAME;PARAM=value:VALUE or NAME:VALUE
  */
 export const parseProperty = (line: string): ICalProperty | null => {
   const colonIndex = line.indexOf(':');
@@ -167,7 +167,7 @@ export const parseProperty = (line: string): ICalProperty | null => {
   const header = line.slice(0, colonIndex);
   const value = line.slice(colonIndex + 1);
 
-  // Parse name and parameters
+  // parse name and parameters
   const parts = header.split(';');
   const name = parts[0].toUpperCase();
   const params: Record<string, string> = {};
@@ -178,7 +178,7 @@ export const parseProperty = (line: string): ICalProperty | null => {
     if (eqIndex !== -1) {
       const paramName = paramPart.slice(0, eqIndex).toUpperCase();
       let paramValue = paramPart.slice(eqIndex + 1);
-      // Remove quotes if present
+      // remove quotes if present
       if (paramValue.startsWith('"') && paramValue.endsWith('"')) {
         paramValue = paramValue.slice(1, -1);
       }

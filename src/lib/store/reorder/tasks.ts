@@ -34,7 +34,7 @@ const findNewParentUid = (
     if (candidate.depth < effectiveIndent - 1) break;
   }
 
-  // Fallback: find nearest ancestor shallower than the target indent
+  // fallback: find nearest ancestor shallower than the target indent
   const fallbackStart = (activeIndex === overIndex ? activeIndex : overIndex) - 1;
   for (let i = fallbackStart; i >= 0; i--) {
     const candidate = flattenedItems[i];
@@ -54,7 +54,7 @@ const getDescendantIds = (flattenedItems: FlattenedTask[], activeId: string): Se
 };
 
 /**
- * Search backwards from a starting index to find the insert position among siblings
+ * search backwards from a starting index to find the insert position among siblings
  */
 const searchForInsertPosition = (
   flattenedItems: FlattenedTask[],
@@ -94,7 +94,7 @@ const findInsertIndex = (
 ) => {
   const isMovingDown = activeIndex < overIndex;
 
-  // For re-indent without moving (parent changed), search from overIndex - 1
+  // for re-indent without moving (parent changed), search from overIndex - 1
   const shouldUseReindentSearch = isReindent && activeItem.parentUid !== newParentUid;
   const searchStart = shouldUseReindentSearch ? overIndex - 1 : overIndex;
   const effectiveIsMovingDown = shouldUseReindentSearch ? true : isMovingDown;

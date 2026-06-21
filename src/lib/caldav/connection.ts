@@ -110,8 +110,8 @@ const PRINCIPAL_QUERY = `<?xml version="1.0" encoding="utf-8"?>
 const PRINCIPAL_RE =
   /<[^:>]*:?current-user-principal[^>]*>\s*<[^:>]*:?href[^>]*>([^<]+)<\/[^:>]*:?href>/i;
 
-/** Resolves the DAV root URL for generic/auto-detect servers, trying .well-known
- *  first and falling back to common paths if it returns 404. */
+/** resolves the DAV root URL for generic/auto-detect servers, trying .well-known
+ *  first and falling back to common paths if it returns 404 */
 const resolveGenericDavRoot = async (baseUrl: string, credentials: CalDAVCredentials) => {
   const wellKnownUrl = `${baseUrl}/.well-known/caldav`;
   const wkResponse = await propfind(wellKnownUrl, credentials, PRINCIPAL_QUERY, '0');
@@ -124,7 +124,7 @@ const resolveGenericDavRoot = async (baseUrl: string, credentials: CalDAVCredent
     };
   }
 
-  // .well-known not configured — try common SabreDAV/Baikal paths
+  // .well-known not configured. try common SabreDAV/Baikal paths
   for (const path of ['/dav.php', '/caldav']) {
     const fbUrl = `${baseUrl}${path}`;
     const fbResponse = await propfind(fbUrl, credentials, PRINCIPAL_QUERY, '0');
@@ -141,11 +141,11 @@ const resolveGenericDavRoot = async (baseUrl: string, credentials: CalDAVCredent
   throw new Error('CalDAV service not found at this URL.');
 };
 
-/** Discovers principalUrl + calendarHome for generic/auto-detect server types. */
+/** discovers principalUrl + calendarHome for generic/auto-detect server types */
 const discoverGenericUrls = async (baseUrl: string, credentials: CalDAVCredentials) => {
   const { davRootUrl, davRootBody } = await resolveGenericDavRoot(baseUrl, credentials);
 
-  // Try to extract principal from the response we already have before issuing
+  // try to extract principal from the response we already have before issuing
   // another PROPFIND
   let discoveredPrincipal: string | null = davRootBody
     ? (davRootBody.match(PRINCIPAL_RE)?.[1] ?? null)
@@ -155,7 +155,7 @@ const discoverGenericUrls = async (baseUrl: string, credentials: CalDAVCredentia
     discoveredPrincipal = await discoverPrincipal(davRootUrl, credentials);
   }
 
-  // Last resort: the multistatus href itself may be the DAV root
+  // last resort: the multistatus href itself may be the DAV root
   if (!discoveredPrincipal && davRootBody) {
     const results = parseMultiStatus(davRootBody);
     if (results[0]?.href) {
@@ -236,7 +236,7 @@ export const connect = async (
   let principalUrl: string;
   let calendarHome: string;
 
-  // If a direct calendar home URL is provided, skip autodiscovery entirely
+  // if a direct calendar home URL is provided, skip autodiscovery entirely
   if (calendarHomeUrl) {
     const trimmedCalendarHomeUrl = calendarHomeUrl.trim();
     if (!hasHttpUrlScheme(trimmedCalendarHomeUrl)) {
@@ -245,7 +245,7 @@ export const connect = async (
     calendarHome = `${normalizeUrl(trimmedCalendarHomeUrl)}/`;
     principalUrl = calendarHome;
   } else if (principalUrlOverride) {
-    // Principal URL provided — derive calendar home from it
+    // principal URL provided, derive calendar home from it
     principalUrl = makeAbsoluteUrl(principalUrlOverride, baseUrl);
     const discoveredCalendarHome = await discoverCalendarHome(principalUrl, credentials);
     if (!discoveredCalendarHome) {

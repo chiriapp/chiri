@@ -5,8 +5,8 @@ import { loggers } from '$lib/logger';
 const log = loggers.http;
 
 /**
- * Normalizes a RustiCal server URL
- * Requires an explicit http/https scheme and removes trailing slashes
+ * normalizes a RustiCal server URL
+ * requires an explicit http/https scheme and removes trailing slashes
  */
 export const normalizeRusticalUrl = (url: string) => {
   const normalized = url.trim();
@@ -18,7 +18,7 @@ export const normalizeRusticalUrl = (url: string) => {
 };
 
 /**
- * Validates a RustiCal server by checking the /ping endpoint
+ * validates a RustiCal server by checking the /ping endpoint
  * @param serverUrl The RustiCal server URL
  * @returns Promise that resolves to true if it's a valid RustiCal server
  */
@@ -39,7 +39,7 @@ export const validateRusticalServer = async (serverUrl: string) => {
 
     const text = await response.text();
 
-    // Check if it responds with "Pong!"
+    // check if it responds with "Pong!"
     const isRustical = text.trim() === 'Pong!';
 
     if (isRustical) {

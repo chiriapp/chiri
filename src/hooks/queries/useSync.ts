@@ -1,6 +1,6 @@
 /**
  * TanStack Query-based sync hook
- * Handles syncing CalDAV data using mutations
+ * handles syncing CalDAV data using mutations
  */
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -88,7 +88,7 @@ export const useSyncQuery = () => {
     return syncOwnerInstanceId === instanceIdRef.current;
   }, []);
 
-  // Handle online/offline status
+  // handle online/offline status
   const { isOffline, isOfflineRef } = useOffline({
     onOnline: () => {
       log.info('Back online');
@@ -121,7 +121,7 @@ export const useSyncQuery = () => {
     async (trigger?: SyncTrigger) => {
       const syncTrigger = normalizeSyncTrigger(trigger);
 
-      // Skip if already syncing (shared across all hook instances)
+      // skip if already syncing (shared across all hook instances)
       if (syncRunInProgress) {
         log.info('Sync request skipped - another sync is already running', {
           requestedBy: syncTrigger,
@@ -130,7 +130,7 @@ export const useSyncQuery = () => {
         return;
       }
 
-      // Skip if offline (use ref for immediate read, not state which may be stale)
+      // skip if offline (use ref for immediate read, not state which may be stale)
       if (isOfflineRef.current) {
         log.info('Skipping sync - offline', { requestedBy: syncTrigger });
         setLastSyncError('You are offline. Changes will sync when you reconnect.');
@@ -179,7 +179,7 @@ export const useSyncQuery = () => {
 
   const pushTask = useCallback((task: Task) => pushTaskToServer(task, queryClient), [queryClient]);
 
-  // Register syncAll for initial sync trigger
+  // register syncAll for initial sync trigger
   useEffect(() => {
     if (!ensureSyncOwner()) {
       return;
@@ -194,25 +194,25 @@ export const useSyncQuery = () => {
     });
   }, [ensureSyncOwner, registerInitialSyncCallback, syncAll]);
 
-  // Update ref when syncAll changes
+  // update ref when syncAll changes
   useEffect(() => {
     syncAllRef.current = syncAll;
   }, [syncAll]);
 
-  // Auto-sync interval
+  // auto-sync interval
   useEffect(() => {
     if (!ensureSyncOwner()) {
       return;
     }
 
-    // Clear existing interval
+    // clear existing interval
     if (autoSyncIntervalRef.current) {
       clearInterval(autoSyncIntervalRef.current);
       autoSyncIntervalRef.current = null;
     }
 
     const accounts = getAllAccounts();
-    // Set up new interval if autosync is enabled
+    // set up new interval if autosync is enabled
     if (autoSync && syncInterval > 0 && accounts.some((a) => a.caldav)) {
       autoSyncIntervalRef.current = setInterval(
         () => {

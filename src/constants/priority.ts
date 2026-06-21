@@ -1,7 +1,7 @@
 import type { Priority } from '$types';
 
 /**
- * Priority configuration with labels and styling
+ * priority configuration with labels and styling
  */
 export const PRIORITY_CONFIG: Record<
   Priority,
@@ -44,12 +44,12 @@ export const PRIORITY_CONFIG: Record<
 };
 
 /**
- * Array of priority configurations for iteration
+ * array of priority configurations for iteration
  */
 export const PRIORITIES = Object.values(PRIORITY_CONFIG);
 
 /**
- * Priority colors for task items (combined border and background)
+ * priority colors for task items (combined border and background)
  */
 export const PRIORITY_COLORS: Record<Priority, string> = {
   high: 'border-priority-high bg-priority-high/15',
@@ -66,7 +66,7 @@ export const RING_COLORS: Record<Priority, string> = {
 };
 
 /**
- * Priority dot colors for subtask indicators
+ * priority dot colors for subtask indicators
  */
 export const PRIORITY_DOTS: Record<Priority, string> = {
   high: 'bg-priority-high',
@@ -76,28 +76,28 @@ export const PRIORITY_DOTS: Record<Priority, string> = {
 };
 
 /**
- * Get priority configuration by priority value
+ * get priority configuration by priority value
  */
 export const getPriorityConfig = (priority: Priority) => {
   return PRIORITY_CONFIG[priority];
 };
 
 /**
- * Get priority color classes for task items
+ * get priority color classes for task items
  */
 export const getPriorityColor = (priority: Priority) => {
   return PRIORITY_COLORS[priority];
 };
 
 /**
- * Get ring color classes for selected task items based on priority
+ * get ring color classes for selected task items based on priority
  */
 export const getPriorityRingColor = (priority: Priority) => {
   return RING_COLORS[priority];
 };
 
 /**
- * Get priority dot color class for subtasks
+ * get priority dot color class for subtasks
  */
 export const getPriorityDot = (priority: Priority) => {
   return PRIORITY_DOTS[priority];

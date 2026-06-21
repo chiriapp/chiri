@@ -6,8 +6,8 @@ use super::AppRuntime;
 use crate::{legacy, notifications};
 
 pub(super) fn configure_process_environment() {
-    // On Linux, WebKitGTK 2.42+ allocates DMA-BUF buffers via GBM, which is broken
-    // on NVIDIA proprietary drivers under Wayland and causes an immediate crash ("Error 71: Protocol error").
+    // on Linux, WebKitGTK 2.42+ allocates DMA-BUF buffers via GBM, which is broken
+    // on NVIDIA proprietary drivers under Wayland and causes an immediate crash ("Error 71: Protocol error")
     #[cfg(target_os = "linux")]
     if std::env::var_os("WEBKIT_DISABLE_DMABUF_RENDERER").is_none() {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
@@ -28,15 +28,15 @@ pub(super) fn focus_main_window(app: &tauri::AppHandle<AppRuntime>) {
 pub(super) fn setup_app(
     app: &mut tauri::App<AppRuntime>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // Register deep link URL scheme handler (macOS uses Info.plist; Windows/Linux
-    // need explicit runtime registration so the OS knows which binary to call).
+    // register deep link URL scheme handler (macOS uses Info.plist; Windows/Linux
+    // need explicit runtime registration so the OS knows which binary to call)
     #[cfg(any(windows, target_os = "linux"))]
     if let Err(e) = app.deep_link().register_all() {
         log::warn!("[Setup] Failed to register deep link scheme: {e}");
     }
 
-    // Disable App Nap after logging has been initialized so App Nap
-    // messages follow the same format as the rest of the app logs.
+    // disable App Nap after logging has been initialized so App Nap
+    // messages follow the same format as the rest of the app logs
     #[cfg(target_os = "macos")]
     {
         crate::macos::login_item::capture_launch_context();
@@ -64,6 +64,6 @@ pub(super) fn setup_app(
 
     notifications::initialize(app);
 
-    // Tray will be initialized from frontend after reading settings.
+    // tray will be initialized from frontend after reading settings
     Ok(())
 }

@@ -23,7 +23,7 @@ interface ConnectionActions {
 
 export type ConnectionStore = ConnectionState & ConnectionActions;
 
-// Singleton store for accessing state outside React
+// singleton store for accessing state outside React
 let state: ConnectionState = { connections: {} };
 const listeners = new Set<() => void>();
 
@@ -42,7 +42,7 @@ const getSnapshot = () => {
   return state;
 };
 
-// Actions that can be called from anywhere
+// actions that can be called from anywhere
 export const connectionStore = {
   getState: () => state,
   subscribe,
@@ -70,7 +70,7 @@ export const connectionStore = {
   hasConnection: (accountId: string) => accountId in state.connections,
 };
 
-// Context for React components
+// context for React components
 export const ConnectionContext = createContext<ConnectionStore | null>(null);
 
 export const useConnectionStore = (): ConnectionStore => {

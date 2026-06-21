@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('$lib/store/tags', () => ({ getAllTags: () => [] }));
 vi.mock('$utils/misc', () => ({ generateUUID: () => 'fixed-uuid' }));
 
-// formatDate normally needs the settings store; stub it to a deterministic format.
+// formatDate normally needs the settings store; stub it to a deterministic format
 vi.mock('$utils/date', () => ({
   formatDate: (date: Date, withYear: boolean) =>
     withYear

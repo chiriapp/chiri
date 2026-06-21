@@ -90,7 +90,7 @@ export const HoverFlyoutGroup = ({ children }: HoverFlyoutGroupProps) => {
   };
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: Hover wrapper keeps sibling flyouts open while pointer moves between real controls.
+    // biome-ignore lint/a11y/noStaticElementInteractions: Hover wrapper keeps sibling flyouts open while pointer moves between real controls
     <div
       ref={groupRef}
       onPointerEnter={handlePointerEnter}

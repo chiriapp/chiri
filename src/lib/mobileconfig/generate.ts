@@ -9,10 +9,10 @@ const escapeXml = (value: string) =>
     .replace(/'/g, '&apos;');
 
 /**
- * Generate an Apple Configuration Profile (.mobileconfig) XML for a CalDAV account.
+ * generate an Apple Configuration Profile (.mobileconfig) XML for a CalDAV account
  *
- * The generated profile can be opened directly on iPhone, iPad, or macOS
- * to add the CalDAV account without manual configuration.
+ * the generated profile can be opened directly on iPhone, iPad, or macOS
+ * to add the CalDAV account without manual configuration
  */
 export const generateMobileConfig = (account: Account, includePassword = false) => {
   const caldav = account.caldav;

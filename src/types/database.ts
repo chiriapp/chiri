@@ -13,20 +13,20 @@ export interface TaskRow {
   category_id: string | null;
   priority: string;
   start_date: string | null;
-  start_date_all_day: number | null; // Nullable in database schema
+  start_date_all_day: number | null; // nullable in database schema
   due_date: string | null;
-  due_date_all_day: number | null; // Nullable in database schema
+  due_date_all_day: number | null; // nullable in database schema
   created_at: string;
   modified_at: string;
   deleted_at: string | null;
   reminders: string | null;
   parent_uid: string | null;
-  is_collapsed: number | null; // Nullable in database schema (DEFAULT 0)
+  is_collapsed: number | null; // nullable in database schema (DEFAULT 0)
   sort_order: number;
-  account_id: string | null; // Made nullable in v002 migration
-  calendar_id: string | null; // Made nullable in v002 migration
+  account_id: string | null; // made nullable in v002 migration
+  calendar_id: string | null; // made nullable in v002 migration
   synced: number;
-  local_only: number | null; // Nullable in database schema (DEFAULT 0)
+  local_only: number | null; // nullable in database schema (DEFAULT 0)
   url: string | null;
   rrule: string | null;
   repeat_from: number;

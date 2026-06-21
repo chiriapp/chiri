@@ -14,16 +14,16 @@ const WEEK_START_MAP: Record<string, WeekStartDay> = {
 };
 
 /**
- * Convert week start setting to numeric value (0=Sun, 1=Mon, ..., 6=Sat)
+ * convert week start setting to numeric value (0=Sun, 1=Mon, ..., 6=Sat)
  */
 export const getWeekStartValue = (setting: string) => {
   return WEEK_START_MAP[setting] ?? 1;
 };
 
 /**
- * Get days of week labels based on week start setting
+ * get days of week labels based on week start setting
  * @param weekStartsOn - 0–6 where 0=Sunday
- * @returns Array of day labels properly ordered
+ * @returns array of day labels properly ordered
  */
 export const getDaysOfWeekLabels = (weekStartsOn: WeekStartDay): readonly string[] => {
   return [
@@ -33,20 +33,20 @@ export const getDaysOfWeekLabels = (weekStartsOn: WeekStartDay): readonly string
 };
 
 /**
- * Calculate padding needed at start of month grid based on first day of month
- * @param firstDayOfMonth - Day of week (0-6, where 0 is Sunday)
+ * calculate padding needed at start of month grid based on first day of month
+ * @param firstDayOfMonth - day of week (0-6, where 0 is Sunday)
  * @param weekStartsOn - 0–6 where 0=Sunday
- * @returns Number of empty cells needed at start of grid
+ * @returns number of empty cells needed at start of grid
  */
 export const getMonthStartPadding = (firstDayOfMonth: number, weekStartsOn: WeekStartDay) => {
   return (firstDayOfMonth - weekStartsOn + 7) % 7;
 };
 
 /**
- * Create padded days array for a stable six-row calendar grid
- * @param days - Array of dates in the month
- * @param startPadding - Number of empty cells at start
- * @returns Array with null values for padding followed by dates and trailing empty cells
+ * create padded days array for a stable six-row calendar grid
+ * @param days - array of dates in the month
+ * @param startPadding - number of empty cells at start
+ * @returns array with null values for padding followed by dates and trailing empty cells
  */
 export const createPaddedDaysArray = (days: Date[], startPadding: number): (Date | null)[] => {
   const paddedDays = Array(startPadding).fill(null).concat(days);
@@ -55,11 +55,11 @@ export const createPaddedDaysArray = (days: Date[], startPadding: number): (Date
 };
 
 /**
- * Create a date with specific time components
- * @param baseDate - Base date to copy
- * @param hours - Hours to set
- * @param minutes - Minutes to set
- * @returns New date with time set
+ * create a date with specific time components
+ * @param baseDate - base date to copy
+ * @param hours - hours to set
+ * @param minutes - minutes to set
+ * @returns new date with time set
  */
 export const setDateTime = (baseDate: Date, hours: number, minutes: number) => {
   const newDate = new Date(baseDate);
@@ -68,9 +68,9 @@ export const setDateTime = (baseDate: Date, hours: number, minutes: number) => {
 };
 
 /**
- * Create an all-day date (time set to 00:00:00)
- * @param date - Date to convert
- * @returns New date with time set to start of day
+ * create an all-day date (time set to 00:00:00)
+ * @param date - date to convert
+ * @returns new date with time set to start of day
  */
 export const createAllDayDate = (date: Date) => {
   const newDate = new Date(date);

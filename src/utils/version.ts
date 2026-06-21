@@ -23,7 +23,7 @@ export const fetchReleaseNotes = async (version: string) => {
 };
 
 /**
- * Get application information from package.json
+ * get application information from package.json
  */
 export const getAppInfo = () => {
   const pkg = packageJson satisfies AppInfo;

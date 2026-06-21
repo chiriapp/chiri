@@ -41,14 +41,14 @@ interface MenuCallbacks {
   onDeleteCalendar?: RefObject<((calendarId: string, accountId: string) => void) | null>;
 }
 
-// Simple event configuration for events that just call a callback
+// simple event configuration for events that just call a callback
 type SimpleEventConfig = {
   event: string;
   callback: keyof MenuCallbacks;
   label: string;
 };
 
-// Parameterized event configuration for events with payloads
+// parameterized event configuration for events with payloads
 type ParamEventConfig = {
   event: string;
   label: string;
@@ -173,7 +173,7 @@ export const isMenuEventBlockedByModal = (event: string, isModalOpen: boolean) =
 type MenuEventBlocker = (event: string, label: string) => boolean;
 
 /**
- * Register a single listener and track cleanup
+ * register a single listener and track cleanup
  */
 const registerListener = async <T = unknown>(
   event: string,
@@ -190,7 +190,7 @@ const registerListener = async <T = unknown>(
   return true;
 };
 
-// Helper: register all simple events
+// helper: register all simple events
 const registerSimpleEvents = async (
   callbacks: MenuCallbacks,
   unlistenCallbacks: (() => void)[],
@@ -216,7 +216,7 @@ const registerSimpleEvents = async (
   return true;
 };
 
-// Helper: register parameterized events
+// helper: register parameterized events
 const registerParamEvents = async (
   callbacks: MenuCallbacks,
   unlistenCallbacks: (() => void)[],
@@ -239,7 +239,7 @@ const registerParamEvents = async (
   return true;
 };
 
-// Helper: register sort mode events
+// helper: register sort mode events
 const registerSortModeEvents = async (
   callbacks: MenuCallbacks,
   uiState: ReturnType<typeof useUIState>['data'],
@@ -265,7 +265,7 @@ const registerSortModeEvents = async (
   return true;
 };
 
-// Helper: register sort direction events
+// helper: register sort direction events
 const registerSortDirectionEvents = async (
   callbacks: MenuCallbacks,
   uiState: ReturnType<typeof useUIState>['data'],
@@ -296,8 +296,8 @@ const registerSortDirectionEvents = async (
 };
 
 /**
- * Hook to listen for menu events and handle them appropriately
- * Should be used in the root App component
+ * hook to listen for menu events and handle them appropriately
+ * should be used in the root App component
  */
 export const useMenuEvents = (callbacks: MenuCallbacks) => {
   const { data: uiState } = useUIState();
@@ -313,11 +313,11 @@ export const useMenuEvents = (callbacks: MenuCallbacks) => {
     };
 
     const setupListeners = async () => {
-      // Register simple events (no payload)
+      // register simple events (no payload)
       if (!(await registerSimpleEvents(callbacks, unlistenCallbacks, isActiveRef, isBlocked)))
         return;
 
-      // Register toggle events (need current UI state)
+      // register toggle events (need current UI state)
       const toggleSuccess = await registerListener(
         MENU_EVENTS.TOGGLE_COMPLETED,
         () => {
@@ -342,11 +342,11 @@ export const useMenuEvents = (callbacks: MenuCallbacks) => {
       );
       if (!toggleUnstartedSuccess) return;
 
-      // Register parameterized events (with payload)
+      // register parameterized events (with payload)
       if (!(await registerParamEvents(callbacks, unlistenCallbacks, isActiveRef, isBlocked)))
         return;
 
-      // Register sort mode events
+      // register sort mode events
       if (
         !(await registerSortModeEvents(
           callbacks,
@@ -358,7 +358,7 @@ export const useMenuEvents = (callbacks: MenuCallbacks) => {
       )
         return;
 
-      // Register sort direction events
+      // register sort direction events
       if (
         !(await registerSortDirectionEvents(
           callbacks,

@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Run the integration test suite against every local nix CalDAV server in turn.
+# run the integration test suite against every local nix CalDAV server in turn
 #
-# For each server:
+# for each server:
 #   1. Boot the nix app in the background
 #   2. Wait for it to become reachable
 #   3. Write the matching credentials to .env.local
 #   4. Run `pnpm test:integration`
 #   5. Kill the server
 #
-# Preserves the original .env.local across the run (restored on exit). Failures
-# in one server don't stop the rest; final exit status is the OR of all servers.
+# preserves the original .env.local across the run (restored on exit). Failures
+# in one server don't stop the rest; final exit status is the OR of all servers
 
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit
@@ -28,7 +28,7 @@ else
   DATA_ROOT=$(cd "$DATA_ROOT" && pwd -P)
 fi
 
-# Restore .env.local on exit, regardless of how we got here.
+# restore .env.local on exit, regardless of how we got here
 ENV_BACKUP=""
 if [ -f .env.local ]; then
   ENV_BACKUP=$(mktemp)
@@ -52,7 +52,7 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-# Wait for an HTTP endpoint to return a useful status code.
+# wait for an HTTP endpoint to return a useful status code
 wait_for_ready() {
   local url="$1"
   local auth="${2:-}"
@@ -254,8 +254,8 @@ run_server() {
     return 1
   fi
 
-  # Run the suite with GitHub's summary path hidden so Vitest doesn't append
-  # one generic "Vitest Test Report" block per CalDAV server.
+  # run the suite with GitHub's summary path hidden so Vitest doesn't append
+  # one generic "Vitest Test Report" block per CalDAV server
   local test_log
   local status
   test_log=$(mktemp)

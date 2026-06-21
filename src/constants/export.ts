@@ -1,7 +1,7 @@
 import type { ExportFormat } from '$types';
 
 /**
- * Export format options with descriptions and file extensions
+ * export format options with descriptions and file extensions
  */
 export const EXPORT_FORMATS: Array<{
   id: ExportFormat;

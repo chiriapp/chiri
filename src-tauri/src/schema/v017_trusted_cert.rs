@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds accept_invalid_certs flag to accounts for self-signed certificate support
+/// adds accept_invalid_certs flag to accounts for self-signed certificate support
 pub fn migration() -> Migration {
     Migration {
         version: 17,

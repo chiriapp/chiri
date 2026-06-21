@@ -9,7 +9,7 @@
       effectiveTheme = settings.state?.theme ?? 'system';
     }
 
-    // Determine if we should use dark mode
+    // determine if we should use dark mode
     let isDark = false;
     if (effectiveTheme === 'dark') {
       isDark = true;
@@ -17,18 +17,18 @@
       isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
 
-    // Apply dark class
+    // apply dark class
     if (isDark) {
       document.documentElement.classList.add('dark');
     }
 
-    // Set color-scheme meta tag to match the resolved theme
+    // set color-scheme meta tag to match the resolved theme
     const meta = document.createElement('meta');
     meta.name = 'color-scheme';
     meta.content = isDark ? 'dark' : 'light';
     document.head.appendChild(meta);
   } catch (_e) {
-    // Fallback to system preference on error
+    // fallback to system preference on error
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     if (isDark) {
       document.documentElement.classList.add('dark');

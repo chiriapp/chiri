@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Initial database schema - creates all core tables
+/// initial database schema - creates all core tables
 pub fn migration() -> Migration {
     Migration {
         version: 1,

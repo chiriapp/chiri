@@ -1,5 +1,5 @@
 /**
- * Settings import/export utility functions
+ * settings import/export utility functions
  */
 
 import { open, save } from '@tauri-apps/plugin-dialog';
@@ -7,7 +7,7 @@ import { readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { downloadFile } from '$utils/misc';
 
 /**
- * Export settings to a file
+ * export settings to a file
  */
 export const exportSettingsToFile = async (
   settingsJson: string,
@@ -23,13 +23,13 @@ export const exportSettingsToFile = async (
       await writeTextFile(path, settingsJson);
     }
   } catch (_e) {
-    // Fallback to browser download
+    // fallback to browser download
     downloadFile(settingsJson, fileName, 'application/json');
   }
 };
 
 /**
- * Import settings from a file
+ * import settings from a file
  */
 export const importSettingsFromFile = async (onImport: (content: string) => boolean) => {
   try {
@@ -46,7 +46,7 @@ export const importSettingsFromFile = async (onImport: (content: string) => bool
       }
     }
   } catch (_e) {
-    // Fallback to browser file input
+    // fallback to browser file input
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';

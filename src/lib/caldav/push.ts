@@ -1,10 +1,10 @@
 /**
  * WebDAV Push Support
  *
- * Implements WebDAV-Push draft specification for near real-time sync notifications.
+ * implements WebDAV-Push draft specification for near real-time sync notifications
  * https://github.com/bitfireAT/webdav-push
  *
- * This module provides:
+ * this module provides:
  * - Push subscription registration via POST
  * - Push subscription removal via DELETE
  */
@@ -17,7 +17,7 @@ import type { PushRegistration, PushTrigger, WebPushSubscription } from '$types/
 export const NS_WEBDAV_PUSH = 'https://bitfire.at/webdav-push';
 
 /**
- * Build push-register XML body
+ * build push-register XML body
  */
 const buildPushRegisterXml = (
   subscription: WebPushSubscription,
@@ -57,7 +57,7 @@ ${expiresElement}</P:push-register>`;
 };
 
 /**
- * Parse push registration response
+ * parse push registration response
  */
 const parsePushRegistrationResponse = (
   headers: Record<string, string>,
@@ -68,7 +68,7 @@ const parsePushRegistrationResponse = (
     return null;
   }
 
-  // Clean up the header value - some servers (e.g., Nextcloud) may add trailing characters
+  // clean up the header value - some servers (e.g., Nextcloud) may add trailing characters
   // e.g., "Fri, 10 Apr 2026 14:29:29 +0000+" -> "Fri, 10 Apr 2026 14:29:29 +0000"
   const cleanedHeader = expiresHeader.replace(/\+$/, '').trim();
 
@@ -82,10 +82,10 @@ const parsePushRegistrationResponse = (
 };
 
 /**
- * Register a push subscription for a resource
+ * register a push subscription for a resource
  *
- * Sends a POST request with push-register XML body to subscribe
- * to WebDAV Push for the specified resource.
+ * sends a POST request with push-register XML body to subscribe
+ * to WebDAV Push for the specified resource
  *
  * @param resourceUrl - URL of the resource to subscribe to (e.g., calendar URL)
  * @param credentials - CalDAV credentials
@@ -146,9 +146,9 @@ export const registerPushSubscription = async (
 };
 
 /**
- * Unregister a push subscription
+ * unregister a push subscription
  *
- * Sends a DELETE request to the registration URL to remove the subscription.
+ * sends a DELETE request to the registration URL to remove the subscription
  */
 export const unregisterPushSubscription = async (
   registrationUrl: string,

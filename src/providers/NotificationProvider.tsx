@@ -13,13 +13,13 @@ import { isMacPlatform } from '$utils/platform';
 
 const log = loggers.notifications;
 
-// Long interval — just a safety net. The window focus listener handles the
-// common case (user returning from System Settings) near-instantly.
+// long interval: just a safety net. the window focus listener handles the
+// common case (user returning from System Settings) near-instantly
 const SYNC_INTERVAL_MS = 5 * 60 * 1000;
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermissionStatus | null>(
-    // Seed from the module-level cache so there's no flash of "unknown" state
+    // seed from the module-level cache so there's no flash of "unknown" state
     () => (isMacPlatform() ? getCachedNotificationPermission() : null),
   );
   const [isCheckingPermission, setIsCheckingPermission] = useState(false);
@@ -31,10 +31,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       const { status } = await checkNotificationPermission();
       setPermissionStatus(status);
 
-      // If the user revoked permission in System Settings while the app was
-      // running, mirror that by disabling the in-app toggle.
+      // if the user revoked permission in System Settings while the app was
+      // running, mirror that by disabling the in-app toggle
       if (status === 'denied' && settingsStore.getState().notifications) {
-        log.info('macOS notification permission denied — disabling in-app notifications');
+        log.info('macOS notification permission denied, disabling in-app notifications');
         settingsStore.setNotifications(false);
       }
     } catch (error) {
@@ -47,11 +47,11 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
     syncPermission();
 
-    // Near-instant sync: fires as soon as the user switches back from
-    // System Settings (or any other app).
+    // near-instant sync: fires as soon as the user switches back from
+    // system Settings (or any other app)
     window.addEventListener('focus', syncPermission);
 
-    // 5-minute fallback in case the window never lost focus.
+    // 5-minute fallback in case the window never lost focus
     intervalRef.current = setInterval(syncPermission, SYNC_INTERVAL_MS);
 
     return () => {

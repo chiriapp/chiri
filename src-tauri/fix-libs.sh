@@ -8,7 +8,7 @@ if [ -e "/usr/lib/libiconv.2.dylib" ]; then
 elif [ -e "/usr/lib/libiconv.dylib" ]; then
     SYSTEM_ICONV="/usr/lib/libiconv.dylib"
 else
-    # Keep a sane default even if the host cannot validate the path at script start.
+    # keep a sane default even if the host cannot validate the path at script start
     SYSTEM_ICONV="/usr/lib/libiconv.2.dylib"
 fi
 

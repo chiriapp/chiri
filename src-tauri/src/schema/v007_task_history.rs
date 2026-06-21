@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Adds a task_history table to track field-level changes to tasks over time
+/// adds a task_history table to track field-level changes to tasks over time
 pub fn migration() -> Migration {
     Migration {
         version: 7,

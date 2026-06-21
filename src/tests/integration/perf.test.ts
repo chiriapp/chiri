@@ -68,9 +68,9 @@ integration(`perf smoke (real server, N=${N})`, () => {
       }),
     );
 
-    // Serial — Promise.all triggers concurrent-write rejections on Radicale
-    // (multifilesystem storage) and Xandikos (dulwich/git 423 Locked). Serial
-    // also matches how chiri's real sync pushes tasks.
+    // serial. Promise.all triggers concurrent-write rejections on Radicale
+    // (multifilesystem storage) and Xandikos (dulwich/git 423 Locked)
+    // serial also matches how Chiri's real sync pushes tasks
     const start = performance.now();
     const results: Array<{ href: string; etag: string } | null> = [];
     for (const t of tasks) {
@@ -125,7 +125,7 @@ integration(`perf smoke (real server, N=${N})`, () => {
   it(`syncCalendar with 20% divergence over ${N} tasks`, async () => {
     // server-side modify ~20% of tasks. sequential, not Promise.all. xandikos
     // returns 423 Locked when writes to the same collection collide. serializing
-    // also matches how chiri's real sync layer pushes changes
+    // also matches how Chiri's real sync layer pushes changes
     const toModify = Math.floor(N * 0.2);
     const modifyStart = performance.now();
     for (const c of createdTasks.slice(0, toModify)) {
@@ -165,8 +165,8 @@ integration(`perf smoke (real server, N=${N})`, () => {
     const fetched = await fetchTasks(conn(), 'perf-acct', testCalendar);
     expect(fetched).toHaveLength(N);
 
-    // Serial for the same reasons as bulk_create — keeps results consistent
-    // across server backends regardless of their concurrency tolerance.
+    // serial for the same reasons as bulk_create. keeps results consistent
+    // across server backends regardless of their concurrency tolerance
     const start = performance.now();
     const results: boolean[] = [];
     for (const t of fetched!) {

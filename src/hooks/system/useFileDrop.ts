@@ -12,7 +12,7 @@ import type {
 
 const log = loggers.fileDrop;
 
-// Supported file extensions for import
+// supported file extensions for import
 const SUPPORTED_EXTENSIONS = ['.ics', '.ical', '.json', MOBILE_CONFIG_EXTENSION];
 const CONFIG_PROFILE_IMPORT_ERRORS: Record<MobileConfigImportFailureReason, string> = {
   'file-too-large': 'This configuration profile is too large to import.',
@@ -57,20 +57,20 @@ interface UseFileDropReturn {
 }
 
 /**
- * Hook for handling file drag and drop functionality
- * Supports .ics, .ical, and .json files for task import
- * Supports .mobileconfig files for CalDAV account configuration
+ * hook for handling file drag and drop functionality
+ * supports .ics, .ical, and .json files for task import
+ * supports .mobileconfig files for CalDAV account configuration
  */
 export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn => {
   const { onFileDrop, onConfigProfileDrop, onConfigProfileError } = options;
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUnsupportedFile, setIsUnsupportedFile] = useState(false);
-  // Tracks whether a Tauri native drag is active. On Linux/WebKitGTK, HTML5 drag
+  // tracks whether a Tauri native drag is active. on Linux/WebKitGTK, HTML5 drag
   // events still fire alongside Tauri events but dataTransfer is always empty, so
-  // we use this ref to stop them from overriding the state Tauri already set.
+  // we use this ref to stop them from overriding the state Tauri already set
   const tauriDragActive = useRef(false);
 
-  // Process a file by its path — used by Tauri drop events (Linux/WebKitGTK)
+  // process a file by its path; used by Tauri drop events (Linux/WebKitGTK)
   const processFilePath = useCallback(
     async (filePath: string) => {
       const fileName = filePath.split('/').pop() || filePath;
@@ -84,7 +84,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
           const bytes = new Uint8Array(rawBytes);
           const result = await importMobileConfig(bytes);
           if (result.ok) {
-            // Step 5 adds a chooser for profiles containing more than one account.
+            // step 5 adds a chooser for profiles containing more than one account
             onConfigProfileDrop?.(result.candidates[0]);
           } else {
             log.warn(`Failed to import Apple Configuration Profile: ${result.reason}`);
@@ -113,11 +113,11 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
     [onFileDrop, onConfigProfileDrop, onConfigProfileError],
   );
 
-  // Register Tauri drop event listeners for Linux (WebKitGTK).
-  // On Linux, dragDropEnabled: true in tauri.linux.conf.json disables HTML5 DnD and enables
-  // these Tauri events instead. On macOS/Windows, we must NOT register these listeners: even
+  // register Tauri drop event listeners for Linux (WebKitGTK)
+  // on Linux, dragDropEnabled: true in tauri.linux.conf.json disables HTML5 DnD and enables
+  // these Tauri events instead. on macOS/Windows, we must NOT register these listeners: even
   // with dragDropEnabled: false, registering them causes Tauri to intercept drags at the
-  // native level and empties e.dataTransfer.files, breaking HTML5 DnD.
+  // native level and empties e.dataTransfer.files, breaking HTML5 DnD
   useEffect(() => {
     const unlisteners: Array<() => void> = [];
 
@@ -156,9 +156,9 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
     };
   }, [processFilePath]);
 
-  // Check if dragged files are supported
-  // Note: In Tauri/WebKit, dataTransfer.items is empty during drag for security reasons
-  // We can only show a generic message listing all supported file types
+  // check if dragged files are supported
+  // note: In Tauri/WebKit, dataTransfer.items is empty during drag for security reasons
+  // we can only show a generic message listing all supported file types
   const checkDraggedFiles = useCallback((e: DragEvent) => {
     const types = e.dataTransfer?.types || [];
     // Tauri only exposes ["Files"] in types array during drag, no specific file info
@@ -179,22 +179,22 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
         return;
       }
 
-      // Check if it's a supported file type
+      // check if it's a supported file type
       if (!isSupportedFile(file.name)) {
-        // Unsupported file - don't do anything (already showed feedback during drag)
+        // unsupported file - don't do anything (already showed feedback during drag)
         return;
       }
 
-      // Check if it's an Apple Configuration Profile
+      // check if it's an Apple Configuration Profile
       const isMobileConfig = isMobileConfigFileName(file.name);
       if (isMobileConfig) {
         try {
-          // Read file as array buffer first
+          // read file as array buffer first
           const arrayBuffer = await file.arrayBuffer();
           const bytes = new Uint8Array(arrayBuffer);
           const result = await importMobileConfig(bytes);
           if (result.ok) {
-            // Step 5 adds a chooser for profiles containing more than one account.
+            // step 5 adds a chooser for profiles containing more than one account
             onConfigProfileDrop?.(result.candidates[0]);
           } else {
             log.warn(`Failed to import Apple Configuration Profile: ${result.reason}`);
@@ -228,15 +228,15 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
       e.preventDefault();
       e.stopPropagation();
 
-      // On Linux/WebKitGTK, Tauri intercepts the drop so HTML5 dataTransfer is always
-      // empty. Skip state updates — the Tauri drag-enter event already set them correctly.
+      // on Linux/WebKitGTK, Tauri intercepts the drop so HTML5 dataTransfer is always
+      // empty. skip state updates; the Tauri drag-enter event already set them correctly
       if (tauriDragActive.current) return;
 
-      // Check if files are being dragged
+      // check if files are being dragged
       const isSupported = checkDraggedFiles(e);
       setIsUnsupportedFile(!isSupported);
 
-      // Set the dropEffect to show appropriate cursor
+      // set the dropEffect to show appropriate cursor
       if (e.dataTransfer) {
         e.dataTransfer.dropEffect = isSupported ? 'copy' : 'none';
       }
@@ -251,7 +251,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
       e.preventDefault();
       e.stopPropagation();
 
-      // Same as handleDragOver: skip when Tauri is already handling the drag
+      // same as handleDragOver: skip when Tauri is already handling the drag
       if (tauriDragActive.current) return;
 
       const isSupported = checkDraggedFiles(e);

@@ -10,8 +10,8 @@ const REDIRECT_STATUS_CODES = new Set([301, 302, 307, 308]);
 const HREF_PROP_NAMES = new Set(['current-user-principal', 'calendar-home-set']);
 const SENSITIVE_HEADERS = new Set(['authorization', 'cookie', 'proxy-authorization']);
 
-// Tracks which server hosts require Digest auth so we can skip the wasted
-// Basic-auth attempt on the first round-trip. Cleared on app restart (intentionally).
+// tracks which server hosts require Digest auth so we can skip the wasted
+// basic-auth attempt on the first round-trip. Cleared on app restart (intentionally)
 const digestHosts = new Set<string>();
 
 const getHostname = (url: string) => {
@@ -35,7 +35,7 @@ export interface CalDAVCredentials {
   /** OAuth Bearer token - if provided, uses Bearer auth instead of Basic */
   bearerToken?: string;
 
-  /** If true, TLS certificate validation is skipped (self-signed / private CA). */
+  /** if true, TLS certificate validation is skipped (self-signed / private CA) */
   acceptInvalidCerts?: boolean;
 }
 
@@ -156,8 +156,8 @@ const getDigestRetryHeader = (
 };
 
 /**
- * Returns true if the error looks like a TLS certificate validation failure.
- * Covers native-tls (macOS/Windows) and rustls (Linux) error messages.
+ * returns true if the error looks like a TLS certificate validation failure
+ * covers native-tls (macOS/Windows) and rustls (Linux) error messages
  */
 export const isCertError = (error: unknown) => {
   const raw = error instanceof Error ? error.message : typeof error === 'string' ? error : '';
@@ -173,8 +173,8 @@ export const isCertError = (error: unknown) => {
 };
 
 /**
- * Extracts a human-readable message from an unknown caught value.
- * The Tauri HTTP plugin throws plain strings for network errors, not Error objects.
+ * extracts a human-readable message from an unknown caught value
+ * the Tauri HTTP plugin throws plain strings for network errors, not Error objects
  */
 export const getErrorMessage = (error: unknown) => {
   const raw =
@@ -201,12 +201,12 @@ export const tauriRequest = async (
   _redirects = 0,
   _allowAuth = true,
 ): Promise<HttpResponse> => {
-  // For known Digest-only hosts, skip sending wrong Basic auth upfront.
-  // We'll still do 2 round-trips (need server's nonce), but won't waste one
-  // on a credential that's guaranteed to be rejected.
+  // for known Digest-only hosts, skip sending wrong Basic auth upfront
+  // we'll still do 2 round-trips (need server's nonce), but won't waste one
+  // on a credential that's guaranteed to be rejected
   const skipBasic = _allowAuth && shouldSkipBasicAuth(url, credentials);
 
-  // Suppress logs for the nonce-fetch leg of a known Digest handshake. Logs fire on the authenticated retry.
+  // suppress logs for the nonce-fetch leg of a known Digest handshake. Logs fire on the authenticated retry
   const silent = skipBasic && !_retried;
 
   if (!silent) log.debug(`${method} ${url}`);
@@ -240,7 +240,7 @@ export const tauriRequest = async (
     );
   }
 
-  // Retry once with Digest auth if the server requires it
+  // retry once with Digest auth if the server requires it
   const digestRetry =
     _retried || !_allowAuth ? undefined : getDigestRetryHeader(response, method, url, credentials);
   if (digestRetry) {

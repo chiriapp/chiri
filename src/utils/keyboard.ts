@@ -68,7 +68,7 @@ const getShortcutPlatform = (): ShortcutPlatform => {
   return 'other';
 };
 
-// Native app/window menu shortcuts that should not be repurposed for Chiri actions.
+// native app/window menu shortcuts that should not be repurposed for Chiri actions
 const APP_MENU_RESERVED_SHORTCUT_SIGNATURES = new Set([
   getShortcutSignature({ key: 'q', meta: true }),
   getShortcutSignature({ key: 'w', meta: true }),
@@ -80,12 +80,12 @@ const APP_MENU_RESERVED_SHORTCUT_SIGNATURES = new Set([
   getShortcutSignature({ key: 'f', meta: true, ctrl: true }),
 ]);
 
-// macOS-level shortcuts that should not be repurposed for Chiri actions.
-// This intentionally does not include common document/editing commands like Cmd+F or Cmd+N.
+// macOS-level shortcuts that should not be repurposed for Chiri actions
+// this intentionally does not include common document/editing commands like Cmd+F or Cmd+N
 const MACOS_RESERVED_SHORTCUT_SIGNATURES = new Set([
   getShortcutSignature({ key: 'Escape', meta: true, alt: true }),
 
-  // System navigation and search
+  // system navigation and search
   getShortcutSignature({ key: 'Tab', meta: true }),
   getShortcutSignature({ key: '`', meta: true }),
   getShortcutSignature({ key: '`', meta: true, shift: true }),
@@ -93,7 +93,7 @@ const MACOS_RESERVED_SHORTCUT_SIGNATURES = new Set([
   getShortcutSignature({ key: ' ', meta: true, alt: true }),
   getShortcutSignature({ key: ' ', meta: true, ctrl: true }),
 
-  // Security/session and screenshots
+  // security/session and screenshots
   getShortcutSignature({ key: 'q', meta: true, ctrl: true }),
   getShortcutSignature({ key: 'q', meta: true, shift: true }),
   getShortcutSignature({ key: 'q', meta: true, shift: true, alt: true }),
@@ -102,10 +102,10 @@ const MACOS_RESERVED_SHORTCUT_SIGNATURES = new Set([
   getShortcutSignature({ key: '5', meta: true, shift: true }),
 ]);
 
-// Windows-level shortcuts that should not be repurposed for Chiri actions.
-// Note that Chiri stores Ctrl as `meta` on Windows and the Windows key as `super`.
+// Windows-level shortcuts that should not be repurposed for Chiri actions
+// note that Chiri stores Ctrl as `meta` on Windows and the Windows key as `super`
 const WINDOWS_RESERVED_SHORTCUT_SIGNATURES = new Set([
-  // Window/app switching and system menus
+  // window/app switching and system menus
   getShortcutSignature({ key: 'F4', alt: true }),
   getShortcutSignature({ key: 'F4', meta: true }),
   getShortcutSignature({ key: ' ', alt: true }),
@@ -115,7 +115,7 @@ const WINDOWS_RESERVED_SHORTCUT_SIGNATURES = new Set([
   getShortcutSignature({ key: 'Escape', alt: true }),
   getShortcutSignature({ key: 'Escape', meta: true }),
 
-  // Security/session, task management, screenshots, and debugger keys
+  // security/session, task management, screenshots, and debugger keys
   getShortcutSignature({ key: 'Delete', meta: true, alt: true }),
   getShortcutSignature({ key: 'Escape', meta: true, shift: true }),
   getShortcutSignature({ key: 'PrintScreen' }),

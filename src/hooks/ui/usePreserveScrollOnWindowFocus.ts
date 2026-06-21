@@ -13,7 +13,7 @@ const supportsSelectionRange = (element: HTMLElement) =>
   element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement;
 
 /**
- * WebKit can scroll a still-focused input into view when the app regains focus.
+ * WebKit can scroll a still-focused input into view when the app regains focus
  * blur it while the window is inactive, then restore focus without scrolling
  * used for the title field in task editor
  */

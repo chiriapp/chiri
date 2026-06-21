@@ -1,6 +1,6 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 
-/// Stores the local provider used to create each WebDAV Push endpoint.
+/// stores the local provider used to create each WebDAV Push endpoint
 pub fn migration() -> Migration {
     Migration {
         version: 26,

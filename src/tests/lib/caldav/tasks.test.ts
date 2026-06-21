@@ -64,8 +64,8 @@ describe('createTask', () => {
   });
 
   describe('"task already exists" recovery (409 Conflict or 412 Precondition Failed)', () => {
-    // servers differ on which status they return for If-None-Match: * failures.
-    // Rustical/Radicale: 409. Nextcloud/SabreDAV: 412. both are RFC-7232 valid
+    // servers differ on which status they return for If-None-Match: * failures
+    // RustiCal/Radicale: 409. Nextcloud/SabreDAV: 412. both are RFC-7232 valid
     for (const status of [409, 412] as const) {
       it(`fetches etag via PROPFIND and returns href+etag on ${status}`, async () => {
         vi.mocked(http.put).mockResolvedValueOnce(ok(status));
@@ -223,7 +223,7 @@ describe('deleteTask', () => {
     expect(http.del).toHaveBeenCalledWith(existingTask.href, conn.credentials, 'tag');
   });
 
-  it('returns false on 412 (etag mismatch — task changed before delete)', async () => {
+  it('returns false on 412 (etag mismatch; task changed before delete)', async () => {
     vi.mocked(http.del).mockResolvedValueOnce(ok(412));
 
     expect(await deleteTask(conn, existingTask)).toBe(false);

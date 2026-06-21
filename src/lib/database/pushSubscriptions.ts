@@ -7,7 +7,7 @@ import {
 } from '$types/push';
 
 /**
- * Convert database row to PushSubscription
+ * convert database row to PushSubscription
  */
 const rowToSubscription = (row: PushSubscriptionRow): PushSubscription => ({
   id: row.id,
@@ -25,7 +25,7 @@ const rowToSubscription = (row: PushSubscriptionRow): PushSubscription => ({
 });
 
 /**
- * Get all push subscriptions
+ * get all push subscriptions
  */
 export const getAllPushSubscriptions = async (conn: DatabasePlugin) => {
   const rows = await conn.select<PushSubscriptionRow[]>('SELECT * FROM push_subscriptions');
@@ -33,7 +33,7 @@ export const getAllPushSubscriptions = async (conn: DatabasePlugin) => {
 };
 
 /**
- * Get push subscriptions for a calendar
+ * get push subscriptions for a calendar
  */
 export const getPushSubscriptionsByCalendar = async (conn: DatabasePlugin, calendarId: string) => {
   const rows = await conn.select<PushSubscriptionRow[]>(
@@ -44,7 +44,7 @@ export const getPushSubscriptionsByCalendar = async (conn: DatabasePlugin, calen
 };
 
 /**
- * Add or update a push subscription
+ * add or update a push subscription
  */
 export const upsertPushSubscription = async (
   conn: DatabasePlugin,
@@ -68,14 +68,14 @@ export const upsertPushSubscription = async (
 };
 
 /**
- * Delete a push subscription by ID
+ * delete a push subscription by ID
  */
 export const deletePushSubscription = async (conn: DatabasePlugin, subscriptionId: string) => {
   await conn.execute('DELETE FROM push_subscriptions WHERE id = $1', [subscriptionId]);
 };
 
 /**
- * Delete all push subscriptions for a calendar
+ * delete all push subscriptions for a calendar
  */
 export const deletePushSubscriptionsByCalendar = async (
   conn: DatabasePlugin,

@@ -18,9 +18,9 @@ export const truncateName = (name: string, maxLength = 20) => {
 
 interface UseSortableDragOptions {
   flattenedItems: FlattenedTask[];
-  /** Minimum allowed indent level. 0 for root-level lists, 1 for subtask editors. */
+  /** minimum allowed indent level. 0 for root-level lists, 1 for subtask editors */
   minIndent?: number;
-  /** Called with the new parent task's ID when an item is dropped into a parent that is itself in the list. */
+  /** called with the new parent task's ID when an item is dropped into a parent that is itself in the list */
   onDropIntoParent?: (parentId: string) => void;
 }
 
@@ -38,13 +38,13 @@ export const useSortableDrag = ({
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  // Hide carried children of the dragged item during drag to avoid empty space
+  // hide carried children of the dragged item during drag to avoid empty space
   const visibleItems = useMemo(() => {
     if (!activeItem) return flattenedItems;
     return flattenedItems.filter((t) => !t.ancestorIds.includes(activeItem.id));
   }, [flattenedItems, activeItem]);
 
-  // Clear active item if it no longer exists (e.g. deleted during drag)
+  // clear active item if it no longer exists (e.g. deleted during drag)
   useEffect(() => {
     if (activeItem && !flattenedItems.find((t) => t.id === activeItem.id)) {
       setActiveItem(null);
@@ -53,7 +53,7 @@ export const useSortableDrag = ({
     }
   }, [activeItem, flattenedItems]);
 
-  // Adds `is-dragging`, which suppresses hover states on all child elements.
+  // adds `is-dragging`, which suppresses hover states on all child elements
   // TODO: We could optimize this by not relying on useEffect
   useEffect(() => {
     if (activeItem) {

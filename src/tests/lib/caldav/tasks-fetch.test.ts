@@ -95,7 +95,7 @@ describe('fetchTasks', () => {
   });
 
   it('returns [] for single-result Radicale quirk (result matches calendar collection)', async () => {
-    // radicale returns the calendar URL itself in queries against empty calendars.
+    // Radicale returns the calendar URL itself in queries against empty calendars
     // with queryResults.length === 1 and the href filtered out, fetchTasks should
     // return [] rather than null
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));

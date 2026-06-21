@@ -30,7 +30,7 @@ mod v029_caldav_task_objects;
 
 use tauri_plugin_sql::Migration;
 
-/// Returns all database migrations for the application
+/// returns all database migrations for the application
 pub fn get_migrations() -> Vec<Migration> {
     vec![
         v001_initial_tables::migration(),

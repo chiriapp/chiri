@@ -15,7 +15,7 @@ export const password = process.env.CHIRI_TEST_CALDAV_PASSWORD;
 export const serverType = (process.env.CHIRI_TEST_CALDAV_TYPE ?? 'generic') as ServerType;
 
 // optional override for the calendar home URL. useful for servers (like Xandikos)
-// whose URL layout doesn't match any builtin chiri server type. when set, chiri's
+// whose URL layout doesn't match any builtin Chiri server type. when set, Chiri's
 // connect() skips auto-discovery and uses this URL directly
 export const calendarHomeOverride = process.env.CHIRI_TEST_CALDAV_HOME;
 
@@ -62,5 +62,5 @@ export const cleanupCalendar = async (conn: Connection, calendar: Calendar) => {
   } catch {}
 };
 
-/** suppress unused-import warning for utility exports kept for parity. */
+/** suppress unused-import warning for utility exports kept for parity */
 export { calendarExists };

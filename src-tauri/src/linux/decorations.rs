@@ -1,10 +1,10 @@
-// Desktop environment detection and GTK titlebar management for Linux.
+// desktop environment detection and GTK titlebar management for Linux
 
 #[cfg(target_os = "linux")]
 use std::env;
 
-/// Detects if the current desktop environment needs GTK client-side decorations
-/// Returns true for GNOME, COSMIC, and other DEs that work better with GTK decorations
+/// detects if the current desktop environment needs GTK client-side decorations
+/// returns true for GNOME, COSMIC, and other DEs that work better with GTK decorations
 #[cfg(target_os = "linux")]
 fn needs_gtk_decorations() -> bool {
     let desktop = env::var("XDG_CURRENT_DESKTOP")
@@ -34,7 +34,7 @@ fn needs_gtk_decorations() -> bool {
     false
 }
 
-/// Returns true for tiling/scrolling WMs that don't need any window decorations
+/// returns true for tiling/scrolling WMs that don't need any window decorations
 #[cfg(target_os = "linux")]
 fn is_tiling_wm() -> bool {
     let tiling_wms = [
@@ -73,12 +73,12 @@ fn is_tiling_wm() -> bool {
         || env::var("NIRI_SOCKET").is_ok()
 }
 
-/// configures the titlebar based on the desktop environment.
+/// configures the titlebar based on the desktop environment
 ///
-/// Must be called BEFORE the window is shown/realized — that is the only moment
+/// must be called BEFORE the window is shown/realized. that is the only moment
 /// at which GTK's Wayland backend negotiates the `zxdg_decoration_manager_v1`
-/// mode with the compositor.  Runtime calls to `set_decorated` do not reliably
-/// trigger a Wayland protocol update on KDE.
+/// mode with the compositor. runtime calls to `set_decorated` do not reliably
+/// trigger a Wayland protocol update on KDE
 ///
 /// note: the Wayland xdg_toplevel app_id is derived from the binary name,
 /// so the Flatpak installs the binary as garden.chiri.Chiri to match the .desktop filename for KWin icon lookup
@@ -113,9 +113,9 @@ pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
             desktop
         );
 
-        // Remove the GTK titlebar widget so GTK falls back to requesting
+        // remove the GTK titlebar widget so GTK falls back to requesting
         // server-side decorations from the compositor (KWin adds its own
-        // native titlebar at this point).
+        // native titlebar at this point)
         gtk_window.set_titlebar(Option::<&gtk::Widget>::None);
     }
 }
