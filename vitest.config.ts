@@ -4,10 +4,10 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    // Node 25+ exposes an unconfigured localStorage that shadows jsdom's implementation
+    execArgv: ['--no-experimental-webstorage'],
     setupFiles: ['./src/tests/setup.ts'],
-    // Split into two projects so tests run in the lightest environment they need.
-    // `environmentMatchGlobs` was deprecated in vitest 3+; `projects` is the
-    // forward path (see vitest.dev/guide/projects).
+    // Split into two projects so tests run in the lightest environment they need
     projects: [
       {
         extends: true,
