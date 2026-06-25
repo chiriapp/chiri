@@ -41,6 +41,7 @@ pub(super) fn setup_app(
     {
         crate::macos::login_item::capture_launch_context();
         crate::macos::app_nap::disable_app_nap();
+        crate::macos::window_controls::scale_traffic_lights(app.handle());
     }
 
     legacy::migrate_identifier(app);

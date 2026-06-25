@@ -22,6 +22,7 @@ import type {
   TaskBadgeKey,
   TaskBadgeVisibility,
   TaskListDensity,
+  WindowDecorationStyle,
 } from '$types/settings';
 import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$utils/color/accent';
 import { applyColorScheme, getColorSchemeFlavor } from '$utils/color/scheme';
@@ -290,6 +291,8 @@ export const settingsStore = {
     setState({ hideDockIconWhenWindowClosed }),
   setShowWindowOnLoginLaunch: (showWindowOnLoginLaunch: boolean) =>
     setState({ showWindowOnLoginLaunch }),
+  setWindowDecorationStyle: (windowDecorationStyle: WindowDecorationStyle) =>
+    setState({ windowDecorationStyle }),
   setCheckForUpdatesAutomatically: (checkForUpdatesAutomatically: boolean) =>
     setState({ checkForUpdatesAutomatically }),
   setConfirmBeforeQuit: (confirmBeforeQuit: boolean) => setState({ confirmBeforeQuit }),

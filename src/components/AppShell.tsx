@@ -1,11 +1,21 @@
-import type { DragEventHandler, MouseEventHandler, ReactNode } from 'react';
+import { invoke } from '@tauri-apps/api/core';
+import {
+  type DragEventHandler,
+  type MouseEventHandler,
+  type ReactNode,
+  useEffect,
+  useRef,
+} from 'react';
 import { DragOverlay } from '$components/DragOverlay';
 import { Header } from '$components/header/Header';
 import { OfflineBanner } from '$components/OfflineBanner';
 import { Sidebar } from '$components/sidebar/Sidebar';
 import { TaskList } from '$components/TaskList';
 import { TaskEditor } from '$components/taskEditor/TaskEditor';
+import { useSettingsStore } from '$context/settingsContext';
+import { useWindowFullscreen } from '$hooks/system/useWindowFullscreen';
 import type { Task } from '$types';
+import { isMacPlatform } from '$utils/platform';
 
 interface AppShellProps {
   children: ReactNode;
@@ -69,6 +79,24 @@ export const AppShell = ({
   onEditorResizeStart,
   onOpenNotificationSettings,
 }: AppShellProps) => {
+  const isMac = isMacPlatform();
+  const isFullscreen = useWindowFullscreen();
+  const { windowDecorationStyle } = useSettingsStore();
+  const usesIntegratedTitlebar = isMac && windowDecorationStyle === 'integrated';
+  const platform = usesIntegratedTitlebar ? 'macos' : undefined;
+  const appliedWindowDecorationStyle = useRef(windowDecorationStyle);
+
+  useEffect(() => {
+    if (!isMac || appliedWindowDecorationStyle.current === windowDecorationStyle) return;
+
+    appliedWindowDecorationStyle.current = windowDecorationStyle;
+    void invoke('set_macos_window_decoration_style', {
+      style: windowDecorationStyle,
+    }).catch((error) => {
+      console.error('Failed to apply macOS window decoration style:', error);
+    });
+  }, [isMac, windowDecorationStyle]);
+
   const handleContextMenu: MouseEventHandler<HTMLDivElement> = (event) => {
     const target = event.target as HTMLElement;
     if (
@@ -83,7 +111,10 @@ export const AppShell = ({
   return (
     <div
       role="application"
-      className="flex h-screen overflow-hidden bg-surface-50 dark:bg-surface-900"
+      data-platform={platform}
+      data-sidebar-collapsed={sidebarCollapsed ? 'true' : undefined}
+      data-window-fullscreen={usesIntegratedTitlebar && isFullscreen ? 'true' : undefined}
+      className="app-shell flex h-screen overflow-hidden bg-surface-50 dark:bg-surface-900"
       onContextMenu={handleContextMenu}
       {...rootFileDropProps}
     >

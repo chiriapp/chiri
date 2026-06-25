@@ -26,6 +26,19 @@ const applyMacDockIconPreference = async () => {
   }
 };
 
+const applyMacWindowDecorationPreference = async () => {
+  if (!isMacPlatform()) return;
+
+  const { windowDecorationStyle } = settingsStore.getState();
+  try {
+    await invoke('set_macos_window_decoration_style', {
+      style: windowDecorationStyle,
+    });
+  } catch (error) {
+    log.error('Failed to apply macOS window decoration preference:', error);
+  }
+};
+
 export const setMacDockIconVisible = async (visible: boolean) => {
   if (!isMacPlatform()) return;
 
@@ -45,6 +58,8 @@ export const initializeApp = async () => {
   // initialize logger first so all subsequent logs are captured
   await initLogger();
   log.info('Starting application initialization...');
+
+  await applyMacWindowDecorationPreference();
 
   log.debug('Initializing data store...');
   await dataStore.initialize();
@@ -106,6 +121,7 @@ export const showWindow = async (delay: number = 200): Promise<void> => {
       await setMacDockIconVisible(true);
       await window.show();
       await window.setFocus();
+
       log.debug('Window shown and focused');
       resolve();
     }, delay);

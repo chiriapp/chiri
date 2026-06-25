@@ -82,6 +82,8 @@ pub fn run() {
             macos::login_item::was_macos_launched_as_login_item,
             #[cfg(target_os = "macos")]
             macos::menu::apply_macos_menu_fixes,
+            #[cfg(target_os = "macos")]
+            macos::window_controls::set_macos_window_decoration_style,
             notifications::commands::send_notification_with_actions,
             notifications::commands::send_simple_notification,
             notifications::permission::check_notification_permission,

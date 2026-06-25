@@ -402,7 +402,7 @@ export const Sidebar = ({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: Container onClick for closing context menu on outside click */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: Container onClick for closing context menu on outside click */}
       <div
-        className={`relative flex h-full flex-col overflow-hidden border-surface-200 border-r bg-surface-100 dark:border-surface-700 dark:bg-surface-900 ${!isResizing ? 'motion-safe:transition-[width] motion-safe:duration-200 motion-safe:ease-in-out' : ''}`}
+        className={`app-sidebar relative flex h-full flex-col overflow-hidden border-surface-200 border-r bg-surface-100 dark:border-surface-700 dark:bg-surface-900 ${!isResizing ? 'motion-safe:transition-[width] motion-safe:duration-200 motion-safe:ease-in-out' : ''}`}
         style={{ width: isCollapsed ? 48 : width }}
         onClick={handleCloseContextMenu}
       >
@@ -416,8 +416,8 @@ export const Sidebar = ({
         )}
 
         <SidebarHeader
-          isCollapsed={isCollapsed}
           showExpandedContent={showExpandedContent}
+          showCollapsedContent={showCollapsedContent}
           onToggleCollapse={onToggleCollapse}
         />
 

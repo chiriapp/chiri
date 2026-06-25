@@ -222,7 +222,10 @@ export const Header = ({
 
   if (selectedTasks.length > 0) {
     return (
-      <header className="flex h-13.25 items-center border-surface-200 border-b bg-white px-4 dark:border-surface-700 dark:bg-surface-900">
+      <header
+        data-tauri-drag-region
+        className="app-main-header flex h-13.25 items-center border-surface-200 border-b bg-white px-4 dark:border-surface-700 dark:bg-surface-900"
+      >
         <TaskBatchActionsBar
           selectedTasks={selectedTasks}
           onClearSelection={clearSelection}
@@ -233,8 +236,11 @@ export const Header = ({
   }
 
   return (
-    <header className="flex h-13.25 items-center border-surface-200 border-b bg-white px-4 dark:border-surface-700 dark:bg-surface-900">
-      <div className="flex flex-1 items-center justify-between gap-4">
+    <header
+      data-tauri-drag-region
+      className="app-main-header flex h-13.25 items-center border-surface-200 border-b bg-white px-4 dark:border-surface-700 dark:bg-surface-900"
+    >
+      <div data-tauri-drag-region className="flex flex-1 items-center justify-between gap-4">
         <div className="relative max-w-lg flex-1">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-surface-400" />
           <ComposedInput

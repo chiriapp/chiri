@@ -96,6 +96,7 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'systemTrayAppliedValue',
       'hideDockIconWhenWindowClosed',
       'showWindowOnLoginLaunch',
+      'windowDecorationStyle',
       'checkForUpdatesAutomatically',
       'confirmBeforeQuit',
       'confirmBeforeQuitAppliedValue',

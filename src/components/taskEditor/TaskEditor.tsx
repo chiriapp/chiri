@@ -359,7 +359,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
 
         <div
           ref={editorScrollRef}
-          className="flex flex-1 flex-col space-y-6 overflow-y-auto overscroll-contain p-4"
+          className="app-task-editor-content flex flex-1 flex-col space-y-6 overflow-y-auto overscroll-contain p-4"
         >
           <TaskEditorTitle
             task={task}

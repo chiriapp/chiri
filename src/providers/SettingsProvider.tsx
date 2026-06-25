@@ -19,6 +19,7 @@ import type {
   TaskBadgeKey,
   TaskBadgeVisibility,
   TaskListDensity,
+  WindowDecorationStyle,
 } from '$types/settings';
 
 export const SettingsProvider = ({ children }: { children: ReactNode }) => {
@@ -215,6 +216,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (show: boolean) => settingsStore.setShowWindowOnLoginLaunch(show),
     [],
   );
+  const setWindowDecorationStyle = useCallback(
+    (style: WindowDecorationStyle) => settingsStore.setWindowDecorationStyle(style),
+    [],
+  );
   const setCheckForUpdatesAutomatically = useCallback(
     (enabled: boolean) => settingsStore.setCheckForUpdatesAutomatically(enabled),
     [],
@@ -373,6 +378,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSystemTrayAppliedValue,
     setHideDockIconWhenWindowClosed,
     setShowWindowOnLoginLaunch,
+    setWindowDecorationStyle,
     setCheckForUpdatesAutomatically,
     setConfirmBeforeQuit,
     setConfirmBeforeQuitAppliedValue,
