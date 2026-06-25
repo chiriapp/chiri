@@ -10,7 +10,7 @@ let
   nodejs = pkgs.nodejs-slim_26;
   pnpm = pkgs.pnpm.override { nodejs-slim = nodejs; };
   llvm = pkgs.llvmPackages;
-  darwinSdk = pkgs.apple-sdk_14;
+  darwinSdk = pkgs.apple-sdk_26;
   darwinSdkRoot = "${darwinSdk}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk";
 
   darwinCcEnv = {
