@@ -99,7 +99,7 @@ export const SidebarCollapsedView = ({
           <button
             type="button"
             onClick={onAllTasks}
-            className={`rounded-lg p-2 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+            className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
               activeView === 'tasks' && activeCalendarId === null && activeTagId === null
                 ? 'bg-surface-200 text-surface-900 dark:bg-surface-700 dark:text-surface-100'
                 : 'text-surface-500 hover:bg-surface-200 dark:text-surface-400 dark:hover:bg-surface-700'
@@ -113,7 +113,7 @@ export const SidebarCollapsedView = ({
           <button
             type="button"
             onClick={onRecentlyDeleted}
-            className={`rounded-lg p-2 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+            className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
               activeView === 'recently-deleted'
                 ? 'bg-surface-200 text-surface-900 dark:bg-surface-700 dark:text-surface-100'
                 : 'text-surface-500 hover:bg-surface-200 dark:text-surface-400 dark:hover:bg-surface-700'
@@ -124,7 +124,7 @@ export const SidebarCollapsedView = ({
         </Tooltip>
 
         {!filtersSectionCollapsed && filters.length > 0 && (
-          <div className="my-1 h-px w-6 shrink-0 bg-surface-200 dark:bg-surface-700" />
+          <div className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700" />
         )}
 
         {!filtersSectionCollapsed &&
@@ -144,7 +144,7 @@ export const SidebarCollapsedView = ({
                   aria-label={`${filter.name} filter`}
                   onClick={() => onSelectFilter(filter.id)}
                   onContextMenu={(e) => onContextMenu(e, 'filter', filter.id)}
-                  className={`rounded-lg p-2 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     isActive
                       ? 'bg-surface-200 dark:bg-surface-700'
                       : contextMenu?.type === 'filter' && contextMenu.id === filter.id
@@ -171,7 +171,7 @@ export const SidebarCollapsedView = ({
             if (account.calendars.length === 0) return null;
             return (
               <div key={account.id} className="flex flex-col items-center gap-1">
-                <div className="my-1 h-px w-6 shrink-0 bg-surface-200 dark:bg-surface-700" />
+                <div className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700" />
                 {account.calendars.map((calendar) => {
                   const CalendarIcon = getIconByName(calendar.icon ?? 'calendar');
                   const isActive = activeCalendarId === calendar.id;
@@ -192,7 +192,7 @@ export const SidebarCollapsedView = ({
                         aria-label={`${calendar.displayName} calendar`}
                         onClick={() => onSelectCalendar(account.id, calendar.id)}
                         onContextMenu={(e) => onContextMenu(e, 'calendar', calendar.id, account.id)}
-                        className={`rounded-lg p-2 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                        className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                           isActive
                             ? 'bg-surface-200 dark:bg-surface-700'
                             : contextMenu?.type === 'calendar' && contextMenu.id === calendar.id
@@ -216,7 +216,7 @@ export const SidebarCollapsedView = ({
           })}
 
         {!tagsSectionCollapsed && tags.length > 0 && (
-          <div className="my-1 h-px w-6 shrink-0 bg-surface-200 dark:bg-surface-700" />
+          <div className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700" />
         )}
 
         {!tagsSectionCollapsed &&
@@ -236,7 +236,7 @@ export const SidebarCollapsedView = ({
                   aria-label={`${tag.name} tag`}
                   onClick={() => onSelectTag(tag.id)}
                   onContextMenu={(e) => onContextMenu(e, 'tag', tag.id)}
-                  className={`rounded-lg p-2 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                  className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
                     isActive
                       ? 'bg-surface-200 dark:bg-surface-700'
                       : contextMenu?.type === 'tag' && contextMenu.id === tag.id
@@ -262,13 +262,13 @@ export const SidebarCollapsedView = ({
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-linear-to-t from-surface-100 to-transparent dark:from-surface-900"
         />
-        <div aria-hidden="true" className="h-px w-6 shrink-0 bg-surface-200 dark:bg-surface-700" />
+        <div aria-hidden="true" className="h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700" />
         {updateAvailable && (
           <Tooltip content="Update available!" position="right">
             <button
               type="button"
               onClick={() => onUpdateClick?.()}
-              className="rounded-lg p-2 text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+              className="flex size-10 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
             >
               <Download className="h-5 w-5 text-primary-500" />
             </button>
@@ -278,7 +278,7 @@ export const SidebarCollapsedView = ({
           <button
             type="button"
             onClick={() => onOpenImport?.()}
-            className="rounded-lg p-2 text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+            className="flex size-10 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
           >
             <Import className="h-5 w-5" />
           </button>
@@ -287,7 +287,7 @@ export const SidebarCollapsedView = ({
           <button
             type="button"
             onClick={() => onOpenSettings?.()}
-            className="rounded-lg p-2 text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+            className="flex size-10 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
           >
             <Settings className="h-5 w-5" />
           </button>

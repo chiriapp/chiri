@@ -16,7 +16,7 @@ export const SidebarHeader = ({
 }: SidebarHeaderProps) => (
   <div
     data-tauri-drag-region
-    className="app-sidebar-header flex h-13.25 shrink-0 items-center justify-center border-surface-200 border-b px-2 dark:border-surface-700"
+    className="app-sidebar-header flex h-13 shrink-0 items-center justify-center px-2"
   >
     <div data-tauri-drag-region className="app-sidebar-header-layers">
       <div
@@ -41,7 +41,7 @@ export const SidebarHeader = ({
         data-tauri-drag-region
         inert={!showExpandedContent}
         aria-hidden={!showExpandedContent}
-        className={`app-sidebar-header-content flex flex-1 items-center px-2 motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
+        className={`app-sidebar-header-content flex items-center px-2 motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
       >
         <h1 className="app-sidebar-brand flex min-w-0 flex-1 items-center gap-2 font-semibold text-lg text-surface-900 dark:text-surface-100">
           <AppIcon className="h-5 w-5 shrink-0 text-primary-500" />

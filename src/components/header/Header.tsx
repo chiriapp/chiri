@@ -224,7 +224,7 @@ export const Header = ({
     return (
       <header
         data-tauri-drag-region
-        className="app-main-header flex h-13.25 items-center border-surface-200 border-b bg-white px-4 dark:border-surface-700 dark:bg-surface-900"
+        className="app-main-header flex h-13 items-center bg-white px-4 dark:bg-surface-900"
       >
         <TaskBatchActionsBar
           selectedTasks={selectedTasks}
@@ -238,7 +238,7 @@ export const Header = ({
   return (
     <header
       data-tauri-drag-region
-      className="app-main-header flex h-13.25 items-center border-surface-200 border-b bg-white px-4 dark:border-surface-700 dark:bg-surface-900"
+      className="app-main-header flex h-13 items-center bg-white px-4 dark:bg-surface-900"
     >
       <div data-tauri-drag-region className="flex flex-1 items-center justify-between gap-4">
         <div className="relative max-w-lg flex-1">
@@ -253,7 +253,7 @@ export const Header = ({
           />
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1">
           {onSync && (
             <Tooltip
               content={getSyncTooltip(
@@ -403,7 +403,7 @@ export const Header = ({
           <button
             type="button"
             onClick={handleNewTask}
-            className={`flex items-center gap-2 rounded-lg border border-transparent bg-primary-500 px-4 py-1.5 font-medium text-primary-contrast text-sm transition-colors ${!isAnyModalOpen ? 'hover:bg-primary-600' : ''} shadow-xs outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
+            className={`ml-2 flex items-center gap-2 rounded-lg border border-transparent bg-primary-500 px-4 py-1.5 font-medium text-primary-contrast text-sm transition-colors ${!isAnyModalOpen ? 'hover:bg-primary-600' : ''} shadow-xs outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset`}
           >
             <Plus className="h-4 w-4" />
             New Task
