@@ -7,8 +7,11 @@ import type { MobileConfigExportResult, MobileConfigGenerationOptions } from '$t
 import { downloadFile } from '$utils/misc';
 
 export const getMobileConfigFileName = (account: Pick<Account, 'name'>) => {
-  const safeName = account.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  return `${safeName}_caldav${MOBILE_CONFIG_EXTENSION}`;
+  const safeName = account.name
+    .replace(/[^a-z0-9]+/gi, '_')
+    .replace(/^_+|_+$/g, '')
+    .toLowerCase();
+  return `${safeName ? `${safeName}_` : ''}caldav${MOBILE_CONFIG_EXTENSION}`;
 };
 
 const isSaveDialogCancellation = (error: unknown) => {
