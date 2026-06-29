@@ -26,7 +26,7 @@ import {
   getSetupNotice,
   probeSetupVtodoCreationIfNeeded,
 } from '$lib/caldav/setup';
-import { hasHttpUrlScheme } from '$lib/caldav/utils';
+import { hasHttpUrlScheme, isValidPrincipalUrlOverride } from '$lib/caldav/utils';
 import { getServerWarning, getUrlWarning, toConfirmOptions } from '$lib/caldav/warnings';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
@@ -204,6 +204,17 @@ export function AccountModal({
     return false;
   };
 
+  const validatePrincipalUrl = (baseUrl: string) => {
+    if (isValidPrincipalUrlOverride(principalUrl, baseUrl)) return true;
+
+    setSetupError({
+      title: 'Invalid principal URL',
+      message: 'Principal URL must be an HTTP(S) URL or a server-relative path.',
+      hint: 'Use a path like /principals/alice/ or a full URL like https://caldav.example.com/principals/alice/.',
+    });
+    return false;
+  };
+
   const confirmServerUrlWarning = async (url: string) => {
     const warning = getUrlWarning(url);
     if (!warning) return true;
@@ -345,6 +356,11 @@ export function AccountModal({
       }
 
       const trimmedServerUrl = serverUrl.trim();
+      if (!validatePrincipalUrl(trimmedServerUrl)) {
+        setIsTesting(false);
+        return;
+      }
+
       const proceedWithUrl = await confirmServerUrlWarning(trimmedServerUrl);
       if (!proceedWithUrl) {
         setIsTesting(false);
@@ -398,6 +414,7 @@ export function AccountModal({
   const updateExistingAccount = async (effectivePassword: string | undefined) => {
     if (!validateServerUrlScheme()) return false;
     const trimmedServerUrl = serverUrl.trim();
+    if (!validatePrincipalUrl(trimmedServerUrl)) return false;
 
     if (effectivePassword) {
       log.debug(`Testing connection to ${trimmedServerUrl}...`);
@@ -436,6 +453,7 @@ export function AccountModal({
   const connectAndFetchCalendars = async (effectivePassword: string) => {
     if (!validateServerUrlScheme()) return null;
     const trimmedServerUrl = serverUrl.trim();
+    if (!validatePrincipalUrl(trimmedServerUrl)) return null;
 
     if (testSuccess && testedConnectionId) {
       log.debug('Reusing tested connection...');
