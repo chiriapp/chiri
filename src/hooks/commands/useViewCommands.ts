@@ -3,6 +3,7 @@ import { useModalState } from '$context/modalStateContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useListNavigationCommands } from '$hooks/commands/useListNavigationCommands';
 import {
+  useSetActiveFilter,
   useSetShowCompletedTasks,
   useSetShowUnstartedTasks,
   useSetSortConfig,
@@ -18,6 +19,7 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
   const setShowCompletedMutation = useSetShowCompletedTasks();
   const setShowUnstartedMutation = useSetShowUnstartedTasks();
   const setSortConfigMutation = useSetSortConfig();
+  const setActiveFilterMutation = useSetActiveFilter();
   const { toggleSidebarCollapsed } = useSettingsStore();
   const { isAnyModalOpen } = useModalState();
   const { navPrevList, navNextList } = useListNavigationCommands();
@@ -87,6 +89,14 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
     toggleSidebarCollapsed();
   }, [toggleSidebarCollapsed]);
 
+  const selectFilter = useCallback(
+    (filterId: string) => {
+      if (isAnyModalOpen) return;
+      setActiveFilterMutation.mutate(filterId);
+    },
+    [isAnyModalOpen, setActiveFilterMutation],
+  );
+
   return {
     openSettings,
     openImport,
@@ -97,6 +107,7 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
     toggleUnstarted,
     setSortMode,
     setSortDirection,
+    selectFilter,
     toggleSidebar,
     navPrevList,
     navNextList,

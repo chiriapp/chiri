@@ -2,14 +2,16 @@ import { useEffect, useMemo } from 'react';
 import { useModalState } from '$context/modalStateContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
+import { useFilters } from '$hooks/queries/useFilters';
 import { useUIState } from '$hooks/queries/useUIState';
-import { rebuildAppMenu, updateMenuState } from '$utils/menu';
+import { rebuildAppMenu, updateDockMenu, updateMenuState } from '$utils/menu';
 
 /**
  * hook to manage macOS app menu state synchronization
  */
 export const useAppMenu = (isSyncing?: boolean) => {
   const { data: accounts = [] } = useAccounts();
+  const { data: filters = [] } = useFilters();
   const { data: uiState } = useUIState();
   const { isAnyModalOpen } = useModalState();
   const { keyboardShortcuts } = useSettingsStore();
@@ -27,6 +29,22 @@ export const useAppMenu = (isSyncing?: boolean) => {
   );
 
   const caldavAccountCount = caldavAccounts.length;
+  const syncEnabled = caldavAccountCount > 0 && !(isSyncing ?? false);
+
+  const dockFilters = useMemo(
+    () =>
+      [...filters]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((filter) => ({ id: filter.id, label: filter.name })),
+    [filters],
+  );
+
+  useEffect(() => {
+    updateDockMenu({
+      filters: dockFilters,
+      syncEnabled,
+    });
+  }, [dockFilters, syncEnabled]);
 
   // update lightweight state (sort, filters, sync, editor) without a full rebuild
   useEffect(() => {

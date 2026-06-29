@@ -83,6 +83,8 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             macos::menu::apply_macos_menu_fixes,
             #[cfg(target_os = "macos")]
+            macos::dock_menu::update_macos_dock_menu,
+            #[cfg(target_os = "macos")]
             macos::window_controls::set_macos_window_decoration_style,
             notifications::commands::send_notification_with_actions,
             notifications::commands::send_simple_notification,

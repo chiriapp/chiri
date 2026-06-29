@@ -93,6 +93,11 @@ interface MenuAccount {
   calendars?: MenuCalendar[];
 }
 
+interface DockMenuFilter {
+  id: string;
+  label: string;
+}
+
 export const createMacMenu = async (options?: {
   showCompleted?: boolean;
   showUnstarted?: boolean;
@@ -681,6 +686,19 @@ export const initAppMenu = async (options?: {
     await invoke('apply_macos_menu_fixes').catch(() => {});
   } catch (error) {
     log.error('Failed to initialize menu:', error);
+  }
+};
+
+export const updateDockMenu = async (options: {
+  filters: DockMenuFilter[];
+  syncEnabled: boolean;
+}) => {
+  if (!isMacPlatform()) return;
+
+  try {
+    await invoke('update_macos_dock_menu', options);
+  } catch (error) {
+    log.error('Failed to update Dock menu:', error);
   }
 };
 
