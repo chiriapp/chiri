@@ -140,7 +140,7 @@
 }
 
 .app-shell[data-platform="macos"][data-window-fullscreen="true"] .app-sidebar-header-content {
-  padding-inline: 0.5rem;
+  padding-left: 1rem;
 }
 
 .app-shell[data-platform="macos"][data-window-fullscreen="true"][data-sidebar-collapsed="true"]
