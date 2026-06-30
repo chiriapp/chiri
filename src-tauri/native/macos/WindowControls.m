@@ -124,6 +124,20 @@ static void ChiriInstallWindowControlObservers(
                                   }];
   [observers addObject:windowObserver];
 
+  for (NSNotificationName name in @[
+         NSWindowDidResizeNotification,
+         NSWindowDidEndLiveResizeNotification,
+       ]) {
+    id observer =
+        [notificationCenter addObserverForName:name
+                                        object:window
+                                         queue:nil
+                                    usingBlock:^(__unused NSNotification *note) {
+                                      reapplyWindowControls();
+                                    }];
+    [observers addObject:observer];
+  }
+
   objc_setAssociatedObject(window, ChiriWindowControlsObserversKey, observers,
                            OBJC_ASSOCIATION_RETAIN_NONATOMIC);
   NSButton *closeButton = [window standardWindowButton:NSWindowCloseButton];
@@ -206,7 +220,9 @@ static void ChiriApplyWindowControlsBody(NSWindow *window,
 
   if (objc_getAssociatedObject(window, ChiriWindowControlsObserversKey) == nil) {
     NSMutableArray<NSView *> *observedViews =
-        [NSMutableArray arrayWithObjects:buttonContainer, contentView, nil];
+        [NSMutableArray arrayWithObjects:buttonContainer, contentView,
+                                           closeButton, miniaturizeButton,
+                                           zoomButton, nil];
     if (titlebarContainer != nil) {
       [observedViews addObject:titlebarContainer];
     }
