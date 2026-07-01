@@ -343,7 +343,7 @@ jobs:
           args: ${{ matrix.args }}
 
       - name: Attest build provenance
-        uses: actions/attest@v4
+        uses: actions/attest@v4.1.0
         with:
           subject-path: 'src-tauri/target/**/release/bundle/**/*.{dmg,deb,rpm,exe,msi,zip,tar.gz,sig}'
 
@@ -398,7 +398,7 @@ jobs:
           args: --bundles appimage
 
       - name: Attest build provenance
-        uses: actions/attest@v4
+        uses: actions/attest@v4.1.0
         with:
           subject-path: 'src-tauri/target/**/release/bundle/**/*.AppImage*'
 
