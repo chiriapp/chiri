@@ -29,7 +29,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
   );
 
   const caldavAccountCount = caldavAccounts.length;
-  const syncEnabled = caldavAccountCount > 0 && !(isSyncing ?? false);
+  const dockSyncEnabled = caldavAccountCount > 0;
 
   const dockFilters = useMemo(
     () =>
@@ -42,9 +42,9 @@ export const useAppMenu = (isSyncing?: boolean) => {
   useEffect(() => {
     updateDockMenu({
       filters: dockFilters,
-      syncEnabled,
+      syncEnabled: dockSyncEnabled,
     });
-  }, [dockFilters, syncEnabled]);
+  }, [dockFilters, dockSyncEnabled]);
 
   // update lightweight state (sort, filters, sync, editor) without a full rebuild
   useEffect(() => {

@@ -2,11 +2,13 @@
 #import <objc/runtime.h>
 
 extern void chiri_macos_dock_menu_item_selected(const char *action);
+extern int chiri_macos_dock_sync_enabled(void);
 
 static NSArray<NSDictionary<NSString *, NSString *> *> *ChiriDockFilters;
 static BOOL ChiriDockSyncEnabled = NO;
+static NSMenuItem *ChiriDockSyncItem;
 
-@interface ChiriDockMenuTarget : NSObject
+@interface ChiriDockMenuTarget : NSObject <NSMenuItemValidation>
 + (instancetype)shared;
 - (void)performDockMenuAction:(id)sender;
 @end
@@ -35,6 +37,19 @@ static BOOL ChiriDockSyncEnabled = NO;
   chiri_macos_dock_menu_item_selected(action.UTF8String);
 }
 
+- (BOOL)validateMenuItem:(NSMenuItem *)menuItem {
+  NSString *action = menuItem.representedObject;
+  if (![action isKindOfClass:[NSString class]] || action.length == 0) {
+    return NO;
+  }
+
+  if ([action isEqualToString:@"sync"]) {
+    return chiri_macos_dock_sync_enabled() != 0;
+  }
+
+  return YES;
+}
+
 @end
 
 static NSMenuItem *ChiriDockMenuItem(NSString *title, NSString *action, BOOL enabled) {
@@ -49,11 +64,12 @@ static NSMenuItem *ChiriDockMenuItem(NSString *title, NSString *action, BOOL ena
 
 static NSMenu *ChiriBuildDockMenu(void) {
   NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
-  menu.autoenablesItems = NO;
+  menu.autoenablesItems = YES;
 
   [menu addItem:ChiriDockMenuItem(@"Actions", @"", NO)];
   [menu addItem:ChiriDockMenuItem(@"New Task", @"new-task", YES)];
-  [menu addItem:ChiriDockMenuItem(@"Sync", @"sync", ChiriDockSyncEnabled)];
+  ChiriDockSyncItem = ChiriDockMenuItem(@"Sync", @"sync", ChiriDockSyncEnabled);
+  [menu addItem:ChiriDockSyncItem];
 
   [menu addItem:[NSMenuItem separatorItem]];
   [menu addItem:ChiriDockMenuItem(@"Views", @"", NO)];
@@ -134,4 +150,6 @@ void chiri_macos_set_dock_menu_items(
 
   ChiriDockFilters = [filters copy];
   ChiriDockSyncEnabled = syncEnabled != 0;
+  ChiriDockSyncItem.enabled = ChiriDockSyncEnabled;
+  [ChiriDockSyncItem.menu update];
 }

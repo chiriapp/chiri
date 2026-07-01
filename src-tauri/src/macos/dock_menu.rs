@@ -96,6 +96,11 @@ fn focus_main_window(app: &tauri::AppHandle<tauri::Wry>) {
 }
 
 #[no_mangle]
+pub extern "C" fn chiri_macos_dock_sync_enabled() -> c_int {
+    i32::from(DOCK_SYNC_ENABLED.load(Ordering::Relaxed))
+}
+
+#[no_mangle]
 pub extern "C" fn chiri_macos_dock_menu_item_selected(action: *const c_char) {
     if action.is_null() {
         return;
