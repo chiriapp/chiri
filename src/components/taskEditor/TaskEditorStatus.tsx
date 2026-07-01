@@ -1,8 +1,8 @@
 import Activity from 'lucide-react/icons/activity';
 import Ban from 'lucide-react/icons/ban';
 import Check from 'lucide-react/icons/check';
-import Loader from 'lucide-react/icons/loader';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
+import Timer from 'lucide-react/icons/timer';
 import { type CSSProperties, useState } from 'react';
 import type { Task, TaskStatus } from '$types';
 
@@ -46,7 +46,7 @@ export const TaskEditorStatus = ({
               {
                 value: 'in-process',
                 label: 'In Process',
-                icon: Loader,
+                icon: Timer,
                 color: 'text-status-in-process',
                 borderColor: 'border-status-in-process',
                 bgColor: 'bg-surface-200 dark:bg-surface-700',
@@ -94,7 +94,7 @@ export const TaskEditorStatus = ({
           htmlFor="task-percent-complete"
           className="mb-1 flex items-center gap-2 font-medium text-sm text-surface-600 dark:text-surface-400"
         >
-          <Loader className="h-4 w-4" />
+          <Timer className="h-4 w-4" />
           Progress ({draftPercent ?? task.percentComplete ?? 0}%)
         </label>
         <div className={readOnly ? 'cursor-not-allowed' : undefined}>

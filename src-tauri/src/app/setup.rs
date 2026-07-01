@@ -41,10 +41,12 @@ pub(super) fn setup_app(
     {
         crate::macos::login_item::capture_launch_context();
         crate::macos::app_nap::disable_app_nap();
+        crate::macos::dock_menu::initialize(app.handle());
+        crate::macos::window_controls::scale_traffic_lights(app.handle());
     }
 
-    legacy::migrate_identifier(app);
     legacy::migrate_name(app);
+    legacy::migrate_identifier(app);
 
     #[cfg(target_os = "linux")]
     if let Some(window) = app.get_webview_window("main") {

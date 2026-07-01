@@ -2,6 +2,25 @@
   "build": {
     "beforeBundleCommand": "cd src-tauri && ./fix-libs.sh"
   },
+  "app": {
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "Chiri",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "dragDropEnabled": false,
+        "backgroundColor": "#18181B",
+        "visible": false,
+        "focus": true
+      }
+    ]
+  },
   "bundle": {
     "targets": ["dmg"],
     "icon": ["gen/Chiri.icns"],

@@ -44,6 +44,8 @@ export interface MobileConfigCalDAVSettings {
   username?: string;
   password?: string;
   principalUrl?: string;
+  payloadIdentifier?: string;
+  payloadUuid?: string;
   serverType: 'generic';
 }
 
@@ -63,6 +65,14 @@ export type MobileConfigImportResult =
     }
   | { ok: false; reason: MobileConfigImportFailureReason };
 
+export type MobileConfigImportProfile = Extract<MobileConfigImportResult, { ok: true }>;
+
+export interface MobileConfigImportSelection {
+  format: MobileConfigFormat;
+  signature: MobileConfigSignatureStatus;
+  settings: MobileConfigCalDAVSettings;
+}
+
 export type MobileConfigExportIneligibleReason = 'local-account' | 'invalid-server-url';
 
 export type MobileConfigCredentialWarning = 'oauth-token-may-expire';
@@ -70,6 +80,8 @@ export type MobileConfigCredentialWarning = 'oauth-token-may-expire';
 export type MobileConfigExportEligibility =
   | { eligible: true }
   | { eligible: false; reason: MobileConfigExportIneligibleReason };
+
+export type MobileConfigExportResult = 'saved' | 'downloaded' | 'cancelled';
 
 export interface MobileConfigGenerationOptions {
   includePassword?: boolean;

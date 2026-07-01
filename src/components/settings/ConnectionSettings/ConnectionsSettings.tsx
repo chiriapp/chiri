@@ -1,5 +1,3 @@
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeTextFile } from '@tauri-apps/plugin-fs';
 import Activity from 'lucide-react/icons/activity';
 import CheckCircle from 'lucide-react/icons/check-circle';
 import CircleAlert from 'lucide-react/icons/circle-alert';
@@ -18,11 +16,9 @@ import { useConnectionStore } from '$context/connectionContext';
 import { useAccountDeletion } from '$hooks/deletion/useAccountDeletion';
 import { useTasks } from '$hooks/queries/useTasks';
 import { CalDAVClient } from '$lib/caldav';
-import { MOBILE_CONFIG_MIME_TYPE } from '$lib/mobileconfig';
-import { getMobileConfigFileName } from '$lib/mobileconfig/export';
-import { generateMobileConfig } from '$lib/mobileconfig/generate';
+import { exportMobileConfigFile } from '$lib/mobileconfig/export';
 import type { Account } from '$types';
-import { downloadFile, pluralize } from '$utils/misc';
+import { pluralize } from '$utils/misc';
 
 interface ConnectionsSettingsProps {
   accounts: Account[];
@@ -117,29 +113,10 @@ export const ConnectionsSettings = ({
 
   const handleConfirmExport = async (includePassword: boolean) => {
     if (!exportingAccount) return;
-    const account = exportingAccount;
 
     try {
-      const xml = generateMobileConfig(account, includePassword);
-      const fileName = getMobileConfigFileName(account);
-
-      try {
-        const path = await save({
-          defaultPath: fileName,
-          filters: [{ name: 'Apple Configuration Profile', extensions: ['mobileconfig'] }],
-        });
-
-        if (path) {
-          await writeTextFile(path, xml);
-          setExportingAccount(null);
-        }
-      } catch (err: unknown) {
-        // silently handle user cancellation
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes('cancelled') || msg.includes('user closed')) return;
-
-        // fall back to blob download if Tauri APIs are unavailable
-        downloadFile(xml, fileName, MOBILE_CONFIG_MIME_TYPE);
+      const result = await exportMobileConfigFile(exportingAccount, { includePassword });
+      if (result !== 'cancelled') {
         setExportingAccount(null);
       }
     } catch (err) {

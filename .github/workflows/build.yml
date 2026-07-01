@@ -50,11 +50,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
+          - platform: 'macos-26'
             label: 'macOS (Apple Silicon)'
             artifact: 'macos-apple-silicon'
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-15-intel'
+          - platform: 'macos-26-intel'
             label: 'macOS (Intel)'
             artifact: 'macos-intel'
             args: '--target x86_64-apple-darwin'
@@ -91,7 +91,15 @@ jobs:
         uses: ./.github/actions/setup-tauri-build
         with:
           platform: ${{ matrix.platform }}
-          rust-targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+          rust-targets: ${{ matrix.platform == 'macos-26' && 'aarch64-apple-darwin' || '' }}
+
+      - name: Show Apple toolchain
+        if: startsWith(matrix.platform, 'macos')
+        shell: bash
+        run: |
+          xcodebuild -version
+          xcrun --sdk macosx --show-sdk-version
+          xcrun --sdk macosx --show-sdk-path
 
       - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
         env:

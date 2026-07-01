@@ -1,10 +1,15 @@
 import Download from 'lucide-react/icons/download';
 import KeyRound from 'lucide-react/icons/key-round';
 import Smartphone from 'lucide-react/icons/smartphone';
+import TriangleAlert from 'lucide-react/icons/triangle-alert';
 import Wifi from 'lucide-react/icons/wifi';
 import { useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
+import {
+  getMobileConfigCredentialWarnings,
+  getMobileConfigExportEligibility,
+} from '$lib/mobileconfig/generate';
 import type { Account } from '$types';
 import { isMacPlatform } from '$utils/platform';
 
@@ -20,6 +25,9 @@ export const MobileConfigExportModal = ({
   onClose,
 }: MobileConfigExportModalProps) => {
   const [includePassword, setIncludePassword] = useState(false);
+  const credentialWarnings = getMobileConfigCredentialWarnings(account, includePassword);
+  const eligibility = getMobileConfigExportEligibility(account);
+  const hasOAuthTokenWarning = credentialWarnings.includes('oauth-token-may-expire');
 
   return (
     <ModalWrapper
@@ -34,7 +42,7 @@ export const MobileConfigExportModal = ({
           <ModalButton variant="secondary" onClick={onClose}>
             Cancel
           </ModalButton>
-          <ModalButton onClick={() => onConfirm(includePassword)}>
+          <ModalButton onClick={() => onConfirm(includePassword)} disabled={!eligibility.eligible}>
             <Download className="h-4 w-4" />
             Export
           </ModalButton>
@@ -88,6 +96,17 @@ export const MobileConfigExportModal = ({
           </a>
         </p>
 
+        {!eligibility.eligible && (
+          <div className="flex gap-2 rounded-lg border border-semantic-error/30 bg-semantic-error/10 px-3 py-2 text-surface-700 text-xs dark:text-surface-300">
+            <TriangleAlert className="mt-px size-3.5 shrink-0 text-semantic-error" />
+            <span>
+              {eligibility.reason === 'local-account'
+                ? 'Local accounts cannot be exported as CalDAV configuration profiles.'
+                : 'This account has an invalid CalDAV server URL, so Chiri cannot generate a profile for it.'}
+            </span>
+          </div>
+        )}
+
         {/* Password option */}
         <div className="rounded-lg border border-surface-200 dark:border-surface-700">
           <label className="flex cursor-pointer items-start gap-3 p-3">
@@ -105,12 +124,22 @@ export const MobileConfigExportModal = ({
               </p>
               <p className="mt-0.5 text-surface-500 text-xs leading-relaxed dark:text-surface-400">
                 {includePassword
-                  ? 'Password will be embedded. The device signs in automatically with no prompts.'
+                  ? 'The credential will be embedded. The device signs in automatically with no prompts.'
                   : 'Password will not be stored in the file. The device will ask for it during installation.'}
               </p>
             </div>
           </label>
         </div>
+
+        {hasOAuthTokenWarning && (
+          <div className="flex gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-surface-700 text-xs dark:text-surface-300">
+            <TriangleAlert className="mt-px size-3.5 shrink-0 text-semantic-warning" />
+            <span>
+              This account uses OAuth. Chiri can export the current token, but Apple cannot refresh
+              it from the profile; use an app password if you need a long-lived setup file.
+            </span>
+          </div>
+        )}
       </div>
     </ModalWrapper>
   );

@@ -1,5 +1,5 @@
 import Check from 'lucide-react/icons/check';
-import Loader from 'lucide-react/icons/loader';
+import Minus from 'lucide-react/icons/minus';
 import X from 'lucide-react/icons/x';
 import type { MouseEvent } from 'react';
 import type { TaskStatus } from '$types';
@@ -94,7 +94,9 @@ export const TaskItemCheckbox = ({
       {!selectionMode && isCancelled && (
         <X className="h-4 w-4 text-primary-contrast" strokeWidth={3} />
       )}
-      {!selectionMode && isInProcess && <Loader className="h-4 w-4 dark:text-primary-contrast" />}
+      {!selectionMode && isInProcess && (
+        <Minus className="h-4 w-4 dark:text-primary-contrast" strokeWidth={3} />
+      )}
     </button>
   );
 };

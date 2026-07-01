@@ -27,6 +27,8 @@ export const SystemSettings = () => {
     setHideDockIconWhenWindowClosed,
     confirmBeforeQuit,
     setConfirmBeforeQuit,
+    windowDecorationStyle,
+    setWindowDecorationStyle,
     confirmBeforeQuitAppliedValue,
     setConfirmBeforeQuitAppliedValue,
   } = useSettingsStore();
@@ -215,6 +217,29 @@ export const SystemSettings = () => {
           </div>
         )}
       </div>
+
+      {isMac && (
+        <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+          <label className="flex items-center justify-between gap-4 p-4">
+            <div>
+              <p className="text-sm text-surface-700 dark:text-surface-300">Window decorations</p>
+              <p className="text-surface-500 text-xs dark:text-surface-400">
+                Choose between integrated or standard decorations
+              </p>
+            </div>
+            <select
+              value={windowDecorationStyle}
+              onChange={(event) =>
+                setWindowDecorationStyle(event.target.value as 'integrated' | 'native')
+              }
+              className="shrink-0 rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-sm text-surface-700 outline-hidden focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200"
+            >
+              <option value="integrated">Integrated</option>
+              <option value="native">Standard</option>
+            </select>
+          </label>
+        </div>
+      )}
 
       {isMac && (
         <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">

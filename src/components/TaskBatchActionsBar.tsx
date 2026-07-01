@@ -5,10 +5,10 @@ import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Flag from 'lucide-react/icons/flag';
 import CalendarMove from 'lucide-react/icons/folder-sync';
-import Loader from 'lucide-react/icons/loader';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Share2 from 'lucide-react/icons/share-2';
 import Tag from 'lucide-react/icons/tag';
+import Timer from 'lucide-react/icons/timer';
 import Trash2 from 'lucide-react/icons/trash-2';
 import X from 'lucide-react/icons/x';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
@@ -35,7 +35,7 @@ interface TaskBatchActionsBarProps {
 
 const STATUS_OPTIONS = [
   { value: 'needs-action' as const, label: 'Needs Action', Icon: RotateCcw },
-  { value: 'in-process' as const, label: 'In Process', Icon: Loader },
+  { value: 'in-process' as const, label: 'In Process', Icon: Timer },
   { value: 'completed' as const, label: 'Completed', Icon: CheckCircle2 },
   { value: 'cancelled' as const, label: 'Cancelled', Icon: Ban },
 ];

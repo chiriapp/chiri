@@ -8,6 +8,7 @@
   undmg,
 
   # Linux runtime dependencies
+  desktop-file-utils,
   glib,
   gtk3,
   webkitgtk_4_1,
@@ -15,6 +16,7 @@
   openssl,
   glib-networking,
   libsoup_3,
+  xdg-utils,
 
   # this tracks signed/notarized release artifacts, not the checkout version
   # update the version and per-platform hashes when publishing new artifacts
@@ -143,6 +145,7 @@ else
       if [ -f "$out/bin/chiri" ]; then
         wrapProgram $out/bin/chiri \
           --set GIO_EXTRA_MODULES "${glib-networking}/lib/gio/modules" \
+          --prefix PATH : "${lib.makeBinPath [ desktop-file-utils xdg-utils ]}" \
           --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ libayatana-appindicator ]}"
       fi
 
@@ -153,6 +156,13 @@ else
         if [ -f "$desktopFile" ]; then
           substituteInPlace "$desktopFile" \
             --replace-fail "Exec=Chiri" "Exec=chiri"
+          if ! grep -q '^MimeType=.*x-scheme-handler/garden\.chiri' "$desktopFile"; then
+            echo "MimeType=x-scheme-handler/garden.chiri;" >> "$desktopFile"
+          fi
+          if grep -q '^Exec=chiri$' "$desktopFile"; then
+            substituteInPlace "$desktopFile" \
+              --replace-fail "Exec=chiri" "Exec=chiri %u"
+          fi
         fi
       done
     '';

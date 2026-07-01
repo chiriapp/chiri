@@ -20,6 +20,7 @@ const rowToSubscription = (row: PushSubscriptionRow): PushSubscription => ({
       ? KUNIFIED_PUSH_PROVIDER_ID
       : NTFY_DIRECT_PROVIDER_ID,
   providerToken: row.provider_token || undefined,
+  providerDistributor: row.provider_distributor || undefined,
   expiresAt: new Date(row.expires_at),
   createdAt: new Date(row.created_at),
 });
@@ -51,8 +52,8 @@ export const upsertPushSubscription = async (
   subscription: PushSubscription,
 ) => {
   await conn.execute(
-    `INSERT OR REPLACE INTO push_subscriptions (id, calendar_id, account_id, registration_url, push_resource, provider_id, provider_token, expires_at, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    `INSERT OR REPLACE INTO push_subscriptions (id, calendar_id, account_id, registration_url, push_resource, provider_id, provider_token, provider_distributor, expires_at, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
     [
       subscription.id,
       subscription.calendarId,
@@ -61,6 +62,7 @@ export const upsertPushSubscription = async (
       subscription.pushResource,
       subscription.providerId,
       subscription.providerToken || null,
+      subscription.providerDistributor || null,
       subscription.expiresAt.toISOString(),
       subscription.createdAt.toISOString(),
     ],

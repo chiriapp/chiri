@@ -154,7 +154,7 @@ vi.mock('$utils/color/theme', () => ({
 
 import { taskToVTodo } from '$lib/ical/vtodo';
 // import AFTER mocks are set up
-import { syncCalendarsForAccount, syncCalendarTasks } from '$lib/store/sync';
+import { reconnectAccounts, syncCalendarsForAccount, syncCalendarTasks } from '$lib/store/sync';
 
 const testCalendar = makeCalendar({
   id: 'cal-1',
@@ -176,11 +176,45 @@ const testAccount = {
   },
 };
 
+const testOAuthAccount = {
+  ...testAccount,
+  caldav: {
+    ...testAccount.caldav,
+    password: 'expired-access-token',
+    authType: 'oauth' as const,
+    refreshToken: 'refresh-token',
+    tokenExpiry: new Date(Date.now() - 1000).toISOString(),
+  },
+};
+
 const queryClient = { invalidateQueries: vi.fn() } as unknown as Parameters<
   typeof syncCalendarTasks
 >[1];
 
 const noopSetSyncing = () => {};
+
+describe('reconnectAccounts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.isConnected.mockReturnValue(true);
+    mocks.getAllAccounts.mockReturnValue([testOAuthAccount]);
+  });
+
+  it('reconnects connected OAuth accounts when their access token is expired', async () => {
+    const failedAccountIds = await reconnectAccounts();
+
+    expect(mocks.reconnect).toHaveBeenCalledWith(testOAuthAccount);
+    expect(failedAccountIds.size).toBe(0);
+  });
+
+  it('does not reconnect connected basic-auth accounts', async () => {
+    mocks.getAllAccounts.mockReturnValueOnce([testAccount]);
+
+    await reconnectAccounts();
+
+    expect(mocks.reconnect).not.toHaveBeenCalled();
+  });
+});
 
 describe('syncCalendarsForAccount', () => {
   const workCalendar = makeCalendar({
@@ -277,6 +311,16 @@ describe('syncCalendarTasks orchestrator', () => {
     await syncCalendarTasks('cal-1', queryClient, noopSetSyncing);
 
     expect(mocks.reconnect).toHaveBeenCalledWith(testAccount);
+  });
+
+  it('reconnects automatically if a connected OAuth token is expired', async () => {
+    mocks.getAllAccounts.mockReturnValue([testOAuthAccount]);
+    mocks.getTasksByCalendar.mockReturnValue([]);
+    mocks.clientFetchTasks.mockResolvedValueOnce([]);
+
+    await syncCalendarTasks('cal-1', queryClient, noopSetSyncing);
+
+    expect(mocks.reconnect).toHaveBeenCalledWith(testOAuthAccount);
   });
 
   it('step 0: processes pending deletions BEFORE pushing local changes', async () => {

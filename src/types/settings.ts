@@ -30,6 +30,7 @@ export type SettingsSubtab =
   | 'about';
 
 export type TaskListDensity = 'compact' | 'normal' | 'comfortable';
+export type WindowDecorationStyle = 'integrated' | 'native';
 
 export interface EditorFieldVisibility {
   status: boolean;
@@ -125,6 +126,7 @@ export interface SettingsState {
   systemTrayAppliedValue: boolean;
   hideDockIconWhenWindowClosed: boolean;
   showWindowOnLoginLaunch: boolean;
+  windowDecorationStyle: WindowDecorationStyle;
   confirmBeforeQuit: boolean;
   confirmBeforeQuitAppliedValue: boolean;
   defaultAllDayReminderHour: number;
@@ -208,6 +210,7 @@ interface SettingsActions {
   setSystemTrayAppliedValue: (value: boolean) => void;
   setHideDockIconWhenWindowClosed: (enabled: boolean) => void;
   setShowWindowOnLoginLaunch: (show: boolean) => void;
+  setWindowDecorationStyle: (style: WindowDecorationStyle) => void;
   setCheckForUpdatesAutomatically: (enabled: boolean) => void;
   setConfirmBeforeQuit: (confirm: boolean) => void;
   setConfirmBeforeQuitAppliedValue: (value: boolean) => void;

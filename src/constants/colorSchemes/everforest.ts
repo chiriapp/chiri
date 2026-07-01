@@ -38,7 +38,7 @@ export const everforestColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#939f91',
-        inProcess: '#3a94c5',
+        inProcess: '#dfa000',
         completed: '#8da101',
         cancelled: '#f85552',
       },
@@ -78,7 +78,7 @@ export const everforestColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#859289',
-        inProcess: '#7fbbb3',
+        inProcess: '#dbbc7f',
         completed: '#a7c080',
         cancelled: '#e67e80',
       },

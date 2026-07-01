@@ -153,23 +153,6 @@ export const deleteCalendar = (accountId: string, calendarId: string) => {
     log.error('Failed to persist calendar deletion:', e),
   );
 
-  // get all tasks to delete and track for server deletion
-  const tasksToDelete = data.tasks.filter((t) => t.calendarId === calendarId);
-  const deletedAt = new Date();
-  const newPendingDeletions = [
-    ...data.pendingDeletions,
-    ...tasksToDelete
-      .filter((t) => t.href)
-      .map((t) => ({
-        uid: t.uid,
-        href: t.href!,
-        accountId: t.accountId,
-        calendarId: t.calendarId,
-        etag: t.etag,
-        deletedAt,
-      })),
-  ];
-
   // check if the selected calendar is being deleted
   const isActiveCalendarDeleted = data.ui.activeCalendarId === calendarId;
 
@@ -181,7 +164,9 @@ export const deleteCalendar = (accountId: string, calendarId: string) => {
         : acc,
     ),
     tasks: data.tasks.filter((t) => t.calendarId !== calendarId),
-    pendingDeletions: newPendingDeletions,
+    pendingDeletions: data.pendingDeletions.filter(
+      (deletion) => deletion.calendarId !== calendarId,
+    ),
     ui: {
       ...data.ui,
       // redirect to All Tasks view instead of another calendar

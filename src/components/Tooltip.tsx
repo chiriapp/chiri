@@ -23,6 +23,7 @@ interface TooltipProps {
   className?: string;
   triggerClassName?: string;
   allowInModal?: boolean;
+  disabled?: boolean;
 }
 
 interface TooltipTriggerChildProps {
@@ -40,6 +41,7 @@ export const Tooltip = ({
   className = '',
   triggerClassName = '',
   allowInModal = false,
+  disabled = false,
 }: TooltipProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
@@ -48,9 +50,13 @@ export const Tooltip = ({
   const triggerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const isPointerInsideRef = useRef(false);
+  const isFocusInsideRef = useRef(false);
   const { isAnyModalOpen, isContextMenuOpen } = useModalState();
   const hasContent = Boolean(content);
-  const describedBy = hasContent ? tooltipId : undefined;
+  const isEnabled = hasContent && !disabled;
+  const describedBy = isEnabled ? tooltipId : undefined;
 
   const clearShowTimeout = useCallback(() => {
     if (timeoutRef.current) {
@@ -59,10 +65,18 @@ export const Tooltip = ({
     }
   }, []);
 
+  const clearAnimationFrame = useCallback(() => {
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+  }, []);
+
   const hideTooltip = useCallback(() => {
     clearShowTimeout();
+    clearAnimationFrame();
     setIsVisible(false);
-  }, [clearShowTimeout]);
+  }, [clearAnimationFrame, clearShowTimeout]);
 
   const dismissTooltip = useCallback(() => {
     setIsDismissed(true);
@@ -76,18 +90,23 @@ export const Tooltip = ({
 
   // hide tooltip when a modal or context menu opens
   useEffect(() => {
+    if (disabled) {
+      hideTooltip();
+      return;
+    }
+
     if (!allowInModal && (isAnyModalOpen || isContextMenuOpen)) {
       hideTooltip();
     }
-  }, [isAnyModalOpen, isContextMenuOpen, allowInModal, hideTooltip]);
+  }, [isAnyModalOpen, isContextMenuOpen, allowInModal, disabled, hideTooltip]);
 
   const updatePosition = useCallback(() => {
-    if (!triggerRef.current || !tooltipRef.current) return;
+    if (!triggerRef.current) return;
 
     const rect = triggerRef.current.getBoundingClientRect();
-    const tooltipRect = tooltipRef.current.getBoundingClientRect();
-    const tooltipWidth = tooltipRect.width || 150; // Use actual width or fallback
-    const tooltipHeight = tooltipRect.height || 32; // Use actual height or fallback
+    const tooltipRect = tooltipRef.current?.getBoundingClientRect();
+    const tooltipWidth = tooltipRect?.width || 150; // Use actual width or fallback
+    const tooltipHeight = tooltipRect?.height || 32; // Use actual height or fallback
     const offset = 8;
     const padding = 8;
 
@@ -144,7 +163,7 @@ export const Tooltip = ({
   }, [position]);
 
   const showTooltip = useCallback(() => {
-    if (!hasContent || isDismissed) return;
+    if (!isEnabled || isDismissed) return;
 
     // don't show tooltip when a modal or context menu is open (unless allowInModal is true)
     if (!allowInModal && (isAnyModalOpen || isContextMenuOpen)) return;
@@ -152,8 +171,13 @@ export const Tooltip = ({
     clearShowTimeout();
 
     const show = () => {
+      clearAnimationFrame();
       updatePosition();
-      setIsVisible(true);
+      animationFrameRef.current = requestAnimationFrame(() => {
+        updatePosition();
+        setIsVisible(true);
+        animationFrameRef.current = null;
+      });
       timeoutRef.current = null;
     };
 
@@ -164,9 +188,10 @@ export const Tooltip = ({
     }
   }, [
     allowInModal,
+    clearAnimationFrame,
     clearShowTimeout,
     delay,
-    hasContent,
+    isEnabled,
     isDismissed,
     isAnyModalOpen,
     isContextMenuOpen,
@@ -174,8 +199,22 @@ export const Tooltip = ({
   ]);
 
   useEffect(() => {
-    return clearShowTimeout;
-  }, [clearShowTimeout]);
+    return () => {
+      clearShowTimeout();
+      clearAnimationFrame();
+    };
+  }, [clearAnimationFrame, clearShowTimeout]);
+
+  useEffect(() => {
+    if (disabled || !isEnabled) return;
+    const isTriggerHovered = triggerRef.current?.matches(':hover') ?? false;
+    if (!isPointerInsideRef.current && !isFocusInsideRef.current && !isTriggerHovered) return;
+
+    if (isTriggerHovered) {
+      isPointerInsideRef.current = true;
+    }
+    showTooltip();
+  }, [disabled, isEnabled, showTooltip]);
 
   useDismissableLayer({
     enabled: isVisible,
@@ -260,6 +299,26 @@ export const Tooltip = ({
   const getDescribedBy = (currentDescribedBy?: string) =>
     [currentDescribedBy, describedBy].filter(Boolean).join(' ') || undefined;
 
+  const handleMouseEnter = useCallback(() => {
+    isPointerInsideRef.current = true;
+    showTooltip();
+  }, [showTooltip]);
+
+  const handleMouseLeave = useCallback(() => {
+    isPointerInsideRef.current = false;
+    resetDismissalAndHideTooltip();
+  }, [resetDismissalAndHideTooltip]);
+
+  const handleFocus = useCallback(() => {
+    isFocusInsideRef.current = true;
+    showTooltip();
+  }, [showTooltip]);
+
+  const handleBlur = useCallback(() => {
+    isFocusInsideRef.current = false;
+    resetDismissalAndHideTooltip();
+  }, [resetDismissalAndHideTooltip]);
+
   const triggerChild =
     isValidElement<TooltipTriggerChildProps>(children) && children.type !== Fragment
       ? cloneElement(children, {
@@ -272,17 +331,17 @@ export const Tooltip = ({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: the wrapper delegates hover/focus while the child remains the described interactive trigger */}
       <span
         ref={triggerRef}
-        onMouseEnter={showTooltip}
-        onMouseLeave={resetDismissalAndHideTooltip}
-        onFocus={showTooltip}
-        onBlur={resetDismissalAndHideTooltip}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         onKeyDown={handleTriggerKeyDown}
         className={`inline-flex ${triggerClassName}`}
         aria-describedby={triggerChild === children ? describedBy : undefined}
       >
         {triggerChild}
       </span>
-      {hasContent &&
+      {isEnabled &&
         createPortal(
           <div
             id={tooltipId}

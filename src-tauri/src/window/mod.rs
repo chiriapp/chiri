@@ -82,6 +82,12 @@ pub fn handle_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: 
             hide_dock_icon_if_configured(window.app_handle());
         }
         WindowEvent::CloseRequested { .. } => {}
+        #[cfg(target_os = "macos")]
+        WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => {
+            if let Some(webview_window) = window.app_handle().get_webview_window(window.label()) {
+                crate::macos::window_controls::apply_traffic_light_scale(&webview_window);
+            }
+        }
         WindowEvent::Focused(true) => {
             handle_focus_event(window);
         }

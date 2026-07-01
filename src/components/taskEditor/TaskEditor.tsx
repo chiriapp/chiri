@@ -4,7 +4,7 @@ import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { MoveToCalendarModal } from '$components/modals/MoveToCalendar/MoveToCalendarModal';
 import { ReminderPickerModal } from '$components/modals/ReminderPickerModal';
-import { RepeatModal } from '$components/modals/RepeatModal';
+import { RepeatModal } from '$components/modals/RepeatModal/RepeatModal';
 import { TaskEditorCalendar } from '$components/taskEditor/TaskEditorCalendar';
 import { TaskEditorDates } from '$components/taskEditor/TaskEditorDates';
 import { TaskEditorDescription } from '$components/taskEditor/TaskEditorDescription';
@@ -359,7 +359,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
 
         <div
           ref={editorScrollRef}
-          className="flex flex-1 flex-col space-y-6 overflow-y-auto overscroll-contain p-4"
+          className="app-task-editor-content flex flex-1 flex-col space-y-6 overflow-y-auto overscroll-contain p-4"
         >
           <TaskEditorTitle
             task={task}

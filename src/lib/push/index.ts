@@ -294,6 +294,7 @@ const createProviderCleanupSubscription = (
   pushResource: endpoint.pushResource,
   providerId: endpoint.providerId,
   providerToken: endpoint.providerToken,
+  providerDistributor: endpoint.providerDistributor,
   expiresAt: new Date(0),
   createdAt: new Date(),
 });
@@ -397,6 +398,7 @@ const createRegisteredPushSubscription = async (
     pushResource: webPushSubscription.pushResource,
     providerId: webPushSubscription.providerId,
     providerToken: webPushSubscription.providerToken,
+    providerDistributor: webPushSubscription.providerDistributor,
     expiresAt: registration.expires,
     createdAt: new Date(),
   };

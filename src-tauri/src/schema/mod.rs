@@ -27,6 +27,7 @@ mod v026_push_provider_metadata;
 mod v027_remove_completed_task_history;
 mod v028_pending_deletion_metadata;
 mod v029_caldav_task_objects;
+mod v030_push_provider_distributor;
 
 use tauri_plugin_sql::Migration;
 
@@ -62,5 +63,6 @@ pub fn get_migrations() -> Vec<Migration> {
         v027_remove_completed_task_history::migration(),
         v028_pending_deletion_metadata::migration(),
         v029_caldav_task_objects::migration(),
+        v030_push_provider_distributor::migration(),
     ]
 }

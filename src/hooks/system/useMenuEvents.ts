@@ -28,6 +28,7 @@ interface MenuCallbacks {
   onSetSortDirection?: RefObject<
     ((direction: SortDirection, currentMode: SortMode) => void) | null
   >;
+  onSelectFilter?: RefObject<((filterId: string) => void) | null>;
   onToggleSidebar?: RefObject<(() => void) | null>;
   onDeleteTask?: RefObject<(() => void) | null>;
   onNavPrevList?: RefObject<(() => void) | null>;
@@ -81,6 +82,11 @@ const SIMPLE_EVENTS: SimpleEventConfig[] = [
 ];
 
 const PARAM_EVENTS: ParamEventConfig[] = [
+  {
+    event: MENU_EVENTS.SELECT_FILTER,
+    label: 'Select Filter',
+    handler: (cb, p) => cb.onSelectFilter?.current?.(p.filterId as string),
+  },
   {
     event: MENU_EVENTS.EDIT_ACCOUNT,
     label: 'Edit Account',
@@ -153,6 +159,7 @@ const MODAL_BLOCKED_MENU_EVENTS = new Set<string>([
   MENU_EVENTS.SORT_MODIFIED,
   MENU_EVENTS.SORT_DIRECTION_ASC,
   MENU_EVENTS.SORT_DIRECTION_DESC,
+  MENU_EVENTS.SELECT_FILTER,
   MENU_EVENTS.TOGGLE_SIDEBAR,
   MENU_EVENTS.DELETE_TASK,
   MENU_EVENTS.NAV_PREV_LIST,

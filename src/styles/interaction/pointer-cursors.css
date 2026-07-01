@@ -10,6 +10,12 @@ html.chiri-reset-cursor .cursor-grab * {
   cursor: grab !important;
 }
 
+html.chiri-reset-cursor .cursor-pointer,
+html.chiri-reset-cursor .cursor-pointer * {
+  /* biome-ignore lint/complexity/noImportantStyles: Explicit pointer affordances should not flash to default during a cursor refresh */
+  cursor: pointer !important;
+}
+
 html.chiri-reset-cursor .cursor-grabbing,
 html.chiri-reset-cursor .cursor-grabbing *,
 html.chiri-reset-cursor .active\:cursor-grabbing:active,

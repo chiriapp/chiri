@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { DatePickerModal } from '$components/modals/DatePickerModal';
-import { RepeatFrequencyList } from '$components/modals/repeat/RepeatFrequencyList';
-import { RepeatRuleSummary } from '$components/modals/repeat/RepeatRuleSummary';
+import { RepeatFrequencyList } from '$components/modals/RepeatModal/RepeatFrequencyList';
+import { RepeatRuleAlerts } from '$components/modals/RepeatModal/RepeatRuleAlerts';
+import { RepeatRuleSummary } from '$components/modals/RepeatModal/RepeatRuleSummary';
 import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import type { RecurrenceFrequency } from '$types/recurrence';
@@ -279,10 +280,6 @@ export const RepeatModal = ({
   );
   const [countInput, setCountInput] = useState(() => String(parseToUIState(rrule, dueDate).count));
   const [showUntilPicker, setShowUntilPicker] = useState(false);
-  const [showAdvancedFrequencies, setShowAdvancedFrequencies] = useState(() => {
-    const freq = parseRRule(rrule ?? '').FREQ;
-    return freq === 'MINUTELY' || freq === 'HOURLY';
-  });
 
   const { dateFormat, startOfWeek } = useSettingsStore();
 
@@ -415,11 +412,7 @@ export const RepeatModal = ({
             onChange={(freq, byday) => update({ freq, byday })}
           />
           <div className="min-w-0 flex-1 space-y-4 p-4">
-            <RepeatRuleSummary
-              rrule={draftRrule}
-              repeatFrom={localRepeatFrom}
-              dueDate={dueDate}
-              dateFormat={dateFormat}
+            <RepeatRuleAlerts
               preservedKeys={capability.preservedKeys}
               invalidParts={capability.invalidParts}
               validationError={validationError}
@@ -451,10 +444,7 @@ export const RepeatModal = ({
                     }}
                     className={selectCls}
                   >
-                    {CUSTOM_PERIOD_OPTIONS.filter(
-                      ({ value }) =>
-                        showAdvancedFrequencies || (value !== 'MINUTELY' && value !== 'HOURLY'),
-                    ).map(({ value, label, plural }) => (
+                    {CUSTOM_PERIOD_OPTIONS.map(({ value, label, plural }) => (
                       <option key={value} value={value}>
                         {ui.interval === 1 ? label : plural}
                       </option>
@@ -466,16 +456,6 @@ export const RepeatModal = ({
                   </span>
                 )}
               </div>
-            )}
-
-            {ui.freq === 'custom' && !showAdvancedFrequencies && (
-              <button
-                type="button"
-                onClick={() => setShowAdvancedFrequencies(true)}
-                className="text-surface-500 text-xs outline-hidden hover:text-surface-700 focus-visible:underline dark:text-surface-400 dark:hover:text-surface-200"
-              >
-                Show minute and hour frequencies
-              </button>
             )}
 
             {showDayPicker && (
@@ -672,6 +652,13 @@ export const RepeatModal = ({
                 </div>
               </div>
             )}
+
+            <RepeatRuleSummary
+              rrule={draftRrule}
+              repeatFrom={localRepeatFrom}
+              dueDate={dueDate}
+              dateFormat={dateFormat}
+            />
           </div>
         </div>
       </ModalWrapper>

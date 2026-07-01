@@ -325,6 +325,11 @@ class Database {
     this.notify();
   }
 
+  async clearPendingDeletionsForCalendar(calendarId: string) {
+    await pendingOps.clearPendingDeletionsForCalendar(await this.conn(), calendarId);
+    this.notify();
+  }
+
   async markPendingDeletionAttempt(uid: string, error: string) {
     await pendingOps.markPendingDeletionAttempt(await this.conn(), uid, error);
     this.notify();

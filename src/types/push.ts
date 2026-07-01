@@ -51,6 +51,8 @@ export interface PushSubscription {
   providerId: PushProviderId;
   /** provider-specific registration token, if the provider needs one */
   providerToken?: string;
+  /** provider-specific distributor/service that owns the token, if applicable */
+  providerDistributor?: string;
   /** when the subscription expires */
   expiresAt: Date;
   /** when the subscription was created locally */
@@ -107,6 +109,7 @@ export interface WebPushSubscription {
 export interface PushEndpointSubscription extends WebPushSubscription {
   providerId: PushProviderId;
   providerToken?: string;
+  providerDistributor?: string;
 }
 
 /**

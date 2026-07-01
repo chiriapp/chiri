@@ -4,9 +4,9 @@ import ChevronRight from 'lucide-react/icons/chevron-right';
 import Clock from 'lucide-react/icons/clock';
 import FolderSync from 'lucide-react/icons/folder-sync';
 import Link from 'lucide-react/icons/link';
-import Loader from 'lucide-react/icons/loader';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Tag from 'lucide-react/icons/tag';
+import Timer from 'lucide-react/icons/timer';
 import { Fragment, type ReactNode } from 'react';
 import { useSettingsStore } from '$context/settingsContext';
 import type { TaskBadgeKey } from '$types/settings';
@@ -50,7 +50,7 @@ const PREVIEW_BADGE_RENDERERS: Record<TaskBadgeKey, () => ReactNode> = {
   ),
   status: () => (
     <span className="inline-flex items-center gap-1 rounded-sm border border-status-in-process/30 bg-status-in-process/10 px-2 py-0.5 font-medium text-status-in-process text-xs">
-      <Loader className="h-3 w-3 shrink-0 text-status-in-process" />
+      <Timer className="h-3 w-3 shrink-0 text-status-in-process" />
       50%
     </span>
   ),

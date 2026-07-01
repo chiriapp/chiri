@@ -40,6 +40,7 @@ export const useNativeMenuCommands = ({
   const onSyncRef = useLatestRef(onSync ?? null);
   const onSetSortMode = useLatestRef(commands.setSortMode);
   const onSetSortDirection = useLatestRef(commands.setSortDirection);
+  const onSelectFilter = useLatestRef(commands.selectFilter);
   const onToggleSidebar = useLatestRef(commands.toggleSidebar);
   const onDeleteTask = useLatestRef(commands.deleteTask);
   const onNavPrevList = useLatestRef(commands.navPrevList);
@@ -68,6 +69,7 @@ export const useNativeMenuCommands = ({
       onSync: onSyncRef,
       onSetSortMode,
       onSetSortDirection,
+      onSelectFilter,
       onToggleSidebar,
       onDeleteTask,
       onNavPrevList,
@@ -95,6 +97,7 @@ export const useNativeMenuCommands = ({
       onSyncRef,
       onSetSortMode,
       onSetSortDirection,
+      onSelectFilter,
       onToggleSidebar,
       onDeleteTask,
       onNavPrevList,

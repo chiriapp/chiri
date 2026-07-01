@@ -30,14 +30,7 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 
 // get log level from environment or default to 'info' in production, 'debug' in development
 const getDefaultMinLevel = (): LogLevel => {
-  // in development (Vite), show debug logs. In production, show info+
-  // check for common development indicators
-  const isDev =
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' ||
-      window.location.hostname === '127.0.0.1' ||
-      window.location.port !== '');
-  return isDev ? 'debug' : 'info';
+  return import.meta.env.DEV ? 'debug' : 'info';
 };
 
 // forward logs to Tauri's logging plugin for file persistence

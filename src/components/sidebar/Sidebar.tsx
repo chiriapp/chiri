@@ -1,5 +1,3 @@
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeTextFile } from '@tauri-apps/plugin-fs';
 import Inbox from 'lucide-react/icons/inbox';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -8,7 +6,7 @@ import { CalendarModal } from '$components/modals/CalendarModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { FilterModal } from '$components/modals/FilterModal';
 import { FilterPresetModal } from '$components/modals/FilterPresetModal';
-import { MobileConfigExportModal } from '$components/modals/MobileConfigExportModal';
+import { SidebarMobileConfigExportModal } from '$components/modals/SidebarMobileConfigExportModal';
 import { TagModal } from '$components/modals/TagModal';
 import { SidebarAccountsList } from '$components/sidebar/SidebarAccountsList';
 import { SidebarCollapsedView } from '$components/sidebar/SidebarCollapsedView';
@@ -47,13 +45,10 @@ import {
   resetStaleCursorAfterLayout,
   resetStaleCursorOnLayerClose,
 } from '$hooks/ui/useStaleCursorReset';
-import { MOBILE_CONFIG_MIME_TYPE } from '$lib/mobileconfig';
-import { getMobileConfigFileName } from '$lib/mobileconfig/export';
-import { generateMobileConfig } from '$lib/mobileconfig/generate';
+import { exportMobileConfigFile } from '$lib/mobileconfig/export';
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account, Calendar, KeyboardShortcut } from '$types';
 import { formatShortcut, getModifierJoiner } from '$utils/keyboard';
-import { downloadFile } from '$utils/misc';
 
 interface SidebarProps {
   onOpenSettings?: () => void;
@@ -256,22 +251,8 @@ export const Sidebar = ({
     if (!account) return;
 
     try {
-      const xml = generateMobileConfig(account, includePassword);
-      const fileName = getMobileConfigFileName(account);
-
-      try {
-        const path = await save({
-          defaultPath: fileName,
-          filters: [{ name: 'Apple Configuration Profile', extensions: ['mobileconfig'] }],
-        });
-        if (path) {
-          await writeTextFile(path, xml);
-          setMobileConfigAccountId(null);
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes('cancelled') || msg.includes('user closed')) return;
-        downloadFile(xml, fileName, MOBILE_CONFIG_MIME_TYPE);
+      const result = await exportMobileConfigFile(account, { includePassword });
+      if (result !== 'cancelled') {
         setMobileConfigAccountId(null);
       }
     } catch (err) {
@@ -402,8 +383,8 @@ export const Sidebar = ({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: Container onClick for closing context menu on outside click */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: Container onClick for closing context menu on outside click */}
       <div
-        className={`relative flex h-full flex-col overflow-hidden border-surface-200 border-r bg-surface-100 dark:border-surface-700 dark:bg-surface-900 ${!isResizing ? 'motion-safe:transition-[width] motion-safe:duration-200 motion-safe:ease-in-out' : ''}`}
-        style={{ width: isCollapsed ? 48 : width }}
+        className={`app-sidebar relative flex h-full flex-col overflow-hidden bg-surface-100 dark:bg-surface-900 ${!isResizing ? 'motion-safe:transition-[width] motion-safe:duration-200 motion-safe:ease-in-out' : ''}`}
+        style={{ width: isCollapsed ? 52 : width }}
         onClick={handleCloseContextMenu}
       >
         {!isCollapsed && !isTransitioning && (
@@ -416,8 +397,8 @@ export const Sidebar = ({
         )}
 
         <SidebarHeader
-          isCollapsed={isCollapsed}
           showExpandedContent={showExpandedContent}
+          showCollapsedContent={showCollapsedContent}
           onToggleCollapse={onToggleCollapse}
         />
 
@@ -545,6 +526,7 @@ export const Sidebar = ({
             accounts={accounts}
             tags={tags}
             filters={filters}
+            tasks={tasks}
             activeCalendarId={activeCalendarId}
             activeTagId={activeTagId}
             activeFilterId={activeFilterId}
@@ -735,17 +717,12 @@ export const Sidebar = ({
         />
       )}
 
-      {mobileConfigAccountId &&
-        (() => {
-          const account = accounts.find((a) => a.id === mobileConfigAccountId);
-          return account ? (
-            <MobileConfigExportModal
-              account={account}
-              onConfirm={handleConfirmMobileConfigExport}
-              onClose={() => setMobileConfigAccountId(null)}
-            />
-          ) : null;
-        })()}
+      <SidebarMobileConfigExportModal
+        accountId={mobileConfigAccountId}
+        accounts={accounts}
+        onConfirm={handleConfirmMobileConfigExport}
+        onClose={() => setMobileConfigAccountId(null)}
+      />
     </>
   );
 };

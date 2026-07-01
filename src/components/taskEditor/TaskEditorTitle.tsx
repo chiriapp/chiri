@@ -1,5 +1,5 @@
 import Check from 'lucide-react/icons/check';
-import Loader from 'lucide-react/icons/loader';
+import Minus from 'lucide-react/icons/minus';
 import Type from 'lucide-react/icons/type';
 import X from 'lucide-react/icons/x';
 import { type MouseEvent, useEffect, useRef } from 'react';
@@ -134,7 +134,7 @@ export const TaskEditorTitle = ({
             <X className="h-4 w-4 text-primary-contrast" strokeWidth={3} />
           )}
           {task.status === 'in-process' && (
-            <Loader className="h-4 w-4 dark:text-primary-contrast" />
+            <Minus className="h-4 w-4 dark:text-primary-contrast" strokeWidth={3} />
           )}
         </button>
         {readOnly ? (

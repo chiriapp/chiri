@@ -22,7 +22,11 @@ describe('mobileconfig core helpers', () => {
 
   it('creates a filesystem-safe export filename', () => {
     expect(getMobileConfigFileName({ name: 'Work & Personal' })).toBe(
-      'work___personal_caldav.mobileconfig',
+      'work_personal_caldav.mobileconfig',
     );
+    expect(getMobileConfigFileName({ name: 'chloe (fastmail)' })).toBe(
+      'chloe_fastmail_caldav.mobileconfig',
+    );
+    expect(getMobileConfigFileName({ name: '✨' })).toBe('caldav.mobileconfig');
   });
 });

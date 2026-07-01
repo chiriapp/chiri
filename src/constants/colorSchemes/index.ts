@@ -66,7 +66,7 @@ export const defaultColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#71717a',
-        inProcess: '#2563eb',
+        inProcess: '#d97706',
         completed: '#16a34a',
         cancelled: '#e11d48',
       },
@@ -87,7 +87,7 @@ export const defaultColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#a1a1aa',
-        inProcess: '#60a5fa',
+        inProcess: '#fbbf24',
         completed: '#4ade80',
         cancelled: '#fb7185',
       },
@@ -108,7 +108,7 @@ export const defaultColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#a1a1aa',
-        inProcess: '#60a5fa',
+        inProcess: '#fbbf24',
         completed: '#4ade80',
         cancelled: '#fb7185',
       },

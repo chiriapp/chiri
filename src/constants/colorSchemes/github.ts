@@ -39,7 +39,7 @@ export const githubColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#59636e',
-        inProcess: '#0969da',
+        inProcess: '#9a6700',
         completed: '#1a7f37',
         cancelled: '#d1242f',
       },
@@ -80,7 +80,7 @@ export const githubColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#8b949e',
-        inProcess: '#58a6ff',
+        inProcess: '#d29922',
         completed: '#3fb950',
         cancelled: '#f85149',
       },

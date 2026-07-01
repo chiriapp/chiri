@@ -24,7 +24,7 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
       accentColors: [
         { name: 'Red', value: '#8c4351' },
         { name: 'Orange', value: '#965027' },
-        { name: 'Amber', value: '#8f5e15' },
+        { name: 'Yellow', value: '#8c6c3e' },
         { name: 'Green', value: '#33635c' },
         { name: 'Teal', value: '#006c86' },
         { name: 'Cyan', value: '#0da0ba' },
@@ -35,17 +35,17 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
       defaultAccent: 'Blue',
       semanticColors: {
         info: '#0da0ba',
-        warning: '#8f5e15',
+        warning: '#8c6c3e',
         success: '#33635c',
         error: '#bd4040',
       },
       statusColors: {
         needsAction: '#707280',
-        inProcess: '#2959aa',
+        inProcess: '#8c6c3e',
         completed: '#33635c',
         cancelled: '#8c4351',
       },
-      priorityColors: { high: '#8c4351', medium: '#8f5e15', low: '#2959aa' },
+      priorityColors: { high: '#8c4351', medium: '#8c6c3e', low: '#2959aa' },
     },
     {
       id: 'night',
@@ -84,7 +84,7 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#737aa2',
-        inProcess: '#7aa2f7',
+        inProcess: '#e0af68',
         completed: '#9ece6a',
         cancelled: '#f7768e',
       },

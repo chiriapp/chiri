@@ -82,6 +82,10 @@ pub fn run() {
             macos::login_item::was_macos_launched_as_login_item,
             #[cfg(target_os = "macos")]
             macos::menu::apply_macos_menu_fixes,
+            #[cfg(target_os = "macos")]
+            macos::dock_menu::update_macos_dock_menu,
+            #[cfg(target_os = "macos")]
+            macos::window_controls::set_macos_window_decoration_style,
             notifications::commands::send_notification_with_actions,
             notifications::commands::send_simple_notification,
             notifications::permission::check_notification_permission,
@@ -100,7 +104,6 @@ pub fn run() {
             utils::fs::read_file_bytes,
             utils::markdown::parse_and_sanitize_markdown,
             utils::mobileconfig::decode_mobile_config,
-            utils::plist::convert_plist_to_xml,
             #[cfg(target_os = "macos")]
             window::set_hide_dock_icon_when_window_closed,
         ])
