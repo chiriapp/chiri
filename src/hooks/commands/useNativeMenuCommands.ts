@@ -38,6 +38,7 @@ export const useNativeMenuCommands = ({
   const onToggleCompleted = useLatestRef(commands.toggleCompleted);
   const onToggleUnstarted = useLatestRef(commands.toggleUnstarted);
   const onSyncRef = useLatestRef(onSync ?? null);
+  const onAllTasks = useLatestRef(commands.allTasks);
   const onSetSortMode = useLatestRef(commands.setSortMode);
   const onSetSortDirection = useLatestRef(commands.setSortDirection);
   const onSelectFilter = useLatestRef(commands.selectFilter);
@@ -67,6 +68,7 @@ export const useNativeMenuCommands = ({
       onToggleCompleted,
       onToggleUnstarted,
       onSync: onSyncRef,
+      onAllTasks,
       onSetSortMode,
       onSetSortDirection,
       onSelectFilter,
@@ -95,6 +97,7 @@ export const useNativeMenuCommands = ({
       onToggleCompleted,
       onToggleUnstarted,
       onSyncRef,
+      onAllTasks,
       onSetSortMode,
       onSetSortDirection,
       onSelectFilter,

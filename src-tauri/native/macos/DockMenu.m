@@ -51,8 +51,13 @@ static NSMenu *ChiriBuildDockMenu(void) {
   NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
   menu.autoenablesItems = NO;
 
+  [menu addItem:ChiriDockMenuItem(@"Actions", @"", NO)];
   [menu addItem:ChiriDockMenuItem(@"New Task", @"new-task", YES)];
   [menu addItem:ChiriDockMenuItem(@"Sync", @"sync", ChiriDockSyncEnabled)];
+
+  [menu addItem:[NSMenuItem separatorItem]];
+  [menu addItem:ChiriDockMenuItem(@"Views", @"", NO)];
+  [menu addItem:ChiriDockMenuItem(@"All Tasks", @"all-tasks", YES)];
 
   if (ChiriDockFilters.count > 0) {
     [menu addItem:[NSMenuItem separatorItem]];
