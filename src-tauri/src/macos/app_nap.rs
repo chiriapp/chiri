@@ -1,6 +1,6 @@
 //! macOS App Nap control
 //!
-//! app Nap is a macOS power-saving feature that throttles background apps
+//! App Nap is a macOS power-saving feature that throttles background apps
 //! this breaks Chiri's periodic sync and notification timers when the
 //! window is hidden in tray mode
 //!
