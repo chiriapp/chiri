@@ -49,7 +49,9 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">Data</h3>
+      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">
+        Data & diagnostics
+      </h3>
 
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <div className="flex items-center justify-between p-4">
@@ -100,9 +102,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
         </div>
       </div>
 
-      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">
-        Diagnostics
-      </h3>
+      <h4 className="font-semibold text-sm text-surface-700 dark:text-surface-300">Diagnostics</h4>
 
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <div className="flex items-center justify-between p-4">
@@ -123,7 +123,7 @@ export const DataSettings = ({ onClose }: DataSettingsProps) => {
         </div>
       </div>
 
-      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">Reset</h3>
+      <h4 className="font-semibold text-sm text-surface-700 dark:text-surface-300">Reset</h4>
 
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <div className="flex items-center justify-between p-4">

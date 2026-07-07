@@ -18,7 +18,7 @@ import {
 const NTFY_SERVER_URL_DEBOUNCE_MS = 500;
 const WEBDAV_PUSH_DOCS_URL = 'https://github.com/chiriapp/chiri/blob/master/docs/WEBDAV_PUSH.md';
 
-export const WebDAVPushSettings = () => {
+export const PushSettings = () => {
   const {
     enablePush,
     setEnablePush,
@@ -99,7 +99,7 @@ export const WebDAVPushSettings = () => {
       : `Uses ${pushProviderConfig.ntfyConfig?.serverUrl ?? DEFAULT_NTFY_SERVER_URL}`;
 
   return (
-    <>
+    <div className="space-y-4">
       <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">
         WebDAV Push
       </h3>
@@ -121,8 +121,8 @@ export const WebDAVPushSettings = () => {
         </div>
       </div>
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
-        <label className="flex items-center justify-between p-4">
-          <div>
+        <label className="flex items-center justify-between gap-4 p-4">
+          <div className="min-w-0">
             <p className="text-sm text-surface-700 dark:text-surface-300">
               Enable WebDAV Push (experimental)
             </p>
@@ -133,8 +133,8 @@ export const WebDAVPushSettings = () => {
           <input
             type="checkbox"
             checked={enablePush}
-            onChange={(e) => setEnablePush(e.target.checked)}
-            className="rounded border-surface-300 outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-surface-600"
+            onChange={(event) => setEnablePush(event.target.checked)}
+            className="shrink-0 rounded-sm border-surface-300 outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-surface-600"
           />
         </label>
 
@@ -144,8 +144,8 @@ export const WebDAVPushSettings = () => {
               <>
                 <div className="border-surface-200 border-t dark:border-surface-700" />
 
-                <div className="flex items-center justify-between p-4">
-                  <div>
+                <div className="flex items-center justify-between gap-4 p-4">
+                  <div className="min-w-0">
                     <p className="text-sm text-surface-700 dark:text-surface-300">
                       Receive push messages via
                     </p>
@@ -155,7 +155,7 @@ export const WebDAVPushSettings = () => {
                   </div>
                   <Select
                     value={pushProvider}
-                    onChange={(e) => setPushProvider(e.target.value as PushProviderId)}
+                    onChange={(event) => setPushProvider(event.target.value as PushProviderId)}
                     className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
                   >
                     <option value={NTFY_DIRECT_PROVIDER_ID}>ntfy</option>
@@ -182,7 +182,7 @@ export const WebDAVPushSettings = () => {
                     type="url"
                     value={draftNtfyServerUrl}
                     onBlur={commitDraftNtfyServerUrl}
-                    onChange={(e) => setDraftNtfyServerUrl(e.target.value)}
+                    onChange={(event) => setDraftNtfyServerUrl(event.target.value)}
                     placeholder={DEFAULT_NTFY_SERVER_URL}
                     className="w-full rounded-lg border border-surface-200 bg-surface-50 px-3 py-1.5 text-sm text-surface-800 outline-none transition-colors focus:border-primary-500 focus:bg-white dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
                   />
@@ -193,7 +193,7 @@ export const WebDAVPushSettings = () => {
             <div className="border-surface-200 border-t dark:border-surface-700" />
 
             <div className="flex items-center justify-between gap-4 p-4">
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm text-surface-700 dark:text-surface-300">Provider status</p>
                 <p className="text-surface-500 text-xs dark:text-surface-400">
                   {providerName} - {providerDescription}
@@ -215,6 +215,6 @@ export const WebDAVPushSettings = () => {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 };

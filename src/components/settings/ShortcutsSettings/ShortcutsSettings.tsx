@@ -141,9 +141,9 @@ export const ShortcutsSettings = ({
           ) : (
             renderedGroups.map((group) => (
               <div key={group.label}>
-                <p className="mb-1.5 px-0.5 font-medium text-surface-400 text-xs uppercase tracking-wider dark:text-surface-500">
+                <h4 className="mb-1.5 font-semibold text-sm text-surface-700 dark:text-surface-300">
                   {group.label}
-                </p>
+                </h4>
                 <div className="overflow-hidden rounded-lg border border-surface-200 dark:border-surface-700">
                   {group.shortcuts.map((shortcut) => (
                     <ShortcutRow key={shortcut.id} shortcut={shortcut} onEdit={handleOpenEdit} />

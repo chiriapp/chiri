@@ -7,7 +7,7 @@ import { ComposedInput } from '$components/ComposedInput';
 type ColorMode = 'accent' | 'preset' | 'custom';
 
 const SWITCHER_CLASS =
-  'flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
+  'flex min-w-0 flex-1 basis-0 items-center justify-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
 const SWITCHER_ACTIVE =
   'border-surface-300 dark:border-surface-500 bg-surface-200 dark:bg-surface-700 text-surface-900 dark:text-surface-100';
 const SWITCHER_INACTIVE =
@@ -40,7 +40,7 @@ export const TaskDefaultsColorPicker = ({
   return (
     <div className="p-4">
       <p className="mb-2 font-medium text-surface-500 text-xs dark:text-surface-400">{label}</p>
-      <div className="flex gap-2">
+      <div className="flex w-full gap-2">
         <button
           type="button"
           onClick={() => {

@@ -84,7 +84,9 @@ export const SystemSettings = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">System</h3>
+      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">
+        Startup & window
+      </h3>
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <label
           className={`flex items-center justify-between p-4 ${launchAtLoginBusy ? 'cursor-wait' : ''}`}
@@ -162,7 +164,7 @@ export const SystemSettings = () => {
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">Enable system tray</p>
             <p className="text-surface-500 text-xs dark:text-surface-400">
-              Lets Chiri run in the background with a tray icon.
+              Lets Chiri run in the background with a tray icon
             </p>
           </div>
           <input

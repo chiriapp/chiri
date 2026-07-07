@@ -12,20 +12,25 @@ import type { PushProviderId } from '$types/push';
 
 export type SubtaskDeletionBehavior = 'delete' | 'keep';
 
-export type SettingsCategory = 'tasks' | 'app' | 'accounts' | 'misc';
+export type SettingsCategory = 'tasks' | 'app' | 'defaults' | 'accounts' | 'misc';
 export type SettingsSubtab =
-  | 'behavior'
-  | 'defaults'
+  | 'appearance'
+  | 'navigation'
+  | 'safety'
+  | 'task-defaults'
+  | 'account-defaults'
+  | 'scheduling'
+  | 'list-layout'
   | 'editor'
-  | 'badges'
-  | 'look-and-feel'
   | 'notifications'
   | 'region-and-time'
   | 'keyboard-shortcuts'
-  | 'system'
+  | 'startup-window'
   | 'connections'
-  | 'data'
+  | 'data-diagnostics'
   | 'sync'
+  | 'push'
+  | 'network'
   | 'updates'
   | 'about';
 
