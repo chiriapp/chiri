@@ -106,7 +106,7 @@ export const setActiveFilter = async (conn: DatabasePlugin, id: string | null) =
 
 export const setAllTasksView = async (conn: DatabasePlugin) => {
   await conn.execute(
-    "UPDATE ui_state SET active_view = 'tasks', active_calendar_id = NULL, active_tag_id = NULL, active_filter_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1",
+    "UPDATE ui_state SET active_view = 'tasks', active_account_id = NULL, active_calendar_id = NULL, active_tag_id = NULL, active_filter_id = NULL, selected_task_id = NULL, is_editor_open = 0 WHERE id = 1",
     [],
   );
 };
