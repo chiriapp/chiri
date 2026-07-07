@@ -4,6 +4,7 @@ export const MENU_EVENTS = {
   QUIT_MENU: 'menu:quit-menu',
   NEW_TASK: 'menu:new-task',
   SYNC: 'menu:sync',
+  ALL_TASKS: 'menu:all-tasks',
   SELECT_FILTER: 'menu:select-filter',
   PREFERENCES: 'menu:preferences',
   ADD_ACCOUNT: 'menu:add-account',

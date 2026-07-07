@@ -28,11 +28,20 @@ pub(super) fn focus_main_window(app: &tauri::AppHandle<AppRuntime>) {
 pub(super) fn setup_app(
     app: &mut tauri::App<AppRuntime>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // register deep link URL scheme handler (macOS uses Info.plist; Windows/Linux
-    // need explicit runtime registration so the OS knows which binary to call)
-    #[cfg(any(windows, target_os = "linux"))]
+    // macOS uses Info.plist. Windows needs explicit runtime registration. on
+    // Linux, packaged installs advertise the scheme through installed .desktop
+    // files; only AppImage needs runtime registration as a desktop-integration
+    // fallback
+    #[cfg(windows)]
     if let Err(e) = app.deep_link().register_all() {
         log::warn!("[Setup] Failed to register deep link scheme: {e}");
+    }
+
+    #[cfg(target_os = "linux")]
+    if app.env().appimage.is_some() {
+        if let Err(e) = app.deep_link().register_all() {
+            log::warn!("[Setup] Failed to register AppImage deep link scheme: {e}");
+        }
     }
 
     // disable App Nap after logging has been initialized so App Nap
