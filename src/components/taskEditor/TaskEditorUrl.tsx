@@ -1,8 +1,10 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
 import ExternalLink from 'lucide-react/icons/external-link';
 import Link from 'lucide-react/icons/link';
+import Unlink from 'lucide-react/icons/unlink';
 import { useEffect, useRef } from 'react';
 import { ComposedTextarea } from '$components/ComposedTextarea';
+import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import { useDebouncedTaskUpdate } from '$hooks/ui/useDebouncedTaskUpdate';
 import type { Task } from '$types';
 
@@ -57,9 +59,15 @@ export const TaskEditorUrl = ({ task, readOnly = false }: UrlProps) => {
         )}
       </div>
       {readOnly ? (
-        <div className="wrap-break-word selectable w-full cursor-not-allowed whitespace-pre-wrap rounded-lg border border-transparent bg-surface-100 px-3 py-2.5 text-sm text-surface-700 dark:bg-surface-800 dark:text-surface-300">
-          {pendingUrl || <span className="text-surface-400 dark:text-surface-500">No URL</span>}
-        </div>
+        pendingUrl ? (
+          <div className="wrap-break-word selectable w-full cursor-not-allowed whitespace-pre-wrap rounded-lg border border-transparent bg-surface-100 px-3 py-2.5 text-sm text-surface-700 dark:bg-surface-800 dark:text-surface-300">
+            {pendingUrl}
+          </div>
+        ) : (
+          <TaskEditorEmptyState icon={<Unlink className="h-4 w-4 shrink-0" />}>
+            No URL
+          </TaskEditorEmptyState>
+        )
       ) : (
         <ComposedTextarea
           ref={urlRef}

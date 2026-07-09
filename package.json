@@ -40,7 +40,7 @@
     "@tauri-apps/plugin-updater": "^2.10.1",
     "date-fns": "^4.4.0",
     "frimousse": "^0.3.0",
-    "lucide-react": "^1.17.0",
+    "lucide-react": "^1.23.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "rrule-temporal": "^1.5.3",

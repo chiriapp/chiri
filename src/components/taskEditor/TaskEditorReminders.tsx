@@ -1,9 +1,11 @@
 import Bell from 'lucide-react/icons/bell';
+import BellOff from 'lucide-react/icons/bell-off';
 import BellRing from 'lucide-react/icons/bell-ring';
 import Plus from 'lucide-react/icons/plus';
 import Settings from 'lucide-react/icons/settings';
 import X from 'lucide-react/icons/x';
 import type { KeyboardEvent } from 'react';
+import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import type { Task } from '$types';
 import type { TimeFormat } from '$types/preference';
 import { formatDate, formatTime } from '$utils/date';
@@ -13,6 +15,7 @@ interface RemindersProps {
   task: Task;
   timeFormat: TimeFormat;
   notifications: boolean;
+  notifyReminders: boolean;
   onOpenNotificationSettings?: () => void;
   onRemoveReminder: (reminderId: string) => void;
   onOpenReminderPicker: () => void;
@@ -24,6 +27,7 @@ export const TaskEditorReminders = ({
   task,
   timeFormat,
   notifications,
+  notifyReminders,
   onOpenNotificationSettings,
   onRemoveReminder,
   onOpenReminderPicker,
@@ -86,10 +90,12 @@ export const TaskEditorReminders = ({
         ))}
 
         {readOnly && (task.reminders?.length ?? 0) === 0 && (
-          <div className="text-sm text-surface-400 dark:text-surface-500">No reminders</div>
+          <TaskEditorEmptyState icon={<BellOff className="h-4 w-4 shrink-0" />}>
+            No reminders
+          </TaskEditorEmptyState>
         )}
 
-        {!readOnly && notifications ? (
+        {!readOnly && notifications && notifyReminders ? (
           <button
             type="button"
             onClick={onOpenReminderPicker}

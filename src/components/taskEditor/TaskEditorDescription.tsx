@@ -1,6 +1,8 @@
 import AlignLeft from 'lucide-react/icons/align-left';
+import FileX from 'lucide-react/icons/file-x';
 import { useRef } from 'react';
 import { ComposedTextarea } from '$components/ComposedTextarea';
+import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import { useDebouncedTaskUpdate } from '$hooks/ui/useDebouncedTaskUpdate';
 import { filterCalDavDescription } from '$lib/ical/vtodo';
 import type { Task } from '$types';
@@ -40,11 +42,15 @@ export const TaskEditorDescription = ({ task, readOnly = false }: DescriptionPro
         Description
       </label>
       {readOnly ? (
-        <div className="selectable min-h-24 w-full cursor-not-allowed whitespace-pre-wrap rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-700 dark:bg-surface-800 dark:text-surface-300">
-          {description || (
-            <span className="text-surface-400 dark:text-surface-500">No description</span>
-          )}
-        </div>
+        description ? (
+          <div className="selectable min-h-24 w-full cursor-not-allowed whitespace-pre-wrap rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-700 dark:bg-surface-800 dark:text-surface-300">
+            {description}
+          </div>
+        ) : (
+          <TaskEditorEmptyState icon={<FileX className="h-4 w-4 shrink-0" />}>
+            No description
+          </TaskEditorEmptyState>
+        )
       ) : (
         <ComposedTextarea
           ref={descriptionRef}

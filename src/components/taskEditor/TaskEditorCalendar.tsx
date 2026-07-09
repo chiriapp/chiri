@@ -1,4 +1,6 @@
+import CalendarOff from 'lucide-react/icons/calendar-off';
 import FolderSync from 'lucide-react/icons/folder-sync';
+import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import { getIconByName } from '$constants/icons';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Account, Task } from '$types';
@@ -46,11 +48,15 @@ export const TaskEditorCalendar = ({
           <FolderSync className="h-4 w-4" />
           Calendar
         </div>
-        <div className="w-full cursor-not-allowed rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-700 dark:bg-surface-800 dark:text-surface-300">
-          {accountLabel || calendarLabel
-            ? [accountLabel, calendarLabel].filter(Boolean).join(' / ')
-            : 'No calendar'}
-        </div>
+        {accountLabel || calendarLabel ? (
+          <div className="w-full cursor-not-allowed rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-700 dark:bg-surface-800 dark:text-surface-300">
+            {[accountLabel, calendarLabel].filter(Boolean).join(' / ')}
+          </div>
+        ) : (
+          <TaskEditorEmptyState icon={<CalendarOff className="h-4 w-4 shrink-0" />}>
+            No calendar
+          </TaskEditorEmptyState>
+        )}
       </div>
     );
   }
