@@ -107,6 +107,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     ntfyServerUrl,
     mozillaAutopushWebsocketUrl,
     mozillaAutopushEndpointUrl,
+    setEnablePush,
     setPushProvider,
   } = useSettingsStore();
   const { isResolvingKUnifiedPush, kunifiedPushAllowed, pushProviderConfig } =
@@ -124,6 +125,16 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
 
   // keep accounts ref in sync
   accountsRef.current = accounts;
+
+  const hasCalDAVAccounts = accounts.some((account) => account.caldav);
+
+  // disable push when no CalDAV accounts remain; the feature is a no-op without them
+  useEffect(() => {
+    if (enablePush && !hasCalDAVAccounts) {
+      log.info('Disabling WebDAV Push: no CalDAV accounts remain');
+      setEnablePush(false);
+    }
+  }, [enablePush, hasCalDAVAccounts, setEnablePush]);
 
   const pushSubscriptionTargetKey = useMemo(
     () => getPushSubscriptionTargetKey(accounts),

@@ -4,12 +4,14 @@ import ExternalLink from 'lucide-react/icons/external-link';
 import Info from 'lucide-react/icons/info';
 import Loader2 from 'lucide-react/icons/loader-2';
 import Play from 'lucide-react/icons/play';
+import TriangleAlert from 'lucide-react/icons/triangle-alert';
 import XCircle from 'lucide-react/icons/x-circle';
 import { useEffect, useRef, useState } from 'react';
 import { Select } from '$components/Select';
 import { PushOperationalControls } from '$components/settings/PushSettings/PushOperationalControls';
 import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/push/usePushProviderAvailability';
+import { useAccounts } from '$hooks/queries/useAccounts';
 import {
   DEFAULT_MOZILLA_AUTOPUSH_ENDPOINT_URL,
   DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL,
@@ -116,6 +118,10 @@ export const PushSettings = () => {
     setMozillaAutopushEndpointUrl,
     NTFY_SERVER_URL_DEBOUNCE_MS,
   );
+  const { data: accounts = [] } = useAccounts();
+  const hasCalDAVAccounts = accounts.some((account) => account.caldav);
+  const pushGated = !hasCalDAVAccounts;
+
   const {
     availability: providerAvailability,
     availabilityMetadata: providerAvailabilityMetadata,
@@ -171,7 +177,9 @@ export const PushSettings = () => {
         </div>
       </div>
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
-        <label className="flex items-center justify-between p-4">
+        <label
+          className={`flex items-center justify-between p-4 ${pushGated ? 'cursor-not-allowed opacity-50' : ''}`}
+        >
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">
               Enable WebDAV Push (experimental)
@@ -183,12 +191,20 @@ export const PushSettings = () => {
           <input
             type="checkbox"
             checked={enablePush}
+            disabled={pushGated}
             onChange={(e) => setEnablePush(e.target.checked)}
-            className="rounded border-surface-300 outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-surface-600"
+            className="rounded border-surface-300 outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed dark:border-surface-600"
           />
         </label>
 
-        {enablePush && (
+        {pushGated && (
+          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-surface-700 text-xs dark:text-surface-300">
+            <TriangleAlert className="mt-px size-3.5 shrink-0 text-semantic-warning" />
+            <span>Add a CalDAV account first to use WebDAV Push.</span>
+          </div>
+        )}
+
+        {enablePush && !pushGated && (
           <>
             <div className="border-surface-200 border-t dark:border-surface-700" />
 
