@@ -161,7 +161,6 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     initializedRef.current = true;
 
     initializePushManager(handlePushMessage);
-    log.info('Push manager initialized');
   }, [handlePushMessage]);
 
   useEffect(() => {
