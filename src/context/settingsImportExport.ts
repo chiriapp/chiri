@@ -131,6 +131,8 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'enablePush',
       'pushProvider',
       'ntfyServerUrl',
+      'mozillaAutopushWebsocketUrl',
+      'mozillaAutopushEndpointUrl',
       'hasSeenRecentlyDeletedToast',
     ];
 

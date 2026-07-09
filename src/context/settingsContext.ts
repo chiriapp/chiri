@@ -376,6 +376,10 @@ export const settingsStore = {
   setEnablePush: (enablePush: boolean) => setState({ enablePush }),
   setPushProvider: (pushProvider: PushProviderId) => setState({ pushProvider }),
   setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),
+  setMozillaAutopushWebsocketUrl: (mozillaAutopushWebsocketUrl: string) =>
+    setState({ mozillaAutopushWebsocketUrl }),
+  setMozillaAutopushEndpointUrl: (mozillaAutopushEndpointUrl: string) =>
+    setState({ mozillaAutopushEndpointUrl }),
   setHasSeenRecentlyDeletedToast: (hasSeenRecentlyDeletedToast: boolean) =>
     setState({ hasSeenRecentlyDeletedToast }),
 

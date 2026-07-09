@@ -379,6 +379,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
   const setNtfyServerUrl = useCallback((url: string) => settingsStore.setNtfyServerUrl(url), []);
+  const setMozillaAutopushWebsocketUrl = useCallback(
+    (url: string) => settingsStore.setMozillaAutopushWebsocketUrl(url),
+    [],
+  );
+  const setMozillaAutopushEndpointUrl = useCallback(
+    (url: string) => settingsStore.setMozillaAutopushEndpointUrl(url),
+    [],
+  );
   const setHasSeenRecentlyDeletedToast = useCallback(
     (seen: boolean) => settingsStore.setHasSeenRecentlyDeletedToast(seen),
     [],
@@ -483,6 +491,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setEnablePush,
     setPushProvider,
     setNtfyServerUrl,
+    setMozillaAutopushWebsocketUrl,
+    setMozillaAutopushEndpointUrl,
     setHasSeenRecentlyDeletedToast,
     exportSettings,
     importSettings,

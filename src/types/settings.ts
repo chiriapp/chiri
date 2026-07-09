@@ -177,6 +177,8 @@ export interface SettingsState {
   enablePush: boolean;
   pushProvider: PushProviderId;
   ntfyServerUrl: string;
+  mozillaAutopushWebsocketUrl: string;
+  mozillaAutopushEndpointUrl: string;
   hasSeenRecentlyDeletedToast: boolean;
 }
 
@@ -276,6 +278,8 @@ interface SettingsActions {
   setEnablePush: (enabled: boolean) => void;
   setPushProvider: (provider: PushProviderId) => void;
   setNtfyServerUrl: (url: string) => void;
+  setMozillaAutopushWebsocketUrl: (url: string) => void;
+  setMozillaAutopushEndpointUrl: (url: string) => void;
   setHasSeenRecentlyDeletedToast: (seen: boolean) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;

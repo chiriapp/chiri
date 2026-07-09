@@ -2,9 +2,22 @@ import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import type { PushSubscriptionRow } from '$types/database';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,
+  MOZILLA_AUTOPUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
+  type PushProviderId,
   type PushSubscription,
 } from '$types/push';
+
+const normalizePushProviderId = (providerId: string | null): PushProviderId => {
+  switch (providerId) {
+    case KUNIFIED_PUSH_PROVIDER_ID:
+      return KUNIFIED_PUSH_PROVIDER_ID;
+    case MOZILLA_AUTOPUSH_PROVIDER_ID:
+      return MOZILLA_AUTOPUSH_PROVIDER_ID;
+    default:
+      return NTFY_DIRECT_PROVIDER_ID;
+  }
+};
 
 /**
  * convert database row to PushSubscription
@@ -15,12 +28,10 @@ const rowToSubscription = (row: PushSubscriptionRow): PushSubscription => ({
   accountId: row.account_id,
   registrationUrl: row.registration_url,
   pushResource: row.push_resource,
-  providerId:
-    row.provider_id === KUNIFIED_PUSH_PROVIDER_ID
-      ? KUNIFIED_PUSH_PROVIDER_ID
-      : NTFY_DIRECT_PROVIDER_ID,
+  providerId: normalizePushProviderId(row.provider_id),
   providerToken: row.provider_token || undefined,
   providerDistributor: row.provider_distributor || undefined,
+  providerMetadata: row.provider_metadata || undefined,
   expiresAt: new Date(row.expires_at),
   createdAt: new Date(row.created_at),
 });
@@ -52,8 +63,8 @@ export const upsertPushSubscription = async (
   subscription: PushSubscription,
 ) => {
   await conn.execute(
-    `INSERT OR REPLACE INTO push_subscriptions (id, calendar_id, account_id, registration_url, push_resource, provider_id, provider_token, provider_distributor, expires_at, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+    `INSERT OR REPLACE INTO push_subscriptions (id, calendar_id, account_id, registration_url, push_resource, provider_id, provider_token, provider_distributor, provider_metadata, expires_at, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
     [
       subscription.id,
       subscription.calendarId,
@@ -63,6 +74,7 @@ export const upsertPushSubscription = async (
       subscription.providerId,
       subscription.providerToken || null,
       subscription.providerDistributor || null,
+      subscription.providerMetadata || null,
       subscription.expiresAt.toISOString(),
       subscription.createdAt.toISOString(),
     ],

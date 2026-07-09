@@ -50,6 +50,7 @@ pub fn run() {
         )
         .manage(tray::TrayState::default())
         .manage(push::maintenance::PushMaintenanceState::default())
+        .manage(push::autopush::MozillaAutopushState::default())
         .manage(push::ntfy::NtfySseState::default());
 
     #[cfg(target_os = "linux")]
@@ -96,6 +97,13 @@ pub fn run() {
             push::ntfy::stop_ntfy_sse_listener,
             push::maintenance::start_webdav_push_maintenance,
             push::maintenance::stop_webdav_push_maintenance,
+            push::autopush::mozilla_autopush_available,
+            push::autopush::mozilla_autopush_register,
+            push::autopush::mozilla_autopush_restore,
+            push::autopush::mozilla_autopush_unregister,
+            push::autopush::start_mozilla_autopush_listener,
+            push::autopush::stop_all_mozilla_autopush_listeners,
+            push::autopush::stop_mozilla_autopush_listener,
             tray::commands::get_tray_enabled,
             tray::commands::initialize_tray,
             tray::commands::set_tray_visible,

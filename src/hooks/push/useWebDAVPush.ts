@@ -21,6 +21,7 @@ import {
   restorePushListeners,
   stopAllPushSubscriptions,
 } from '$lib/push';
+import { getPushProviderConfigKey } from '$lib/push/providers';
 import type { Account } from '$types';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,
@@ -100,9 +101,21 @@ interface UseWebDAVPushProps {
  */
 export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushProps) => {
   const { data: accounts = [] } = useAccounts();
-  const { enablePush, pushProvider, ntfyServerUrl, setPushProvider } = useSettingsStore();
+  const {
+    enablePush,
+    pushProvider,
+    ntfyServerUrl,
+    mozillaAutopushWebsocketUrl,
+    mozillaAutopushEndpointUrl,
+    setPushProvider,
+  } = useSettingsStore();
   const { isResolvingKUnifiedPush, kunifiedPushAllowed, pushProviderConfig } =
-    usePushProviderConfigState(pushProvider, ntfyServerUrl);
+    usePushProviderConfigState(
+      pushProvider,
+      ntfyServerUrl,
+      mozillaAutopushWebsocketUrl,
+      mozillaAutopushEndpointUrl,
+    );
   const initializedRef = useRef(false);
   const restoreCompletedRef = useRef(false);
   const lastPushSetupKeyRef = useRef<string | null>(null);
@@ -117,7 +130,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     [accounts],
   );
   const pushProviderConfigKey = useMemo(
-    () => `${pushProviderConfig.providerId}|${pushProviderConfig.ntfyConfig?.serverUrl ?? ''}`,
+    () => getPushProviderConfigKey(pushProviderConfig),
     [pushProviderConfig],
   );
   const previousPushProviderConfigKeyRef = useRef(pushProviderConfigKey);
