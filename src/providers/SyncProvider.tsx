@@ -61,6 +61,8 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    initialSyncTriggeredRef.current = true;
+
     const accounts = getAllAccounts();
     const syncOnStartup = settingsStore.getState().syncOnStartup;
 
@@ -73,8 +75,6 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
       log.debug('Initial sync skipped - sync on startup disabled in settings');
       return;
     }
-
-    initialSyncTriggeredRef.current = true;
 
     // wait for React to finish render cycle and browser to paint
     requestAnimationFrame(() => {
