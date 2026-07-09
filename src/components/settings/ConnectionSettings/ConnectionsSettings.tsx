@@ -130,6 +130,7 @@ export const ConnectionsSettings = ({
         <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">
           Connections
         </h3>
+
         <div className="flex items-center gap-2">
           <button
             type="button"

@@ -98,6 +98,7 @@ export const NotificationSettings = () => {
                   className="rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed"
                 />
               </label>
+
               <label
                 className={`flex items-center justify-between ${macPermissionPending ? 'cursor-not-allowed opacity-50' : ''}`}
               >
@@ -174,6 +175,7 @@ export const NotificationSettings = () => {
                   {formatHour(quietHoursStart, use24h)}
                 </button>
               </div>
+
               <div className="flex items-center justify-between">
                 <p className="text-sm text-surface-600 dark:text-surface-400">Until</p>
                 <button
