@@ -149,8 +149,12 @@ class Database {
     this.notify();
   }
 
-  async deleteExpiredRecentlyDeletedTasks(now?: Date) {
-    const count = await taskOps.deleteExpiredRecentlyDeletedTasks(await this.conn(), now);
+  async deleteExpiredRecentlyDeletedTasks(now?: Date, retentionDays?: number) {
+    const count = await taskOps.deleteExpiredRecentlyDeletedTasks(
+      await this.conn(),
+      now,
+      retentionDays,
+    );
     if (count > 0) this.notify();
     return count;
   }

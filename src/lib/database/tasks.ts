@@ -388,8 +388,9 @@ export const permanentlyDeleteTask = async (
 export const deleteExpiredRecentlyDeletedTasks = async (
   conn: DatabasePlugin,
   now: Date = new Date(),
+  retentionDays?: number,
 ) => {
-  const cutoff = getRecentlyDeletedRetentionCutoff(now).toISOString();
+  const cutoff = getRecentlyDeletedRetentionCutoff(now, retentionDays).toISOString();
   const expiredTasks = await conn.select<Array<{ id: string; uid: string }>>(
     'SELECT id, uid FROM tasks WHERE deleted_at IS NOT NULL AND deleted_at <= $1',
     [cutoff],

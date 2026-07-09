@@ -525,14 +525,21 @@ export const permanentlyDeleteTask = (id: string, deleteChildren: boolean = true
 };
 
 export const deleteExpiredRecentlyDeletedTasks = (now: Date = new Date()) => {
+  const { autoEmptyRecentlyDeleted, recentlyDeletedRetentionDays } = settingsStore.getState();
+  if (!autoEmptyRecentlyDeleted) {
+    return 0;
+  }
+
   const data = dataStore.load();
-  const expiredTasks = data.tasks.filter((task) => isExpiredRecentlyDeletedTask(task, now));
+  const expiredTasks = data.tasks.filter((task) =>
+    isExpiredRecentlyDeletedTask(task, now, recentlyDeletedRetentionDays),
+  );
 
   if (expiredTasks.length === 0) {
     return 0;
   }
 
-  db.deleteExpiredRecentlyDeletedTasks(now).catch((e) =>
+  db.deleteExpiredRecentlyDeletedTasks(now, recentlyDeletedRetentionDays).catch((e) =>
     log.error('Failed to persist expired recently deleted cleanup:', e),
   );
 
