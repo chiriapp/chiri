@@ -31,6 +31,8 @@ export type SyncTrigger =
 
 let syncOwnerInstanceId: string | null = null;
 let syncRunInProgress = false;
+let hasLoggedSyncOwnerClaim = false;
+let hasLoggedSyncOwnerRelease = false;
 let syncRunCounter = 0;
 let syncHookInstanceCounter = 0;
 let activeSyncRun: { id: number; source: string } | null = null;
@@ -83,7 +85,10 @@ export const useSyncQuery = () => {
   const ensureSyncOwner = useCallback(() => {
     if (!syncOwnerInstanceId) {
       syncOwnerInstanceId = instanceIdRef.current;
-      log.debug('Sync effect owner claimed', { owner: syncOwnerInstanceId });
+      if (!hasLoggedSyncOwnerClaim) {
+        log.debug('Sync effect owner claimed', { owner: syncOwnerInstanceId });
+        hasLoggedSyncOwnerClaim = true;
+      }
     }
 
     return syncOwnerInstanceId === instanceIdRef.current;
@@ -254,7 +259,10 @@ export const useSyncQuery = () => {
     return () => {
       if (syncOwnerInstanceId === instanceIdRef.current) {
         syncOwnerInstanceId = null;
-        log.debug('Sync effect owner released', { owner: instanceIdRef.current });
+        if (!hasLoggedSyncOwnerRelease) {
+          log.debug('Sync effect owner released', { owner: instanceIdRef.current });
+          hasLoggedSyncOwnerRelease = true;
+        }
       }
     };
   }, []);
