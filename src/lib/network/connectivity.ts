@@ -127,6 +127,7 @@ export const runConnectivityCheck = async ({
   const startedAt = Date.now();
   const attempts: ConnectivityProbeAttempt[] = [];
   const pendingLogs: string[] = [];
+  let fallbackUrl: string | null = null;
   const accounts = getAllAccounts().filter((account) => account.isActive && account.caldav);
 
   const publishAndMaybeLog = (result: ConnectivityCheckResult) => {
@@ -137,7 +138,8 @@ export const runConnectivityCheck = async ({
       for (const message of pendingLogs) {
         log.debug(message);
       }
-      log.debug(`Connectivity check: ${result.online ? 'online' : 'offline'}`);
+      const fallbackSuffix = fallbackUrl ? ` (fallback: ${fallbackUrl})` : '';
+      log.debug(`Connectivity check: ${result.online ? 'online' : 'offline'}${fallbackSuffix}`);
     }
     publishConnectivityCheckResult(result);
   };
@@ -189,14 +191,13 @@ export const runConnectivityCheck = async ({
 
     const customTiebreakerUrl = settingsStore.getState().connectivityCheckUrl.trim();
     const externalFallbackType: ExternalFallbackType = customTiebreakerUrl ? 'custom' : 'default';
-    const tiebreakerUrl = customTiebreakerUrl || DEFAULT_CONNECTIVITY_CHECK_URL;
+    fallbackUrl = customTiebreakerUrl || DEFAULT_CONNECTIVITY_CHECK_URL;
     const externalFallbackLabel =
       externalFallbackType === 'default' ? 'Default external fallback' : 'Custom external fallback';
-    pendingLogs.push(`Falling back to tiebreaker: ${tiebreakerUrl}`);
     const externalAttempt = await tryUrl(
       'external',
       externalFallbackLabel,
-      tiebreakerUrl,
+      fallbackUrl,
       signal,
       requestTimeoutMs,
     );
