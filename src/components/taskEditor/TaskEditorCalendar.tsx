@@ -1,5 +1,6 @@
 import CalendarOff from 'lucide-react/icons/calendar-off';
 import FolderSync from 'lucide-react/icons/folder-sync';
+import AlertTriangle from 'lucide-react/icons/triangle-alert';
 import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import { getIconByName } from '$constants/icons';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
@@ -103,18 +104,19 @@ export const TaskEditorCalendar = ({
             </span>
           </button>
           {task.parentUid && (
-            <p className="mt-3 rounded-md border border-semantic-warning/30 bg-semantic-warning/10 p-2 text-surface-700 text-xs dark:text-surface-200">
-              Changing the calendar will convert this subtask to a regular task.
-            </p>
+            <div className="mt-3 flex items-start gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-sm text-surface-700 dark:text-surface-300">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0 text-semantic-warning" />
+              <span>Changing the calendar will convert this subtask to a regular task.</span>
+            </div>
           )}
         </>
       ) : (
-        <div
-          className="w-full cursor-not-allowed rounded-lg border border-surface-200 bg-surface-100 px-3 py-2 text-sm text-surface-400 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-500"
+        <TaskEditorEmptyState
+          icon={<CalendarOff className="h-4 w-4 shrink-0" />}
           title="Add a CalDAV account to assign tasks to calendars"
         >
           No calendars available
-        </div>
+        </TaskEditorEmptyState>
       )}
     </div>
   );
