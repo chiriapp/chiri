@@ -21,8 +21,12 @@ export const SystemSettings = () => {
   const {
     enableSystemTray,
     setEnableSystemTray,
+    showWindowOnNormalLaunch,
+    setShowWindowOnNormalLaunch,
     showWindowOnLoginLaunch,
     setShowWindowOnLoginLaunch,
+    restoreWindowState,
+    setRestoreWindowState,
     hideDockIconWhenWindowClosed,
     setHideDockIconWhenWindowClosed,
     confirmBeforeQuit,
@@ -51,6 +55,7 @@ export const SystemSettings = () => {
       ? 'text-primary-500 dark:text-primary-400'
       : 'text-surface-500 dark:text-surface-400';
   const startQuietlyAtLoginDisabled = autostart.enabled !== true || !enableSystemTray;
+  const startHiddenOnNormalLaunchDisabled = !enableSystemTray;
 
   const handleSystemTrayChange = (checked: boolean) => {
     setEnableSystemTray(checked);
@@ -157,6 +162,47 @@ export const SystemSettings = () => {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+        <label
+          className={`flex items-center justify-between gap-4 ${startHiddenOnNormalLaunchDisabled ? 'cursor-not-allowed opacity-50' : ''} p-4`}
+        >
+          <div className="min-w-0">
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              Start hidden on normal launch
+            </p>
+            <p className="text-surface-500 text-xs dark:text-surface-400">
+              Open quietly in the tray. Requires system tray to be enabled.
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={!showWindowOnNormalLaunch}
+            disabled={startHiddenOnNormalLaunchDisabled}
+            onChange={(e) => setShowWindowOnNormalLaunch(!e.target.checked)}
+            className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </label>
+
+        <div className="border-surface-200 border-t dark:border-surface-700" />
+
+        <label className="flex items-center justify-between p-4">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              Restore window size and position
+            </p>
+            <p className="text-surface-500 text-xs dark:text-surface-400">
+              Reopen Chiri where you left it
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={restoreWindowState}
+            onChange={(e) => setRestoreWindowState(e.target.checked)}
+            className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          />
+        </label>
       </div>
 
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">

@@ -37,9 +37,11 @@ const SYNC_SOURCE_LABELS: Record<string, string> = {
   'tray-sync': 'manually',
   'keyboard-shortcut': 'manually',
   'app-menu': 'manually',
+  'settings-sync-button': 'manually',
   'auto-interval': 'automatically',
   'startup-initial': 'on startup',
   'auto-reconnect': 'on reconnect',
+  'webdav-push': 'from WebDAV Push',
 };
 
 // extracted helper: get sync button tooltip content

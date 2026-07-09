@@ -36,6 +36,7 @@ import {
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { Account, Calendar, Tag, Task } from '$types';
 import type { Filter } from '$types/filter';
+import type { SidebarSectionKey } from '$types/settings';
 
 interface SidebarCollapsedViewProps {
   accounts: Account[];
@@ -52,6 +53,11 @@ interface SidebarCollapsedViewProps {
   accountsSectionCollapsed: boolean;
   filtersSectionCollapsed: boolean;
   tagsSectionCollapsed: boolean;
+  showLocalSection: boolean;
+  showAccountsSection: boolean;
+  showFiltersSection: boolean;
+  showTagsSection: boolean;
+  sidebarSectionOrder: SidebarSectionKey[];
   updateAvailable?: boolean;
   importShortcut?: string;
   settingsShortcut?: string;
@@ -132,6 +138,11 @@ export const SidebarCollapsedView = ({
   accountsSectionCollapsed,
   filtersSectionCollapsed,
   tagsSectionCollapsed,
+  showLocalSection,
+  showAccountsSection,
+  showFiltersSection,
+  showTagsSection,
+  sidebarSectionOrder,
   updateAvailable,
   importShortcut,
   settingsShortcut,
@@ -164,6 +175,13 @@ export const SidebarCollapsedView = ({
   const [isDraggingTags, setIsDraggingTags] = useState(false);
   const isAnyCollapsedItemDragging =
     isDraggingFilters || isDraggingAccounts || draggingCalendarAccountId !== null || isDraggingTags;
+  const getCollapsedSectionOrder = (...sections: SidebarSectionKey[]) => {
+    const indexes = sections
+      .map((section) => sidebarSectionOrder.indexOf(section))
+      .filter((index) => index !== -1);
+
+    return indexes.length > 0 ? 10 + Math.min(...indexes) : 10 + sidebarSectionOrder.length;
+  };
 
   const restrictDragToBounds = useCallback(
     (boundsRef: RefObject<HTMLDivElement | null>): Modifier =>
@@ -345,13 +363,21 @@ export const SidebarCollapsedView = ({
           </button>
         </Tooltip>
 
-        {!filtersSectionCollapsed && filters.length > 0 && (
-          <div className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700" />
+        {showFiltersSection && !filtersSectionCollapsed && filters.length > 0 && (
+          <div
+            className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700"
+            style={{ order: getCollapsedSectionOrder('filters') }}
+          />
         )}
 
-        {!filtersSectionCollapsed &&
+        {showFiltersSection &&
+          !filtersSectionCollapsed &&
           (sortedFilters.length > 0 ? (
-            <div ref={filtersDragBoundsRef} className="flex flex-col items-center gap-1">
+            <div
+              ref={filtersDragBoundsRef}
+              className="flex flex-col items-center gap-1"
+              style={{ order: getCollapsedSectionOrder('filters') }}
+            >
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
@@ -419,148 +445,163 @@ export const SidebarCollapsedView = ({
             </div>
           ) : null)}
 
-        <div ref={accountsDragBoundsRef} className="flex w-full flex-col items-center gap-1">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            modifiers={[restrictAccountDragToSection]}
-            onDragStart={() => setIsDraggingAccounts(true)}
-            onDragEnd={handleAccountDragEnd}
-            onDragCancel={() => setIsDraggingAccounts(false)}
+        {(showLocalSection || showAccountsSection) && (
+          <div
+            ref={accountsDragBoundsRef}
+            className="flex w-full flex-col items-center gap-1"
+            style={{ order: getCollapsedSectionOrder('local', 'accounts') }}
           >
-            <SortableContext
-              items={sortedAccounts
-                .filter(
-                  (a) =>
-                    (!a.caldav && !localSectionCollapsed) ||
-                    (a.caldav && !accountsSectionCollapsed),
-                )
-                .map((account) => account.id)}
-              strategy={verticalListSortingStrategy}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              modifiers={[restrictAccountDragToSection]}
+              onDragStart={() => setIsDraggingAccounts(true)}
+              onDragEnd={handleAccountDragEnd}
+              onDragCancel={() => setIsDraggingAccounts(false)}
             >
-              {sortedAccounts
-                .filter(
-                  (a) =>
-                    (!a.caldav && !localSectionCollapsed) ||
-                    (a.caldav && !accountsSectionCollapsed),
-                )
-                .map((account) => {
-                  const sortedCalendars = getSortedCalendars(account.calendars);
-                  const isAccountSortable = accountSortConfig.mode === 'manual' && !!account.caldav;
-                  if (sortedCalendars.length === 0) return null;
+              <SortableContext
+                items={sortedAccounts
+                  .filter(
+                    (a) =>
+                      (!a.caldav && showLocalSection && !localSectionCollapsed) ||
+                      (a.caldav && showAccountsSection && !accountsSectionCollapsed),
+                  )
+                  .map((account) => account.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {sortedAccounts
+                  .filter(
+                    (a) =>
+                      (!a.caldav && showLocalSection && !localSectionCollapsed) ||
+                      (a.caldav && showAccountsSection && !accountsSectionCollapsed),
+                  )
+                  .map((account) => {
+                    const sortedCalendars = getSortedCalendars(account.calendars);
+                    const isAccountSortable =
+                      accountSortConfig.mode === 'manual' && !!account.caldav;
+                    if (sortedCalendars.length === 0) return null;
 
-                  return (
-                    <div key={account.id} className="flex w-full flex-col items-center gap-1">
-                      <CollapsedSortableItem
-                        id={account.id}
-                        sortable={isAccountSortable}
-                        isAnyDragging={isDraggingAccounts}
-                      >
-                        {(dragHandleProps) => (
-                          <button
-                            type="button"
-                            data-context-menu
-                            aria-label={`${account.name} account`}
-                            onContextMenu={(e) => onContextMenu(e, 'account', account.id)}
-                            className={`my-1 h-px w-8 shrink-0 rounded-full bg-surface-200 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:bg-surface-700 ${
-                              isAccountSortable
-                                ? 'cursor-grab hover:h-1 hover:bg-surface-300 active:cursor-grabbing dark:hover:bg-surface-600'
-                                : ''
-                            }`}
-                            {...dragHandleProps}
-                          />
-                        )}
-                      </CollapsedSortableItem>
-
-                      <DndContext
-                        sensors={sensors}
-                        collisionDetection={closestCenter}
-                        modifiers={[restrictAccountDragToSection]}
-                        onDragStart={() => setDraggingCalendarAccountId(account.id)}
-                        onDragEnd={(event) => handleCalendarDragEnd(account.id, event)}
-                        onDragCancel={() => setDraggingCalendarAccountId(null)}
-                      >
-                        <SortableContext
-                          items={sortedCalendars.map((calendar) => calendar.id)}
-                          strategy={verticalListSortingStrategy}
+                    return (
+                      <div key={account.id} className="flex w-full flex-col items-center gap-1">
+                        <CollapsedSortableItem
+                          id={account.id}
+                          sortable={isAccountSortable}
+                          isAnyDragging={isDraggingAccounts}
                         >
-                          {sortedCalendars.map((calendar) => {
-                            const CalendarIcon = getIconByName(calendar.icon ?? 'calendar');
-                            const isActive = activeCalendarId === calendar.id;
-                            const calendarColor = calendar.color
-                              ? resolveAccent(calendar.color)
-                              : resolvedAccentColor;
-                            return (
-                              <Tooltip
-                                key={calendar.id}
-                                content={
-                                  <SidebarCollapsedItemTooltip
-                                    name={calendar.displayName}
-                                    type="Calendar"
-                                  />
-                                }
-                                position="right"
-                                disabled={isAnyCollapsedItemDragging}
-                              >
-                                <CollapsedSortableItem
-                                  id={calendar.id}
-                                  sortable={calendarSortConfig.mode === 'manual'}
-                                  isAnyDragging={draggingCalendarAccountId === account.id}
-                                >
-                                  {(dragHandleProps) => (
-                                    <button
-                                      type="button"
-                                      data-context-menu
-                                      aria-label={`${calendar.displayName} calendar`}
-                                      onClick={() => onSelectCalendar(account.id, calendar.id)}
-                                      onContextMenu={(e) =>
-                                        onContextMenu(e, 'calendar', calendar.id, account.id)
-                                      }
-                                      className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                                        isActive
-                                          ? 'bg-surface-200 dark:bg-surface-700'
-                                          : contextMenu?.type === 'calendar' &&
-                                              contextMenu.id === calendar.id
-                                            ? 'bg-surface-200 dark:bg-surface-700'
-                                            : 'hover:bg-surface-200 dark:hover:bg-surface-700'
-                                      }`}
-                                      {...dragHandleProps}
-                                    >
-                                      {calendar.emoji ? (
-                                        <span
-                                          className="text-base leading-none"
-                                          style={{ color: calendarColor }}
-                                        >
-                                          {calendar.emoji}
-                                        </span>
-                                      ) : (
-                                        <CalendarIcon
-                                          className="h-5 w-5"
-                                          style={{ color: calendarColor }}
-                                        />
-                                      )}
-                                    </button>
-                                  )}
-                                </CollapsedSortableItem>
-                              </Tooltip>
-                            );
-                          })}
-                        </SortableContext>
-                      </DndContext>
-                    </div>
-                  );
-                })}
-            </SortableContext>
-          </DndContext>
-        </div>
+                          {(dragHandleProps) => (
+                            <button
+                              type="button"
+                              data-context-menu
+                              aria-label={`${account.name} account`}
+                              onContextMenu={(e) => onContextMenu(e, 'account', account.id)}
+                              className={`my-1 h-px w-8 shrink-0 rounded-full bg-surface-200 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:bg-surface-700 ${
+                                isAccountSortable
+                                  ? 'cursor-grab hover:h-1 hover:bg-surface-300 active:cursor-grabbing dark:hover:bg-surface-600'
+                                  : ''
+                              }`}
+                              {...dragHandleProps}
+                            />
+                          )}
+                        </CollapsedSortableItem>
 
-        {!tagsSectionCollapsed && tags.length > 0 && (
-          <div className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700" />
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          modifiers={[restrictAccountDragToSection]}
+                          onDragStart={() => setDraggingCalendarAccountId(account.id)}
+                          onDragEnd={(event) => handleCalendarDragEnd(account.id, event)}
+                          onDragCancel={() => setDraggingCalendarAccountId(null)}
+                        >
+                          <SortableContext
+                            items={sortedCalendars.map((calendar) => calendar.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {sortedCalendars.map((calendar) => {
+                              const CalendarIcon = getIconByName(calendar.icon ?? 'calendar');
+                              const isActive = activeCalendarId === calendar.id;
+                              const calendarColor = calendar.color
+                                ? resolveAccent(calendar.color)
+                                : resolvedAccentColor;
+                              return (
+                                <Tooltip
+                                  key={calendar.id}
+                                  content={
+                                    <SidebarCollapsedItemTooltip
+                                      name={calendar.displayName}
+                                      type="Calendar"
+                                    />
+                                  }
+                                  position="right"
+                                  disabled={isAnyCollapsedItemDragging}
+                                >
+                                  <CollapsedSortableItem
+                                    id={calendar.id}
+                                    sortable={calendarSortConfig.mode === 'manual'}
+                                    isAnyDragging={draggingCalendarAccountId === account.id}
+                                  >
+                                    {(dragHandleProps) => (
+                                      <button
+                                        type="button"
+                                        data-context-menu
+                                        aria-label={`${calendar.displayName} calendar`}
+                                        onClick={() => onSelectCalendar(account.id, calendar.id)}
+                                        onContextMenu={(e) =>
+                                          onContextMenu(e, 'calendar', calendar.id, account.id)
+                                        }
+                                        className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
+                                          isActive
+                                            ? 'bg-surface-200 dark:bg-surface-700'
+                                            : contextMenu?.type === 'calendar' &&
+                                                contextMenu.id === calendar.id
+                                              ? 'bg-surface-200 dark:bg-surface-700'
+                                              : 'hover:bg-surface-200 dark:hover:bg-surface-700'
+                                        }`}
+                                        {...dragHandleProps}
+                                      >
+                                        {calendar.emoji ? (
+                                          <span
+                                            className="text-base leading-none"
+                                            style={{ color: calendarColor }}
+                                          >
+                                            {calendar.emoji}
+                                          </span>
+                                        ) : (
+                                          <CalendarIcon
+                                            className="h-5 w-5"
+                                            style={{ color: calendarColor }}
+                                          />
+                                        )}
+                                      </button>
+                                    )}
+                                  </CollapsedSortableItem>
+                                </Tooltip>
+                              );
+                            })}
+                          </SortableContext>
+                        </DndContext>
+                      </div>
+                    );
+                  })}
+              </SortableContext>
+            </DndContext>
+          </div>
         )}
 
-        {!tagsSectionCollapsed &&
+        {showTagsSection && !tagsSectionCollapsed && tags.length > 0 && (
+          <div
+            className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700"
+            style={{ order: getCollapsedSectionOrder('tags') }}
+          />
+        )}
+
+        {showTagsSection &&
+          !tagsSectionCollapsed &&
           (sortedTags.length > 0 ? (
-            <div ref={tagsDragBoundsRef} className="flex flex-col items-center gap-1">
+            <div
+              ref={tagsDragBoundsRef}
+              className="flex flex-col items-center gap-1"
+              style={{ order: getCollapsedSectionOrder('tags') }}
+            >
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}

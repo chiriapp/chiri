@@ -28,7 +28,7 @@ import { AppearanceSettings } from '$components/settings/AppearanceSettings';
 import { ConnectionsSettings } from '$components/settings/ConnectionSettings/ConnectionsSettings';
 import { DataSettings } from '$components/settings/DataSettings';
 import { EditorSettings } from '$components/settings/EditorSettings/EditorSettings';
-import { NavigationSettings } from '$components/settings/NavigationSettings';
+import { NavigationSettings } from '$components/settings/NavigationSettings/NavigationSettings';
 import { NetworkSettings } from '$components/settings/NetworkSettings';
 import { NotificationSettings } from '$components/settings/NotificationSettings';
 import { PushSettings } from '$components/settings/PushSettings/PushSettings';

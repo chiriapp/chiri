@@ -25,6 +25,7 @@ interface SidebarTagsListProps {
   activeTagId: string | null;
   contextMenu: { type: string; id: string } | null;
   isAnyModalOpen: boolean;
+  showTaskCounts: boolean;
   tagsSectionCollapsed: boolean;
   onToggleTagsSection: () => void;
   onSelectTag: (tagId: string) => void;
@@ -46,6 +47,7 @@ export const SidebarTagsList = ({
   activeTagId,
   contextMenu,
   isAnyModalOpen,
+  showTaskCounts,
   tagsSectionCollapsed,
   onToggleTagsSection,
   onSelectTag,
@@ -96,6 +98,7 @@ export const SidebarTagsList = ({
       isAnyModalOpen,
       isAnyTagDragging,
       taskCount: getTagTaskCount(tag.id),
+      showTaskCount: showTaskCounts,
       onSelect: () => onSelectTag(tag.id),
       onContextMenu: (e: MouseEvent) => onContextMenu(e, 'tag', tag.id),
     };

@@ -22,6 +22,7 @@ interface SidebarCalendarListProps {
   contextMenu: { type: string; id: string; accountId?: string } | null;
   isAnyModalOpen: boolean;
   isAnyAccountDragging: boolean;
+  showTaskCounts: boolean;
   calendarSortConfig: CalendarSortConfig;
   onContextMenu: (e: MouseEvent, type: 'calendar', id: string, accountId: string) => void;
   onSelectCalendar: (accountId: string, calendarId: string) => void;
@@ -37,6 +38,7 @@ export const SidebarCalendarList = ({
   contextMenu,
   isAnyModalOpen,
   isAnyAccountDragging,
+  showTaskCounts,
   calendarSortConfig,
   onContextMenu,
   onSelectCalendar,
@@ -108,6 +110,7 @@ export const SidebarCalendarList = ({
       isAnyAccountDragging,
       isAnyCalendarDragging,
       taskCount: getTaskCount(calendar.id),
+      showTaskCount: showTaskCounts,
       calendarColor,
       onSelect: () => onSelectCalendar(account.id, calendar.id),
       onContextMenu: (e: MouseEvent) => onContextMenu(e, 'calendar', calendar.id, account.id),

@@ -22,6 +22,7 @@ const App = () => {
     syncingCalendarId,
     syncProgress,
     isOffline,
+    isReconnecting,
     lastSyncTime,
     lastSyncSource,
     syncAll,
@@ -97,6 +98,7 @@ const App = () => {
       disableSync={!hasCalDAVAccounts}
       isDragOver={isDragOver}
       isOffline={isOffline}
+      isReconnecting={isReconnecting}
       isSyncInProgress={isSyncInProgress}
       isUnsupportedFile={isUnsupportedFile}
       lastSyncSource={lastSyncSource}

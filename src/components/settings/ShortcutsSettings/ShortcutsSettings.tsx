@@ -145,8 +145,13 @@ export const ShortcutsSettings = ({
                   {group.label}
                 </h4>
                 <div className="overflow-hidden rounded-lg border border-surface-200 dark:border-surface-700">
-                  {group.shortcuts.map((shortcut) => (
-                    <ShortcutRow key={shortcut.id} shortcut={shortcut} onEdit={handleOpenEdit} />
+                  {group.shortcuts.map((shortcut, index) => (
+                    <ShortcutRow
+                      key={shortcut.id}
+                      shortcut={shortcut}
+                      onEdit={handleOpenEdit}
+                      isLast={index === group.shortcuts.length - 1}
+                    />
                   ))}
                 </div>
               </div>
