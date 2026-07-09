@@ -5,6 +5,8 @@ import { runConnectivityCheck } from '$lib/network/connectivity';
 
 const log = loggers.connectivity;
 
+let hasLoggedConnectivityStart = false;
+
 interface UseOfflineOptions {
   onOnline?: () => void;
   onOffline?: () => void;
@@ -84,7 +86,10 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
   }, [connectivityCheckEnabled, connectivityRequestTimeout, setOnline, setOffline]);
 
   useEffect(() => {
-    log.info(`Starting connectivity checks (interval: ${connectivityCheckInterval}s)`);
+    if (!hasLoggedConnectivityStart) {
+      log.info(`Starting connectivity checks (interval: ${connectivityCheckInterval}s)`);
+      hasLoggedConnectivityStart = true;
+    }
     runCheck();
 
     checkIntervalRef.current = window.setInterval(runCheck, connectivityCheckInterval * 1000);

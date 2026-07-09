@@ -126,7 +126,21 @@ export const runConnectivityCheck = async ({
   publishConnectivityCheckStatus();
   const startedAt = Date.now();
   const attempts: ConnectivityProbeAttempt[] = [];
+  const pendingLogs: string[] = [];
   const accounts = getAllAccounts().filter((account) => account.isActive && account.caldav);
+
+  const publishAndMaybeLog = (result: ConnectivityCheckResult) => {
+    const previous = lastConnectivityCheckResult;
+    const changed =
+      !previous || previous.online !== result.online || previous.source !== result.source;
+    if (changed) {
+      for (const message of pendingLogs) {
+        log.debug(message);
+      }
+      log.debug(`Connectivity check: ${result.online ? 'online' : 'offline'}`);
+    }
+    publishConnectivityCheckResult(result);
+  };
 
   try {
     for (const account of accounts) {
@@ -135,7 +149,7 @@ export const runConnectivityCheck = async ({
       attempts.push(attempt);
 
       if (attempt.ok) {
-        log.debug(`Reachable: ${serverUrl}`);
+        pendingLogs.push(`Reachable: ${serverUrl}`);
         const result: ConnectivityCheckResult = {
           checkedAt: new Date().toISOString(),
           durationMs: Date.now() - startedAt,
@@ -147,11 +161,11 @@ export const runConnectivityCheck = async ({
           attempts,
           message: `Reached ${account.name}.`,
         };
-        publishConnectivityCheckResult(result);
+        publishAndMaybeLog(result);
         return result;
       }
 
-      log.debug(`Probe failed: ${serverUrl}`);
+      pendingLogs.push(`Probe failed: ${serverUrl}`);
     }
 
     if (!externalCheckEnabled) {
@@ -169,7 +183,7 @@ export const runConnectivityCheck = async ({
             ? 'All CalDAV probes failed. External fallback is disabled.'
             : 'No active CalDAV accounts. External fallback is disabled.',
       };
-      publishConnectivityCheckResult(result);
+      publishAndMaybeLog(result);
       return result;
     }
 
@@ -178,7 +192,7 @@ export const runConnectivityCheck = async ({
     const tiebreakerUrl = customTiebreakerUrl || DEFAULT_CONNECTIVITY_CHECK_URL;
     const externalFallbackLabel =
       externalFallbackType === 'default' ? 'Default external fallback' : 'Custom external fallback';
-    log.debug(`Falling back to tiebreaker: ${tiebreakerUrl}`);
+    pendingLogs.push(`Falling back to tiebreaker: ${tiebreakerUrl}`);
     const externalAttempt = await tryUrl(
       'external',
       externalFallbackLabel,
@@ -201,8 +215,7 @@ export const runConnectivityCheck = async ({
         ? `${externalFallbackLabel} is reachable.`
         : `CalDAV probes and ${externalFallbackLabel.toLowerCase()} failed.`,
     };
-    publishConnectivityCheckResult(result);
-    log.debug(`Connectivity check: ${result.online ? 'online' : 'offline'}`);
+    publishAndMaybeLog(result);
     return result;
   } finally {
     activeConnectivityCheckCount = Math.max(0, activeConnectivityCheckCount - 1);
