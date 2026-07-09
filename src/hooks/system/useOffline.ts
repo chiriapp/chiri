@@ -1,8 +1,7 @@
-import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { settingsStore } from '$context/settingsContext';
 import { loggers } from '$lib/logger';
-import { getAllAccounts } from '$lib/store/accounts';
+import { runConnectivityCheck } from '$lib/network/connectivity';
 
 const log = loggers.connectivity;
 
@@ -11,69 +10,16 @@ interface UseOfflineOptions {
   onOffline?: () => void;
 }
 
-const REQUEST_TIMEOUT = 5000;
-
-export const DEFAULT_CONNECTIVITY_CHECK_URL = 'https://detectportal.firefox.com/success.txt';
-
-const tryUrl = async (url: string, signal: AbortSignal) => {
-  const response = await tauriFetch(url, {
-    method: 'GET',
-    signal: AbortSignal.any([signal, AbortSignal.timeout(REQUEST_TIMEOUT)]),
-  });
-  return response != null;
-};
-
-/**
- * 1. try each active CalDAV account. any response means we're online
- * 2. if all fail, hit a single external tiebreaker to distinguish
- *    "server(s) down" from "no network."
- * 3. no accounts configured → go straight to tiebreaker
- */
-const checkConnectivity = async (controller: AbortController, tiebreakerEnabled: boolean) => {
-  const accounts = getAllAccounts().filter((a) => a.isActive && a.caldav);
-
-  for (const account of accounts) {
-    const serverUrl = account.caldav!.serverUrl;
-    try {
-      if (await tryUrl(serverUrl, controller.signal)) {
-        log.debug(`Reachable: ${serverUrl}`);
-        return true;
-      }
-      log.debug(`Unreachable: ${serverUrl}`);
-    } catch (_) {
-      if (controller.signal.aborted) throw new Error('Aborted');
-      log.debug(`Probe failed: ${serverUrl}`);
-    }
-  }
-
-  if (!tiebreakerEnabled) {
-    log.debug('All CalDAV probes failed; tiebreaker disabled, assuming offline');
-    return false;
-  }
-
-  // all CalDAV probes failed (or no accounts): use tiebreaker
-  const tiebreakerUrl =
-    settingsStore.getState().connectivityCheckUrl || DEFAULT_CONNECTIVITY_CHECK_URL;
-  log.debug(`Falling back to tiebreaker: ${tiebreakerUrl}`);
-  try {
-    const result = await tryUrl(tiebreakerUrl, controller.signal);
-    log.debug(`Tiebreaker: ${result ? 'online' : 'offline'}`);
-    return result;
-  } catch (_) {
-    if (controller.signal.aborted) throw new Error('Aborted');
-    log.debug('Tiebreaker failed; offline');
-    return false;
-  }
-};
-
 export const useOffline = (options: UseOfflineOptions = {}) => {
-  const { connectivityCheckEnabled, connectivityCheckInterval } = useSyncExternalStore(
-    settingsStore.subscribe,
-    settingsStore.getSnapshot,
-    settingsStore.getSnapshot,
-  );
+  const { connectivityCheckEnabled, connectivityCheckInterval, connectivityRequestTimeout } =
+    useSyncExternalStore(
+      settingsStore.subscribe,
+      settingsStore.getSnapshot,
+      settingsStore.getSnapshot,
+    );
 
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isReconnecting, setIsReconnecting] = useState(false);
   const isOfflineRef = useRef(!navigator.onLine);
   const checkIntervalRef = useRef<number | null>(null);
   const isCheckingRef = useRef(false);
@@ -108,12 +54,21 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
   const runCheck = useCallback(async () => {
     if (isCheckingRef.current) return;
     isCheckingRef.current = true;
+    const showReconnecting = isOfflineRef.current;
+    if (showReconnecting) {
+      setIsReconnecting(true);
+    }
 
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
     try {
-      if (await checkConnectivity(controller, connectivityCheckEnabled)) {
+      const result = await runConnectivityCheck({
+        signal: controller.signal,
+        externalCheckEnabled: connectivityCheckEnabled,
+        requestTimeoutMs: connectivityRequestTimeout * 1000,
+      });
+      if (result.online) {
         setOnline();
       } else {
         setOffline();
@@ -122,8 +77,11 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
       // aborted, don't change state
     } finally {
       isCheckingRef.current = false;
+      if (showReconnecting) {
+        setIsReconnecting(false);
+      }
     }
-  }, [connectivityCheckEnabled, setOnline, setOffline]);
+  }, [connectivityCheckEnabled, connectivityRequestTimeout, setOnline, setOffline]);
 
   useEffect(() => {
     log.info(`Starting connectivity checks (interval: ${connectivityCheckInterval}s)`);
@@ -146,5 +104,5 @@ export const useOffline = (options: UseOfflineOptions = {}) => {
     };
   }, [runCheck, setOffline, connectivityCheckInterval]);
 
-  return { isOffline, isOfflineRef };
+  return { isOffline, isOfflineRef, isReconnecting };
 };

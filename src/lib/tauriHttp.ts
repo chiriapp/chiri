@@ -1,7 +1,14 @@
 import { invoke } from '@tauri-apps/api/core';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
+import {
+  DEFAULT_HTTP_PROXY_PORT,
+  DEFAULT_PROXY_HOST,
+  DEFAULT_SOCKS_PROXY_PORT,
+} from '$constants/settings';
+import { settingsStore } from '$context/settingsContext';
 import { buildDigestAuth, parseDigestChallenge } from '$lib/auth/digest';
 import { loggers } from '$lib/logger';
+import type { NetworkProxyMode } from '$types/settings';
 
 const log = loggers.http;
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -26,6 +33,12 @@ export interface HttpResponse {
   status: number;
   headers: Record<string, string>;
   body: string;
+}
+
+export interface HttpProxyConfig {
+  mode: NetworkProxyMode;
+  host?: string;
+  port?: number;
 }
 
 export interface CalDAVCredentials {
@@ -53,6 +66,37 @@ const getAuthHeader = (credentials: CalDAVCredentials, skipBasic: boolean) => {
   }
 
   return `Basic ${btoa(`${credentials.username}:${credentials.password}`)}`;
+};
+
+export const getNetworkProxyConfig = (): HttpProxyConfig => {
+  const { networkProxyMode, networkProxyHost, networkProxyPort } = settingsStore.getState();
+
+  if (networkProxyMode === 'http' || networkProxyMode === 'socks') {
+    const defaultPort =
+      networkProxyMode === 'socks' ? DEFAULT_SOCKS_PROXY_PORT : DEFAULT_HTTP_PROXY_PORT;
+    const parsedPort = Number(networkProxyPort);
+
+    return {
+      mode: networkProxyMode,
+      host: networkProxyHost.trim() || DEFAULT_PROXY_HOST,
+      port:
+        Number.isInteger(parsedPort) && parsedPort > 0 && parsedPort <= 65_535
+          ? parsedPort
+          : defaultPort,
+    };
+  }
+
+  return { mode: networkProxyMode };
+};
+
+const shouldUseRustHttp = (credentials: CalDAVCredentials, proxyConfig: HttpProxyConfig) => {
+  return (
+    credentials.acceptInvalidCerts ||
+    credentials.bearerToken ||
+    proxyConfig.mode === 'none' ||
+    proxyConfig.mode === 'http' ||
+    proxyConfig.mode === 'socks'
+  );
 };
 
 const getRequestHeaders = (
@@ -83,13 +127,17 @@ const sendHttpRequest = async (
   requestHeaders: Record<string, string>,
   body?: string,
 ) => {
-  if (credentials.acceptInvalidCerts || credentials.bearerToken) {
+  const proxyConfig = getNetworkProxyConfig();
+
+  if (shouldUseRustHttp(credentials, proxyConfig)) {
     return invoke<HttpResponse>('http_request', {
       url,
       method,
       headers: requestHeaders,
       body: body ?? null,
       acceptInvalidCerts: credentials.acceptInvalidCerts ?? false,
+      proxyConfig,
+      timeoutMs: REQUEST_TIMEOUT_MS,
     });
   }
 
