@@ -89,7 +89,6 @@ export const initializeApp = async () => {
   await applyMacDockIconPreference();
 
   // initialize system tray based on settings
-  log.debug('Initializing system tray...');
   const enableSystemTray = settingsStore.getState().enableSystemTray;
 
   try {
