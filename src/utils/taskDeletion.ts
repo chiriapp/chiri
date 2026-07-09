@@ -27,16 +27,29 @@ export const isDiscardableUntitledLocalDraft = (task: Task, allTasks: Task[] = [
   return task.createdAt.getTime() === task.modifiedAt.getTime();
 };
 
-export const getRecentlyDeletedExpirationDate = (deletedAt: Date) =>
-  new Date(deletedAt.getTime() + RECENTLY_DELETED_RETENTION_DAYS * MS_PER_DAY);
+export const getRecentlyDeletedExpirationDate = (
+  deletedAt: Date,
+  retentionDays = RECENTLY_DELETED_RETENTION_DAYS,
+) => new Date(deletedAt.getTime() + retentionDays * MS_PER_DAY);
 
-export const getRecentlyDeletedRetentionCutoff = (now: Date = new Date()) =>
-  new Date(now.getTime() - RECENTLY_DELETED_RETENTION_DAYS * MS_PER_DAY);
+export const getRecentlyDeletedRetentionCutoff = (
+  now: Date = new Date(),
+  retentionDays = RECENTLY_DELETED_RETENTION_DAYS,
+) => new Date(now.getTime() - retentionDays * MS_PER_DAY);
 
-export const getRecentlyDeletedDaysRemaining = (deletedAt: Date, now: Date = new Date()) => {
-  const expiresAt = getRecentlyDeletedExpirationDate(deletedAt);
+export const getRecentlyDeletedDaysRemaining = (
+  deletedAt: Date,
+  now: Date = new Date(),
+  retentionDays = RECENTLY_DELETED_RETENTION_DAYS,
+) => {
+  const expiresAt = getRecentlyDeletedExpirationDate(deletedAt, retentionDays);
   return Math.max(0, Math.ceil((expiresAt.getTime() - now.getTime()) / MS_PER_DAY));
 };
 
-export const isExpiredRecentlyDeletedTask = (task: Task, now: Date = new Date()) =>
-  !!task.deletedAt && task.deletedAt.getTime() <= getRecentlyDeletedRetentionCutoff(now).getTime();
+export const isExpiredRecentlyDeletedTask = (
+  task: Task,
+  now: Date = new Date(),
+  retentionDays = RECENTLY_DELETED_RETENTION_DAYS,
+) =>
+  !!task.deletedAt &&
+  task.deletedAt.getTime() <= getRecentlyDeletedRetentionCutoff(now, retentionDays).getTime();

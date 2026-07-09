@@ -15,7 +15,10 @@ vi.mock('$lib/database', () => ({
 
 vi.mock('$context/settingsContext', () => ({
   settingsStore: {
-    getState: vi.fn(() => ({})),
+    getState: vi.fn(() => ({
+      autoEmptyRecentlyDeleted: true,
+      recentlyDeletedRetentionDays: 30,
+    })),
   },
 }));
 
@@ -65,7 +68,7 @@ describe('deleteExpiredRecentlyDeletedTasks', () => {
     seedStore([expired, fresh], expired.id);
 
     expect(deleteExpiredRecentlyDeletedTasks(now)).toBe(1);
-    expect(mockDb.deleteExpiredRecentlyDeletedTasks).toHaveBeenCalledWith(now);
+    expect(mockDb.deleteExpiredRecentlyDeletedTasks).toHaveBeenCalledWith(now, 30);
     expect(dataStore.load().tasks.map((task) => task.id)).toEqual(['fresh']);
     expect(dataStore.load().ui.selectedTaskId).toBeNull();
   });
