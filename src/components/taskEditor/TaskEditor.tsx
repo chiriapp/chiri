@@ -76,6 +76,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   const { data: accounts = [] } = useAccounts();
   const {
     notifications,
+    notifyReminders,
     timeFormat,
     editorFieldVisibility,
     editorFieldOrder,
@@ -320,6 +321,7 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
           task={task}
           timeFormat={timeFormat}
           notifications={notifications}
+          notifyReminders={notifyReminders}
           onOpenNotificationSettings={onOpenNotificationSettings}
           onRemoveReminder={(reminderId) =>
             removeReminderMutation.mutate({ taskId: task.id, reminderId })

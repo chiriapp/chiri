@@ -110,9 +110,11 @@ export const TaskEditorReminders = ({
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-semantic-warning" />
             <div className="flex min-w-0 flex-1 flex-col gap-1">
               <span>
-                {isMacPlatform()
-                  ? 'Grant notification permission to add reminders.'
-                  : 'Enable notifications to add reminders.'}
+                {!notifications
+                  ? isMacPlatform()
+                    ? 'Grant notification permission to add reminders.'
+                    : 'Enable notifications to add reminders.'
+                  : 'Enable reminder notifications to add reminders.'}
               </span>
               {onOpenNotificationSettings && (
                 <button
