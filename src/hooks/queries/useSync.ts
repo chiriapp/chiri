@@ -72,6 +72,7 @@ export const useSyncQuery = () => {
     lastSyncError,
     setLastSyncError,
     registerInitialSyncCallback,
+    registerSyncRequestCallback,
   } = useSyncStore();
 
   const pendingSyncRef = useRef(false);
@@ -89,7 +90,7 @@ export const useSyncQuery = () => {
   }, []);
 
   // handle online/offline status
-  const { isOffline, isOfflineRef } = useOffline({
+  const { isOffline, isOfflineRef, isReconnecting } = useOffline({
     onOnline: () => {
       log.info('Back online');
       const { syncOnReconnect } = settingsStore.getState();
@@ -194,6 +195,20 @@ export const useSyncQuery = () => {
     });
   }, [ensureSyncOwner, registerInitialSyncCallback, syncAll]);
 
+  useEffect(() => {
+    if (!ensureSyncOwner()) {
+      return;
+    }
+
+    registerSyncRequestCallback(() => {
+      syncAll({
+        source: 'settings-sync-button',
+        reason: 'user clicked sync now in settings',
+        where: 'SyncSettings',
+      });
+    });
+  }, [ensureSyncOwner, registerSyncRequestCallback, syncAll]);
+
   // update ref when syncAll changes
   useEffect(() => {
     syncAllRef.current = syncAll;
@@ -249,6 +264,7 @@ export const useSyncQuery = () => {
     syncingCalendarId,
     syncProgress,
     isOffline,
+    isReconnecting,
     lastSyncError,
     lastSyncTime,
     lastSyncSource,
