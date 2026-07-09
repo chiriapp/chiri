@@ -11,10 +11,13 @@ import type { AccentColor, Theme } from '$types/color';
 import type { DateFormat, StartOfWeek, TimeFormat } from '$types/preference';
 import type { PushProviderId } from '$types/push';
 import type {
+  DefaultLaunchView,
   EditorFieldKey,
   EditorFieldVisibility,
+  NetworkProxyMode,
   QuickTimePresets,
   SettingsStore,
+  SidebarSectionKey,
   SubtaskDeletionBehavior,
   TaskBadgeKey,
   TaskBadgeVisibility,
@@ -61,6 +64,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (confirm: boolean) => settingsStore.setConfirmBeforeDeletion(confirm),
     [],
   );
+  const setConfirmBeforeMoveToRecentlyDeleted = useCallback(
+    (confirm: boolean) => settingsStore.setConfirmBeforeMoveToRecentlyDeleted(confirm),
+    [],
+  );
   const setConfirmBeforePermanentDelete = useCallback(
     (confirm: boolean) => settingsStore.setConfirmBeforePermanentDelete(confirm),
     [],
@@ -83,6 +90,14 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   );
   const setDeleteSubtasksWithParent = useCallback(
     (behavior: SubtaskDeletionBehavior) => settingsStore.setDeleteSubtasksWithParent(behavior),
+    [],
+  );
+  const setAutoEmptyRecentlyDeleted = useCallback(
+    (enabled: boolean) => settingsStore.setAutoEmptyRecentlyDeleted(enabled),
+    [],
+  );
+  const setRecentlyDeletedRetentionDays = useCallback(
+    (days: number) => settingsStore.setRecentlyDeletedRetentionDays(days),
     [],
   );
   const setStartOfWeek = useCallback((day: StartOfWeek) => settingsStore.setStartOfWeek(day), []);
@@ -180,10 +195,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (accountId: string) => settingsStore.toggleAccountExpanded(accountId),
     [],
   );
-  const setDefaultAccountsExpanded = useCallback(
-    (expanded: boolean) => settingsStore.setDefaultAccountsExpanded(expanded),
-    [],
-  );
   const toggleLocalSectionCollapsed = useCallback(
     () => settingsStore.toggleLocalSectionCollapsed(),
     [],
@@ -200,6 +211,34 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     () => settingsStore.toggleTagsSectionCollapsed(),
     [],
   );
+  const setShowLocalSection = useCallback(
+    (show: boolean) => settingsStore.setShowLocalSection(show),
+    [],
+  );
+  const setShowAccountsSection = useCallback(
+    (show: boolean) => settingsStore.setShowAccountsSection(show),
+    [],
+  );
+  const setShowFiltersSection = useCallback(
+    (show: boolean) => settingsStore.setShowFiltersSection(show),
+    [],
+  );
+  const setShowTagsSection = useCallback(
+    (show: boolean) => settingsStore.setShowTagsSection(show),
+    [],
+  );
+  const setShowSidebarTaskCounts = useCallback(
+    (show: boolean) => settingsStore.setShowSidebarTaskCounts(show),
+    [],
+  );
+  const setSidebarSectionOrder = useCallback(
+    (order: SidebarSectionKey[]) => settingsStore.setSidebarSectionOrder(order),
+    [],
+  );
+  const setDefaultLaunchView = useCallback(
+    (view: DefaultLaunchView) => settingsStore.setDefaultLaunchView(view),
+    [],
+  );
   const setEnableSystemTray = useCallback(
     (enabled: boolean) => settingsStore.setEnableSystemTray(enabled),
     [],
@@ -212,8 +251,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (enabled: boolean) => settingsStore.setHideDockIconWhenWindowClosed(enabled),
     [],
   );
+  const setShowWindowOnNormalLaunch = useCallback(
+    (show: boolean) => settingsStore.setShowWindowOnNormalLaunch(show),
+    [],
+  );
   const setShowWindowOnLoginLaunch = useCallback(
     (show: boolean) => settingsStore.setShowWindowOnLoginLaunch(show),
+    [],
+  );
+  const setRestoreWindowState = useCallback(
+    (restore: boolean) => settingsStore.setRestoreWindowState(restore),
     [],
   );
   const setWindowDecorationStyle = useCallback(
@@ -310,6 +357,22 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (interval: number) => settingsStore.setConnectivityCheckInterval(interval),
     [],
   );
+  const setConnectivityRequestTimeout = useCallback(
+    (timeout: number) => settingsStore.setConnectivityRequestTimeout(timeout),
+    [],
+  );
+  const setNetworkProxyMode = useCallback(
+    (mode: NetworkProxyMode) => settingsStore.setNetworkProxyMode(mode),
+    [],
+  );
+  const setNetworkProxyHost = useCallback(
+    (host: string) => settingsStore.setNetworkProxyHost(host),
+    [],
+  );
+  const setNetworkProxyPort = useCallback(
+    (port: string) => settingsStore.setNetworkProxyPort(port),
+    [],
+  );
   const setEnablePush = useCallback((enabled: boolean) => settingsStore.setEnablePush(enabled), []);
   const setPushProvider = useCallback(
     (provider: PushProviderId) => settingsStore.setPushProvider(provider),
@@ -337,12 +400,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSyncOnStartup,
     setSyncOnReconnect,
     setConfirmBeforeDeletion,
+    setConfirmBeforeMoveToRecentlyDeleted,
     setConfirmBeforePermanentDelete,
     setConfirmBeforeDeleteCalendar,
     setConfirmBeforeDeleteAccount,
     setConfirmBeforeDeleteFilter,
     setConfirmBeforeDeleteTag,
     setDeleteSubtasksWithParent,
+    setAutoEmptyRecentlyDeleted,
+    setRecentlyDeletedRetentionDays,
     setStartOfWeek,
     setTimeFormat,
     setDateFormat,
@@ -369,15 +435,23 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setOnboardingCompleted,
     setExpandedAccountIds,
     toggleAccountExpanded,
-    setDefaultAccountsExpanded,
     toggleLocalSectionCollapsed,
     toggleAccountsSectionCollapsed,
     toggleFiltersSectionCollapsed,
     toggleTagsSectionCollapsed,
+    setShowLocalSection,
+    setShowAccountsSection,
+    setShowFiltersSection,
+    setShowTagsSection,
+    setShowSidebarTaskCounts,
+    setSidebarSectionOrder,
+    setDefaultLaunchView,
     setEnableSystemTray,
     setSystemTrayAppliedValue,
     setHideDockIconWhenWindowClosed,
+    setShowWindowOnNormalLaunch,
     setShowWindowOnLoginLaunch,
+    setRestoreWindowState,
     setWindowDecorationStyle,
     setCheckForUpdatesAutomatically,
     setConfirmBeforeQuit,
@@ -402,6 +476,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setConnectivityCheckEnabled,
     setConnectivityCheckUrl,
     setConnectivityCheckInterval,
+    setConnectivityRequestTimeout,
+    setNetworkProxyMode,
+    setNetworkProxyHost,
+    setNetworkProxyPort,
     setEnablePush,
     setPushProvider,
     setNtfyServerUrl,
