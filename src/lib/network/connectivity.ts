@@ -139,7 +139,7 @@ export const runConnectivityCheck = async ({
         log.debug(message);
       }
       const fallbackSuffix = fallbackUrl ? ` (fallback: ${fallbackUrl})` : '';
-      log.debug(`Connectivity check: ${result.online ? 'online' : 'offline'}${fallbackSuffix}`);
+      log.info(`Connectivity check: ${result.online ? 'online' : 'offline'}${fallbackSuffix}`);
     }
     publishConnectivityCheckResult(result);
   };
