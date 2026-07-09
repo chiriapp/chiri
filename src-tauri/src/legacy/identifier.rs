@@ -181,17 +181,19 @@ pub fn migrate_identifier<R: tauri::Runtime>(app: &tauri::App<R>) {
         .app_local_data_dir()
         .ok()
         .map(|d| d.join(MARKER_FILE));
-    if let Some(marker) = &marker_path {
-        log::info!(
-            "[Legacy] Identifier migration marker path: {}",
-            marker.display()
-        );
-    } else {
-        log::warn!("[Legacy] Could not resolve identifier migration marker path");
-    }
-    if marker_path.as_deref().map(|p| p.exists()).unwrap_or(false) {
-        log::info!("[Legacy] Identifier migration marker exists; skipping identifier migration");
-        return;
+
+    match marker_path.as_deref() {
+        Some(path) if path.exists() => {
+            log::info!(
+                "[Legacy] Identifier migration marker exists at {}; skipping migration",
+                path.display()
+            );
+            return;
+        }
+        Some(_) => {}
+        None => {
+            log::warn!("[Legacy] Could not resolve identifier migration marker path");
+        }
     }
 
     log::info!("[Legacy] Checking for old identifier data...");
