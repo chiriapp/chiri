@@ -179,6 +179,7 @@ export interface PushSubscriptionRow {
   provider_id: string | null;
   provider_token: string | null;
   provider_distributor: string | null;
+  provider_metadata: string | null;
   expires_at: string;
   created_at: string;
 }
