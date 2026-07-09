@@ -81,10 +81,13 @@ export const initializeApp = async () => {
   log.debug('Data store initialized');
   applyDefaultLaunchViewPreference();
 
-  log.debug('Reading launch-at-login status...');
-  await preloadAutostartState().catch((error) => {
+  const autostartState = await preloadAutostartState().catch((error) => {
     log.warn('Failed to preload launch-at-login status:', error);
+    return null;
   });
+  log.debug(
+    `Launch-at-login status: enabled=${autostartState?.enabled ?? 'unknown'}, error=${autostartState?.error ?? 'none'}`,
+  );
 
   await applyMacDockIconPreference();
 
