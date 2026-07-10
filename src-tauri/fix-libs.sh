@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_BINARY_PATH="target/release/Chiri"
-
 if [ -e "/usr/lib/libiconv.2.dylib" ]; then
     SYSTEM_ICONV="/usr/lib/libiconv.2.dylib"
 elif [ -e "/usr/lib/libiconv.dylib" ]; then
@@ -38,4 +36,23 @@ fix_iconv_dependency() {
 }
 
 echo "Fixing library dependencies for local macOS binaries..."
+
+# Tauri may place the binary in a target-specific directory
+# try the most likely paths
+APP_BINARY_PATH=""
+for path in \
+    "target/release/Chiri" \
+    "target/aarch64-apple-darwin/release/Chiri" \
+    "target/x86_64-apple-darwin/release/Chiri"; do
+    if [ -f "$path" ]; then
+        APP_BINARY_PATH="$path"
+        break
+    fi
+done
+
+if [ -z "$APP_BINARY_PATH" ]; then
+    echo "No app binary found in any known target directory; skipping iconv fix"
+    exit 0
+fi
+
 fix_iconv_dependency "$APP_BINARY_PATH" "app binary"

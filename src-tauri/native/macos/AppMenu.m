@@ -5,7 +5,7 @@ static NSImage *ChiriFallbackSelectAllMenuIcon(void) {
   NSImage *image =
       [NSImage imageWithSize:NSMakeSize(size, size)
                      flipped:NO
-            drawingHandler:^BOOL(NSRect dstRect) {
+            drawingHandler:^BOOL(NSRect __attribute__((unused)) dstRect) {
               NSBezierPath *outline = [NSBezierPath
                   bezierPathWithRect:NSMakeRect(2.0, 2.0, 12.0, 12.0)];
               CGFloat dashPattern[] = {1.0, 1.0};
