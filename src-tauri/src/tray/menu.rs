@@ -74,7 +74,10 @@ pub(in crate::tray) fn initialize(
     .map_err(|e| e.to_string())?;
 
     let (tray_icon, theme, icon_label) = icon::load(&app_handle)?;
-    debug!("[Tray] Tray icon loaded (theme: {:?}, icon: {})", theme, icon_label);
+    debug!(
+        "[Tray] Tray icon loaded (theme: {:?}, icon: {})",
+        theme, icon_label
+    );
 
     let tray_builder = TrayIconBuilder::with_id("main")
         .icon(tray_icon)
