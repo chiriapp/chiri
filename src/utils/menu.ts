@@ -231,9 +231,34 @@ export const createMacMenu = async (options?: {
         text: 'Paste',
         item: 'Paste',
       }),
-      await PredefinedMenuItem.new({
+      await MenuItem.new({
+        id: 'select-all',
         text: 'Select All',
-        item: 'SelectAll',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'select-all-tasks', 'CmdOrCtrl+A'),
+        enabled: isAppActionEnabled(),
+        action: () => {
+          const active = document.activeElement as HTMLElement | null;
+          if (
+            active &&
+            (active.tagName === 'INPUT' ||
+              active.tagName === 'TEXTAREA' ||
+              active.isContentEditable)
+          ) {
+            if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+              active.select();
+            } else {
+              const selection = window.getSelection();
+              if (selection) {
+                const range = document.createRange();
+                range.selectNodeContents(active);
+                selection.removeAllRanges();
+                selection.addRange(range);
+              }
+            }
+            return;
+          }
+          emit(MENU_EVENTS.SELECT_ALL);
+        },
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await MenuItem.new({

@@ -3,6 +3,7 @@ export const MENU_EVENTS = {
   QUIT: 'menu:quit',
   QUIT_MENU: 'menu:quit-menu',
   NEW_TASK: 'menu:new-task',
+  SELECT_ALL: 'menu:select-all',
   SYNC: 'menu:sync',
   ALL_TASKS: 'menu:all-tasks',
   SELECT_FILTER: 'menu:select-filter',

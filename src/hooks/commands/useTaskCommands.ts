@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
 import { useModalState } from '$context/modalStateContext';
+import { useTaskSelection } from '$context/taskSelectionContext';
 import { useTaskDeletion } from '$hooks/deletion/useTaskDeletion';
 import { useCreateTask } from '$hooks/queries/useTasks';
-import { useSetSelectedTask, useUIState } from '$hooks/queries/useUIState';
+import { useSetEditorOpen, useSetSelectedTask, useUIState } from '$hooks/queries/useUIState';
+import { useVisibleTasks } from '$hooks/queries/useVisibleTasks';
 import type { AppModals } from '$types/controller';
 
 interface UseTaskCommandsOptions {
@@ -15,6 +17,10 @@ export const useTaskCommands = ({ modals }: UseTaskCommandsOptions) => {
   const { data: uiState } = useUIState();
   const { isAnyModalOpen } = useModalState();
   const { moveTaskToRecentlyDeleted } = useTaskDeletion();
+
+  const { selectedTaskIds, setSelection, clearSelection } = useTaskSelection();
+  const flattenedTasks = useVisibleTasks();
+  const setEditorOpenMutation = useSetEditorOpen();
 
   const newTask = useCallback(() => {
     createTaskMutation.mutate(
@@ -35,6 +41,21 @@ export const useTaskCommands = ({ modals }: UseTaskCommandsOptions) => {
     }
   }, [uiState?.activeView, uiState?.selectedTaskId, moveTaskToRecentlyDeleted]);
 
+  const selectAll = useCallback(() => {
+    if (flattenedTasks.length === 0) return;
+
+    if (selectedTaskIds.length > 0) {
+      clearSelection();
+      return;
+    }
+
+    setEditorOpenMutation.mutate(false);
+    setSelection(
+      flattenedTasks.map((task) => task.id),
+      flattenedTasks[0].id,
+    );
+  }, [clearSelection, flattenedTasks, selectedTaskIds.length, setEditorOpenMutation, setSelection]);
+
   const openTaskActions = useCallback(
     (taskId: string) => {
       if (isAnyModalOpen) return;
@@ -46,6 +67,7 @@ export const useTaskCommands = ({ modals }: UseTaskCommandsOptions) => {
   return {
     newTask,
     deleteTask,
+    selectAll,
     openTaskActions,
   };
 };

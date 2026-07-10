@@ -44,6 +44,7 @@ export const useNativeMenuCommands = ({
   const onSelectFilter = useLatestRef(commands.selectFilter);
   const onToggleSidebar = useLatestRef(commands.toggleSidebar);
   const onDeleteTask = useLatestRef(commands.deleteTask);
+  const onSelectAllTasks = useLatestRef(commands.selectAll);
   const onNavPrevList = useLatestRef(commands.navPrevList);
   const onNavNextList = useLatestRef(commands.navNextList);
   const onCheckForUpdatesRef = useLatestRef(isAnyModalOpen ? null : (onCheckForUpdates ?? null));
@@ -74,6 +75,7 @@ export const useNativeMenuCommands = ({
       onSelectFilter,
       onToggleSidebar,
       onDeleteTask,
+      onSelectAllTasks,
       onNavPrevList,
       onNavNextList,
       onCheckForUpdates: onCheckForUpdatesRef,
@@ -103,6 +105,7 @@ export const useNativeMenuCommands = ({
       onSelectFilter,
       onToggleSidebar,
       onDeleteTask,
+      onSelectAllTasks,
       onNavPrevList,
       onNavNextList,
       onCheckForUpdatesRef,

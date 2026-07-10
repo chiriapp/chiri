@@ -32,6 +32,7 @@ interface MenuCallbacks {
   onSelectFilter?: RefObject<((filterId: string) => void) | null>;
   onToggleSidebar?: RefObject<(() => void) | null>;
   onDeleteTask?: RefObject<(() => void) | null>;
+  onSelectAllTasks?: RefObject<(() => void) | null>;
   onNavPrevList?: RefObject<(() => void) | null>;
   onNavNextList?: RefObject<(() => void) | null>;
   onCheckForUpdates?: RefObject<(() => void) | null>;
@@ -73,6 +74,7 @@ const SIMPLE_EVENTS: SimpleEventConfig[] = [
   },
   { event: MENU_EVENTS.TOGGLE_SIDEBAR, callback: 'onToggleSidebar', label: 'Toggle Sidebar' },
   { event: MENU_EVENTS.DELETE_TASK, callback: 'onDeleteTask', label: 'Delete Task' },
+  { event: MENU_EVENTS.SELECT_ALL, callback: 'onSelectAllTasks', label: 'Select All' },
   { event: MENU_EVENTS.NAV_PREV_LIST, callback: 'onNavPrevList', label: 'Nav Prev List' },
   { event: MENU_EVENTS.NAV_NEXT_LIST, callback: 'onNavNextList', label: 'Nav Next List' },
   {
