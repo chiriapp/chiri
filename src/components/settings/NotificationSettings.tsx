@@ -73,7 +73,7 @@ export const NotificationSettings = () => {
           </label>
           {macPermissionPending && (
             <p className="mt-1 text-semantic-warning text-xs">
-              Notification permission is required, use the controls below to grant it.
+              Notification permission is required. Use the controls below to grant it.
             </p>
           )}
         </div>
