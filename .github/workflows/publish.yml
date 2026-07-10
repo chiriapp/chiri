@@ -336,6 +336,7 @@ jobs:
           APPLE_API_ISSUER: ${{ env.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ env.APPLE_API_KEY }}
           APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
+          MACOSX_DEPLOYMENT_TARGET: '14.0'
         with:
           # use existing release created by prepare-release job
           releaseId: ${{ needs.prepare-release.outputs.release_id }}
