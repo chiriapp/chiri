@@ -48,13 +48,13 @@ interface RepeatUIState {
 }
 
 const WEEKDAY_OPTIONS = [
-  { value: 'MO', label: 'Mo' },
-  { value: 'TU', label: 'Tu' },
-  { value: 'WE', label: 'We' },
-  { value: 'TH', label: 'Th' },
-  { value: 'FR', label: 'Fr' },
-  { value: 'SA', label: 'Sa' },
-  { value: 'SU', label: 'Su' },
+  { value: 'MO', label: 'Monday' },
+  { value: 'TU', label: 'Tuesday' },
+  { value: 'WE', label: 'Wednesday' },
+  { value: 'TH', label: 'Thursday' },
+  { value: 'FR', label: 'Friday' },
+  { value: 'SA', label: 'Saturday' },
+  { value: 'SU', label: 'Sunday' },
 ];
 
 const getMonthlyDefaults = (dueDate?: Date) => {
@@ -175,7 +175,7 @@ const buildFromUIState = (
     }
   } else {
     base = parseRRule(frequencyToRRule(state.freq));
-    if (state.freq === 'weekly' && state.byday.length > 0) {
+    if ((state.freq === 'weekly' || state.freq === 'weekdays') && state.byday.length > 0) {
       base.BYDAY = state.byday.join(',');
     }
   }
@@ -322,7 +322,9 @@ export const RepeatModal = ({
     : null;
 
   const showDayPicker =
-    ui.freq === 'weekly' || (ui.freq === 'custom' && ui.customPeriod === 'WEEKLY');
+    ui.freq === 'weekly' ||
+    ui.freq === 'weekdays' ||
+    (ui.freq === 'custom' && ui.customPeriod === 'WEEKLY');
   const showInterval = isRecurring && ui.freq !== 'weekdays';
   const showMonthlyPattern =
     ui.freq === 'monthly' || (ui.freq === 'custom' && ui.customPeriod === 'MONTHLY');
@@ -411,79 +413,92 @@ export const RepeatModal = ({
             dueDate={dueDate}
             onChange={(freq, byday) => update({ freq, byday })}
           />
-          <div className="min-w-0 flex-1 space-y-4 p-4">
+          <div className="flex min-w-0 flex-1 flex-col space-y-4 p-4">
             <RepeatRuleAlerts
               preservedKeys={capability.preservedKeys}
               invalidParts={capability.invalidParts}
               validationError={validationError}
             />
-            {showInterval && (
-              <div className="flex items-center gap-2">
-                <span className="shrink-0 text-sm text-surface-600 dark:text-surface-400">
-                  Every
-                </span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={intervalInput}
-                  onChange={(e) => setIntervalInput(e.target.value.replace(/[^0-9]/g, ''))}
-                  onBlur={() => {
-                    const n = Math.max(1, parseInt(intervalInput, 10) || 1);
-                    setIntervalInput(String(n));
-                    update({ interval: n });
-                  }}
-                  className={`w-16 text-center ${inputCls}`}
-                />
-                {ui.freq === 'custom' ? (
-                  <Select
-                    value={ui.customPeriod}
-                    onChange={(e) => {
-                      const customPeriod = e.target.value as CustomPeriod;
-                      const byday = customPeriod === 'WEEKLY' ? ui.byday : [];
-                      update({ customPeriod, byday });
-                    }}
-                    className={selectCls}
-                  >
-                    {CUSTOM_PERIOD_OPTIONS.map(({ value, label, plural }) => (
-                      <option key={value} value={value}>
-                        {ui.interval === 1 ? label : plural}
-                      </option>
-                    ))}
-                  </Select>
+            {isRecurring && (
+              <div className="space-y-2">
+                <p className="text-surface-500 text-xs dark:text-surface-400">Repeat every</p>
+                {showInterval ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={intervalInput}
+                      onChange={(e) => setIntervalInput(e.target.value.replace(/[^0-9]/g, ''))}
+                      onBlur={() => {
+                        const n = Math.max(1, parseInt(intervalInput, 10) || 1);
+                        setIntervalInput(String(n));
+                        update({ interval: n });
+                      }}
+                      className={`w-16 text-center ${inputCls}`}
+                    />
+                    {ui.freq === 'custom' ? (
+                      <Select
+                        value={ui.customPeriod}
+                        onChange={(e) => {
+                          const customPeriod = e.target.value as CustomPeriod;
+                          const byday = customPeriod === 'WEEKLY' ? ui.byday : [];
+                          update({ customPeriod, byday });
+                        }}
+                        className={selectCls}
+                      >
+                        {CUSTOM_PERIOD_OPTIONS.map(({ value, label, plural }) => (
+                          <option key={value} value={value}>
+                            {ui.interval === 1 ? label : plural}
+                          </option>
+                        ))}
+                      </Select>
+                    ) : (
+                      <span className="text-sm text-surface-700 dark:text-surface-300">
+                        {periodLabel}
+                      </span>
+                    )}
+                  </div>
                 ) : (
-                  <span className="text-sm text-surface-700 dark:text-surface-300">
-                    {periodLabel}
-                  </span>
+                  <span className="text-sm text-surface-700 dark:text-surface-300">Weekday</span>
                 )}
               </div>
             )}
 
             {showDayPicker && (
-              <fieldset aria-label="Days of week" className="m-0 flex min-w-0 gap-1.5 border-0 p-0">
-                {orderedWeekdays.map(({ value, label }) => {
-                  const active = ui.byday.includes(value);
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => {
-                        const byday = active
-                          ? ui.byday.filter((d) => d !== value)
-                          : [...ui.byday, value];
-                        update({ byday });
-                      }}
-                      className={`h-9 w-9 rounded-full border font-medium text-xs outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 ${
-                        active
-                          ? 'border-surface-300 bg-surface-200 text-surface-900 dark:border-surface-500 dark:bg-surface-700 dark:text-surface-100'
-                          : 'border-surface-200 text-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:border-surface-700 dark:text-surface-400 dark:hover:bg-surface-700'
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </fieldset>
+              <div className="space-y-2">
+                <p className="text-surface-500 text-xs dark:text-surface-400">On days</p>
+                <fieldset
+                  aria-label="Days of week"
+                  className="m-0 flex min-w-0 gap-1.5 border-0 p-0"
+                >
+                  {(ui.freq === 'weekdays'
+                    ? orderedWeekdays.filter(({ value }) => value !== 'SA' && value !== 'SU')
+                    : orderedWeekdays
+                  ).map(({ value, label }) => {
+                    const active = ui.byday.includes(value);
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => {
+                          const byday = active
+                            ? ui.byday.filter((d) => d !== value)
+                            : [...ui.byday, value];
+                          update({ byday });
+                        }}
+                        className={`h-9 w-9 rounded-full border font-medium text-xs outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 ${
+                          active
+                            ? 'border-surface-300 bg-surface-200 text-surface-900 dark:border-surface-500 dark:bg-surface-700 dark:text-surface-100'
+                            : 'border-surface-200 text-surface-600 hover:border-surface-300 hover:bg-surface-50 dark:border-surface-700 dark:text-surface-400 dark:hover:bg-surface-700'
+                        }`}
+                      >
+                        {label.slice(0, 3)}
+                      </button>
+                    );
+                  })}
+                </fieldset>
+              </div>
             )}
 
             {showMonthlyPattern && (
@@ -635,7 +650,7 @@ export const RepeatModal = ({
                 <div className="flex gap-2">
                   {(
                     [
-                      { value: 0, label: 'Keep schedule' },
+                      { value: 0, label: 'From due date' },
                       { value: 1, label: 'After completion' },
                     ] as const
                   ).map(({ value, label }) => (
@@ -653,12 +668,14 @@ export const RepeatModal = ({
               </div>
             )}
 
-            <RepeatRuleSummary
-              rrule={draftRrule}
-              repeatFrom={localRepeatFrom}
-              dueDate={dueDate}
-              dateFormat={dateFormat}
-            />
+            <div className="mt-auto">
+              <RepeatRuleSummary
+                rrule={draftRrule}
+                repeatFrom={localRepeatFrom}
+                dueDate={dueDate}
+                dateFormat={dateFormat}
+              />
+            </div>
           </div>
         </div>
       </ModalWrapper>
