@@ -19,7 +19,6 @@ const log = loggers.menu;
 // store menu item references for updates
 const menuItemRefs: {
   sync?: MenuItem;
-  deleteTask?: MenuItem;
   toggleCompleted?: CheckMenuItem;
   toggleUnstarted?: CheckMenuItem;
   sortManual?: MenuItem;
@@ -107,7 +106,6 @@ export const createMacMenu = async (options?: {
   accounts?: MenuAccount[];
   caldavAccountCount?: number;
   isSyncing?: boolean;
-  isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
   const showCompleted = options?.showCompleted ?? true;
@@ -119,7 +117,6 @@ export const createMacMenu = async (options?: {
   const hasAccounts = accounts.length > 0;
   const hasCaldavAccounts = (options?.caldavAccountCount ?? accounts.length) > 0;
   const isSyncing = options?.isSyncing ?? false;
-  const isEditorOpen = options?.isEditorOpen ?? false;
   const isAppActionEnabled = (enabled = true) =>
     isEnabledOutsideModal(options?.isModalOpen ?? false, enabled);
 
@@ -270,20 +267,6 @@ export const createMacMenu = async (options?: {
           emit(MENU_EVENTS.SEARCH);
         },
       }),
-      await PredefinedMenuItem.new({ item: 'Separator' }),
-      await (async () => {
-        const item = await MenuItem.new({
-          id: 'delete-task',
-          text: 'Delete Task',
-          accelerator: getAcceleratorOrDefault(shortcuts, 'delete', 'CmdOrCtrl+Backspace'),
-          enabled: isAppActionEnabled(isEditorOpen),
-          action: () => {
-            emit(MENU_EVENTS.DELETE_TASK);
-          },
-        });
-        menuItemRefs.deleteTask = item;
-        return item;
-      })(),
     ],
   });
 
@@ -700,7 +683,6 @@ export const initAppMenu = async (options?: {
   accounts?: MenuAccount[];
   caldavAccountCount?: number;
   isSyncing?: boolean;
-  isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
   // only create menu on macOS
@@ -744,7 +726,6 @@ export const rebuildAppMenu = async (options?: {
   accounts?: MenuAccount[];
   caldavAccountCount?: number;
   isSyncing?: boolean;
-  isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
   await initAppMenu(options);
@@ -768,9 +749,6 @@ export const updateMenuItem = async (
     switch (menuId) {
       case 'sync':
         item = menuItemRefs.sync;
-        break;
-      case 'delete-task':
-        item = menuItemRefs.deleteTask;
         break;
       case 'toggle-completed':
         item = menuItemRefs.toggleCompleted;
@@ -838,7 +816,6 @@ export const updateMenuState = async (options: {
   sortMode?: SortMode;
   sortDirection?: SortDirection;
   isSyncing?: boolean;
-  isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
   const isAppActionEnabled = (enabled = true) =>
@@ -848,9 +825,6 @@ export const updateMenuState = async (options: {
     const hasAccounts = (options.accountCount ?? 1) > 0;
     const isSyncing = options.isSyncing ?? false;
     await updateMenuItem('sync', { enabled: isAppActionEnabled(hasAccounts && !isSyncing) });
-  }
-  if (options.isEditorOpen !== undefined) {
-    await updateMenuItem('delete-task', { enabled: isAppActionEnabled(options.isEditorOpen) });
   }
   if (options.showCompleted !== undefined) {
     await updateMenuItem('toggle-completed', { checked: options.showCompleted });
