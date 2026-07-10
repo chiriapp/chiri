@@ -337,6 +337,8 @@ jobs:
           APPLE_API_KEY: ${{ env.APPLE_API_KEY }}
           APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
           MACOSX_DEPLOYMENT_TARGET: '14.0'
+          CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS: '-C link-arg=-mmacosx-version-min=14.0'
+          CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: '-C link-arg=-mmacosx-version-min=14.0'
         with:
           # use existing release created by prepare-release job
           releaseId: ${{ needs.prepare-release.outputs.release_id }}

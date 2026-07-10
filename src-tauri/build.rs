@@ -18,6 +18,11 @@ fn main() {
 
         #[cfg(not(target_os = "macos"))]
         panic!("macOS Tauri builds must run on a macOS host");
+
+        // Objective-C code in native/macos uses @available, which requires
+        // linking against a macOS runtime that provides __isPlatformVersionAtLeast
+        // ensure the final link uses the same deployment target as the objc bridge
+        println!("cargo:rustc-link-arg=-mmacosx-version-min=14.0");
     }
 
     tauri_build::build();
