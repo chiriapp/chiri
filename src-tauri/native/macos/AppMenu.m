@@ -26,14 +26,15 @@ static NSImage *ChiriFallbackSelectAllMenuIcon(void) {
 }
 
 static NSImage *ChiriSelectAllMenuIcon(void) {
-  if (@available(macOS 15.0, *)) {
-    NSImage *image = [NSImage
-        imageWithSystemSymbolName:@"character.textbox"
-            accessibilityDescription:nil];
-    if (image != nil) {
-      [image setTemplate:YES];
-      return image;
-    }
+  // `character.textbox` is only present on macOS 15.0+; calling the method on
+  // older versions (or with an unknown symbol) simply returns nil, so we use
+  // the fallback icon when that happens.
+  NSImage *image = [NSImage
+      imageWithSystemSymbolName:@"character.textbox"
+          accessibilityDescription:nil];
+  if (image != nil) {
+    [image setTemplate:YES];
+    return image;
   }
   return ChiriFallbackSelectAllMenuIcon();
 }

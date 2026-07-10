@@ -30,6 +30,7 @@
       "gen/partial.plist": "partial.plist"
     },
     "macOS": {
+      "minimumSystemVersion": "12.0",
       "infoPlist": "Info.plist",
       "dmg": {
         "appPosition": {

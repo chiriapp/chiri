@@ -36,9 +36,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
   env = lib.optionalAttrs stdenv.hostPlatform.isDarwin (
     darwinCcEnv
     // {
-      MACOSX_DEPLOYMENT_TARGET = "14.0";
-      CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-mmacosx-version-min=14.0";
-      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-mmacosx-version-min=14.0";
+      MACOSX_DEPLOYMENT_TARGET = "12.0";
+      CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-mmacosx-version-min=12.0";
+      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-mmacosx-version-min=12.0";
     }
   );
 
@@ -112,7 +112,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   preBuild =
     lib.optionalString stdenv.hostPlatform.isDarwin ''
       ${darwinCcExports}
-      export MACOSX_DEPLOYMENT_TARGET=14.0
+      export MACOSX_DEPLOYMENT_TARGET=12.0
     ''
     + ''
       unset TAURI_SIGNING_PRIVATE_KEY

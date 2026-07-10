@@ -27,7 +27,7 @@ pub fn compile() {
         .flag("-fobjc-arc")
         .flag("-fblocks")
         .flag("-fmodules")
-        .flag("-mmacosx-version-min=14.0")
+        .flag("-mmacosx-version-min=12.0")
         .flag("-Wno-unguarded-availability-new")
         .compile("chiri_macos_objc_bridge");
 
