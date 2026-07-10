@@ -630,10 +630,13 @@ export const createMacMenu = async (options?: {
         text: 'Zoom',
         item: 'Maximize',
       }),
+      await PredefinedMenuItem.new({ item: 'Separator' }),
+      await PredefinedMenuItem.new({
+        text: 'Bring All to Front',
+        item: 'BringAllToFront',
+      }),
     ],
   });
-
-  await windowSubmenu.setAsWindowsMenuForNSApp();
 
   // help submenu
   const helpSubmenu = await Submenu.new({
@@ -682,7 +685,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  return menu;
+  return { menu, windowSubmenu };
 };
 
 /**
@@ -704,8 +707,9 @@ export const initAppMenu = async (options?: {
   if (!isMacPlatform()) return;
 
   try {
-    const menu = await createMacMenu(options);
+    const { menu, windowSubmenu } = await createMacMenu(options);
     await menu.setAsAppMenu();
+    await windowSubmenu.setAsWindowsMenuForNSApp();
     // fix macOS Help menu search bar; muda's setAsHelpMenuForNSApp() is broken,
     // so we call NSApp.setHelpMenu() directly from Rust after the menu is live
     await invoke('apply_macos_menu_fixes').catch(() => {});
