@@ -398,7 +398,7 @@ jobs:
           tauriScript: cargo tauri
           releaseId: ${{ needs.prepare-release.outputs.release_id }}
           tagName: app-v${{ needs.prepare-release.outputs.version }}
-          args: --bundles appimage
+          args: --bundles appimage --config src-tauri/tauri.appimage.conf.json
 
       - name: Attest build provenance
         uses: actions/attest@v4

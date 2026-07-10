@@ -127,11 +127,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
         makeWrapper "$out/Applications/Chiri.app/Contents/MacOS/chiri" "$out/bin/chiri"
       ''
     else
-      # tauri installs the binary as Chiri (cargo package name). the desktop
-      # file is generated from the garden.chiri.Chiri identifier, and the
-      # wayland app_id is pinned to that same value via enableGTKAppId.
-      ''
-      '';
+      # on Linux the binary keeps the crate name "Chiri" so the terminal command stays friendly
+      # the Wayland app_id is pinned to garden.chiri.Chiri via enableGTKAppId, matching the desktop file name
+      "";
 
   # tauri apps typically don't have cargo tests
   doCheck = false;

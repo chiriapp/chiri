@@ -180,7 +180,7 @@ jobs:
           TAURI_BUNDLER_NEW_APPIMAGE_FORMAT: 'true'
         with:
           tauriScript: cargo tauri
-          args: --bundles appimage --config '{"bundle":{"createUpdaterArtifacts":false}}'
+          args: --bundles appimage --config src-tauri/tauri.appimage.conf.json --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
       - name: Upload AppImage artifact
         uses: ./.github/actions/upload-tauri-artifact
