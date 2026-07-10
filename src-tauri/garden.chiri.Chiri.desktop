@@ -1,17 +1,16 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Chiri
+Name={{{name}}}
 GenericName=CalDAV task manager
-Comment=Cross-platform CalDAV task management app
-Exec=Chiri %u
-Icon=Chiri
+Comment={{{comment}}}
+Exec={{{exec}}} %u
+Icon={{{icon}}}
 Terminal=false
-Categories=Office;Calendar;
+Categories={{{categories}}}
 Keywords=caldav;tasks;todo;calendar;productivity;reminder;sync;nextcloud;gtd;checklist;planner;organize;schedule;agenda;ical;vtodo;
 MimeType=x-scheme-handler/garden.chiri;
-StartupWMClass=Chiri
+StartupWMClass=garden.chiri.Chiri
 StartupNotify=true
-NoDisplay=true
 X-GNOME-UsesNotifications=true
 X-GNOME-SingleWindow=true

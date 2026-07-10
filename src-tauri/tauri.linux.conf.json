@@ -1,4 +1,5 @@
 {
+  "mainBinaryName": "Chiri",
   "app": {
     "enableGTKAppId": true,
     "windows": [
@@ -21,16 +22,10 @@
     "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.png"],
     "linux": {
       "deb": {
-        "desktopTemplate": "Chiri.desktop",
-        "files": {
-          "/usr/share/applications/garden.chiri.Chiri.desktop": "garden.chiri.Chiri.desktop"
-        }
+        "desktopTemplate": "garden.chiri.Chiri.desktop"
       },
       "rpm": {
-        "desktopTemplate": "Chiri.desktop",
-        "files": {
-          "/usr/share/applications/garden.chiri.Chiri.desktop": "garden.chiri.Chiri.desktop"
-        }
+        "desktopTemplate": "garden.chiri.Chiri.desktop"
       }
     }
   }

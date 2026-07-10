@@ -82,7 +82,7 @@ if stdenvNoCC.isDarwin then
       homepage = "https://github.com/chiriapp/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
-      mainProgram = "chiri";
+      mainProgram = if stdenvNoCC.hostPlatform.isDarwin then "chiri" else "Chiri";
       platforms = [
         "x86_64-darwin"
         "aarch64-darwin"
@@ -126,7 +126,6 @@ else
 
       if [ -f "$out/bin/Chiri" ]; then
         chmod +x $out/bin/Chiri
-        mv $out/bin/Chiri $out/bin/chiri
       fi
 
       # copy desktop file and icons if present
@@ -139,33 +138,11 @@ else
 
     # wrap to set required environment variables
     postFixup = ''
-      if [ -f "$out/bin/chiri" ]; then
-        wrapProgram $out/bin/chiri \
+      if [ -f "$out/bin/Chiri" ]; then
+        wrapProgram $out/bin/Chiri \
           --set GIO_EXTRA_MODULES "${glib-networking}/lib/gio/modules" \
           --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ libayatana-appindicator ]}"
       fi
-
-      for desktopFile in \
-        $out/share/applications/Chiri.desktop \
-        $out/share/applications/garden.chiri.Chiri.desktop
-      do
-        if [ -f "$desktopFile" ]; then
-          substituteInPlace "$desktopFile" \
-            --replace-fail "Exec=Chiri" "Exec=chiri"
-          if grep -q '^Exec=chiri$' "$desktopFile"; then
-            substituteInPlace "$desktopFile" \
-              --replace-fail "Exec=chiri" "Exec=chiri %u"
-          fi
-          if [ "$(basename "$desktopFile")" = "Chiri.desktop" ]; then
-            if grep -q '^MimeType=.*x-scheme-handler/garden\.chiri' "$desktopFile"; then
-              substituteInPlace "$desktopFile" \
-                --replace-fail "MimeType=x-scheme-handler/garden.chiri;" ""
-            fi
-          elif ! grep -q '^MimeType=.*x-scheme-handler/garden\.chiri' "$desktopFile"; then
-            echo "MimeType=x-scheme-handler/garden.chiri;" >> "$desktopFile"
-          fi
-        fi
-      done
     '';
 
     meta = {
@@ -173,7 +150,7 @@ else
       homepage = "https://github.com/chiriapp/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
-      mainProgram = "chiri";
+      mainProgram = if stdenvNoCC.hostPlatform.isDarwin then "chiri" else "Chiri";
       platforms = [
         "x86_64-linux"
         "aarch64-linux"
