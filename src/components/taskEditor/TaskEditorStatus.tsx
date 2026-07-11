@@ -78,7 +78,7 @@ export const TaskEditorStatus = ({
                 onClick={() => onStatusChange(s.value)}
                 disabled={readOnly}
                 className={`flex items-center gap-2 rounded-lg border px-3 py-2 font-medium text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${readOnly ? 'disabled:cursor-not-allowed' : ''}
-                  ${isActive ? `${s.borderColor} ${s.bgColor} text-surface-900 dark:text-surface-100` : `border-surface-200 text-surface-600 dark:border-surface-700 dark:text-surface-400 ${readOnly ? '' : 'hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800'}`}
+                  ${isActive ? `${s.borderColor} ${s.bgColor} text-surface-900 dark:text-surface-100` : `border-surface-200 text-surface-600 dark:border-surface-700 dark:text-surface-400 ${readOnly ? 'opacity-60' : 'hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800'}`}
                 `}
               >
                 <Icon className={`h-4 w-4 shrink-0 ${isActive ? s.color : ''}`} />

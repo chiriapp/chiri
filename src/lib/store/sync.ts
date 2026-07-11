@@ -10,7 +10,7 @@ import { loggers } from '$lib/logger';
 import { disablePushForCalendar } from '$lib/push';
 import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
-import { getAccountById, getAllAccounts } from '$lib/store/accounts';
+import { getAccountById, getAllAccounts, updateAccount } from '$lib/store/accounts';
 import { addCalendar, deleteCalendar, updateCalendar } from '$lib/store/calendars';
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
 import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$lib/store/tasks';
@@ -744,6 +744,7 @@ export const performFullSync = async (
   setSyncProgress: (progress: { current: number; total: number } | null) => void,
 ) => {
   const failedAccountIds = await reconnectAccounts();
+  const syncedAccountIds = new Set<string>();
 
   // get fresh accounts from data layer
   let freshAccounts = getAllAccounts();
@@ -755,6 +756,7 @@ export const performFullSync = async (
     if (failedAccountIds.has(account.id)) continue;
     try {
       await syncCalendarsForAccount(account.id, queryClient);
+      syncedAccountIds.add(account.id);
     } catch (error) {
       const errorMessage = getErrorMessage(error);
       syncLog.error(`Failed to sync calendars for ${account.name}:`, error);
@@ -794,6 +796,7 @@ export const performFullSync = async (
       try {
         await syncCalendarTasks(calendar.id, queryClient, setSyncingCalendarId);
       } catch (error) {
+        syncedAccountIds.delete(account.id);
         const errorMessage = getErrorMessage(error);
         syncLog.error(`Failed to sync calendar ${calendar.displayName}:`, error);
         toastManager.error(
@@ -809,6 +812,11 @@ export const performFullSync = async (
         );
       }
     }
+  }
+
+  const completedAt = new Date();
+  for (const accountId of syncedAccountIds) {
+    updateAccount(accountId, { lastSync: completedAt });
   }
 
   setSyncProgress(null);

@@ -9,6 +9,10 @@ const prefersDarkMode = () =>
  * apply the theme to the document
  */
 export const applyTheme = (theme: Theme) => {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
   const root = document.documentElement;
 
   if (theme === 'system') {

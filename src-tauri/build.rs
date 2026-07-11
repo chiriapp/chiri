@@ -14,6 +14,10 @@ fn main() {
         {
             liquid_glass_icon::compile();
             objc_bridge::compile();
+
+            // Objective-C code in ./macos/native uses APIs available from macOS 11.0+
+            // ensure the final link uses the same deployment target as the objc bridge
+            println!("cargo:rustc-link-arg=-mmacosx-version-min=12.0");
         }
 
         #[cfg(not(target_os = "macos"))]

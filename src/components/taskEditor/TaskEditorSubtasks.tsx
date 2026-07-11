@@ -1,8 +1,10 @@
 import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
+import ListX from 'lucide-react/icons/list-x';
 import Plus from 'lucide-react/icons/plus';
 import { type KeyboardEvent, useMemo, useState } from 'react';
+import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import { TaskEditorSubtaskItem } from '$components/taskEditor/TaskEditorSubtaskItem';
 import { useChildTasks, useCreateTask, useTasks } from '$hooks/queries/useTasks';
 import { truncateName, useSortableDrag } from '$hooks/ui/useSortableDrag';
@@ -128,7 +130,11 @@ export const TaskEditorSubtasks = ({
 
       {/* biome-ignore lint/a11y/useSemanticElements: fieldset would change semantic structure; div with role="group" is appropriate here */}
       <div
-        className="overflow-hidden rounded-lg border border-surface-200 dark:border-surface-700"
+        className={`overflow-hidden rounded-lg ${
+          readOnly && childTasks.length === 0
+            ? ''
+            : 'border border-surface-200 dark:border-surface-700'
+        }`}
         role="group"
         aria-labelledby="subtasks-label"
       >
@@ -198,9 +204,9 @@ export const TaskEditorSubtasks = ({
         )}
 
         {readOnly && childTasks.length === 0 ? (
-          <div className="px-3 py-2 text-sm text-surface-400 dark:text-surface-500">
+          <TaskEditorEmptyState icon={<ListX className="h-4 w-4 shrink-0" />}>
             No subtasks
-          </div>
+          </TaskEditorEmptyState>
         ) : showAddSubtask ? (
           <div
             className={`flex items-center gap-2 py-2 pr-3 pl-3 ${

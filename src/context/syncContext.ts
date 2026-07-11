@@ -22,6 +22,8 @@ interface SyncActions {
   setLastSyncSource: (source: string | null) => void;
   setLastSyncError: (error: string | null) => void;
   registerInitialSyncCallback: (callback: () => void) => void;
+  registerSyncRequestCallback: (callback: () => void) => void;
+  requestSync: () => void;
 }
 
 export type SyncStore = SyncState & SyncActions;

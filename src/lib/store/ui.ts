@@ -136,6 +136,7 @@ export const setAllTasksView = () => {
     ui: {
       ...data.ui,
       activeView: 'tasks',
+      activeAccountId: null,
       activeCalendarId: null,
       activeTagId: null,
       activeFilterId: null,

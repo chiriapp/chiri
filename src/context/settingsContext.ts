@@ -13,11 +13,14 @@ import type { AccentColor, Theme } from '$types/color';
 import type { DateFormat, StartOfWeek, TimeFormat } from '$types/preference';
 import type { PushProviderId } from '$types/push';
 import type {
+  DefaultLaunchView,
   EditorFieldKey,
   EditorFieldVisibility,
+  NetworkProxyMode,
   QuickTimePresets,
   SettingsState,
   SettingsStore,
+  SidebarSectionKey,
   SubtaskDeletionBehavior,
   TaskBadgeKey,
   TaskBadgeVisibility,
@@ -28,6 +31,7 @@ import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$u
 import { applyColorScheme, getColorSchemeFlavor } from '$utils/color/scheme';
 import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
 import { getShortcutSignature } from '$utils/keyboard';
+import { normalizeProxyPort } from '$utils/misc';
 import { defaultState } from './settingsDefaults';
 import { exportSettings, importSettings, mergeOrder, mergeShortcuts } from './settingsImportExport';
 
@@ -40,8 +44,13 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      const { confirmBeforeDelete: _confirmBeforeDelete, ...storedState } = parsed.state ?? {};
+      const {
+        confirmBeforeDelete: _confirmBeforeDelete,
+        defaultAccountsExpanded: _defaultAccountsExpanded,
+        ...storedState
+      } = parsed.state ?? {};
       const loadedState = { ...defaultState, ...storedState };
+      loadedState.networkProxyPort = normalizeProxyPort(loadedState.networkProxyPort);
 
       // migrate old number[] quickTimePresets to object format
       if (Array.isArray(loadedState.quickTimePresets)) {
@@ -63,6 +72,10 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
       loadedState.taskBadgeOrder = mergeOrder(
         loadedState.taskBadgeOrder,
         defaultState.taskBadgeOrder,
+      );
+      loadedState.sidebarSectionOrder = mergeOrder(
+        loadedState.sidebarSectionOrder,
+        defaultState.sidebarSectionOrder,
       );
 
       // merge keyboard shortcuts to include any new defaults
@@ -197,6 +210,8 @@ export const settingsStore = {
   setSyncOnStartup: (syncOnStartup: boolean) => setState({ syncOnStartup }),
   setSyncOnReconnect: (syncOnReconnect: boolean) => setState({ syncOnReconnect }),
   setConfirmBeforeDeletion: (confirmBeforeDeletion: boolean) => setState({ confirmBeforeDeletion }),
+  setConfirmBeforeMoveToRecentlyDeleted: (confirmBeforeMoveToRecentlyDeleted: boolean) =>
+    setState({ confirmBeforeMoveToRecentlyDeleted }),
   setConfirmBeforePermanentDelete: (confirmBeforePermanentDelete: boolean) =>
     setState({ confirmBeforePermanentDelete }),
   setConfirmBeforeDeleteCalendar: (confirmBeforeDeleteCalendar: boolean) =>
@@ -209,6 +224,10 @@ export const settingsStore = {
     setState({ confirmBeforeDeleteTag }),
   setDeleteSubtasksWithParent: (deleteSubtasksWithParent: SubtaskDeletionBehavior) =>
     setState({ deleteSubtasksWithParent }),
+  setAutoEmptyRecentlyDeleted: (autoEmptyRecentlyDeleted: boolean) =>
+    setState({ autoEmptyRecentlyDeleted }),
+  setRecentlyDeletedRetentionDays: (recentlyDeletedRetentionDays: number) =>
+    setState({ recentlyDeletedRetentionDays }),
   setStartOfWeek: (startOfWeek: StartOfWeek) => setState({ startOfWeek }),
   setTimeFormat: (timeFormat: TimeFormat) => setState({ timeFormat }),
   setDateFormat: (dateFormat: DateFormat) => setState({ dateFormat }),
@@ -275,8 +294,6 @@ export const settingsStore = {
       setState({ expandedAccountIds: [...current, accountId] });
     }
   },
-  setDefaultAccountsExpanded: (defaultAccountsExpanded: boolean) =>
-    setState({ defaultAccountsExpanded }),
   toggleLocalSectionCollapsed: () =>
     setState({ localSectionCollapsed: !state.localSectionCollapsed }),
   toggleAccountsSectionCollapsed: () =>
@@ -284,13 +301,24 @@ export const settingsStore = {
   toggleFiltersSectionCollapsed: () =>
     setState({ filtersSectionCollapsed: !state.filtersSectionCollapsed }),
   toggleTagsSectionCollapsed: () => setState({ tagsSectionCollapsed: !state.tagsSectionCollapsed }),
+  setShowLocalSection: (showLocalSection: boolean) => setState({ showLocalSection }),
+  setShowAccountsSection: (showAccountsSection: boolean) => setState({ showAccountsSection }),
+  setShowFiltersSection: (showFiltersSection: boolean) => setState({ showFiltersSection }),
+  setShowTagsSection: (showTagsSection: boolean) => setState({ showTagsSection }),
+  setShowSidebarTaskCounts: (showSidebarTaskCounts: boolean) => setState({ showSidebarTaskCounts }),
+  setSidebarSectionOrder: (sidebarSectionOrder: SidebarSectionKey[]) =>
+    setState({ sidebarSectionOrder }),
+  setDefaultLaunchView: (defaultLaunchView: DefaultLaunchView) => setState({ defaultLaunchView }),
   setEnableSystemTray: (enableSystemTray: boolean) => setState({ enableSystemTray }),
   setSystemTrayAppliedValue: (systemTrayAppliedValue: boolean) =>
     setState({ systemTrayAppliedValue }),
   setHideDockIconWhenWindowClosed: (hideDockIconWhenWindowClosed: boolean) =>
     setState({ hideDockIconWhenWindowClosed }),
+  setShowWindowOnNormalLaunch: (showWindowOnNormalLaunch: boolean) =>
+    setState({ showWindowOnNormalLaunch }),
   setShowWindowOnLoginLaunch: (showWindowOnLoginLaunch: boolean) =>
     setState({ showWindowOnLoginLaunch }),
+  setRestoreWindowState: (restoreWindowState: boolean) => setState({ restoreWindowState }),
   setWindowDecorationStyle: (windowDecorationStyle: WindowDecorationStyle) =>
     setState({ windowDecorationStyle }),
   setCheckForUpdatesAutomatically: (checkForUpdatesAutomatically: boolean) =>
@@ -340,9 +368,18 @@ export const settingsStore = {
   setConnectivityCheckUrl: (connectivityCheckUrl: string) => setState({ connectivityCheckUrl }),
   setConnectivityCheckInterval: (connectivityCheckInterval: number) =>
     setState({ connectivityCheckInterval }),
+  setConnectivityRequestTimeout: (connectivityRequestTimeout: number) =>
+    setState({ connectivityRequestTimeout }),
+  setNetworkProxyMode: (networkProxyMode: NetworkProxyMode) => setState({ networkProxyMode }),
+  setNetworkProxyHost: (networkProxyHost: string) => setState({ networkProxyHost }),
+  setNetworkProxyPort: (networkProxyPort: string) => setState({ networkProxyPort }),
   setEnablePush: (enablePush: boolean) => setState({ enablePush }),
   setPushProvider: (pushProvider: PushProviderId) => setState({ pushProvider }),
   setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),
+  setMozillaAutopushWebsocketUrl: (mozillaAutopushWebsocketUrl: string) =>
+    setState({ mozillaAutopushWebsocketUrl }),
+  setMozillaAutopushEndpointUrl: (mozillaAutopushEndpointUrl: string) =>
+    setState({ mozillaAutopushEndpointUrl }),
   setHasSeenRecentlyDeletedToast: (hasSeenRecentlyDeletedToast: boolean) =>
     setState({ hasSeenRecentlyDeletedToast }),
 

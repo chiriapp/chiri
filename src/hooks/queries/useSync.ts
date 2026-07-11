@@ -31,6 +31,8 @@ export type SyncTrigger =
 
 let syncOwnerInstanceId: string | null = null;
 let syncRunInProgress = false;
+let hasLoggedSyncOwnerClaim = false;
+let hasLoggedSyncOwnerRelease = false;
 let syncRunCounter = 0;
 let syncHookInstanceCounter = 0;
 let activeSyncRun: { id: number; source: string } | null = null;
@@ -72,6 +74,7 @@ export const useSyncQuery = () => {
     lastSyncError,
     setLastSyncError,
     registerInitialSyncCallback,
+    registerSyncRequestCallback,
   } = useSyncStore();
 
   const pendingSyncRef = useRef(false);
@@ -82,14 +85,17 @@ export const useSyncQuery = () => {
   const ensureSyncOwner = useCallback(() => {
     if (!syncOwnerInstanceId) {
       syncOwnerInstanceId = instanceIdRef.current;
-      log.debug('Sync effect owner claimed', { owner: syncOwnerInstanceId });
+      if (!hasLoggedSyncOwnerClaim) {
+        log.debug('Sync effect owner claimed', { owner: syncOwnerInstanceId });
+        hasLoggedSyncOwnerClaim = true;
+      }
     }
 
     return syncOwnerInstanceId === instanceIdRef.current;
   }, []);
 
   // handle online/offline status
-  const { isOffline, isOfflineRef } = useOffline({
+  const { isOffline, isOfflineRef, isReconnecting } = useOffline({
     onOnline: () => {
       log.info('Back online');
       const { syncOnReconnect } = settingsStore.getState();
@@ -194,6 +200,20 @@ export const useSyncQuery = () => {
     });
   }, [ensureSyncOwner, registerInitialSyncCallback, syncAll]);
 
+  useEffect(() => {
+    if (!ensureSyncOwner()) {
+      return;
+    }
+
+    registerSyncRequestCallback(() => {
+      syncAll({
+        source: 'settings-sync-button',
+        reason: 'user clicked sync now in settings',
+        where: 'SyncSettings',
+      });
+    });
+  }, [ensureSyncOwner, registerSyncRequestCallback, syncAll]);
+
   // update ref when syncAll changes
   useEffect(() => {
     syncAllRef.current = syncAll;
@@ -239,7 +259,10 @@ export const useSyncQuery = () => {
     return () => {
       if (syncOwnerInstanceId === instanceIdRef.current) {
         syncOwnerInstanceId = null;
-        log.debug('Sync effect owner released', { owner: instanceIdRef.current });
+        if (!hasLoggedSyncOwnerRelease) {
+          log.debug('Sync effect owner released', { owner: instanceIdRef.current });
+          hasLoggedSyncOwnerRelease = true;
+        }
       }
     };
   }, []);
@@ -249,6 +272,7 @@ export const useSyncQuery = () => {
     syncingCalendarId,
     syncProgress,
     isOffline,
+    isReconnecting,
     lastSyncError,
     lastSyncTime,
     lastSyncSource,

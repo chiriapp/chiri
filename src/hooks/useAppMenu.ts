@@ -29,7 +29,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
   );
 
   const caldavAccountCount = caldavAccounts.length;
-  const syncEnabled = caldavAccountCount > 0 && !(isSyncing ?? false);
+  const dockSyncEnabled = caldavAccountCount > 0;
 
   const dockFilters = useMemo(
     () =>
@@ -42,16 +42,14 @@ export const useAppMenu = (isSyncing?: boolean) => {
   useEffect(() => {
     updateDockMenu({
       filters: dockFilters,
-      syncEnabled,
+      syncEnabled: dockSyncEnabled,
     });
-  }, [dockFilters, syncEnabled]);
+  }, [dockFilters, dockSyncEnabled]);
 
-  // update lightweight state (sort, filters, sync, editor) without a full rebuild
+  // update lightweight state (sort, filters, sync) without a full rebuild
   useEffect(() => {
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
     const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
-    const isEditorOpen =
-      (uiState?.isEditorOpen ?? false) && (uiState?.selectedTaskId ?? null) !== null;
 
     updateMenuState({
       accountCount: caldavAccountCount,
@@ -60,7 +58,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
       sortMode,
       sortDirection,
       isSyncing: isSyncing ?? false,
-      isEditorOpen,
       isModalOpen: isAnyModalOpen,
     });
   }, [
@@ -69,8 +66,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
     uiState?.sortConfig?.direction,
-    uiState?.isEditorOpen,
-    uiState?.selectedTaskId,
     isSyncing,
     isAnyModalOpen,
   ]);
@@ -79,8 +74,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
   useEffect(() => {
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
     const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
-    const isEditorOpen =
-      (uiState?.isEditorOpen ?? false) && (uiState?.selectedTaskId ?? null) !== null;
 
     rebuildAppMenu({
       showCompleted: uiState?.showCompletedTasks ?? true,
@@ -91,7 +84,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
       accounts: menuAccounts,
       caldavAccountCount,
       isSyncing: isSyncing ?? false,
-      isEditorOpen,
       isModalOpen: isAnyModalOpen,
     });
   }, [
@@ -102,8 +94,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
     uiState?.sortConfig?.direction,
-    uiState?.isEditorOpen,
-    uiState?.selectedTaskId,
     isSyncing,
     isAnyModalOpen,
   ]);

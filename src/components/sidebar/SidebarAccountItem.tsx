@@ -23,6 +23,7 @@ interface SidebarAccountItemProps {
   isAnyModalOpen: boolean;
   isAnyAccountDragging?: boolean;
   isAccountMenuTriggerActive?: boolean;
+  showTaskCounts: boolean;
   calendarSortConfig: CalendarSortConfig;
   sortable?: boolean;
   onToggleAccount: (accountId: string) => void;
@@ -45,6 +46,7 @@ export const SidebarAccountItem = ({
   isAnyModalOpen,
   isAnyAccountDragging,
   isAccountMenuTriggerActive = false,
+  showTaskCounts,
   calendarSortConfig,
   sortable = false,
   onToggleAccount,
@@ -166,6 +168,7 @@ export const SidebarAccountItem = ({
               contextMenu={contextMenu}
               isAnyModalOpen={isAnyModalOpen}
               isAnyAccountDragging={isAnyAccountDragging ?? false}
+              showTaskCounts={showTaskCounts}
               calendarSortConfig={calendarSortConfig}
               onContextMenu={(e, type, id, accountId) => onContextMenu(e, type, id, accountId)}
               onSelectCalendar={onSelectCalendar}

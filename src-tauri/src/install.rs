@@ -4,6 +4,8 @@ use std::path::Path;
 /// represents the detected installation method
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InstallType {
+    /// installed as an AppImage
+    AppImage,
     /// installed from AUR (Arch User Repository)
     Aur,
     /// installed via Flatpak
@@ -14,7 +16,7 @@ pub enum InstallType {
     Nix,
     /// installed via Scoop package manager
     Scoop,
-    /// standard installation (AppImage, .deb, .rpm, .dmg, .exe, etc.)
+    /// standard installation (.deb, .rpm, .dmg, .exe, etc.)
     Standard,
 }
 
@@ -34,6 +36,11 @@ impl InstallType {
 
 /// detect the installation type based on environment and binary location
 pub fn detect_install_type() -> InstallType {
+    // AppImage sets the APPIMAGE environment variable to the AppImage file path
+    if env::var_os("APPIMAGE").is_some() {
+        return InstallType::AppImage;
+    }
+
     // check for AUR installation marker
     // AUR package creates a marker file during installation
     if Path::new("/usr/share/chiri/.aur-install").exists() {
@@ -80,6 +87,7 @@ pub fn should_disable_updates() -> bool {
 pub fn get_install_type() -> String {
     let install_type = detect_install_type();
     match install_type {
+        InstallType::AppImage => "appimage".to_string(),
         InstallType::Aur => "aur".to_string(),
         InstallType::Flatpak => "flatpak".to_string(),
         InstallType::Homebrew => "homebrew".to_string(),

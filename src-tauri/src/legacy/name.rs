@@ -1,6 +1,6 @@
 use tauri::Manager;
 
-use crate::utils::fs::{copy_dir_recursive, is_dir_empty};
+use crate::utils::fs::copy_dir_recursive;
 
 const IDENTIFIER_MARKER_FILE: &str = ".legacy_migration_v1_done";
 
@@ -81,7 +81,8 @@ pub fn migrate_name<R: tauri::Runtime>(app: &tauri::App<R>) {
                 .join(&app.config().identifier);
 
             let should_migrate = old_webkit_dir.exists()
-                && (!new_webkit_dir.exists() || is_dir_empty(&new_webkit_dir).unwrap_or(false));
+                && (!new_webkit_dir.exists()
+                    || crate::utils::fs::is_dir_empty(&new_webkit_dir).unwrap_or(false));
 
             if should_migrate {
                 log::info!(

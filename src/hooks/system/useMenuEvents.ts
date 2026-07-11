@@ -22,6 +22,7 @@ interface MenuCallbacks {
   onToggleCompleted?: RefObject<((currentValue: boolean) => void) | null>;
   onToggleUnstarted?: RefObject<((currentValue: boolean) => void) | null>;
   onSync?: RefObject<(() => void) | null>;
+  onAllTasks?: RefObject<(() => void) | null>;
   onSetSortMode?: RefObject<
     ((mode: SortMode, currentMode: SortMode, currentDirection: SortDirection) => void) | null
   >;
@@ -30,7 +31,7 @@ interface MenuCallbacks {
   >;
   onSelectFilter?: RefObject<((filterId: string) => void) | null>;
   onToggleSidebar?: RefObject<(() => void) | null>;
-  onDeleteTask?: RefObject<(() => void) | null>;
+  onSelectAllTasks?: RefObject<(() => void) | null>;
   onNavPrevList?: RefObject<(() => void) | null>;
   onNavNextList?: RefObject<(() => void) | null>;
   onCheckForUpdates?: RefObject<(() => void) | null>;
@@ -59,6 +60,7 @@ type ParamEventConfig = {
 const SIMPLE_EVENTS: SimpleEventConfig[] = [
   { event: MENU_EVENTS.NEW_TASK, callback: 'onNewTask', label: 'New Task' },
   { event: MENU_EVENTS.SYNC, callback: 'onSync', label: 'Sync' },
+  { event: MENU_EVENTS.ALL_TASKS, callback: 'onAllTasks', label: 'All Tasks' },
   { event: MENU_EVENTS.PREFERENCES, callback: 'onOpenSettings', label: 'Preferences' },
   { event: MENU_EVENTS.ADD_ACCOUNT, callback: 'onOpenAccount', label: 'Add Account' },
   { event: MENU_EVENTS.IMPORT_TASKS, callback: 'onOpenImport', label: 'Import Tasks' },
@@ -70,7 +72,7 @@ const SIMPLE_EVENTS: SimpleEventConfig[] = [
     label: 'Show Keyboard Shortcuts',
   },
   { event: MENU_EVENTS.TOGGLE_SIDEBAR, callback: 'onToggleSidebar', label: 'Toggle Sidebar' },
-  { event: MENU_EVENTS.DELETE_TASK, callback: 'onDeleteTask', label: 'Delete Task' },
+  { event: MENU_EVENTS.SELECT_ALL, callback: 'onSelectAllTasks', label: 'Select All' },
   { event: MENU_EVENTS.NAV_PREV_LIST, callback: 'onNavPrevList', label: 'Nav Prev List' },
   { event: MENU_EVENTS.NAV_NEXT_LIST, callback: 'onNavNextList', label: 'Nav Next List' },
   {
@@ -149,6 +151,7 @@ const MODAL_BLOCKED_MENU_EVENTS = new Set<string>([
   MENU_EVENTS.SHOW_KEYBOARD_SHORTCUTS,
   MENU_EVENTS.TOGGLE_COMPLETED,
   MENU_EVENTS.TOGGLE_UNSTARTED,
+  MENU_EVENTS.ALL_TASKS,
   MENU_EVENTS.SORT_MANUAL,
   MENU_EVENTS.SORT_SMART,
   MENU_EVENTS.SORT_START_DATE,
@@ -161,7 +164,6 @@ const MODAL_BLOCKED_MENU_EVENTS = new Set<string>([
   MENU_EVENTS.SORT_DIRECTION_DESC,
   MENU_EVENTS.SELECT_FILTER,
   MENU_EVENTS.TOGGLE_SIDEBAR,
-  MENU_EVENTS.DELETE_TASK,
   MENU_EVENTS.NAV_PREV_LIST,
   MENU_EVENTS.NAV_NEXT_LIST,
   MENU_EVENTS.CHECK_FOR_UPDATES,

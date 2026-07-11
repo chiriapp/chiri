@@ -14,30 +14,16 @@ import { registerPushSubscription, unregisterPushSubscription } from '$lib/calda
 import { log } from '$lib/caldav/utils';
 import { db } from '$lib/database';
 import {
-  createKUnifiedPushProviderSubscription,
-  getKUnifiedPushProviderSubscriptionDiagnostics,
-  isKUnifiedPushProviderAvailable,
-  removeKUnifiedPushProviderSubscription,
-  restoreKUnifiedPushProviderSubscription,
-  startKUnifiedPushProviderListening,
-  stopAllKUnifiedPushProviderListeners,
-  stopKUnifiedPushProviderListening,
-} from '$lib/push/kUnifiedPushProvider';
-import {
-  createNtfyProviderSubscription,
-  getNtfyProviderSubscriptionDiagnostics,
-  isNtfyProviderAvailable,
-  isNtfyProviderPushResource,
-  removeNtfyProviderSubscription,
-  restoreNtfyProviderSubscription,
-  startNtfyProviderListening,
-  stopAllNtfyProviderListeners,
-  stopNtfyProviderListening,
-} from '$lib/push/ntfyProvider';
+  getPushProvider,
+  getPushProviderConfigKey,
+  getPushProviderForSubscription,
+  stopAllPushProviderListeners,
+} from '$lib/push/providers';
 import { queryClient, queryKeys } from '$lib/queryClient';
 import type { Account, Calendar } from '$types';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,
+  MOZILLA_AUTOPUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
   type PushEndpointSubscription,
   type PushMessageHandler,
@@ -73,13 +59,7 @@ const getPushSetupKey = (
   accountId: string,
   calendar: Calendar,
   providerConfig: PushProviderConfig,
-) =>
-  [
-    accountId,
-    calendar.id,
-    providerConfig.providerId,
-    providerConfig.ntfyConfig?.serverUrl ?? '',
-  ].join('|');
+) => [accountId, calendar.id, getPushProviderConfigKey(providerConfig)].join('|');
 
 const getFreshCalendarSubscriptions = async (calendarId: string) => {
   const subscriptions = await db.getPushSubscriptionsByCalendar(calendarId);
@@ -92,6 +72,15 @@ const getFreshAllSubscriptions = async () => {
   queryClient.setQueryData(queryKeys.pushSubscriptions.all, subscriptions);
   return subscriptions;
 };
+
+export const getAllPushSubscriptions = async () => getFreshAllSubscriptions();
+
+const getPushSubscriptionTargets = (accounts: Account[]) =>
+  accounts.flatMap((account) =>
+    account.calendars
+      .filter((calendar) => calendar.pushSupported)
+      .map((calendar) => ({ accountId: account.id, calendar })),
+  );
 
 /**
  * invalidate push subscription caches after mutations
@@ -126,11 +115,10 @@ export const createWebPushSubscription = async (
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
 ) => {
   try {
-    if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
-      return await createKUnifiedPushProviderSubscription(calendar);
-    }
-
-    return await createNtfyProviderSubscription(calendar, providerConfig.ntfyConfig);
+    return await getPushProvider(providerConfig.providerId).createSubscription(
+      calendar,
+      providerConfig,
+    );
   } catch (error) {
     log.error(`Failed to create Web Push subscription for ${calendar.displayName}:`, error);
     return null;
@@ -140,11 +128,7 @@ export const createWebPushSubscription = async (
 export const isPushProviderAvailable = async (
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
 ) => {
-  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
-    return await isKUnifiedPushProviderAvailable();
-  }
-
-  return await isNtfyProviderAvailable(providerConfig.ntfyConfig);
+  return await getPushProvider(providerConfig.providerId).isAvailable(providerConfig);
 };
 
 const subscriptionMatchesProvider = (
@@ -152,14 +136,10 @@ const subscriptionMatchesProvider = (
   providerConfig: PushProviderConfig,
 ) => {
   if (subscription.providerId !== providerConfig.providerId) return false;
-
-  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
-    return !!subscription.providerToken;
-  }
-
-  return providerConfig.ntfyConfig
-    ? isNtfyProviderPushResource(subscription.pushResource, providerConfig.ntfyConfig)
-    : true;
+  return getPushProvider(providerConfig.providerId).matchesSubscription(
+    subscription,
+    providerConfig,
+  );
 };
 
 const isRenewablyValidSubscription = (
@@ -191,11 +171,7 @@ const getProviderSubscriptionDiagnostics = (
   calendarId: string,
   providerConfig: PushProviderConfig,
 ) => {
-  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
-    return getKUnifiedPushProviderSubscriptionDiagnostics(calendarId);
-  }
-
-  return getNtfyProviderSubscriptionDiagnostics(calendarId);
+  return getPushProvider(providerConfig.providerId).getDiagnostics(calendarId);
 };
 
 export const getWebDAVPushAccountDiagnostics = async (
@@ -271,8 +247,11 @@ const unregisterStoredSubscription = async (accountId: string, subscription: Pus
   }
 };
 
-const removeStoredSubscription = async (subscription: PushSubscription) => {
-  await removeProviderSubscription(subscription);
+const removeStoredSubscription = async (
+  subscription: PushSubscription,
+  providerConfig?: PushProviderConfig,
+) => {
+  await removeProviderSubscription(subscription, providerConfig);
   await db.deletePushSubscription(subscription.id);
   removeSubscriptionFromCaches(subscription);
 };
@@ -294,6 +273,8 @@ const createProviderCleanupSubscription = (
   pushResource: endpoint.pushResource,
   providerId: endpoint.providerId,
   providerToken: endpoint.providerToken,
+  providerDistributor: endpoint.providerDistributor,
+  providerMetadata: endpoint.providerMetadata,
   expiresAt: new Date(0),
   createdAt: new Date(),
 });
@@ -302,9 +283,11 @@ const cleanupProviderEndpoint = async (
   accountId: string,
   calendar: Calendar,
   endpoint: PushEndpointSubscription,
+  providerConfig: PushProviderConfig,
 ) => {
   await removeProviderSubscription(
     createProviderCleanupSubscription(accountId, calendar, endpoint),
+    providerConfig,
   );
 };
 
@@ -322,7 +305,7 @@ const removeDuplicateProviderSubscriptions = async (
 
   for (const subscription of duplicates) {
     await unregisterStoredSubscription(accountId, subscription);
-    await removeStoredSubscription(subscription);
+    await removeStoredSubscription(subscription, providerConfig);
   }
 
   if (duplicates.length > 0) {
@@ -337,20 +320,21 @@ const restoreProviderSubscription = async (
   calendar: Calendar,
   providerConfig: PushProviderConfig,
 ) => {
-  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
-    return await restoreKUnifiedPushProviderSubscription(subscription, calendar);
-  }
-
-  return await restoreNtfyProviderSubscription(subscription, calendar);
+  return await getPushProvider(providerConfig.providerId).restoreSubscription(
+    subscription,
+    calendar,
+    providerConfig,
+  );
 };
 
-const removeProviderSubscription = async (subscription: PushSubscription) => {
-  if (subscription.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
-    await removeKUnifiedPushProviderSubscription(subscription);
-    return;
-  }
-
-  removeNtfyProviderSubscription(subscription);
+const removeProviderSubscription = async (
+  subscription: PushSubscription,
+  providerConfig?: PushProviderConfig,
+) => {
+  await getPushProviderForSubscription(subscription).removeSubscription(
+    subscription,
+    providerConfig,
+  );
 };
 
 const createRegisteredPushSubscription = async (
@@ -379,13 +363,13 @@ const createRegisteredPushSubscription = async (
     );
   } catch (error) {
     log.error(`Failed to register push subscription for ${calendar.displayName}:`, error);
-    await cleanupProviderEndpoint(accountId, calendar, webPushSubscription);
+    await cleanupProviderEndpoint(accountId, calendar, webPushSubscription, providerConfig);
     return null;
   }
 
   if (!registration) {
     log.error(`Failed to register push subscription for ${calendar.displayName}`);
-    await cleanupProviderEndpoint(accountId, calendar, webPushSubscription);
+    await cleanupProviderEndpoint(accountId, calendar, webPushSubscription, providerConfig);
     return null;
   }
 
@@ -397,6 +381,8 @@ const createRegisteredPushSubscription = async (
     pushResource: webPushSubscription.pushResource,
     providerId: webPushSubscription.providerId,
     providerToken: webPushSubscription.providerToken,
+    providerDistributor: webPushSubscription.providerDistributor,
+    providerMetadata: webPushSubscription.providerMetadata,
     expiresAt: registration.expires,
     createdAt: new Date(),
   };
@@ -416,16 +402,18 @@ const cleanupSupersededSubscriptions = async (
   calendar: Calendar,
   supersededSubscriptions: PushSubscription[],
   replacement: PushSubscription,
+  providerConfig: PushProviderConfig,
 ) => {
   for (const subscription of supersededSubscriptions) {
     await unregisterStoredSubscription(accountId, subscription);
 
-    if (
-      subscription.providerId === KUNIFIED_PUSH_PROVIDER_ID &&
-      subscription.providerToken &&
-      subscription.providerToken !== replacement.providerToken
-    ) {
-      await removeProviderSubscription(subscription);
+    const sameProviderEndpoint =
+      subscription.providerId === replacement.providerId &&
+      subscription.pushResource === replacement.pushResource &&
+      subscription.providerToken === replacement.providerToken;
+
+    if (!sameProviderEndpoint) {
+      await removeProviderSubscription(subscription, providerConfig);
     }
 
     await removeStoredSubscriptionRecord(subscription);
@@ -457,7 +445,7 @@ const recreateCalendarPushSubscription = async (
   const conn = getConnection(accountId);
 
   for (const subscription of supersededSubscriptions) {
-    await removeProviderSubscription(subscription);
+    await removeProviderSubscription(subscription, providerConfig);
   }
 
   const replacement = await createRegisteredPushSubscription(
@@ -470,7 +458,13 @@ const recreateCalendarPushSubscription = async (
     return null;
   }
 
-  await cleanupSupersededSubscriptions(accountId, calendar, supersededSubscriptions, replacement);
+  await cleanupSupersededSubscriptions(
+    accountId,
+    calendar,
+    supersededSubscriptions,
+    replacement,
+    providerConfig,
+  );
   return replacement;
 };
 
@@ -520,7 +514,7 @@ export const subscribeCalendarToPush = async (
   );
 
   for (const subscription of mismatchedSubscriptions) {
-    await removeProviderSubscription(subscription);
+    await removeProviderSubscription(subscription, providerConfig);
   }
 
   if (mismatchedSubscriptions.length > 0) {
@@ -539,7 +533,13 @@ export const subscribeCalendarToPush = async (
     return null;
   }
 
-  await cleanupSupersededSubscriptions(accountId, calendar, existingSubscriptions, subscription);
+  await cleanupSupersededSubscriptions(
+    accountId,
+    calendar,
+    existingSubscriptions,
+    subscription,
+    providerConfig,
+  );
   return subscription;
 };
 
@@ -591,44 +591,46 @@ export const startPushListeningForSubscription = (
     return false;
   }
 
-  if (providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID) {
-    return startKUnifiedPushProviderListening(
-      subscription,
-      globalMessageHandler,
-      calendar
-        ? (_calendarId, reason) => {
-            log.warn(`KUnifiedPush invalidated for ${calendar.displayName}: ${reason}`);
-            void recreateCalendarPushSubscription(
-              subscription.accountId,
-              calendar,
-              [subscription],
-              providerConfig,
-              reason,
-            ).then((replacement) => {
-              if (replacement) {
-                startPushListeningForSubscription(replacement, providerConfig, calendar);
-                return;
-              }
+  return getPushProvider(providerConfig.providerId).startListening(
+    subscription,
+    globalMessageHandler,
+    providerConfig,
+    calendar
+      ? (_calendarId, reason) => {
+          log.warn(`Push provider invalidated for ${calendar.displayName}: ${reason}`);
+          void recreateCalendarPushSubscription(
+            subscription.accountId,
+            calendar,
+            [subscription],
+            providerConfig,
+            reason,
+          ).then((replacement) => {
+            if (replacement) {
+              startPushListeningForSubscription(replacement, providerConfig, calendar);
+              return;
+            }
 
-              globalMessageHandler?.(
-                calendar.id,
-                `KUnifiedPush invalidated and recreation failed: ${reason}`,
-              );
-            });
-          }
-        : undefined,
-    );
-  }
-
-  return startNtfyProviderListening(subscription, globalMessageHandler);
+            globalMessageHandler?.(
+              calendar.id,
+              `Push provider invalidated and recreation failed: ${reason}`,
+            );
+          });
+        }
+      : undefined,
+  );
 };
 
 /**
  * stop listening for push messages on a calendar
  */
 export const stopPushListening = (calendarId: string) => {
-  stopNtfyProviderListening(calendarId);
-  stopKUnifiedPushProviderListening(calendarId);
+  for (const providerId of [
+    NTFY_DIRECT_PROVIDER_ID,
+    KUNIFIED_PUSH_PROVIDER_ID,
+    MOZILLA_AUTOPUSH_PROVIDER_ID,
+  ] as const) {
+    getPushProvider(providerId).stopListening(calendarId);
+  }
 };
 
 /**
@@ -755,14 +757,18 @@ export const enablePushForCalendar = async (
  *
  * unsubscribes from the CalDAV server and stops listening
  */
-export const disablePushForCalendar = async (accountId: string, calendarId: string) => {
+export const disablePushForCalendar = async (
+  accountId: string,
+  calendarId: string,
+  providerConfig?: PushProviderConfig,
+) => {
   // stop listening first
   stopPushListening(calendarId);
 
   // remove provider subscription
   const subscriptions = await getFreshCalendarSubscriptions(calendarId);
   for (const subscription of subscriptions) {
-    await removeProviderSubscription(subscription);
+    await removeProviderSubscription(subscription, providerConfig);
   }
 
   // unsubscribe from server
@@ -784,6 +790,38 @@ export const disableAllPushSubscriptions = async () => {
   if (subscriptions.length > 0) {
     log.info(`Disabled WebDAV Push and removed ${subscriptions.length} stored subscription(s)`);
   }
+};
+
+export interface ResubscribeAllPushCalendarsResult {
+  attempted: number;
+  succeeded: number;
+  failed: number;
+}
+
+export const resubscribeAllPushCalendars = async (
+  accounts: Account[],
+  providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+): Promise<ResubscribeAllPushCalendarsResult> => {
+  const targets = getPushSubscriptionTargets(accounts);
+  let succeeded = 0;
+
+  for (const { accountId, calendar } of targets) {
+    try {
+      await disablePushForCalendar(accountId, calendar.id, providerConfig);
+      const enabled = await enablePushForCalendar(accountId, calendar, providerConfig);
+      if (enabled) succeeded++;
+    } catch (error) {
+      log.error(`Failed to resubscribe push for ${calendar.displayName}:`, error);
+    }
+  }
+
+  invalidatePushCaches();
+
+  return {
+    attempted: targets.length,
+    succeeded,
+    failed: targets.length - succeeded,
+  };
 };
 
 const restoreCalendarPushListener = async (
@@ -888,7 +926,7 @@ export const restorePushListeners = async (
       log.warn(`Calendar ${calendarId} not found for push subscription`);
       for (const subscription of subscriptions) {
         await unregisterStoredSubscription(subscription.accountId, subscription);
-        await removeStoredSubscription(subscription);
+        await removeStoredSubscription(subscription, providerConfig);
       }
       continue;
     }
@@ -902,6 +940,5 @@ export const restorePushListeners = async (
 };
 
 export const stopAllPushSubscriptions = () => {
-  stopAllNtfyProviderListeners();
-  stopAllKUnifiedPushProviderListeners();
+  stopAllPushProviderListeners();
 };

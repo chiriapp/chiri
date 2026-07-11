@@ -16,6 +16,7 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
   const [lastSyncSource, setLastSyncSourceState] = useState<string | null>(null);
   const [lastSyncError, setLastSyncErrorState] = useState<string | null>(null);
   const initialSyncCallbackRef = useRef<(() => void) | null>(null);
+  const syncRequestCallbackRef = useRef<(() => void) | null>(null);
   const initialSyncTriggeredRef = useRef(false);
 
   const setSyncingCalendarId = useCallback((id: string | null) => {
@@ -46,11 +47,21 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
     initialSyncCallbackRef.current = callback;
   }, []);
 
+  const registerSyncRequestCallback = useCallback((callback: () => void) => {
+    syncRequestCallbackRef.current = callback;
+  }, []);
+
+  const requestSync = useCallback(() => {
+    syncRequestCallbackRef.current?.();
+  }, []);
+
   // trigger initial sync once when callback is registered
   useEffect(() => {
     if (initialSyncTriggeredRef.current || !initialSyncCallbackRef.current) {
       return;
     }
+
+    initialSyncTriggeredRef.current = true;
 
     const accounts = getAllAccounts();
     const syncOnStartup = settingsStore.getState().syncOnStartup;
@@ -64,8 +75,6 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
       log.debug('Initial sync skipped - sync on startup disabled in settings');
       return;
     }
-
-    initialSyncTriggeredRef.current = true;
 
     // wait for React to finish render cycle and browser to paint
     requestAnimationFrame(() => {
@@ -90,6 +99,8 @@ export const SyncProvider = ({ children }: { children: ReactNode }) => {
     setLastSyncSource,
     setLastSyncError,
     registerInitialSyncCallback,
+    registerSyncRequestCallback,
+    requestSync,
   };
 
   return <SyncContext.Provider value={value}>{children}</SyncContext.Provider>;

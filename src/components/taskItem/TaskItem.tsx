@@ -235,7 +235,7 @@ export const TaskItem = ({
     isOverlay ? 'shadow-xl' : 'shadow-xs hover:shadow-md',
     getBorderClass(isVisuallySelected, task.priority),
     getOpacityClass(task.status, isUnstarted),
-    isDragEnabled ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
+    isDragging ? 'cursor-grabbing' : 'cursor-pointer',
     !isOverlay ? 'hover:bg-surface-50 dark:hover:bg-surface-800/70' : '',
     getSelectionClass(isSelected, isMultiSelected, task.priority),
     getPriorityColor(task.priority),

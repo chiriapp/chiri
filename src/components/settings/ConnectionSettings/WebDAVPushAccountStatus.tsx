@@ -10,13 +10,10 @@ import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/push/usePushProviderAvailability';
 import { getWebDAVPushAccountDiagnostics } from '$lib/push';
+import { getPushProviderConfigKey, getPushProviderLabel } from '$lib/push/providers';
 import { queryKeys } from '$lib/queryClient';
 import type { Account } from '$types';
-import {
-  KUNIFIED_PUSH_PROVIDER_ID,
-  type PushProviderConfig,
-  type WebDAVPushAccountDiagnostics,
-} from '$types/push';
+import type { PushProviderConfig, WebDAVPushAccountDiagnostics } from '$types/push';
 
 type WebDAVPushStatusTone = 'success' | 'warning' | 'muted' | 'info';
 
@@ -144,7 +141,7 @@ const getWebDAVPushStatusDetails = (
   const details = [
     {
       label: 'Provider',
-      value: providerConfig.providerId === KUNIFIED_PUSH_PROVIDER_ID ? 'KUnifiedPush' : 'ntfy',
+      value: getPushProviderLabel(providerConfig.providerId),
     },
     {
       label: 'Registered',
@@ -192,7 +189,13 @@ const WebDAVPushStatusIcon = ({ icon }: { icon: WebDAVPushStatus['icon'] }) => {
 export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProps) => {
   const statusButtonRef = useRef<HTMLButtonElement>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const { enablePush, pushProvider, ntfyServerUrl } = useSettingsStore();
+  const {
+    enablePush,
+    pushProvider,
+    ntfyServerUrl,
+    mozillaAutopushWebsocketUrl,
+    mozillaAutopushEndpointUrl,
+  } = useSettingsStore();
   const {
     availability: providerAvailability,
     isResolvingKUnifiedPush,
@@ -201,12 +204,13 @@ export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProp
     enabled: enablePush,
     pushProvider,
     ntfyServerUrl,
+    mozillaAutopushWebsocketUrl,
+    mozillaAutopushEndpointUrl,
   });
   const diagnostics = useQuery({
     queryKey: [
       ...queryKeys.pushDiagnostics.byAccount(account.id),
-      pushProviderConfig.providerId,
-      pushProviderConfig.ntfyConfig?.serverUrl ?? '',
+      getPushProviderConfigKey(pushProviderConfig),
     ],
     queryFn: () => getWebDAVPushAccountDiagnostics(account, pushProviderConfig),
     enabled: enablePush && !isResolvingKUnifiedPush,

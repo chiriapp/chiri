@@ -1,4 +1,5 @@
 import { AccountModal } from '$components/modals/AccountModal/AccountModal';
+import { AppImageIntegrationModal } from '$components/modals/AppImageIntegrationModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import { ExportModal } from '$components/modals/ExportModal';
@@ -22,6 +23,14 @@ import type {
 interface AppModalsOnboarding {
   show: boolean;
   hasCalDAVAccounts: boolean;
+}
+
+interface AppModalsAppImageIntegration {
+  show: boolean;
+  isIntegrating: boolean;
+  error: string | null;
+  onIntegrate: () => void;
+  onSkip: () => void;
 }
 
 interface AppModalsFileDrop {
@@ -54,6 +63,7 @@ interface AppModalsUpdates {
 interface AppModalsProps {
   accounts: Account[];
   onboarding: AppModalsOnboarding;
+  appImageIntegration: AppModalsAppImageIntegration;
   modals: AppModalState;
   modalActions: AppModalActions;
   fileDrop: AppModalsFileDrop;
@@ -63,6 +73,7 @@ interface AppModalsProps {
 export const AppModals = ({
   accounts,
   onboarding,
+  appImageIntegration,
   modals,
   modalActions,
   fileDrop,
@@ -115,6 +126,7 @@ export const AppModals = ({
     dismissUpdate,
     setShowUpdateModal,
   } = updates;
+  const { show, isIntegrating, error, onIntegrate, onSkip } = appImageIntegration;
   const editingAccount = editingAccountId
     ? (accounts.find((account) => account.id === editingAccountId) ?? null)
     : null;
@@ -218,6 +230,15 @@ export const AppModals = ({
         <OnboardingModal
           hasCalDAVAccount={onboarding.hasCalDAVAccounts}
           onAddAccount={() => openAccountAboveModal()}
+        />
+      )}
+
+      {show && (
+        <AppImageIntegrationModal
+          isIntegrating={isIntegrating}
+          error={error}
+          onIntegrate={onIntegrate}
+          onSkip={onSkip}
         />
       )}
 

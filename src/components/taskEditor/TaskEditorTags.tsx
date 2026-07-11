@@ -1,7 +1,9 @@
 import Pencil from 'lucide-react/icons/pencil';
 import Plus from 'lucide-react/icons/plus';
 import TagIcon from 'lucide-react/icons/tag';
+import TagX from 'lucide-react/icons/tag-x';
 import X from 'lucide-react/icons/x';
+import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import { getIconByName } from '$constants/icons';
 import type { Tag, Task } from '$types';
 
@@ -74,9 +76,9 @@ export const TaskEditorTags = ({
         })}
 
         {readOnly && taskTags.length === 0 && (
-          <span className="cursor-not-allowed text-sm text-surface-400 dark:text-surface-500">
+          <TaskEditorEmptyState icon={<TagX className="h-4 w-4 shrink-0" />}>
             No tags
-          </span>
+          </TaskEditorEmptyState>
         )}
 
         {!readOnly && (

@@ -8,11 +8,17 @@ import { isMacPlatform } from '$utils/platform';
 export const ShortcutRow = ({
   shortcut,
   onEdit,
+  isLast = false,
 }: {
   shortcut: KeyboardShortcut;
   onEdit: (shortcut: KeyboardShortcut) => void;
+  isLast?: boolean;
 }) => (
-  <div className="flex items-center justify-between gap-3 border-surface-100 border-b bg-white px-3 py-2.5 last:border-0 dark:border-surface-700 dark:bg-surface-800">
+  <div
+    className={`flex items-center justify-between gap-3 bg-white px-3 py-2.5 dark:bg-surface-800 ${
+      isLast ? '' : 'border-surface-100 border-b dark:border-surface-700'
+    }`}
+  >
     <span className="min-w-0 text-sm text-surface-600 dark:text-surface-400">
       {shortcut.description}
     </span>

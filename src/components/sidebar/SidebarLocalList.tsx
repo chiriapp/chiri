@@ -14,6 +14,7 @@ interface SidebarLocalListProps {
   activeCalendarId: string | null;
   contextMenu: { type: string; id: string; accountId?: string } | null;
   isAnyModalOpen: boolean;
+  showTaskCounts: boolean;
   collapsed: boolean;
   onToggle: () => void;
   onContextMenu: (
@@ -32,6 +33,7 @@ export const SidebarLocalList = ({
   activeCalendarId,
   contextMenu,
   isAnyModalOpen,
+  showTaskCounts,
   collapsed,
   onToggle,
   onContextMenu,
@@ -115,6 +117,7 @@ export const SidebarLocalList = ({
               contextMenu={contextMenu}
               isAnyModalOpen={isAnyModalOpen}
               isAnyAccountDragging={false}
+              showTaskCounts={showTaskCounts}
               calendarSortConfig={calendarSortConfig}
               onContextMenu={onContextMenu}
               onSelectCalendar={onSelectCalendar}

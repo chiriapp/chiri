@@ -42,6 +42,7 @@ interface AppShellProps {
   onSync: () => void;
   disableSync: boolean;
   isOffline: boolean;
+  isReconnecting: boolean;
   lastSyncTime: Date | null;
   lastSyncSource: string | null;
   syncOnReconnect: boolean;
@@ -71,6 +72,7 @@ export const AppShell = ({
   onSync,
   disableSync,
   isOffline,
+  isReconnecting,
   lastSyncTime,
   lastSyncSource,
   syncOnReconnect,
@@ -145,7 +147,11 @@ export const AppShell = ({
           lastSyncSource={lastSyncSource}
         />
 
-        <OfflineBanner isOffline={isOffline} syncOnReconnect={syncOnReconnect} />
+        <OfflineBanner
+          isOffline={isOffline}
+          isReconnecting={isReconnecting}
+          syncOnReconnect={syncOnReconnect}
+        />
 
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <div

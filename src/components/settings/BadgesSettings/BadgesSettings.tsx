@@ -99,7 +99,10 @@ export const BadgesSettings = () => {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">Badges</h3>
-      <BadgesSettingsPreview />
+      <div>
+        <p className="mb-2 font-medium text-surface-500 text-xs dark:text-surface-400">Preview</p>
+        <BadgesSettingsPreview />
+      </div>
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={taskBadgeOrder} strategy={verticalListSortingStrategy}>

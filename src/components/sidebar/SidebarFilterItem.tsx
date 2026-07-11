@@ -11,6 +11,7 @@ interface SidebarFilterItemProps {
   isAnyModalOpen: boolean;
   isAnyFilterDragging?: boolean;
   taskCount: number;
+  showTaskCount: boolean;
   sortable?: boolean;
   onSelect: () => void;
   onContextMenu: (e: MouseEvent) => void;
@@ -23,6 +24,7 @@ export const SidebarFilterItem = ({
   isAnyModalOpen,
   isAnyFilterDragging,
   taskCount,
+  showTaskCount,
   sortable = false,
   onSelect,
   onContextMenu,
@@ -70,7 +72,7 @@ export const SidebarFilterItem = ({
         <FilterIcon className="h-3.5 w-3.5" style={{ color: filterColor }} />
       )}
       <span className="flex-1 truncate text-left">{filter.name}</span>
-      <span className="text-xs">{taskCount}</span>
+      {showTaskCount && <span className="text-xs">{taskCount}</span>}
     </button>
   );
 

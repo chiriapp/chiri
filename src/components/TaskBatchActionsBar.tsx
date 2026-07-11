@@ -97,7 +97,7 @@ export const TaskBatchActionsBar = ({
   const { timeFormat } = useSettingsStore();
   const batchUpdateTasksMutation = useBatchUpdateTasks();
   const restoreTaskMutation = useRestoreTask();
-  const { moveTaskToRecentlyDeleted, deleteTasksPermanently } = useTaskDeletion();
+  const { moveTasksToRecentlyDeleted, deleteTasksPermanently } = useTaskDeletion();
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [showDatesModal, setShowDatesModal] = useState(false);
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -220,10 +220,10 @@ export const TaskBatchActionsBar = ({
   };
 
   const handleDelete = async () => {
-    for (const task of selectedTasks) {
-      await moveTaskToRecentlyDeleted(task.id);
+    const deleted = await moveTasksToRecentlyDeleted(selectedTasks.map((task) => task.id));
+    if (deleted) {
+      onClearSelection();
     }
-    onClearSelection();
   };
 
   const handleRestore = () => {

@@ -80,8 +80,11 @@ fn is_tiling_wm() -> bool {
 /// mode with the compositor. runtime calls to `set_decorated` do not reliably
 /// trigger a Wayland protocol update on KDE
 ///
-/// note: the Wayland xdg_toplevel app_id is derived from the binary name,
-/// so the Flatpak installs the binary as garden.chiri.Chiri to match the .desktop filename for KWin icon lookup
+/// note: on wayland the xdg_toplevel app_id must match the `.desktop` filename
+/// (sans `.desktop`) for KWin icon lookup. the app_id is usually derived from
+/// the binary name, so the AppImage binary is named `garden.chiri.Chiri`.
+/// the `.deb`/`.rpm` packages keep the friendly `Chiri` binary and use
+/// `enableGTKAppId` to pin the app_id to `garden.chiri.Chiri`.
 #[cfg(target_os = "linux")]
 pub fn configure_titlebar_for_de(window: &tauri::WebviewWindow) {
     use gtk::prelude::GtkWindowExt;

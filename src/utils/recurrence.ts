@@ -492,9 +492,11 @@ export const rruleToFrequency = (rruleValue: string): RecurrenceFrequency => {
 
   if (freq === 'DAILY') return 'daily';
   if (freq === 'WEEKLY') {
-    if (byday === 'MO,TU,WE,TH,FR') return 'weekdays';
+    const days = byday.split(',').filter(Boolean);
+    const weekdayDays = ['MO', 'TU', 'WE', 'TH', 'FR'];
+    if (days.length > 0 && days.every((day) => weekdayDays.includes(day))) return 'weekdays';
     // single-day weekly with no extras = weekly preset
-    if (!byday || byday.split(',').length === 1) return 'weekly';
+    if (!byday || days.length === 1) return 'weekly';
     return 'custom';
   }
   if (freq === 'MONTHLY' && !byday) return 'monthly';

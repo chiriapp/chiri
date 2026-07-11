@@ -36,9 +36,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
   env = lib.optionalAttrs stdenv.hostPlatform.isDarwin (
     darwinCcEnv
     // {
-      MACOSX_DEPLOYMENT_TARGET = "14.0";
-      CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-mmacosx-version-min=14.0";
-      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-mmacosx-version-min=14.0";
+      MACOSX_DEPLOYMENT_TARGET = "12.0";
+      CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-mmacosx-version-min=12.0";
+      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS = "-C link-arg=-mmacosx-version-min=12.0";
     }
   );
 
@@ -48,14 +48,14 @@ rustPlatform.buildRustPackage (finalAttrs: {
   ];
 
   # cargo dependencies hash - update when Cargo.lock changes
-  cargoHash = "sha256-4OrMiSIniR1Ewpx+rBe+HxvHmRe8MvDXnX56aAwdxxM=";
+  cargoHash = "sha256-DSjZlSlWKHklRkbzJ3Cj1jBGXHBSrGUgpF/zkO2bpxw=";
 
   # pnpm dependencies for the frontend
   pnpmDeps = fetchPnpmDeps {
     inherit (finalAttrs) pname version src;
     inherit pnpm;
     fetcherVersion = 3;
-    hash = "sha256-yBWcI1QnKOrnYttRqcP+a0WriXFith1IalFEkYJhwmU="; # pnpmDeps
+    hash = "sha256-Qa7YbNGe8M2Qw+pMinnd8ueT3VoFGIBqUt6ofk7Sano="; # pnpmDeps
   };
 
   nativeBuildInputs = [
@@ -112,7 +112,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   preBuild =
     lib.optionalString stdenv.hostPlatform.isDarwin ''
       ${darwinCcExports}
-      export MACOSX_DEPLOYMENT_TARGET=14.0
+      export MACOSX_DEPLOYMENT_TARGET=12.0
     ''
     + ''
       unset TAURI_SIGNING_PRIVATE_KEY
@@ -127,18 +127,9 @@ rustPlatform.buildRustPackage (finalAttrs: {
         makeWrapper "$out/Applications/Chiri.app/Contents/MacOS/chiri" "$out/bin/chiri"
       ''
     else
-      ''
-        mv $out/bin/Chiri $out/bin/chiri
-        for desktopFile in \
-          $out/share/applications/Chiri.desktop \
-          $out/share/applications/garden.chiri.Chiri.desktop
-        do
-          if [ -f "$desktopFile" ]; then
-            substituteInPlace "$desktopFile" \
-              --replace-fail "Exec=Chiri" "Exec=chiri"
-          fi
-        done
-      '';
+      # on Linux the binary keeps the crate name "Chiri" so the terminal command stays friendly
+      # the Wayland app_id is pinned to garden.chiri.Chiri via enableGTKAppId, matching the desktop file name
+      "";
 
   # tauri apps typically don't have cargo tests
   doCheck = false;
@@ -158,7 +149,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
     changelog = "https://github.com/SapphoSys/chiri/releases/tag/app-v${finalAttrs.version}";
     license = lib.licenses.zlib;
     maintainers = with lib.maintainers; [ SapphoSys ];
-    mainProgram = "chiri";
+    mainProgram = if stdenv.hostPlatform.isDarwin then "chiri" else "Chiri";
     platforms = lib.platforms.linux ++ lib.platforms.darwin;
   };
 })

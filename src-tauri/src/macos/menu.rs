@@ -12,17 +12,19 @@
 //! see: https://github.com/tauri-apps/muda/pull/322
 //!      https://github.com/tauri-apps/tauri/issues/12652
 
-/// applies the fix on the calling thread
+/// applies macOS menu fixes on the calling thread
 /// must be called on the main thread (use `AppHandle::run_on_main_thread`)
 #[cfg(target_os = "macos")]
 fn fix_help_menu() {
     unsafe {
+        chiri_macos_fix_select_all_menu_item();
         chiri_macos_fix_help_menu();
     }
 }
 
 #[cfg(target_os = "macos")]
 extern "C" {
+    fn chiri_macos_fix_select_all_menu_item();
     fn chiri_macos_fix_help_menu();
 }
 

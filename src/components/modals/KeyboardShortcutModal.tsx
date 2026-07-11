@@ -159,10 +159,12 @@ export const KeyboardShortcutModal = ({
           onFocus={() => setIsRecording(true)}
           onBlur={() => setIsRecording(false)}
           onKeyDown={handleKeyCapture}
-          className={`relative flex h-20 w-full cursor-pointer items-center justify-center rounded-lg border bg-surface-50 shadow-inner transition-colors hover:bg-white focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-inset dark:bg-surface-900 dark:focus:bg-surface-800 dark:hover:bg-surface-800 ${
+          className={`relative flex h-20 w-full cursor-pointer items-center justify-center rounded-lg border bg-surface-50 shadow-inner transition-colors hover:bg-white focus:bg-white focus:outline-hidden dark:bg-surface-900 dark:focus:bg-surface-800 dark:hover:bg-surface-800 ${
             hasShortcutError
-              ? 'border-semantic-error focus:border-semantic-error focus:ring-semantic-error'
-              : 'border-surface-200 hover:border-surface-300 focus:border-primary-500 dark:border-surface-700 dark:hover:border-surface-600'
+              ? 'border-semantic-error border-dashed focus:border-semantic-error'
+              : isRecording
+                ? 'border-primary-500 border-dashed focus:border-primary-500'
+                : 'border-surface-200 border-dashed hover:border-surface-300 focus:border-primary-500 dark:border-surface-700 dark:hover:border-surface-600'
           }`}
           aria-label="Press keys to set shortcut"
         >

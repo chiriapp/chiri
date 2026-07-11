@@ -28,8 +28,23 @@ const getPermanentDeleteMessage = (task: Task, tasks: Task[], deleteChildren: bo
   return 'This will permanently delete the task. This cannot be undone.';
 };
 
+const getRecentlyDeletedMessage = (task: Task, tasks: Task[], deleteChildren: boolean) => {
+  const descendantCount = countAllDescendants(tasks, task.uid);
+
+  if (descendantCount > 0 && deleteChildren) {
+    return `This task has ${descendantCount} ${pluralize(descendantCount, 'subtask')} that will also move to Recently Deleted.`;
+  }
+
+  if (descendantCount > 0) {
+    return `This task has ${descendantCount} ${pluralize(descendantCount, 'subtask')} that will stay in your lists.`;
+  }
+
+  return 'You can restore this task from Recently Deleted.';
+};
+
 export const useTaskDeletion = () => {
   const {
+    confirmBeforeMoveToRecentlyDeleted,
     confirmBeforePermanentDelete,
     deleteSubtasksWithParent,
     hasSeenRecentlyDeletedToast,
@@ -41,21 +56,54 @@ export const useTaskDeletion = () => {
   const setRecentlyDeletedViewMutation = useSetRecentlyDeletedView();
   const { confirm, close } = useConfirmDialog();
 
-  const moveTaskToRecentlyDeleted = useCallback(
-    async (taskId: string | null | undefined) => {
-      if (!taskId) return false;
+  const moveTasksToRecentlyDeleted = useCallback(
+    async (taskIds: Array<string | null | undefined>) => {
+      const seenTaskIds = new Set<string>();
+      const tasksToDelete = taskIds.flatMap((taskId) => {
+        if (!taskId || seenTaskIds.has(taskId)) return [];
+        seenTaskIds.add(taskId);
 
-      const task = tasks.find((t) => t.id === taskId);
-      if (!task) return false;
+        const task = tasks.find((candidate) => candidate.id === taskId);
+        return task ? [task] : [];
+      });
+
+      if (tasksToDelete.length === 0) return false;
 
       const deleteChildren = deleteSubtasksWithParent === 'delete';
+      const normalTasks = tasksToDelete.filter(
+        (task) => !isDiscardableUntitledLocalDraft(task, tasks),
+      );
 
-      if (isDiscardableUntitledLocalDraft(task, tasks)) {
-        permanentDeleteTaskMutation.mutate({ id: taskId, deleteChildren: true });
-        return true;
+      if (confirmBeforeMoveToRecentlyDeleted && normalTasks.length > 0) {
+        const taskCount = normalTasks.length;
+        const message =
+          taskCount === 1
+            ? getRecentlyDeletedMessage(normalTasks[0], tasks, deleteChildren)
+            : `${taskCount} selected ${pluralize(taskCount, 'task')} will move to Recently Deleted.`;
+
+        const confirmed = await confirm({
+          title: 'Move to Recently Deleted',
+          subtitle:
+            taskCount === 1
+              ? normalTasks[0].title || 'Untitled task'
+              : `${taskCount} selected ${pluralize(taskCount, 'task')}`,
+          message,
+          confirmLabel: 'Move to Recently Deleted',
+          cancelLabel: 'Cancel',
+          destructive: true,
+        });
+        close();
+        if (!confirmed) return false;
       }
 
-      deleteTaskMutation.mutate({ id: taskId, deleteChildren });
+      for (const task of tasksToDelete) {
+        if (isDiscardableUntitledLocalDraft(task, tasks)) {
+          permanentDeleteTaskMutation.mutate({ id: task.id, deleteChildren: true });
+        } else {
+          deleteTaskMutation.mutate({ id: task.id, deleteChildren });
+        }
+      }
+
       if (!hasSeenRecentlyDeletedToast) {
         setHasSeenRecentlyDeletedToast(true);
         toastManager.info(
@@ -81,6 +129,9 @@ export const useTaskDeletion = () => {
       return true;
     },
     [
+      close,
+      confirm,
+      confirmBeforeMoveToRecentlyDeleted,
       deleteSubtasksWithParent,
       deleteTaskMutation,
       hasSeenRecentlyDeletedToast,
@@ -89,6 +140,11 @@ export const useTaskDeletion = () => {
       setRecentlyDeletedViewMutation,
       tasks,
     ],
+  );
+
+  const moveTaskToRecentlyDeleted = useCallback(
+    (taskId: string | null | undefined) => moveTasksToRecentlyDeleted([taskId]),
+    [moveTasksToRecentlyDeleted],
   );
 
   const deleteTasksPermanently = useCallback(
@@ -151,5 +207,10 @@ export const useTaskDeletion = () => {
     [deleteTasksPermanently],
   );
 
-  return { moveTaskToRecentlyDeleted, deleteTaskPermanently, deleteTasksPermanently };
+  return {
+    moveTaskToRecentlyDeleted,
+    moveTasksToRecentlyDeleted,
+    deleteTaskPermanently,
+    deleteTasksPermanently,
+  };
 };

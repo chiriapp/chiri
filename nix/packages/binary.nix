@@ -7,8 +7,6 @@
   dpkg,
   undmg,
 
-  # Linux runtime dependencies
-  desktop-file-utils,
   glib,
   gtk3,
   webkitgtk_4_1,
@@ -16,7 +14,6 @@
   openssl,
   glib-networking,
   libsoup_3,
-  xdg-utils,
 
   # this tracks signed/notarized release artifacts, not the checkout version
   # update the version and per-platform hashes when publishing new artifacts
@@ -81,11 +78,11 @@ if stdenvNoCC.isDarwin then
     '';
 
     meta = {
-      description = "Cross-platform CalDAV task management app. (pre-built binary)";
+      description = "Cross-platform CalDAV task management app (pre-built binary)";
       homepage = "https://github.com/chiriapp/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
-      mainProgram = "chiri";
+      mainProgram = if stdenvNoCC.hostPlatform.isDarwin then "chiri" else "Chiri";
       platforms = [
         "x86_64-darwin"
         "aarch64-darwin"
@@ -129,7 +126,6 @@ else
 
       if [ -f "$out/bin/Chiri" ]; then
         chmod +x $out/bin/Chiri
-        mv $out/bin/Chiri $out/bin/chiri
       fi
 
       # copy desktop file and icons if present
@@ -142,37 +138,19 @@ else
 
     # wrap to set required environment variables
     postFixup = ''
-      if [ -f "$out/bin/chiri" ]; then
-        wrapProgram $out/bin/chiri \
+      if [ -f "$out/bin/Chiri" ]; then
+        wrapProgram $out/bin/Chiri \
           --set GIO_EXTRA_MODULES "${glib-networking}/lib/gio/modules" \
-          --prefix PATH : "${lib.makeBinPath [ desktop-file-utils xdg-utils ]}" \
           --prefix LD_LIBRARY_PATH : "${lib.makeLibraryPath [ libayatana-appindicator ]}"
       fi
-
-      for desktopFile in \
-        $out/share/applications/Chiri.desktop \
-        $out/share/applications/garden.chiri.Chiri.desktop
-      do
-        if [ -f "$desktopFile" ]; then
-          substituteInPlace "$desktopFile" \
-            --replace-fail "Exec=Chiri" "Exec=chiri"
-          if ! grep -q '^MimeType=.*x-scheme-handler/garden\.chiri' "$desktopFile"; then
-            echo "MimeType=x-scheme-handler/garden.chiri;" >> "$desktopFile"
-          fi
-          if grep -q '^Exec=chiri$' "$desktopFile"; then
-            substituteInPlace "$desktopFile" \
-              --replace-fail "Exec=chiri" "Exec=chiri %u"
-          fi
-        fi
-      done
     '';
 
     meta = {
-      description = "Cross-platform CalDAV task management app. (pre-built binary)";
+      description = "Cross-platform CalDAV task management app (pre-built binary)";
       homepage = "https://github.com/chiriapp/chiri";
       license = lib.licenses.zlib;
       maintainers = with lib.maintainers; [ SapphoSys ];
-      mainProgram = "chiri";
+      mainProgram = if stdenvNoCC.hostPlatform.isDarwin then "chiri" else "Chiri";
       platforms = [
         "x86_64-linux"
         "aarch64-linux"

@@ -3,7 +3,11 @@
  */
 export const NTFY_DIRECT_PROVIDER_ID = 'ntfy-direct';
 export const KUNIFIED_PUSH_PROVIDER_ID = 'kunifiedpush';
-export type PushProviderId = typeof NTFY_DIRECT_PROVIDER_ID | typeof KUNIFIED_PUSH_PROVIDER_ID;
+export const MOZILLA_AUTOPUSH_PROVIDER_ID = 'mozilla-autopush';
+export type PushProviderId =
+  | typeof NTFY_DIRECT_PROVIDER_ID
+  | typeof KUNIFIED_PUSH_PROVIDER_ID
+  | typeof MOZILLA_AUTOPUSH_PROVIDER_ID;
 
 /**
  * ntfy server configuration
@@ -21,6 +25,17 @@ export interface NtfyProviderConfig {
 export interface PushProviderConfig {
   providerId: PushProviderId;
   ntfyConfig?: NtfyProviderConfig;
+  mozillaAutopushConfig?: MozillaAutopushProviderConfig;
+}
+
+/**
+ * Mozilla Autopush configuration
+ */
+export interface MozillaAutopushProviderConfig {
+  /** Autopush websocket URL used by clients */
+  websocketUrl: string;
+  /** Autopush HTTP endpoint base URL used by senders */
+  endpointUrl: string;
 }
 
 /**
@@ -51,6 +66,10 @@ export interface PushSubscription {
   providerId: PushProviderId;
   /** provider-specific registration token, if the provider needs one */
   providerToken?: string;
+  /** provider-specific distributor/service that owns the token, if applicable */
+  providerDistributor?: string;
+  /** provider-specific JSON metadata needed to restore/remove/listen */
+  providerMetadata?: string;
   /** when the subscription expires */
   expiresAt: Date;
   /** when the subscription was created locally */
@@ -107,6 +126,8 @@ export interface WebPushSubscription {
 export interface PushEndpointSubscription extends WebPushSubscription {
   providerId: PushProviderId;
   providerToken?: string;
+  providerDistributor?: string;
+  providerMetadata?: string;
 }
 
 /**

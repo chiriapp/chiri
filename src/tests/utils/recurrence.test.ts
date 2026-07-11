@@ -246,8 +246,10 @@ describe('rruleToFrequency', () => {
     expect(rruleToFrequency('FREQ=DAILY')).toBe('daily');
   });
 
-  it('detects weekdays preset', () => {
+  it('detects weekdays preset (partial weekdays too)', () => {
     expect(rruleToFrequency('FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR')).toBe('weekdays');
+    expect(rruleToFrequency('FREQ=WEEKLY;BYDAY=MO,TU,WE,TH')).toBe('weekdays');
+    expect(rruleToFrequency('FREQ=WEEKLY;BYDAY=FR')).toBe('weekdays');
   });
 
   it('detects weekly preset (no byday)', () => {
@@ -255,11 +257,11 @@ describe('rruleToFrequency', () => {
   });
 
   it('detects weekly preset (single byday)', () => {
-    expect(rruleToFrequency('FREQ=WEEKLY;BYDAY=MO')).toBe('weekly');
+    expect(rruleToFrequency('FREQ=WEEKLY;BYDAY=SA')).toBe('weekly');
   });
 
   it('falls back to custom for multi-byday non-weekdays patterns', () => {
-    expect(rruleToFrequency('FREQ=WEEKLY;BYDAY=MO,WE')).toBe('custom');
+    expect(rruleToFrequency('FREQ=WEEKLY;BYDAY=MO,SA')).toBe('custom');
   });
 
   it('detects monthly preset only without byday', () => {
