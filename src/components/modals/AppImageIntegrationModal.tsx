@@ -41,8 +41,12 @@ export const AppImageIntegrationModal = ({
             Integrate Chiri with your desktop?
           </h2>
           <p className="mt-2 text-sm text-surface-600 leading-6 dark:text-surface-400">
-            You are running Chiri as an AppImage. Adding a desktop entry lets you open Chiri from
-            your app menu and fixes the window icon in some desktop environments.
+            You are running Chiri as an AppImage. Adding a desktop entry moves the AppImage to your{' '}
+            <code className="rounded bg-surface-100 px-1 py-0.5 font-mono text-xs dark:bg-surface-700">
+              ~/Applications
+            </code>{' '}
+            folder and installs the icon so Chiri appears in your app menu and its window icon shows
+            correctly in some desktop environments.
           </p>
           {error && (
             <p className="mt-3 rounded-lg bg-error-100 p-2.5 text-error-700 text-sm dark:bg-error-900/30 dark:text-error-300">

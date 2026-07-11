@@ -299,6 +299,16 @@ pub fn install_appimage_desktop_integration(app_handle: tauri::AppHandle) -> Res
         .map(PathBuf::from)
         .ok_or_else(|| "APPIMAGE not set".to_string())?;
 
+    // per AppImage convention, integration moves the AppImage to ~/Applications so
+    // the launcher stays valid and the file is easy to find later.
+    let appimage_path = match move_appimage_to_applications(&appimage_path) {
+        Ok(new_path) => new_path,
+        Err(e) => {
+            log::warn!("[AppImage] Failed to move AppImage to ~/Applications: {e}");
+            appimage_path
+        }
+    };
+
     install_desktop_file(&app_dir, &appimage_path)
         .map_err(|e| format!("failed to install desktop file: {e}"))?;
 
@@ -353,6 +363,44 @@ pub fn remove_appimage_desktop_integration(app_handle: tauri::AppHandle) -> Resu
     }
 
     Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn applications_dir() -> Option<PathBuf> {
+    dirs::home_dir().map(|d| d.join("Applications"))
+}
+
+/// moves an AppImage into ~/Applications per the AppImage integration convention.
+/// if the source and target are on different filesystems, falls back to copy+remove.
+#[cfg(target_os = "linux")]
+fn move_appimage_to_applications(appimage_path: &Path) -> Result<PathBuf, std::io::Error> {
+    let Some(filename) = appimage_path.file_name() else {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::InvalidData,
+            "AppImage path has no filename",
+        ));
+    };
+    let Some(applications_dir) = applications_dir() else {
+        return Err(std::io::Error::new(
+            std::io::ErrorKind::NotFound,
+            "home directory not found",
+        ));
+    };
+    std::fs::create_dir_all(&applications_dir)?;
+    let target = applications_dir.join(filename);
+
+    if appimage_path == &target {
+        return Ok(target);
+    }
+
+    match std::fs::rename(appimage_path, &target) {
+        Ok(()) => Ok(target),
+        Err(_) => {
+            std::fs::copy(appimage_path, &target)?;
+            let _ = std::fs::remove_file(appimage_path);
+            Ok(target)
+        }
+    }
 }
 
 #[cfg(target_os = "linux")]
