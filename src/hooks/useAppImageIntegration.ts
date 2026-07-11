@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { toastManager } from '$hooks/ui/useToast';
 import {
   installAppImageDesktopIntegration,
   isAppImageDesktopIntegrationNeeded,
@@ -30,6 +31,10 @@ export const useAppImageIntegration = () => {
     if (success) {
       setShowPrompt(false);
       setError(null);
+      toastManager.success(
+        'Chiri added to your app menu',
+        'You can launch it from there next time you want to use the app.',
+      );
     } else {
       setError('Could not install desktop integration. You can try again from Settings later.');
     }
