@@ -177,7 +177,7 @@ jobs:
       - name: Get Chiri version
         id: version
         shell: bash
-        run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> "$GITHUB_OUTPUT"
+        run: echo "version=$(awk -F '"' '/^version = "/ { print $2; exit }' src-tauri/Cargo.toml)" >> "$GITHUB_OUTPUT"
 
       - name: Build portable AppImage
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
