@@ -53,12 +53,21 @@ pub fn install_icon_for_appimage() {
         return;
     };
 
-    let source = app_dir.join("usr/share/icons/hicolor");
     let target = home_dir.join(".local/share/icons/hicolor");
 
-    if let Err(e) = copy_icons(&source, &target) {
-        log::warn!("[AppImage] Failed to copy icons: {e}");
-        return;
+    let hicolor_source = app_dir.join("usr/share/icons/hicolor");
+    if hicolor_source.exists() {
+        if let Err(e) = copy_icons(&hicolor_source, &target) {
+            log::warn!("[AppImage] Failed to copy hicolor icons: {e}");
+        }
+    } else {
+        // Tauri sometimes puts the icon at the AppDir root instead of inside
+        // usr/share/icons/hicolor. fall back to copying the root icon.
+        let icon_name = icon_name_from_desktop_file(&app_dir)
+            .unwrap_or_else(|| "garden.chiri.Chiri".to_string());
+        if let Err(e) = copy_root_icon(&app_dir, &target, &icon_name) {
+            log::warn!("[AppImage] Failed to copy root icon: {e}");
+        }
     }
 
     refresh_icon_cache(&target);
@@ -142,6 +151,75 @@ fn copy_icons(source: &Path, target: &Path) -> Result<(), std::io::Error> {
     }
 
     Ok(())
+}
+
+/// reads the AppDir's root desktop file and returns the value of its `Icon=` entry
+#[cfg(target_os = "linux")]
+fn icon_name_from_desktop_file(app_dir: &Path) -> Option<String> {
+    // the AppImage spec allows exactly one .desktop file in the AppDir root
+    let desktop_file = std::fs::read_dir(app_dir)
+        .ok()?
+        .filter_map(|e| e.ok().map(|e| e.path()))
+        .find(|p| p.extension().is_some_and(|ext| ext == "desktop"))?;
+
+    let content = std::fs::read_to_string(desktop_file).ok()?;
+    for line in content.lines() {
+        if let Some(value) = line.strip_prefix("Icon=") {
+            return Some(value.to_string());
+        }
+    }
+    None
+}
+
+/// copies the AppDir root icon into the user's hicolor theme.
+/// Tauri sometimes places the icon at the root (e.g. `garden.chiri.Chiri.png`)
+/// rather than under `usr/share/icons/hicolor`. prefer SVG, then PNG, then
+/// `.DirIcon`.
+#[cfg(target_os = "linux")]
+fn copy_root_icon(
+    app_dir: &Path,
+    target_theme_dir: &Path,
+    icon_name: &str,
+) -> Result<(), std::io::Error> {
+    let candidates: [(Option<PathBuf>, &str); 3] = [
+        (Some(app_dir.join(format!("{icon_name}.svg"))), "scalable"),
+        (Some(app_dir.join(format!("{icon_name}.png"))), "256x256"),
+        (Some(app_dir.join(".DirIcon")), "256x256"),
+    ];
+
+    for (source, size_dir) in candidates {
+        let Some(source) = source else { continue };
+        if !source.exists() {
+            continue;
+        }
+
+        let ext = source.extension().and_then(|e| e.to_str()).unwrap_or("png");
+        let target_icon_name = if source.file_name() == Some(OsStr::new(".DirIcon")) {
+            format!("{icon_name}.{ext}")
+        } else {
+            source
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(|n| n.to_string())
+                .unwrap_or_else(|| format!("{icon_name}.{ext}"))
+        };
+
+        let target_dir = target_theme_dir.join(size_dir).join("apps");
+        std::fs::create_dir_all(&target_dir)?;
+        let target = target_dir.join(target_icon_name);
+        std::fs::copy(&source, &target)?;
+        log::info!(
+            "[AppImage] Installed root icon: {} -> {}",
+            source.display(),
+            target.display()
+        );
+        return Ok(());
+    }
+
+    Err(std::io::Error::new(
+        std::io::ErrorKind::NotFound,
+        "no root icon found in AppImage",
+    ))
 }
 
 /// refreshes the hicolor icon cache so installed icons become visible immediately
