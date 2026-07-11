@@ -13,8 +13,8 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          client-id: ${{ vars.HASH_BOT_CLIENT_ID }}
-          private-key: ${{ secrets.HASH_BOT_PRIVATE_KEY }}
+          client-id: ${{ vars.CHIRI_CI_CLIENT_ID }}
+          private-key: ${{ secrets.CHIRI_CI_PRIVATE_KEY }}
           permission-contents: write
 
       - name: Show bot identity
