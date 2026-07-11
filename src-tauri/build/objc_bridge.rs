@@ -1,10 +1,10 @@
 const SOURCES: &[&str] = &[
-    "native/macos/AppMenu.m",
-    "native/macos/AppNap.m",
-    "native/macos/DockMenu.m",
-    "native/macos/LoginItem.m",
-    "native/macos/Notifications.m",
-    "native/macos/WindowControls.m",
+    "macos/native/AppMenu.m",
+    "macos/native/AppNap.m",
+    "macos/native/DockMenu.m",
+    "macos/native/LoginItem.m",
+    "macos/native/Notifications.m",
+    "macos/native/WindowControls.m",
 ];
 
 const FRAMEWORKS: &[&str] = &[

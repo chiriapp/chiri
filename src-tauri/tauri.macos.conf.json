@@ -1,6 +1,6 @@
 {
   "build": {
-    "beforeBundleCommand": "cd src-tauri && ./fix-libs.sh"
+    "beforeBundleCommand": "cd src-tauri && ./macos/fix-libs.sh"
   },
   "app": {
     "windows": [
@@ -31,7 +31,7 @@
     },
     "macOS": {
       "minimumSystemVersion": "12.0",
-      "infoPlist": "Info.plist",
+      "infoPlist": "macos/Info.plist",
       "dmg": {
         "appPosition": {
           "x": 100,
@@ -41,7 +41,7 @@
           "x": 373,
           "y": 103
         },
-        "background": "./Chiri.dmg.png",
+        "background": "./macos/Chiri.dmg.png",
         "windowPosition": {
           "x": 600,
           "y": 400

@@ -13,7 +13,7 @@ pub struct NotificationPermissionResult {
     pub status: String,
 }
 
-// macOS FFI bridge (companion: native/macos/Notifications.m)
+// macOS FFI bridge (companion: macos/native/Notifications.m)
 #[cfg(target_os = "macos")]
 extern "C" {
     fn check_notification_permission_ffi(callback: extern "C" fn(*const std::os::raw::c_char));
