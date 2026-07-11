@@ -11,6 +11,7 @@ import Cloud from 'lucide-react/icons/cloud';
 import Filter from 'lucide-react/icons/filter';
 import HardDrive from 'lucide-react/icons/hard-drive';
 import Tags from 'lucide-react/icons/tags';
+import { Select } from '$components/Select';
 import {
   type NavigationSectionConfig,
   NavigationSettingsSortableSection,
@@ -101,22 +102,26 @@ export const NavigationSettings = () => {
       <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">Navigation</h3>
 
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
-        <label className="flex items-center justify-between gap-4 p-4">
+        <label
+          htmlFor="default-launch-view"
+          className="flex items-center justify-between gap-4 p-4"
+        >
           <div className="min-w-0">
             <p className="text-sm text-surface-700 dark:text-surface-300">Default view on launch</p>
             <p className="text-surface-500 text-xs dark:text-surface-400">
               Choose what opens when Chiri starts
             </p>
           </div>
-          <select
+          <Select
+            id="default-launch-view"
             value={defaultLaunchView}
             onChange={(event) => setDefaultLaunchView(event.target.value as DefaultLaunchView)}
-            className="shrink-0 rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-sm text-surface-700 outline-hidden focus:ring-2 focus:ring-primary-500 dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200"
+            className="shrink-0 rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-sm text-surface-700 focus:ring-2 focus:ring-primary-500 dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200"
           >
             <option value="last-view">Last view</option>
             <option value="all-tasks">All Tasks</option>
             <option value="recently-deleted">Recently Deleted</option>
-          </select>
+          </Select>
         </label>
 
         <div className="border-surface-200 border-t dark:border-surface-700" />
