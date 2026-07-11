@@ -1,9 +1,10 @@
 [Desktop Entry]
-Version=1.0
+Version=1.5
 Type=Application
 Name=Chiri
-GenericName=CalDAV task manager
+GenericName=Task manager
 Comment={{{comment}}}
+TryExec={{{exec}}}
 Exec={{{exec}}} %u
 Icon={{{icon}}}
 Terminal=false
@@ -12,5 +13,6 @@ Keywords=caldav;tasks;todo;calendar;productivity;reminder;sync;nextcloud;gtd;che
 MimeType=x-scheme-handler/garden.chiri;
 StartupWMClass=garden.chiri.Chiri
 StartupNotify=true
+SingleMainWindow=true
 X-GNOME-UsesNotifications=true
 X-GNOME-SingleWindow=true
