@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# git pre-commit hook. runs Biome, rustfmt, and clippy checks before every commit
+# git pre-commit hook. runs Biome, rustfmt, clippy, and GitHub Actions workflow checks before every commit
 set -euo pipefail
 
 # skip in CI. github actions already runs biome check independently
@@ -32,6 +32,34 @@ if [ -n "$rust_staged" ]; then
     echo "❌ Clippy found issues."
     echo "   Fix the errors above, then re-stage and try again."
     exit_code=1
+  fi
+fi
+
+# GitHub Actions workflow checks
+workflow_staged=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '^\.github/workflows/.*\.yml$' || true)
+
+if [ -n "$workflow_staged" ]; then
+  echo "🔍 Checking GitHub Actions workflows…"
+
+  if command -v actionlint >/dev/null 2>&1 && command -v yq >/dev/null 2>&1; then
+    if actionlint .github/workflows/*.yml; then
+      echo "✅ actionlint passed."
+    else
+      echo ""
+      echo "❌ actionlint found issues."
+      exit_code=1
+    fi
+
+    if yq '.' .github/workflows/*.yml >/dev/null; then
+      echo "✅ Workflow YAML is valid."
+    else
+      echo ""
+      echo "❌ Workflow YAML parsing failed."
+      exit_code=1
+    fi
+  else
+    echo "⚠️  actionlint or yq not found in PATH. Skipping workflow checks."
+    echo "   Run with nix develop to enable them."
   fi
 fi
 

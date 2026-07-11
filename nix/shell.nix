@@ -49,6 +49,8 @@ let
     pkgs.openssl
     pkgs.nsis
     pkgs.nix-update
+    pkgs.actionlint
+    pkgs.yq
 
     # Tauri dependencies
     pkgs.libiconv
