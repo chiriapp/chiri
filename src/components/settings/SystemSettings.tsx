@@ -3,10 +3,18 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
 import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import Loader2 from 'lucide-react/icons/loader-2';
+import { useEffect, useState } from 'react';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAutostart } from '$hooks/system/useAutostart';
 import { usePlatform } from '$hooks/system/usePlatform';
-import { isMacPlatform } from '$utils/platform';
+import {
+  installAppImageDesktopIntegration,
+  isAppImageDesktopFileInstalled,
+  isAppImageInstall,
+  isLinuxPlatform,
+  isMacPlatform,
+  removeAppImageDesktopIntegration,
+} from '$utils/platform';
 
 const formatRestartReasons = (reasons: string[]) => {
   if (reasons.length <= 1) return reasons[0] ?? 'changes';
@@ -18,6 +26,11 @@ const formatRestartReasons = (reasons: string[]) => {
 export const SystemSettings = () => {
   const { isGNOME } = usePlatform();
   const autostart = useAutostart();
+  const isLinux = isLinuxPlatform();
+  const isMac = isMacPlatform();
+  const [isAppImage, setIsAppImage] = useState<boolean | null>(null);
+  const [isDesktopFileInstalled, setIsDesktopFileInstalled] = useState<boolean | null>(null);
+  const [isTogglingIntegration, setIsTogglingIntegration] = useState(false);
   const {
     enableSystemTray,
     setEnableSystemTray,
@@ -37,8 +50,6 @@ export const SystemSettings = () => {
     setConfirmBeforeQuitAppliedValue,
   } = useSettingsStore();
 
-  const isMac = isMacPlatform();
-
   const confirmBeforeQuitChanged = isMac && confirmBeforeQuit !== confirmBeforeQuitAppliedValue;
   const restartReasons = [...(confirmBeforeQuitChanged ? ['quit warning'] : [])];
   const restartRequired = restartReasons.length > 0;
@@ -56,6 +67,37 @@ export const SystemSettings = () => {
       : 'text-surface-500 dark:text-surface-400';
   const startQuietlyAtLoginDisabled = autostart.enabled !== true || !enableSystemTray;
   const startHiddenOnNormalLaunchDisabled = !enableSystemTray;
+
+  useEffect(() => {
+    if (!isLinux) {
+      setIsAppImage(false);
+      return;
+    }
+    isAppImageInstall().then(setIsAppImage);
+  }, [isLinux]);
+
+  useEffect(() => {
+    if (isAppImage !== true) {
+      setIsDesktopFileInstalled(null);
+      return;
+    }
+    isAppImageDesktopFileInstalled().then(setIsDesktopFileInstalled);
+  }, [isAppImage]);
+
+  const handleToggleDesktopIntegration = async () => {
+    setIsTogglingIntegration(true);
+    try {
+      if (isDesktopFileInstalled) {
+        const success = await removeAppImageDesktopIntegration();
+        if (success) setIsDesktopFileInstalled(false);
+      } else {
+        const success = await installAppImageDesktopIntegration();
+        if (success) setIsDesktopFileInstalled(true);
+      }
+    } finally {
+      setIsTogglingIntegration(false);
+    }
+  };
 
   const handleSystemTrayChange = (checked: boolean) => {
     setEnableSystemTray(checked);
@@ -322,6 +364,38 @@ export const SystemSettings = () => {
               className="shrink-0 rounded-lg bg-primary-500 px-3 py-1.5 font-medium text-primary-contrast text-sm outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               Restart now
+            </button>
+          </div>
+        </div>
+      )}
+      {isAppImage === true && (
+        <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+          <div className="border-surface-200 border-b px-4 py-3 dark:border-surface-700">
+            <h4 className="font-semibold text-sm text-surface-800 dark:text-surface-200">
+              AppImage desktop integration
+            </h4>
+            <p className="text-surface-500 text-xs dark:text-surface-400">
+              Adds a desktop entry and icon so Chiri appears in your app menu and its window icon
+              shows correctly in some desktop environments.
+            </p>
+          </div>
+          <div className="flex items-center justify-between gap-4 p-4">
+            <div className="min-w-0">
+              <p className="text-sm text-surface-700 dark:text-surface-300">
+                {isDesktopFileInstalled === null
+                  ? 'Checking status...'
+                  : isDesktopFileInstalled
+                    ? 'Desktop integration is installed'
+                    : 'Desktop integration is not installed'}
+              </p>
+            </div>
+            <button
+              type="button"
+              disabled={isDesktopFileInstalled === null || isTogglingIntegration}
+              onClick={handleToggleDesktopIntegration}
+              className="shrink-0 rounded-lg bg-primary-500 px-3 py-1.5 font-medium text-primary-contrast text-sm outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isDesktopFileInstalled ? 'Remove integration' : 'Add integration'}
             </button>
           </div>
         </div>

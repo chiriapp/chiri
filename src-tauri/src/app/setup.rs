@@ -42,6 +42,11 @@ pub(super) fn setup_app(
         if let Err(e) = app.deep_link().register_all() {
             log::warn!("[Setup] Failed to register AppImage deep link scheme: {e}");
         }
+
+        // AppImage launched from the terminal has no installed icon in the
+        // user's icon theme, so the window/dock/alt+tab icon falls back to the
+        // default Wayland icon. install the bundled icon as a best-effort fix.
+        crate::linux::appimage::install_icon_for_appimage();
     }
 
     // disable App Nap after logging has been initialized so App Nap

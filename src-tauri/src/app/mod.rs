@@ -64,6 +64,16 @@ pub fn run() {
             install::get_install_type,
             install::should_disable_updates,
             #[cfg(target_os = "linux")]
+            linux::appimage::install_appimage_desktop_integration,
+            #[cfg(target_os = "linux")]
+            linux::appimage::is_appimage_desktop_file_installed,
+            #[cfg(target_os = "linux")]
+            linux::appimage::is_appimage_desktop_integration_needed,
+            #[cfg(target_os = "linux")]
+            linux::appimage::remove_appimage_desktop_integration,
+            #[cfg(target_os = "linux")]
+            linux::appimage::skip_appimage_desktop_integration,
+            #[cfg(target_os = "linux")]
             linux::desktop::is_gnome_desktop,
             #[cfg(target_os = "linux")]
             linux::desktop::is_kde_desktop,

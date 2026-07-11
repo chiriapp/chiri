@@ -9,6 +9,7 @@ import { useTaskEditorResize } from '$hooks/ui/useTaskEditorResize';
 import { useVisibleEditorTask } from '$hooks/ui/useVisibleEditorTask';
 import { useAppController } from '$hooks/useAppController';
 import { useAppFileDrop } from '$hooks/useAppFileDrop';
+import { useAppImageIntegration } from '$hooks/useAppImageIntegration';
 import { useAppLifecycle } from '$hooks/useAppLifecycle';
 import { useAppSyncActions } from '$hooks/useAppSyncActions';
 import { useAppUpdates } from '$hooks/useAppUpdates';
@@ -53,6 +54,7 @@ const App = () => {
     accounts,
     tasks,
   });
+  const appImageIntegration = useAppImageIntegration();
 
   // derived app state used by the shell and global integrations
   const isSyncInProgress = isSyncing || syncingCalendarId !== null;
@@ -129,6 +131,13 @@ const App = () => {
         modals={modals}
         modalActions={modalActions}
         onboarding={{ show: showOnboarding, hasCalDAVAccounts }}
+        appImageIntegration={{
+          show: appImageIntegration.showPrompt && !showOnboarding,
+          isIntegrating: appImageIntegration.isIntegrating,
+          error: appImageIntegration.error,
+          onIntegrate: appImageIntegration.integrate,
+          onSkip: appImageIntegration.skip,
+        }}
         updates={updates}
       />
     </AppShell>
