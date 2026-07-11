@@ -6,12 +6,13 @@
 // install for users who want launcher integration.
 
 #[cfg(target_os = "linux")]
+use serde::{Deserialize, Serialize};
+#[cfg(target_os = "linux")]
 use std::ffi::OsStr;
 #[cfg(target_os = "linux")]
 use std::path::{Path, PathBuf};
-
 #[cfg(target_os = "linux")]
-use serde::{Deserialize, Serialize};
+use tauri::Manager;
 
 /// persistent user choice for AppImage desktop integration
 #[cfg(target_os = "linux")]
@@ -149,7 +150,7 @@ fn refresh_icon_cache(theme_dir: &Path) {
     let commands = ["gtk4-update-icon-cache", "gtk-update-icon-cache"];
     for cmd in commands {
         match std::process::Command::new(cmd)
-            .args(["-f", "-t", theme_dir.as_osstr()])
+            .args(["-f", "-t", theme_dir.as_os_str()])
             .status()
         {
             Ok(status) if status.success() => {
