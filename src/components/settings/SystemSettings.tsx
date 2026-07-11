@@ -370,34 +370,23 @@ export const SystemSettings = () => {
       )}
       {isAppImage === true && (
         <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
-          <div className="border-surface-200 border-b px-4 py-3 dark:border-surface-700">
-            <h4 className="font-semibold text-sm text-surface-800 dark:text-surface-200">
-              AppImage desktop integration
-            </h4>
-            <p className="text-surface-500 text-xs dark:text-surface-400">
-              Adds a desktop entry and icon so Chiri appears in your app menu and its window icon
-              shows correctly in some desktop environments.
-            </p>
-          </div>
-          <div className="flex items-center justify-between gap-4 p-4">
+          <label
+            className={`flex items-center justify-between gap-4 p-4 ${isDesktopFileInstalled === null || isTogglingIntegration ? 'cursor-wait' : ''}`}
+          >
             <div className="min-w-0">
-              <p className="text-sm text-surface-700 dark:text-surface-300">
-                {isDesktopFileInstalled === null
-                  ? 'Checking status...'
-                  : isDesktopFileInstalled
-                    ? 'Desktop integration is installed'
-                    : 'Desktop integration is not installed'}
+              <p className="text-sm text-surface-700 dark:text-surface-300">Desktop integration</p>
+              <p className="text-surface-500 text-xs dark:text-surface-400">
+                Show Chiri in the app menu and fix its window icon
               </p>
             </div>
-            <button
-              type="button"
+            <input
+              type="checkbox"
+              checked={isDesktopFileInstalled === true}
               disabled={isDesktopFileInstalled === null || isTogglingIntegration}
-              onClick={handleToggleDesktopIntegration}
-              className="shrink-0 rounded-lg bg-primary-500 px-3 py-1.5 font-medium text-primary-contrast text-sm outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isDesktopFileInstalled ? 'Remove integration' : 'Add integration'}
-            </button>
-          </div>
+              onChange={() => void handleToggleDesktopIntegration()}
+              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            />
+          </label>
         </div>
       )}
     </div>
