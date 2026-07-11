@@ -174,10 +174,16 @@ jobs:
       - name: Setup portable AppImage build
         uses: ./.github/actions/setup-portable-appimage
 
+      - name: Get Chiri version
+        id: version
+        shell: bash
+        run: echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> "$GITHUB_OUTPUT"
+
       - name: Build portable AppImage
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
         env:
           TAURI_BUNDLER_NEW_APPIMAGE_FORMAT: 'true'
+          VERSION: ${{ steps.version.outputs.version }}
         with:
           tauriScript: cargo tauri
           args: --bundles appimage --config src-tauri/tauri.appimage.conf.json --config '{"bundle":{"createUpdaterArtifacts":false}}'
