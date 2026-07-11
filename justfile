@@ -51,6 +51,10 @@ dev:
 hash:
   ./scripts/update-hashes.sh
 
+check-workflows:
+  actionlint .github/workflows/*.yml
+  yq '.' .github/workflows/*.yml > /dev/null
+
 hooks:
   bash scripts/install-hooks.sh
 

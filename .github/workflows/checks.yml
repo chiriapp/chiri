@@ -180,3 +180,22 @@ jobs:
 
       - name: Run Clippy
         run: nix develop -c cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
+
+  workflows:
+    name: Workflows
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Nix and Cachix
+        uses: ./.github/actions/setup-nix-cachix
+        with:
+          cache-name: ${{ vars.CACHIX_CACHE_NAME || 'chiri' }}
+          auth-token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skip-push: ${{ secrets.CACHIX_AUTH_TOKEN == '' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
+
+      - name: Check GitHub Actions workflows
+        run: nix develop -c just check-workflows
