@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import Check from 'lucide-react/icons/check';
+import { createElement, useEffect, useState } from 'react';
 import { toastManager } from '$hooks/ui/useToast';
 import {
   installAppImageDesktopIntegration,
@@ -32,8 +33,20 @@ export const useAppImageIntegration = () => {
       setShowPrompt(false);
       setError(null);
       toastManager.success(
-        'Chiri added to your app menu',
+        createElement(
+          'span',
+          { className: 'inline-flex items-center gap-2' },
+          createElement(Check, {
+            className: 'h-4 w-4 shrink-0 text-primary-500',
+            'aria-hidden': true,
+          }),
+          'Chiri added to your app menu',
+        ),
         'You can launch it from there next time you want to use the app.',
+        'appimage-integration-success',
+        undefined,
+        false,
+        { icon: null },
       );
     } else {
       setError('Could not install desktop integration. You can try again from Settings later.');
