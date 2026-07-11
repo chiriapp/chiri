@@ -2,6 +2,7 @@ import ChevronDown from 'lucide-react/icons/chevron-down';
 import Info from 'lucide-react/icons/info';
 import { useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import { Tooltip } from '$components/Tooltip';
 import { getPredefinedServerUrl } from '$constants/settings';
 import type { ServerType } from '$types';
 
@@ -41,29 +42,51 @@ export const AdvancedSection = ({
           <div>
             <label
               htmlFor="principal-url"
-              className="mb-1 block font-medium text-sm text-surface-700 dark:text-surface-300"
+              className="mb-1 flex items-center gap-1.5 font-medium text-sm text-surface-700 dark:text-surface-300"
             >
-              Principal URL
+              <span>Principal URL</span>
+              <Tooltip
+                content="Overrides the auto-discovered principal URL. May be absolute or server-relative."
+                position="top"
+                allowInModal
+              >
+                <button
+                  type="button"
+                  aria-label="Principal URL help"
+                  className="inline-flex rounded-sm text-surface-400 outline-none transition-colors hover:text-surface-600 focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:text-surface-300"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
             </label>
             <ComposedInput
               id="principal-url"
-              type="url"
+              type="text"
               value={principalUrl}
               onChange={onPrincipalUrlChange}
-              placeholder="https://caldav.example.com/principals/user/"
+              placeholder="/principals/user/ or https://caldav.example.com/principals/user/"
               className="w-full rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-800 transition-colors focus:border-primary-500 focus:bg-white focus:outline-hidden dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
             />
-            <p className="mt-1.5 flex flex-row text-surface-500 text-xs dark:text-surface-400">
-              <Info className="mr-1 inline h-3.5 w-3.5 shrink-0 text-surface-400" />
-              Overrides the auto-discovered principal URL.
-            </p>
           </div>
           <div>
             <label
               htmlFor="calendar-home-url"
-              className="mb-1 block font-medium text-sm text-surface-700 dark:text-surface-300"
+              className="mb-1 flex items-center gap-1.5 font-medium text-sm text-surface-700 dark:text-surface-300"
             >
-              Calendar Home URL
+              <span>Calendar Home URL</span>
+              <Tooltip
+                content="Uses calendar home URLs directly, bypassing auto-discovery."
+                position="top"
+                allowInModal
+              >
+                <button
+                  type="button"
+                  aria-label="Calendar Home URL help"
+                  className="inline-flex rounded-sm text-surface-400 outline-none transition-colors hover:text-surface-600 focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:text-surface-300"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
             </label>
             <ComposedInput
               id="calendar-home-url"
@@ -73,10 +96,6 @@ export const AdvancedSection = ({
               placeholder="https://caldav.example.com/calendars/user/"
               className="w-full rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-800 transition-colors focus:border-primary-500 focus:bg-white focus:outline-hidden dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
             />
-            <p className="mt-1.5 flex flex-row text-surface-500 text-xs dark:text-surface-400">
-              <Info className="mr-1 inline h-3.5 w-3.5 shrink-0 text-surface-400" />
-              Uses calendar home URLs directly, bypassing auto-discovery.
-            </p>
           </div>
         </div>
       )}

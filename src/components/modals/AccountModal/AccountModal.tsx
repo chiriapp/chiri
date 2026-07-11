@@ -14,6 +14,7 @@ import type {
 } from '$components/modals/AccountModal/QuickConnectFlow';
 import { QuickConnectFlow } from '$components/modals/AccountModal/QuickConnectFlow';
 import { ServerTypePicker } from '$components/modals/AccountModal/ServerTypePicker';
+import { MobileConfigSignatureWarning } from '$components/modals/MobileConfigSignatureWarning';
 import { getPredefinedServerUrl, SERVER_TYPE_OPTIONS } from '$constants/settings';
 import { useConfirmDialog } from '$context/confirmDialogContext';
 import { useAddCalendar, useCreateAccount, useUpdateAccount } from '$hooks/queries/useAccounts';
@@ -25,14 +26,14 @@ import {
   getSetupNotice,
   probeSetupVtodoCreationIfNeeded,
 } from '$lib/caldav/setup';
-import { hasHttpUrlScheme } from '$lib/caldav/utils';
+import { hasHttpUrlScheme, isValidPrincipalUrlOverride } from '$lib/caldav/utils';
 import { getServerWarning, getUrlWarning, toConfirmOptions } from '$lib/caldav/warnings';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
 import { isCertError, tauriRequest } from '$lib/tauriHttp';
 import type { Account, Calendar, ServerType } from '$types';
-import type { MobileConfigCalDAVSettings } from '$types/mobileconfig';
+import type { MobileConfigImportSelection } from '$types/mobileconfig';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.account;
@@ -50,7 +51,8 @@ const CONNECT_METHOD_SERVER_TYPES = new Set<ServerType>([
 interface AccountModalProps {
   account: Account | null;
   onClose: () => void;
-  preloadedConfig?: MobileConfigCalDAVSettings;
+  onBackToConfigProfileChooser?: () => void;
+  preloadedConfig?: MobileConfigImportSelection;
   zIndex?: 'z-60' | 'z-70';
 }
 
@@ -58,6 +60,7 @@ interface AccountModalProps {
 export function AccountModal({
   account,
   onClose,
+  onBackToConfigProfileChooser,
   preloadedConfig,
   zIndex = 'z-60',
 }: AccountModalProps) {
@@ -66,27 +69,30 @@ export function AccountModal({
   const createAccountMutation = useCreateAccount();
   const updateAccountMutation = useUpdateAccount();
   const addCalendarMutation = useAddCalendar();
+  const preloadedSettings = preloadedConfig?.settings;
 
   const hasInitialType = !!(account || preloadedConfig);
   const [step, setStep] = useState<Step>(hasInitialType ? 'credentials' : 'pick-type');
 
-  const [name, setName] = useState(() => preloadedConfig?.accountName || account?.name || '');
+  const [name, setName] = useState(() => preloadedSettings?.accountName || account?.name || '');
   const [icon, setIcon] = useState(() => account?.icon || 'user');
   const [emoji, setEmoji] = useState(() => account?.emoji || '');
   const [serverUrl, setServerUrl] = useState(
-    () => preloadedConfig?.serverUrl || account?.caldav?.serverUrl || '',
+    () => preloadedSettings?.serverUrl || account?.caldav?.serverUrl || '',
   );
   const [username, setUsername] = useState(
-    () => preloadedConfig?.username || account?.caldav?.username || '',
+    () => preloadedSettings?.username || account?.caldav?.username || '',
   );
-  const [password, setPassword] = useState(() => preloadedConfig?.password || '');
+  const [password, setPassword] = useState(() => preloadedSettings?.password || '');
   const [serverType, setServerType] = useState<ServerType>(
-    () => preloadedConfig?.serverType || account?.caldav?.serverType || 'generic',
+    () => preloadedSettings?.serverType || account?.caldav?.serverType || 'generic',
   );
   const [calendarHomeUrl, setCalendarHomeUrl] = useState(
     () => account?.caldav?.calendarHomeUrl || '',
   );
-  const [principalUrl, setPrincipalUrl] = useState(() => account?.caldav?.principalUrl || '');
+  const [principalUrl, setPrincipalUrl] = useState(
+    () => preloadedSettings?.principalUrl || account?.caldav?.principalUrl || '',
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [testSuccess, setTestSuccess] = useState(false);
@@ -194,6 +200,17 @@ export function AccountModal({
       title: 'URL scheme required',
       message: 'Server URL must start with http:// or https://.',
       hint: 'Add the scheme explicitly, for example https://caldav.example.com.',
+    });
+    return false;
+  };
+
+  const validatePrincipalUrl = (baseUrl: string) => {
+    if (isValidPrincipalUrlOverride(principalUrl, baseUrl)) return true;
+
+    setSetupError({
+      title: 'Invalid principal URL',
+      message: 'Principal URL must be an HTTP(S) URL or a server-relative path.',
+      hint: 'Use a path like /principals/alice/ or a full URL like https://caldav.example.com/principals/alice/.',
     });
     return false;
   };
@@ -339,6 +356,11 @@ export function AccountModal({
       }
 
       const trimmedServerUrl = serverUrl.trim();
+      if (!validatePrincipalUrl(trimmedServerUrl)) {
+        setIsTesting(false);
+        return;
+      }
+
       const proceedWithUrl = await confirmServerUrlWarning(trimmedServerUrl);
       if (!proceedWithUrl) {
         setIsTesting(false);
@@ -392,6 +414,7 @@ export function AccountModal({
   const updateExistingAccount = async (effectivePassword: string | undefined) => {
     if (!validateServerUrlScheme()) return false;
     const trimmedServerUrl = serverUrl.trim();
+    if (!validatePrincipalUrl(trimmedServerUrl)) return false;
 
     if (effectivePassword) {
       log.debug(`Testing connection to ${trimmedServerUrl}...`);
@@ -430,6 +453,7 @@ export function AccountModal({
   const connectAndFetchCalendars = async (effectivePassword: string) => {
     if (!validateServerUrlScheme()) return null;
     const trimmedServerUrl = serverUrl.trim();
+    if (!validatePrincipalUrl(trimmedServerUrl)) return null;
 
     if (testSuccess && testedConnectionId) {
       log.debug('Reusing tested connection...');
@@ -588,13 +612,15 @@ export function AccountModal({
       <ModalButton
         variant="secondary"
         onClick={
-          step === 'credentials'
-            ? handleBack
-            : step === 'quick-connect'
-              ? handleBackFromQuickConnect
-              : step === 'fastmail-oauth'
-                ? handleBackFromOAuth
-                : handleBackToTypePicker // connect-method goes back to pick-type
+          step === 'credentials' && onBackToConfigProfileChooser
+            ? onBackToConfigProfileChooser
+            : step === 'credentials'
+              ? handleBack
+              : step === 'quick-connect'
+                ? handleBackFromQuickConnect
+                : step === 'fastmail-oauth'
+                  ? handleBackFromOAuth
+                  : handleBackToTypePicker // connect-method goes back to pick-type
         }
       >
         <ArrowLeft className="h-4 w-4" />
@@ -728,32 +754,39 @@ export function AccountModal({
         )}
 
         {step === 'credentials' && (
-          <CredentialsForm
-            serverType={serverType}
-            name={name}
-            onNameChange={setName}
-            icon={icon}
-            onIconChange={setIcon}
-            emoji={emoji}
-            onEmojiChange={setEmoji}
-            serverUrl={serverUrl}
-            onServerUrlChange={setServerUrl}
-            username={username}
-            onUsernameChange={setUsername}
-            password={password}
-            onPasswordChange={setPassword}
-            principalUrl={principalUrl}
-            onPrincipalUrlChange={setPrincipalUrl}
-            calendarHomeUrl={calendarHomeUrl}
-            onCalendarHomeUrlChange={setCalendarHomeUrl}
-            account={account}
-            error={setupError}
-            setupNotice={setupNotice}
-            testSuccess={testSuccess}
-            testedCalendarCount={testedCalendars.length}
-            testedPushSupportedCount={testedCalendars.filter((c) => c.pushSupported).length}
-            onSubmit={handleSubmit}
-          />
+          <div>
+            {preloadedConfig?.signature === 'signed-unverified' && (
+              <div className="px-4 pt-4">
+                <MobileConfigSignatureWarning signature={preloadedConfig.signature} />
+              </div>
+            )}
+            <CredentialsForm
+              serverType={serverType}
+              name={name}
+              onNameChange={setName}
+              icon={icon}
+              onIconChange={setIcon}
+              emoji={emoji}
+              onEmojiChange={setEmoji}
+              serverUrl={serverUrl}
+              onServerUrlChange={setServerUrl}
+              username={username}
+              onUsernameChange={setUsername}
+              password={password}
+              onPasswordChange={setPassword}
+              principalUrl={principalUrl}
+              onPrincipalUrlChange={setPrincipalUrl}
+              calendarHomeUrl={calendarHomeUrl}
+              onCalendarHomeUrlChange={setCalendarHomeUrl}
+              account={account}
+              error={setupError}
+              setupNotice={setupNotice}
+              testSuccess={testSuccess}
+              testedCalendarCount={testedCalendars.length}
+              testedPushSupportedCount={testedCalendars.filter((c) => c.pushSupported).length}
+              onSubmit={handleSubmit}
+            />
+          </div>
         )}
       </div>
     </ModalWrapper>

@@ -92,6 +92,8 @@ const mapPayload = (payload: DecodedMobileConfigCalDAVPayload): PayloadMappingRe
   if (!principal.ok) return principal;
 
   const username = trimOptional(payload.username);
+  const payloadIdentifier = trimOptional(payload.payloadIdentifier);
+  const payloadUuid = trimOptional(payload.payloadUuid);
   return {
     ok: true,
     settings: {
@@ -100,6 +102,8 @@ const mapPayload = (payload: DecodedMobileConfigCalDAVPayload): PayloadMappingRe
       username,
       password: payload.password,
       principalUrl: principal.principalUrl,
+      ...(payloadIdentifier ? { payloadIdentifier } : {}),
+      ...(payloadUuid ? { payloadUuid } : {}),
       serverType: 'generic',
     },
   };

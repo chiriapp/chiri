@@ -1,6 +1,25 @@
 {
   "build": {
-    "beforeBundleCommand": "cd src-tauri && ./fix-libs.sh"
+    "beforeBundleCommand": "cd src-tauri && ./macos/fix-libs.sh"
+  },
+  "app": {
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "Chiri",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "dragDropEnabled": false,
+        "backgroundColor": "#18181B",
+        "visible": false,
+        "focus": true
+      }
+    ]
   },
   "bundle": {
     "targets": ["dmg"],
@@ -11,7 +30,8 @@
       "gen/partial.plist": "partial.plist"
     },
     "macOS": {
-      "infoPlist": "Info.plist",
+      "minimumSystemVersion": "12.0",
+      "infoPlist": "macos/Info.plist",
       "dmg": {
         "appPosition": {
           "x": 100,
@@ -21,7 +41,7 @@
           "x": 373,
           "y": 103
         },
-        "background": "./Chiri.dmg.png",
+        "background": "./macos/Chiri.dmg.png",
         "windowPosition": {
           "x": 600,
           "y": 400

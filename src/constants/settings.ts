@@ -37,6 +37,10 @@ export const CONNECTIVITY_CHECK_INTERVAL_OPTIONS: Array<{ value: number; label: 
   { value: 300, label: 'Every 5 minutes' },
 ];
 
+export const DEFAULT_PROXY_HOST = '127.0.0.1';
+export const DEFAULT_HTTP_PROXY_PORT = 8080;
+export const DEFAULT_SOCKS_PROXY_PORT = 1080;
+
 /**
  * sync interval options (in minutes)
  */

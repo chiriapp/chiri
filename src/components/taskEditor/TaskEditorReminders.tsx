@@ -1,9 +1,12 @@
+import ArrowRight from 'lucide-react/icons/arrow-right';
 import Bell from 'lucide-react/icons/bell';
+import BellOff from 'lucide-react/icons/bell-off';
 import BellRing from 'lucide-react/icons/bell-ring';
 import Plus from 'lucide-react/icons/plus';
-import Settings from 'lucide-react/icons/settings';
+import AlertTriangle from 'lucide-react/icons/triangle-alert';
 import X from 'lucide-react/icons/x';
 import type { KeyboardEvent } from 'react';
+import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import type { Task } from '$types';
 import type { TimeFormat } from '$types/preference';
 import { formatDate, formatTime } from '$utils/date';
@@ -13,6 +16,7 @@ interface RemindersProps {
   task: Task;
   timeFormat: TimeFormat;
   notifications: boolean;
+  notifyReminders: boolean;
   onOpenNotificationSettings?: () => void;
   onRemoveReminder: (reminderId: string) => void;
   onOpenReminderPicker: () => void;
@@ -24,6 +28,7 @@ export const TaskEditorReminders = ({
   task,
   timeFormat,
   notifications,
+  notifyReminders,
   onOpenNotificationSettings,
   onRemoveReminder,
   onOpenReminderPicker,
@@ -86,10 +91,12 @@ export const TaskEditorReminders = ({
         ))}
 
         {readOnly && (task.reminders?.length ?? 0) === 0 && (
-          <div className="text-sm text-surface-400 dark:text-surface-500">No reminders</div>
+          <TaskEditorEmptyState icon={<BellOff className="h-4 w-4 shrink-0" />}>
+            No reminders
+          </TaskEditorEmptyState>
         )}
 
-        {!readOnly && notifications ? (
+        {!readOnly && notifications && notifyReminders ? (
           <button
             type="button"
             onClick={onOpenReminderPicker}
@@ -99,22 +106,27 @@ export const TaskEditorReminders = ({
             Add reminder
           </button>
         ) : !readOnly ? (
-          <div className="flex items-center justify-between gap-2 rounded-md border border-semantic-warning/30 bg-surface-100 p-2 text-surface-700 text-xs dark:bg-surface-800 dark:text-surface-300">
-            <span>
-              {isMacPlatform()
-                ? 'Grant notification permission to add reminders.'
-                : 'Enable notifications to add reminders.'}
-            </span>
-            {onOpenNotificationSettings && (
-              <button
-                type="button"
-                onClick={onOpenNotificationSettings}
-                className="flex shrink-0 items-center gap-1 font-medium text-semantic-warning outline-hidden transition-colors hover:opacity-80 focus-visible:underline"
-              >
-                <Settings className="h-3 w-3" />
-                Settings
-              </button>
-            )}
+          <div className="flex items-start gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-sm text-surface-700 dark:text-surface-300">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-semantic-warning" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <span>
+                {!notifications
+                  ? isMacPlatform()
+                    ? 'Grant notification permission to add reminders.'
+                    : 'Enable notifications to add reminders.'
+                  : 'Enable reminder notifications to add reminders.'}
+              </span>
+              {onOpenNotificationSettings && (
+                <button
+                  type="button"
+                  onClick={onOpenNotificationSettings}
+                  className="inline-flex items-center gap-1 self-start font-medium text-semantic-warning outline-hidden transition-colors hover:opacity-80 focus-visible:underline"
+                >
+                  Settings
+                  <ArrowRight className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
         ) : null}
       </div>

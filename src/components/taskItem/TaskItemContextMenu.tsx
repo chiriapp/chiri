@@ -6,10 +6,10 @@ import Edit2 from 'lucide-react/icons/edit-2';
 import Flag from 'lucide-react/icons/flag';
 import CalendarMove from 'lucide-react/icons/folder-sync';
 import ListPlus from 'lucide-react/icons/list-plus';
-import Loader from 'lucide-react/icons/loader';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Share2 from 'lucide-react/icons/share-2';
 import Tag from 'lucide-react/icons/tag';
+import Timer from 'lucide-react/icons/timer';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { FloatingLayerFrame } from '$components/FloatingLayerFrame';
@@ -150,7 +150,7 @@ export const TaskItemContextMenu = ({
 
   const STATUS_OPTIONS = [
     { value: 'needs-action' as const, label: 'Needs Action', Icon: RotateCcw },
-    { value: 'in-process' as const, label: 'In Process', Icon: Loader },
+    { value: 'in-process' as const, label: 'In Process', Icon: Timer },
     { value: 'completed' as const, label: 'Completed', Icon: CheckCircle2 },
     { value: 'cancelled' as const, label: 'Cancelled', Icon: Ban },
   ];

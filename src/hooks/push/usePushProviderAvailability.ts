@@ -2,9 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { usePlatform } from '$hooks/system/usePlatform';
 import { isPushProviderAvailable } from '$lib/push';
+import { createMozillaAutopushProviderConfig } from '$lib/push/mozillaAutopushProvider';
 import { createNtfyProviderConfig } from '$lib/push/ntfyProvider';
+import { getPushProviderConfigKey } from '$lib/push/providers';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,
+  MOZILLA_AUTOPUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
   type PushProviderId,
 } from '$types/push';
@@ -14,14 +17,38 @@ interface UsePushProviderAvailabilityOptions {
   enabled: boolean;
   pushProvider: PushProviderId;
   ntfyServerUrl: string;
+  mozillaAutopushWebsocketUrl: string;
+  mozillaAutopushEndpointUrl: string;
 }
 
-export const usePushProviderConfig = (pushProvider: PushProviderId, ntfyServerUrl: string) => {
-  const { pushProviderConfig } = usePushProviderConfigState(pushProvider, ntfyServerUrl);
+export interface PushProviderAvailabilityMetadata {
+  checkedAt: string;
+  durationMs: number;
+}
+
+const pushProviderAvailabilityMetadata = new Map<string, PushProviderAvailabilityMetadata>();
+
+export const usePushProviderConfig = (
+  pushProvider: PushProviderId,
+  ntfyServerUrl: string,
+  mozillaAutopushWebsocketUrl: string,
+  mozillaAutopushEndpointUrl: string,
+) => {
+  const { pushProviderConfig } = usePushProviderConfigState(
+    pushProvider,
+    ntfyServerUrl,
+    mozillaAutopushWebsocketUrl,
+    mozillaAutopushEndpointUrl,
+  );
   return pushProviderConfig;
 };
 
-export const usePushProviderConfigState = (pushProvider: PushProviderId, ntfyServerUrl: string) => {
+export const usePushProviderConfigState = (
+  pushProvider: PushProviderId,
+  ntfyServerUrl: string,
+  mozillaAutopushWebsocketUrl: string,
+  mozillaAutopushEndpointUrl: string,
+) => {
   const { isKDE, isLoading } = usePlatform();
   const kunifiedPushSelected = pushProvider === KUNIFIED_PUSH_PROVIDER_ID;
   const kunifiedPushAllowed = isLinuxPlatform() && isKDE;
@@ -38,8 +65,15 @@ export const usePushProviderConfigState = (pushProvider: PushProviderId, ntfySer
         resolvedPushProvider === NTFY_DIRECT_PROVIDER_ID
           ? createNtfyProviderConfig(ntfyServerUrl)
           : undefined,
+      mozillaAutopushConfig:
+        resolvedPushProvider === MOZILLA_AUTOPUSH_PROVIDER_ID
+          ? createMozillaAutopushProviderConfig(
+              mozillaAutopushWebsocketUrl,
+              mozillaAutopushEndpointUrl,
+            )
+          : undefined,
     }),
-    [resolvedPushProvider, ntfyServerUrl],
+    [resolvedPushProvider, ntfyServerUrl, mozillaAutopushEndpointUrl, mozillaAutopushWebsocketUrl],
   );
 
   return {
@@ -54,22 +88,40 @@ export const usePushProviderAvailability = ({
   enabled,
   pushProvider,
   ntfyServerUrl,
+  mozillaAutopushWebsocketUrl,
+  mozillaAutopushEndpointUrl,
 }: UsePushProviderAvailabilityOptions) => {
   const { isResolvingKUnifiedPush, kunifiedPushAllowed, pushProviderConfig, resolvedPushProvider } =
-    usePushProviderConfigState(pushProvider, ntfyServerUrl);
+    usePushProviderConfigState(
+      pushProvider,
+      ntfyServerUrl,
+      mozillaAutopushWebsocketUrl,
+      mozillaAutopushEndpointUrl,
+    );
+  const providerConfigKey = getPushProviderConfigKey(pushProviderConfig);
   const availability = useQuery({
-    queryKey: [
-      'push-provider-availability',
-      pushProviderConfig.providerId,
-      pushProviderConfig.ntfyConfig?.serverUrl ?? '',
-    ],
-    queryFn: () => isPushProviderAvailable(pushProviderConfig),
+    queryKey: ['push-provider-availability', providerConfigKey],
+    queryFn: async () => {
+      const startTime = performance.now();
+      try {
+        return await isPushProviderAvailable(pushProviderConfig);
+      } finally {
+        pushProviderAvailabilityMetadata.set(providerConfigKey, {
+          checkedAt: new Date().toISOString(),
+          durationMs: Math.round(performance.now() - startTime),
+        });
+      }
+    },
     enabled: enabled && !isResolvingKUnifiedPush,
     staleTime: 60_000,
   });
 
   return {
     availability,
+    availabilityMetadata:
+      availability.dataUpdatedAt || availability.errorUpdatedAt
+        ? (pushProviderAvailabilityMetadata.get(providerConfigKey) ?? null)
+        : null,
     isResolvingKUnifiedPush,
     kunifiedPushAllowed,
     pushProviderConfig,

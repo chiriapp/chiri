@@ -43,7 +43,7 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#6c6f85',
-        inProcess: '#1e66f5',
+        inProcess: '#df8e1d',
         completed: '#40a02b',
         cancelled: '#d20f39',
       },
@@ -87,7 +87,7 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#a5adce',
-        inProcess: '#8caaee',
+        inProcess: '#e5c890',
         completed: '#a6d189',
         cancelled: '#e78284',
       },
@@ -130,7 +130,7 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#a5adcb',
-        inProcess: '#8aadf4',
+        inProcess: '#eed49f',
         completed: '#a6da95',
         cancelled: '#ed8796',
       },
@@ -173,7 +173,7 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#a6adc8',
-        inProcess: '#89b4fa',
+        inProcess: '#f9e2af',
         completed: '#a6e3a1',
         cancelled: '#f38ba8',
       },

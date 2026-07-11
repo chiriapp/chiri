@@ -3,6 +3,9 @@ import { useModalState } from '$context/modalStateContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useListNavigationCommands } from '$hooks/commands/useListNavigationCommands';
 import {
+  useSetActiveAccount,
+  useSetActiveFilter,
+  useSetAllTasksView,
   useSetShowCompletedTasks,
   useSetShowUnstartedTasks,
   useSetSortConfig,
@@ -18,6 +21,9 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
   const setShowCompletedMutation = useSetShowCompletedTasks();
   const setShowUnstartedMutation = useSetShowUnstartedTasks();
   const setSortConfigMutation = useSetSortConfig();
+  const setActiveFilterMutation = useSetActiveFilter();
+  const setActiveAccountMutation = useSetActiveAccount();
+  const setAllTasksViewMutation = useSetAllTasksView();
   const { toggleSidebarCollapsed } = useSettingsStore();
   const { isAnyModalOpen } = useModalState();
   const { navPrevList, navNextList } = useListNavigationCommands();
@@ -87,6 +93,20 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
     toggleSidebarCollapsed();
   }, [toggleSidebarCollapsed]);
 
+  const selectFilter = useCallback(
+    (filterId: string) => {
+      if (isAnyModalOpen) return;
+      setActiveFilterMutation.mutate(filterId);
+    },
+    [isAnyModalOpen, setActiveFilterMutation],
+  );
+
+  const allTasks = useCallback(() => {
+    if (isAnyModalOpen) return;
+    setAllTasksViewMutation.mutate();
+    setActiveAccountMutation.mutate(null);
+  }, [isAnyModalOpen, setActiveAccountMutation, setAllTasksViewMutation]);
+
   return {
     openSettings,
     openImport,
@@ -97,6 +117,8 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
     toggleUnstarted,
     setSortMode,
     setSortDirection,
+    allTasks,
+    selectFilter,
     toggleSidebar,
     navPrevList,
     navNextList,

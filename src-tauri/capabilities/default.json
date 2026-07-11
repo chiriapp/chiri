@@ -20,6 +20,14 @@
     "dialog:default",
     "fs:default",
     {
+      "identifier": "fs:allow-read-dir",
+      "allow": [{ "path": "$APPLOG" }, { "path": "$APPLOG/**" }]
+    },
+    {
+      "identifier": "fs:allow-read-text-file",
+      "allow": [{ "path": "$APPLOG/**" }]
+    },
+    {
       "identifier": "fs:allow-remove",
       "allow": [
         {
@@ -35,7 +43,10 @@
     "sql:allow-execute",
     "core:app:allow-set-dock-visibility",
     "process:default",
+    "core:window:allow-start-dragging",
     "core:window:allow-set-focus",
+    "core:window:allow-set-size",
+    "core:window:allow-set-position",
     "os:default",
     "log:default",
     {
@@ -54,7 +65,12 @@
     },
     {
       "identifier": "opener:allow-open-path",
-      "allow": [{ "path": "$APPLOG" }, { "path": "$APPLOG/**" }]
+      "allow": [
+        { "path": "$APPLOG" },
+        { "path": "$APPLOG/**" },
+        { "path": "$APPLOCALDATA" },
+        { "path": "$APPCONFIG" }
+      ]
     },
     "updater:default",
     "autostart:allow-enable",

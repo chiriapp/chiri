@@ -161,6 +161,7 @@ export const createKUnifiedPushProviderSubscription = async (
     const token = generateUUID();
     const registration = await invoke<KUnifiedPushProviderRegistration>('kunifiedpush_register', {
       token,
+      distributor: null,
       vapidPublicKey: calendar.pushVapidKey ?? null,
       description: `Chiri: ${calendar.displayName}`,
     });
@@ -172,6 +173,7 @@ export const createKUnifiedPushProviderSubscription = async (
     return {
       providerId: KUNIFIED_PUSH_PROVIDER_ID,
       providerToken: registration.token,
+      providerDistributor: registration.distributor,
       pushResource: registration.endpoint,
       subscriptionPublicKey: keyPair.publicKey,
       authSecret: keyPair.authSecret,
@@ -192,6 +194,7 @@ export const restoreKUnifiedPushProviderSubscription = async (
   try {
     const registration = await invoke<KUnifiedPushProviderRegistration>('kunifiedpush_register', {
       token: subscription.providerToken,
+      distributor: subscription.providerDistributor ?? null,
       vapidPublicKey: calendar.pushVapidKey ?? null,
       description: `Chiri: ${calendar.displayName}`,
     });
@@ -262,7 +265,10 @@ export const removeKUnifiedPushProviderSubscription = async (subscription: PushS
   if (!subscription.providerToken) return;
 
   try {
-    await invoke('kunifiedpush_unregister', { token: subscription.providerToken });
+    await invoke('kunifiedpush_unregister', {
+      token: subscription.providerToken,
+      distributor: subscription.providerDistributor ?? null,
+    });
   } catch (error) {
     log.warn('Failed to unregister KUnifiedPush subscription:', error);
   }

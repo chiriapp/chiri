@@ -12,9 +12,9 @@ import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import Clock from 'lucide-react/icons/clock';
 import FolderSync from 'lucide-react/icons/folder-sync';
 import Link from 'lucide-react/icons/link';
-import Loader from 'lucide-react/icons/loader';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Tag from 'lucide-react/icons/tag';
+import Timer from 'lucide-react/icons/timer';
 import { BadgesSettingsPreview } from '$components/settings/BadgesSettings/BadgesSettingsPreview';
 import {
   type BadgeConfig,
@@ -58,7 +58,7 @@ const BADGES: BadgeConfig[] = [
     key: 'status',
     label: 'Status',
     description: 'In-progress status indicators with percent complete',
-    icon: <Loader className="h-4 w-4" />,
+    icon: <Timer className="h-4 w-4" />,
   },
   {
     key: 'repeat',
@@ -99,7 +99,10 @@ export const BadgesSettings = () => {
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">Badges</h3>
-      <BadgesSettingsPreview />
+      <div>
+        <p className="mb-2 font-medium text-surface-500 text-xs dark:text-surface-400">Preview</p>
+        <BadgesSettingsPreview />
+      </div>
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={taskBadgeOrder} strategy={verticalListSortingStrategy}>

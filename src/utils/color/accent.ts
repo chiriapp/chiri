@@ -16,6 +16,10 @@ export const resolveAccentColor = (
 };
 
 const applyPrimaryPalette = (color: AccentColor, lightnessMultiplier: number) => {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
   const root = document.documentElement;
 
   const rgb = parseCssColor(color);

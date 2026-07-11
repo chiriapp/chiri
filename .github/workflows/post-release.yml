@@ -136,10 +136,10 @@ jobs:
             "Chiri-${VERSION}-1.x86_64.rpm.sig"
             "Chiri-${VERSION}-1.aarch64.rpm"
             "Chiri-${VERSION}-1.aarch64.rpm.sig"
-            "Chiri_${VERSION}_aarch64.AppImage"
-            "Chiri_${VERSION}_aarch64.AppImage.sig"
-            "Chiri_${VERSION}_amd64.AppImage"
-            "Chiri_${VERSION}_amd64.AppImage.sig"
+            "garden.chiri.Chiri_${VERSION}_aarch64.AppImage"
+            "garden.chiri.Chiri_${VERSION}_aarch64.AppImage.sig"
+            "garden.chiri.Chiri_${VERSION}_amd64.AppImage"
+            "garden.chiri.Chiri_${VERSION}_amd64.AppImage.sig"
           )
 
           missing=0

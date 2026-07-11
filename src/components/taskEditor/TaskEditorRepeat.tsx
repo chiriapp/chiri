@@ -1,9 +1,11 @@
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Plus from 'lucide-react/icons/plus';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
+import RefreshCwOff from 'lucide-react/icons/refresh-cw-off';
 import X from 'lucide-react/icons/x';
 import { useRef, useState } from 'react';
 import { RepeatPresetMenu } from '$components/taskEditor/RepeatPresetMenu';
+import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyState';
 import { useSettingsStore } from '$context/settingsContext';
 import type { Task } from '$types';
 import { formatDate } from '$utils/date';
@@ -92,7 +94,7 @@ export const TaskEditorRepeat = ({
               ) : null}
             </span>
             {!readOnly && (
-              <ChevronRight className="h-4 w-4 shrink-0 text-surface-400 transition-transform group-hover:translate-x-0.5" />
+              <ChevronRight className="h-4 w-4 shrink-0 text-surface-400 opacity-0 group-hover:opacity-100" />
             )}
           </button>
           {!readOnly && (
@@ -108,7 +110,9 @@ export const TaskEditorRepeat = ({
           )}
         </div>
       ) : readOnly ? (
-        <span className="text-sm text-surface-400 dark:text-surface-500">No repeat</span>
+        <TaskEditorEmptyState icon={<RefreshCwOff className="h-4 w-4 shrink-0" />}>
+          No repeat
+        </TaskEditorEmptyState>
       ) : (
         <>
           <button

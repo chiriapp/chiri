@@ -12,24 +12,33 @@ import type { PushProviderId } from '$types/push';
 
 export type SubtaskDeletionBehavior = 'delete' | 'keep';
 
-export type SettingsCategory = 'tasks' | 'app' | 'accounts' | 'misc';
+export type SettingsCategory = 'tasks' | 'app' | 'defaults' | 'accounts' | 'misc';
 export type SettingsSubtab =
-  | 'behavior'
-  | 'defaults'
+  | 'appearance'
+  | 'navigation'
+  | 'safety'
+  | 'task-defaults'
+  | 'account-defaults'
+  | 'scheduling'
+  | 'list-layout'
   | 'editor'
-  | 'badges'
-  | 'look-and-feel'
   | 'notifications'
   | 'region-and-time'
   | 'keyboard-shortcuts'
-  | 'system'
+  | 'startup-window'
   | 'connections'
-  | 'data'
+  | 'data-diagnostics'
   | 'sync'
+  | 'push'
+  | 'network'
   | 'updates'
   | 'about';
 
 export type TaskListDensity = 'compact' | 'normal' | 'comfortable';
+export type WindowDecorationStyle = 'integrated' | 'native';
+export type DefaultLaunchView = 'last-view' | 'all-tasks' | 'recently-deleted';
+export type SidebarSectionKey = 'filters' | 'local' | 'accounts' | 'tags';
+export type NetworkProxyMode = 'system' | 'none' | 'http' | 'socks';
 
 export interface EditorFieldVisibility {
   status: boolean;
@@ -84,12 +93,15 @@ export interface SettingsState {
   syncOnStartup: boolean;
   syncOnReconnect: boolean;
   confirmBeforeDeletion: boolean;
+  confirmBeforeMoveToRecentlyDeleted: boolean;
   confirmBeforePermanentDelete: boolean;
   confirmBeforeDeleteCalendar: boolean;
   confirmBeforeDeleteAccount: boolean;
   confirmBeforeDeleteFilter: boolean;
   confirmBeforeDeleteTag: boolean;
   deleteSubtasksWithParent: SubtaskDeletionBehavior;
+  autoEmptyRecentlyDeleted: boolean;
+  recentlyDeletedRetentionDays: number;
   startOfWeek: StartOfWeek;
   timeFormat: TimeFormat;
   dateFormat: DateFormat;
@@ -117,14 +129,23 @@ export interface SettingsState {
   taskEditorWidth: number;
   onboardingCompleted: boolean;
   expandedAccountIds: string[];
-  defaultAccountsExpanded: boolean;
   localSectionCollapsed: boolean;
   accountsSectionCollapsed: boolean;
   filtersSectionCollapsed: boolean;
   tagsSectionCollapsed: boolean;
+  showLocalSection: boolean;
+  showAccountsSection: boolean;
+  showFiltersSection: boolean;
+  showTagsSection: boolean;
+  showSidebarTaskCounts: boolean;
+  sidebarSectionOrder: SidebarSectionKey[];
+  defaultLaunchView: DefaultLaunchView;
   systemTrayAppliedValue: boolean;
   hideDockIconWhenWindowClosed: boolean;
+  showWindowOnNormalLaunch: boolean;
   showWindowOnLoginLaunch: boolean;
+  restoreWindowState: boolean;
+  windowDecorationStyle: WindowDecorationStyle;
   confirmBeforeQuit: boolean;
   confirmBeforeQuitAppliedValue: boolean;
   defaultAllDayReminderHour: number;
@@ -149,9 +170,15 @@ export interface SettingsState {
   connectivityCheckEnabled: boolean;
   connectivityCheckUrl: string;
   connectivityCheckInterval: number;
+  connectivityRequestTimeout: number;
+  networkProxyMode: NetworkProxyMode;
+  networkProxyHost: string;
+  networkProxyPort: string;
   enablePush: boolean;
   pushProvider: PushProviderId;
   ntfyServerUrl: string;
+  mozillaAutopushWebsocketUrl: string;
+  mozillaAutopushEndpointUrl: string;
   hasSeenRecentlyDeletedToast: boolean;
 }
 
@@ -166,12 +193,15 @@ interface SettingsActions {
   setSyncOnStartup: (enabled: boolean) => void;
   setSyncOnReconnect: (enabled: boolean) => void;
   setConfirmBeforeDeletion: (confirm: boolean) => void;
+  setConfirmBeforeMoveToRecentlyDeleted: (confirm: boolean) => void;
   setConfirmBeforePermanentDelete: (confirm: boolean) => void;
   setConfirmBeforeDeleteCalendar: (confirm: boolean) => void;
   setConfirmBeforeDeleteAccount: (confirm: boolean) => void;
   setConfirmBeforeDeleteFilter: (confirm: boolean) => void;
   setConfirmBeforeDeleteTag: (confirm: boolean) => void;
   setDeleteSubtasksWithParent: (behavior: SubtaskDeletionBehavior) => void;
+  setAutoEmptyRecentlyDeleted: (enabled: boolean) => void;
+  setRecentlyDeletedRetentionDays: (days: number) => void;
   setStartOfWeek: (day: StartOfWeek) => void;
   setTimeFormat: (format: TimeFormat) => void;
   setDateFormat: (format: DateFormat) => void;
@@ -199,15 +229,24 @@ interface SettingsActions {
   setOnboardingCompleted: (completed: boolean) => void;
   setExpandedAccountIds: (accountIds: string[]) => void;
   toggleAccountExpanded: (accountId: string) => void;
-  setDefaultAccountsExpanded: (expanded: boolean) => void;
   toggleLocalSectionCollapsed: () => void;
   toggleAccountsSectionCollapsed: () => void;
   toggleFiltersSectionCollapsed: () => void;
   toggleTagsSectionCollapsed: () => void;
+  setShowLocalSection: (show: boolean) => void;
+  setShowAccountsSection: (show: boolean) => void;
+  setShowFiltersSection: (show: boolean) => void;
+  setShowTagsSection: (show: boolean) => void;
+  setShowSidebarTaskCounts: (show: boolean) => void;
+  setSidebarSectionOrder: (order: SidebarSectionKey[]) => void;
+  setDefaultLaunchView: (view: DefaultLaunchView) => void;
   setEnableSystemTray: (enabled: boolean) => void;
   setSystemTrayAppliedValue: (value: boolean) => void;
   setHideDockIconWhenWindowClosed: (enabled: boolean) => void;
+  setShowWindowOnNormalLaunch: (show: boolean) => void;
   setShowWindowOnLoginLaunch: (show: boolean) => void;
+  setRestoreWindowState: (restore: boolean) => void;
+  setWindowDecorationStyle: (style: WindowDecorationStyle) => void;
   setCheckForUpdatesAutomatically: (enabled: boolean) => void;
   setConfirmBeforeQuit: (confirm: boolean) => void;
   setConfirmBeforeQuitAppliedValue: (value: boolean) => void;
@@ -232,9 +271,15 @@ interface SettingsActions {
   setConnectivityCheckEnabled: (enabled: boolean) => void;
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;
+  setConnectivityRequestTimeout: (timeout: number) => void;
+  setNetworkProxyMode: (mode: NetworkProxyMode) => void;
+  setNetworkProxyHost: (host: string) => void;
+  setNetworkProxyPort: (port: string) => void;
   setEnablePush: (enabled: boolean) => void;
   setPushProvider: (provider: PushProviderId) => void;
   setNtfyServerUrl: (url: string) => void;
+  setMozillaAutopushWebsocketUrl: (url: string) => void;
+  setMozillaAutopushEndpointUrl: (url: string) => void;
   setHasSeenRecentlyDeletedToast: (seen: boolean) => void;
   exportSettings: () => string;
   importSettings: (json: string) => boolean;

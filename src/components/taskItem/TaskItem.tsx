@@ -2,7 +2,7 @@ import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import { type CSSProperties, type MouseEvent, useEffect, useRef, useState } from 'react';
-import { RepeatModal } from '$components/modals/RepeatModal';
+import { RepeatModal } from '$components/modals/RepeatModal/RepeatModal';
 import { TaskItemBadges } from '$components/taskItem/TaskItemBadges';
 import { TaskItemCheckbox } from '$components/taskItem/TaskItemCheckbox';
 import { TaskItemContextMenu } from '$components/taskItem/TaskItemContextMenu';
@@ -235,7 +235,7 @@ export const TaskItem = ({
     isOverlay ? 'shadow-xl' : 'shadow-xs hover:shadow-md',
     getBorderClass(isVisuallySelected, task.priority),
     getOpacityClass(task.status, isUnstarted),
-    isDragEnabled ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
+    isDragging ? 'cursor-grabbing' : 'cursor-pointer',
     !isOverlay ? 'hover:bg-surface-50 dark:hover:bg-surface-800/70' : '',
     getSelectionClass(isSelected, isMultiSelected, task.priority),
     getPriorityColor(task.priority),

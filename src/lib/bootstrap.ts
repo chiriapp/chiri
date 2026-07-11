@@ -8,6 +8,8 @@ import { preloadAutostartState } from '$hooks/system/useAutostart';
 import { db } from '$lib/database';
 import { initLogger, loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
+import { setAllTasksView, setRecentlyDeletedView } from '$lib/store/ui';
+import { restoreWindowState } from '$lib/windowState';
 import { initAppMenu } from '$utils/menu';
 import { isMacPlatform, isWindowsPlatform } from '$utils/platform';
 
@@ -24,6 +26,32 @@ const applyMacDockIconPreference = async () => {
   } catch (error) {
     log.error('Failed to apply Dock icon preference:', error);
   }
+};
+
+const applyMacWindowDecorationPreference = async () => {
+  if (!isMacPlatform()) return;
+
+  const { windowDecorationStyle } = settingsStore.getState();
+  try {
+    await invoke('set_macos_window_decoration_style', {
+      style: windowDecorationStyle,
+    });
+  } catch (error) {
+    log.error('Failed to apply macOS window decoration preference:', error);
+  }
+};
+
+const applyDefaultLaunchViewPreference = () => {
+  const { defaultLaunchView } = settingsStore.getState();
+
+  if (defaultLaunchView === 'last-view') return;
+
+  if (defaultLaunchView === 'all-tasks') {
+    setAllTasksView();
+    return;
+  }
+
+  setRecentlyDeletedView();
 };
 
 export const setMacDockIconVisible = async (visible: boolean) => {
@@ -46,19 +74,24 @@ export const initializeApp = async () => {
   await initLogger();
   log.info('Starting application initialization...');
 
+  await applyMacWindowDecorationPreference();
+
   log.debug('Initializing data store...');
   await dataStore.initialize();
   log.debug('Data store initialized');
+  applyDefaultLaunchViewPreference();
 
-  log.debug('Reading launch-at-login status...');
-  await preloadAutostartState().catch((error) => {
+  const autostartState = await preloadAutostartState().catch((error) => {
     log.warn('Failed to preload launch-at-login status:', error);
+    return null;
   });
+  log.debug(
+    `Launch-at-login status: enabled=${autostartState?.enabled ?? 'unknown'}, error=${autostartState?.error ?? 'none'}`,
+  );
 
   await applyMacDockIconPreference();
 
   // initialize system tray based on settings
-  log.debug('Initializing system tray...');
   const enableSystemTray = settingsStore.getState().enableSystemTray;
 
   try {
@@ -103,9 +136,11 @@ export const showWindow = async (delay: number = 200): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(async () => {
       const window = getCurrentWindow();
+      await restoreWindowState();
       await setMacDockIconVisible(true);
       await window.show();
       await window.setFocus();
+
       log.debug('Window shown and focused');
       resolve();
     }, delay);
@@ -123,12 +158,24 @@ export const shouldShowWindowOnStartup = async () => {
         return false;
       });
 
+  const enableSystemTray = settingsStore.getState().enableSystemTray;
+
   if (!launchedAtLogin) {
-    log.debug('Showing window for normal app launch');
-    return true;
+    if (!enableSystemTray) {
+      log.debug('Showing window for normal app launch because system tray is disabled');
+      return true;
+    }
+
+    const showWindowOnNormalLaunch = settingsStore.getState().showWindowOnNormalLaunch;
+    if (showWindowOnNormalLaunch) {
+      log.debug('Showing window for normal app launch');
+      return true;
+    }
+
+    log.info('Keeping window hidden for normal app launch');
+    return false;
   }
 
-  const enableSystemTray = settingsStore.getState().enableSystemTray;
   if (!enableSystemTray) {
     log.info('Showing window for login/autostart launch because system tray is disabled');
     return true;

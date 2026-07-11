@@ -193,6 +193,10 @@ export const applyColorScheme = (
   flavorId: ColorSchemeFlavor['id'] | null,
   mode?: ColorSchemeMode,
 ) => {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
   const root = document.documentElement;
   const flavor = getColorSchemeFlavor(schemeId, flavorId, mode);
 

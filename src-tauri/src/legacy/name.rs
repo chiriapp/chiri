@@ -1,6 +1,20 @@
 use tauri::Manager;
 
-use crate::utils::fs::{copy_dir_recursive, is_dir_empty};
+use crate::utils::fs::copy_dir_recursive;
+
+const IDENTIFIER_MARKER_FILE: &str = ".legacy_migration_v1_done";
+
+fn is_dir_empty_or_only_identifier_marker(path: &std::path::Path) -> std::io::Result<bool> {
+    let mut entries = std::fs::read_dir(path)?;
+    let Some(entry) = entries.next() else {
+        return Ok(true);
+    };
+    let entry = entry?;
+    if entry.file_name() != IDENTIFIER_MARKER_FILE {
+        return Ok(false);
+    }
+    Ok(entries.next().is_none())
+}
 
 /// migrate data from caldav-tasks to Chiri
 ///
@@ -21,7 +35,8 @@ pub fn migrate_name<R: tauri::Runtime>(app: &tauri::App<R>) {
             // only migrate if old directory exists and new one doesn't (or is empty)
             let should_migrate = old_app_dir.exists()
                 && (!app_local_data_dir.exists()
-                    || is_dir_empty(&app_local_data_dir).unwrap_or(false));
+                    || is_dir_empty_or_only_identifier_marker(&app_local_data_dir)
+                        .unwrap_or(false));
 
             if should_migrate {
                 log::info!(
@@ -66,7 +81,8 @@ pub fn migrate_name<R: tauri::Runtime>(app: &tauri::App<R>) {
                 .join(&app.config().identifier);
 
             let should_migrate = old_webkit_dir.exists()
-                && (!new_webkit_dir.exists() || is_dir_empty(&new_webkit_dir).unwrap_or(false));
+                && (!new_webkit_dir.exists()
+                    || crate::utils::fs::is_dir_empty(&new_webkit_dir).unwrap_or(false));
 
             if should_migrate {
                 log::info!(
@@ -84,5 +100,46 @@ pub fn migrate_name<R: tauri::Runtime>(app: &tauri::App<R>) {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_dir_empty_or_only_identifier_marker;
+    use std::{
+        fs,
+        path::PathBuf,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    fn temp_dir(name: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("chiri-name-test-{name}-{nanos}"));
+        fs::create_dir_all(&path).unwrap();
+        path
+    }
+
+    #[test]
+    fn marker_only_target_counts_as_empty() {
+        let dir = temp_dir("marker-only");
+        fs::write(dir.join(".legacy_migration_v1_done"), "").unwrap();
+
+        assert!(is_dir_empty_or_only_identifier_marker(&dir).unwrap());
+
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn marker_plus_user_data_counts_as_populated() {
+        let dir = temp_dir("marker-plus-data");
+        fs::write(dir.join(".legacy_migration_v1_done"), "").unwrap();
+        fs::write(dir.join("chiri.db"), "").unwrap();
+
+        assert!(!is_dir_empty_or_only_identifier_marker(&dir).unwrap());
+
+        fs::remove_dir_all(dir).unwrap();
     }
 }

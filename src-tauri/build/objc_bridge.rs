@@ -1,8 +1,10 @@
 const SOURCES: &[&str] = &[
-    "native/macos/AppMenu.m",
-    "native/macos/AppNap.m",
-    "native/macos/LoginItem.m",
-    "native/macos/Notifications.m",
+    "macos/native/AppMenu.m",
+    "macos/native/AppNap.m",
+    "macos/native/DockMenu.m",
+    "macos/native/LoginItem.m",
+    "macos/native/Notifications.m",
+    "macos/native/WindowControls.m",
 ];
 
 const FRAMEWORKS: &[&str] = &[
@@ -25,6 +27,7 @@ pub fn compile() {
         .flag("-fobjc-arc")
         .flag("-fblocks")
         .flag("-fmodules")
+        .flag("-mmacosx-version-min=12.0")
         .flag("-Wno-unguarded-availability-new")
         .compile("chiri_macos_objc_bridge");
 

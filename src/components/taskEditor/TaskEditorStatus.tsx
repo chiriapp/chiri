@@ -1,8 +1,8 @@
 import Activity from 'lucide-react/icons/activity';
 import Ban from 'lucide-react/icons/ban';
 import Check from 'lucide-react/icons/check';
-import Loader from 'lucide-react/icons/loader';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
+import Timer from 'lucide-react/icons/timer';
 import { type CSSProperties, useState } from 'react';
 import type { Task, TaskStatus } from '$types';
 
@@ -46,7 +46,7 @@ export const TaskEditorStatus = ({
               {
                 value: 'in-process',
                 label: 'In Process',
-                icon: Loader,
+                icon: Timer,
                 color: 'text-status-in-process',
                 borderColor: 'border-status-in-process',
                 bgColor: 'bg-surface-200 dark:bg-surface-700',
@@ -78,7 +78,7 @@ export const TaskEditorStatus = ({
                 onClick={() => onStatusChange(s.value)}
                 disabled={readOnly}
                 className={`flex items-center gap-2 rounded-lg border px-3 py-2 font-medium text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${readOnly ? 'disabled:cursor-not-allowed' : ''}
-                  ${isActive ? `${s.borderColor} ${s.bgColor} text-surface-900 dark:text-surface-100` : `border-surface-200 text-surface-600 dark:border-surface-700 dark:text-surface-400 ${readOnly ? '' : 'hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800'}`}
+                  ${isActive ? `${s.borderColor} ${s.bgColor} text-surface-900 dark:text-surface-100` : `border-surface-200 text-surface-600 dark:border-surface-700 dark:text-surface-400 ${readOnly ? 'opacity-60' : 'hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800'}`}
                 `}
               >
                 <Icon className={`h-4 w-4 shrink-0 ${isActive ? s.color : ''}`} />
@@ -94,7 +94,7 @@ export const TaskEditorStatus = ({
           htmlFor="task-percent-complete"
           className="mb-1 flex items-center gap-2 font-medium text-sm text-surface-600 dark:text-surface-400"
         >
-          <Loader className="h-4 w-4" />
+          <Timer className="h-4 w-4" />
           Progress ({draftPercent ?? task.percentComplete ?? 0}%)
         </label>
         <div className={readOnly ? 'cursor-not-allowed' : undefined}>

@@ -10,19 +10,20 @@ import { loggers } from '$lib/logger';
 import { disablePushForCalendar } from '$lib/push';
 import { queryKeys } from '$lib/queryClient';
 import { dataStore } from '$lib/store';
-import { getAccountById, getAllAccounts } from '$lib/store/accounts';
+import { getAccountById, getAllAccounts, updateAccount } from '$lib/store/accounts';
 import { addCalendar, deleteCalendar, updateCalendar } from '$lib/store/calendars';
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
 import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$lib/store/tasks';
 import { getUIState, setAllTasksView } from '$lib/store/ui';
 import { getErrorMessage } from '$lib/tauriHttp';
-import type { CalDAVTaskObject, Calendar, Task, TaskWithCalDAVObject } from '$types';
+import type { Account, CalDAVTaskObject, Calendar, Task, TaskWithCalDAVObject } from '$types';
 import { getColorSchemeColorPresets } from '$utils/color/scheme';
 import { generateTagColor } from '$utils/color/tag';
 import { resolveEffectiveTheme } from '$utils/color/theme';
 
 const log = loggers.dataStore;
 const syncLog = loggers.sync;
+const OAUTH_REFRESH_BUFFER_MS = 60 * 1000;
 
 const taskFieldsForBaselineMerge = [
   'title',
@@ -335,7 +336,7 @@ export const reconnectAccounts = async () => {
   const failedAccountIds = new Set<string>();
   for (const account of accounts) {
     if (!account.caldav) continue;
-    if (!CalDAVClient.isConnected(account.id)) {
+    if (shouldReconnectAccount(account)) {
       try {
         await CalDAVClient.reconnect(account);
         syncLog.info(`Reconnected to account: ${account.name}`);
@@ -358,6 +359,26 @@ export const reconnectAccounts = async () => {
     }
   }
   return failedAccountIds;
+};
+
+const isOAuthTokenExpiring = (account: Account) => {
+  const caldav = account.caldav;
+  if (caldav?.authType !== 'oauth' || !caldav.tokenExpiry) return false;
+
+  const expiresAt = new Date(caldav.tokenExpiry).getTime();
+  if (!Number.isFinite(expiresAt)) return true;
+
+  return Date.now() >= expiresAt - OAUTH_REFRESH_BUFFER_MS;
+};
+
+const shouldReconnectAccount = (account: Account) => {
+  return !CalDAVClient.isConnected(account.id) || isOAuthTokenExpiring(account);
+};
+
+const ensureAccountConnected = async (account: Account) => {
+  if (shouldReconnectAccount(account)) {
+    await CalDAVClient.reconnect(account);
+  }
 };
 
 export const ensureTagExists = (tagName: string) => {
@@ -521,9 +542,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
   if (!account) return;
 
   // ensure we're connected
-  if (!CalDAVClient.isConnected(accountId)) {
-    await CalDAVClient.reconnect(account);
-  }
+  await ensureAccountConnected(account);
 
   const client = CalDAVClient.getForAccount(accountId);
 
@@ -660,9 +679,7 @@ export const syncCalendarTasks = async (
 
   try {
     // ensure we're connected
-    if (!CalDAVClient.isConnected(account.id)) {
-      await CalDAVClient.reconnect(account);
-    }
+    await ensureAccountConnected(account);
 
     const client = CalDAVClient.getForAccount(account.id);
 
@@ -727,6 +744,7 @@ export const performFullSync = async (
   setSyncProgress: (progress: { current: number; total: number } | null) => void,
 ) => {
   const failedAccountIds = await reconnectAccounts();
+  const syncedAccountIds = new Set<string>();
 
   // get fresh accounts from data layer
   let freshAccounts = getAllAccounts();
@@ -738,6 +756,7 @@ export const performFullSync = async (
     if (failedAccountIds.has(account.id)) continue;
     try {
       await syncCalendarsForAccount(account.id, queryClient);
+      syncedAccountIds.add(account.id);
     } catch (error) {
       const errorMessage = getErrorMessage(error);
       syncLog.error(`Failed to sync calendars for ${account.name}:`, error);
@@ -777,6 +796,7 @@ export const performFullSync = async (
       try {
         await syncCalendarTasks(calendar.id, queryClient, setSyncingCalendarId);
       } catch (error) {
+        syncedAccountIds.delete(account.id);
         const errorMessage = getErrorMessage(error);
         syncLog.error(`Failed to sync calendar ${calendar.displayName}:`, error);
         toastManager.error(
@@ -794,6 +814,11 @@ export const performFullSync = async (
     }
   }
 
+  const completedAt = new Date();
+  for (const accountId of syncedAccountIds) {
+    updateAccount(accountId, { lastSync: completedAt });
+  }
+
   setSyncProgress(null);
 };
 
@@ -805,9 +830,7 @@ export const pushTaskToServer = async (task: Task, queryClient: QueryClient) => 
   const calendar = account.calendars.find((c) => c.id === task.calendarId);
   if (!calendar) return;
 
-  if (!CalDAVClient.isConnected(account.id)) {
-    await CalDAVClient.reconnect(account);
-  }
+  await ensureAccountConnected(account);
 
   const client = CalDAVClient.getForAccount(account.id);
 
@@ -837,9 +860,7 @@ export const removeTaskFromServer = async (task: Task) => {
   const account = accounts.find((a) => a.id === task.accountId);
   if (!account) return false;
 
-  if (!CalDAVClient.isConnected(account.id)) {
-    await CalDAVClient.reconnect(account);
-  }
+  await ensureAccountConnected(account);
 
   const deleted = await CalDAVClient.getForAccount(account.id).deleteTask(task);
   if (deleted) {

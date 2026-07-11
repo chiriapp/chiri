@@ -35,12 +35,20 @@ export const TaskEditorPriority = ({ task, readOnly = false }: PriorityProps) =>
             className={`flex-1 rounded-lg border px-3 py-2 font-medium text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
               task.priority === p.value
                 ? `${p.borderColor} bg-surface-200 text-surface-900 dark:bg-surface-700 dark:text-surface-100`
-                : `border-surface-200 text-surface-600 dark:border-surface-700 dark:text-surface-400 ${readOnly ? '' : 'hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800'}`
+                : `border-surface-200 text-surface-600 dark:border-surface-700 dark:text-surface-400 ${readOnly ? 'opacity-60' : 'hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800'}`
             }
               ${readOnly ? 'cursor-not-allowed' : ''}
             `}
           >
-            <span className={p.color}>{p.label}</span>
+            <span
+              className={
+                task.priority === p.value || !readOnly
+                  ? p.color
+                  : 'text-surface-400 dark:text-surface-500'
+              }
+            >
+              {p.label}
+            </span>
           </button>
         ))}
       </div>

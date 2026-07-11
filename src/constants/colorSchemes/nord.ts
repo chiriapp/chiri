@@ -41,7 +41,7 @@ export const nordColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#d8dee9',
-        inProcess: '#88c0d0',
+        inProcess: '#ebcb8b',
         completed: '#a3be8c',
         cancelled: '#bf616a',
       },

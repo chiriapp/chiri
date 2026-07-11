@@ -1,7 +1,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings/TaskDefaultsSettings';
+import { AccountsDefaultsSettings } from '$components/settings/AccountsDefaultsSettings';
 
 const mockSetDefaultCalendarId = vi.fn();
 const mockUseAccounts = vi.fn();
@@ -57,7 +57,7 @@ vi.mock('$context/settingsContext', () => ({
   }),
 }));
 
-describe('TaskDefaultsSettings', () => {
+describe('AccountsDefaultsSettings', () => {
   let container: HTMLDivElement;
   let root: Root;
 
@@ -105,7 +105,7 @@ describe('TaskDefaultsSettings', () => {
     });
 
     await act(async () => {
-      root.render(<TaskDefaultsSettings />);
+      root.render(<AccountsDefaultsSettings />);
     });
 
     const calendarOption = container.querySelector('option[value="tasks-calendar"]');

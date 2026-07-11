@@ -1,22 +1,12 @@
-import AlignJustify from 'lucide-react/icons/align-justify';
-import LayoutList from 'lucide-react/icons/layout-list';
-import type { ReactNode } from 'react';
 import { ColorSchemeSelect } from '$components/ColorSchemeSelect';
 import { ColorSwatchPicker } from '$components/ColorSwatchPicker';
-import { TaskListDensityPreview } from '$components/settings/TaskListDensityPreview';
 import { useSettingsStore } from '$context/settingsContext';
-import type { TaskListDensity } from '$types/settings';
 import {
   getAppearanceColorState,
   getColorSchemeSelection,
   shouldResetAccentForFlavor,
   THEME_OPTIONS,
 } from '$utils/color/scheme';
-
-const DENSITY_OPTIONS: { value: TaskListDensity; label: string; icon: ReactNode }[] = [
-  { value: 'comfortable', label: 'Comfortable', icon: <LayoutList className="h-4 w-4" /> },
-  { value: 'compact', label: 'Compact', icon: <AlignJustify className="h-4 w-4" /> },
-];
 
 const SWITCHER_CLASS =
   'flex flex-1 items-center justify-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset';
@@ -25,7 +15,7 @@ const SWITCHER_ACTIVE =
 const SWITCHER_INACTIVE =
   'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400';
 
-export const LookAndFeelSettings = () => {
+export const AppearanceSettings = () => {
   const {
     theme,
     setTheme,
@@ -39,8 +29,6 @@ export const LookAndFeelSettings = () => {
     setUseAccentColorForCheckboxes,
     showCursorPointers,
     setShowCursorPointers,
-    taskListDensity,
-    setTaskListDensity,
   } = useSettingsStore();
 
   const {
@@ -78,9 +66,7 @@ export const LookAndFeelSettings = () => {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">
-        Look & feel
-      </h3>
+      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">Appearance</h3>
 
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <div className="p-4">
@@ -143,28 +129,6 @@ export const LookAndFeelSettings = () => {
             onCustomChange={setAccentColor}
             selectedVariant="border"
           />
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
-        <div className="p-4">
-          <p className="mb-2 font-medium text-surface-500 text-xs dark:text-surface-400">
-            Task list density
-          </p>
-          <div className="flex gap-2">
-            {DENSITY_OPTIONS.map((option) => (
-              <button
-                type="button"
-                key={option.value}
-                onClick={() => setTaskListDensity(option.value)}
-                className={`${SWITCHER_CLASS} ${taskListDensity === option.value ? SWITCHER_ACTIVE : SWITCHER_INACTIVE}`}
-              >
-                {option.icon}
-                {option.label}
-              </button>
-            ))}
-          </div>
-          <TaskListDensityPreview density={taskListDensity} />
         </div>
       </div>
 

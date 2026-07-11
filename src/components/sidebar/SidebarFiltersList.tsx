@@ -24,6 +24,7 @@ interface SidebarFiltersListProps {
   activeFilterId: string | null;
   contextMenu: { type: string; id: string } | null;
   isAnyModalOpen: boolean;
+  showTaskCounts: boolean;
   collapsed: boolean;
   onToggle: () => void;
   onSelectFilter: (filterId: string) => void;
@@ -40,6 +41,7 @@ export const SidebarFiltersList = ({
   activeFilterId,
   contextMenu,
   isAnyModalOpen,
+  showTaskCounts,
   collapsed,
   onToggle,
   onSelectFilter,
@@ -143,6 +145,7 @@ export const SidebarFiltersList = ({
                       isAnyModalOpen={isAnyModalOpen}
                       isAnyFilterDragging={isAnyFilterDragging}
                       taskCount={getFilterTaskCount(filter)}
+                      showTaskCount={showTaskCounts}
                       sortable
                       onSelect={() => onSelectFilter(filter.id)}
                       onContextMenu={(e) => onContextMenu(e, 'filter', filter.id)}

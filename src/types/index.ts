@@ -182,4 +182,11 @@ export type DefaultDateOffset =
   | '1day-before-due'
   | '1week-before-due';
 
-export type InstallType = 'nix' | 'aur' | 'flatpak' | 'homebrew' | 'scoop' | 'standard';
+export type InstallType =
+  | 'appimage'
+  | 'nix'
+  | 'aur'
+  | 'flatpak'
+  | 'homebrew'
+  | 'scoop'
+  | 'standard';

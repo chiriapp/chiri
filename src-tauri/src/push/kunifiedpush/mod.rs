@@ -10,7 +10,7 @@ use tokio::{sync::oneshot, time::Duration};
 use zbus::{Connection, Proxy};
 
 use self::{
-    distributor::{choose_distributor, list_distributors},
+    distributor::{list_distributors, resolve_distributor},
     registration::{build_register_args, register_result_failed},
     state::ensure_runtime,
     values::{owned_value, VariantDict},
@@ -42,11 +42,12 @@ pub async fn kunifiedpush_register(
     app: AppHandle,
     state: State<'_, UnifiedPushState>,
     token: String,
+    distributor: Option<String>,
     vapid_public_key: Option<String>,
     description: Option<String>,
 ) -> Result<KUnifiedPushRegistration, String> {
     let runtime = ensure_runtime(&app, &state).await?;
-    let distributor = choose_distributor(&runtime.connection).await?;
+    let distributor = resolve_distributor(&runtime.connection, distributor.as_deref()).await?;
     let proxy = Proxy::new(
         &runtime.connection,
         distributor.as_str(),
@@ -100,9 +101,10 @@ pub async fn kunifiedpush_unregister(
     app: AppHandle,
     state: State<'_, UnifiedPushState>,
     token: String,
+    distributor: Option<String>,
 ) -> Result<(), String> {
     let runtime = ensure_runtime(&app, &state).await?;
-    let distributor = choose_distributor(&runtime.connection).await?;
+    let distributor = resolve_distributor(&runtime.connection, distributor.as_deref()).await?;
     let proxy = Proxy::new(
         &runtime.connection,
         distributor.as_str(),

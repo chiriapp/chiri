@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { cleanEtag, hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
+import {
+  cleanEtag,
+  hasHttpUrlScheme,
+  isValidPrincipalUrlOverride,
+  makeAbsoluteUrl,
+  normalizeUrl,
+} from '$lib/caldav/utils';
 
 describe('cleanEtag', () => {
   it('strips surrounding double quotes', () => {
@@ -128,5 +134,47 @@ describe('makeAbsoluteUrl', () => {
 
   it('throws on truly invalid base url for relative input', () => {
     expect(() => makeAbsoluteUrl('/path', 'not a url at all')).toThrow();
+  });
+});
+
+describe('isValidPrincipalUrlOverride', () => {
+  const baseUrl = 'https://caldav.example.com';
+
+  it('accepts empty values', () => {
+    expect(isValidPrincipalUrlOverride('', baseUrl)).toBe(true);
+    expect(isValidPrincipalUrlOverride('   ', baseUrl)).toBe(true);
+  });
+
+  it('accepts absolute http and https URLs', () => {
+    expect(
+      isValidPrincipalUrlOverride('https://caldav.example.com/principals/alice/', baseUrl),
+    ).toBe(true);
+    expect(isValidPrincipalUrlOverride('http://localhost:5232/principals/alice/', baseUrl)).toBe(
+      true,
+    );
+  });
+
+  it('accepts server-relative paths', () => {
+    expect(isValidPrincipalUrlOverride('/principals/alice/', baseUrl)).toBe(true);
+    expect(isValidPrincipalUrlOverride('principals/alice/', `${baseUrl}/dav/`)).toBe(true);
+  });
+
+  it('rejects scheme-relative URLs', () => {
+    expect(isValidPrincipalUrlOverride('//evil.example/principals/alice/', baseUrl)).toBe(false);
+  });
+
+  it('rejects unsupported schemes', () => {
+    expect(isValidPrincipalUrlOverride('ftp://example.com/principals/alice/', baseUrl)).toBe(false);
+    expect(isValidPrincipalUrlOverride('mailto:alice@example.com', baseUrl)).toBe(false);
+  });
+
+  it('rejects embedded credentials', () => {
+    expect(
+      isValidPrincipalUrlOverride('https://alice:secret@example.com/principals/alice/', baseUrl),
+    ).toBe(false);
+  });
+
+  it('rejects values that cannot resolve against the server URL', () => {
+    expect(isValidPrincipalUrlOverride('/principals/alice/', 'not a url')).toBe(false);
   });
 });

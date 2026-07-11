@@ -28,10 +28,19 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   const { data: accounts = [] } = useAccounts();
   const addCalendarMutation = useAddCalendar();
   const updateAccountMutation = useUpdateAccount();
-  const { defaultCalendarColor, enablePush, pushProvider, ntfyServerUrl } = useSettingsStore();
+  const {
+    defaultCalendarColor,
+    enablePush,
+    pushProvider,
+    ntfyServerUrl,
+    mozillaAutopushWebsocketUrl,
+    mozillaAutopushEndpointUrl,
+  } = useSettingsStore();
   const { isResolvingKUnifiedPush, pushProviderConfig } = usePushProviderConfigState(
     pushProvider,
     ntfyServerUrl,
+    mozillaAutopushWebsocketUrl,
+    mozillaAutopushEndpointUrl,
   );
   const colorPresets = useColorPresets();
   const resolveAccentColor = useAccentColorResolver();

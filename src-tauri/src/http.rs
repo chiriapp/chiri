@@ -1,5 +1,5 @@
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use reqwest::{Method, Url};
+use reqwest::{Method, Proxy, Url};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -32,6 +32,22 @@ const FORBIDDEN_HEADERS: &[&str] = &[
 ];
 
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ProxyMode {
+    System,
+    None,
+    Http,
+    Socks,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ProxyConfig {
+    pub mode: ProxyMode,
+    pub host: Option<String>,
+    pub port: Option<u16>,
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct HttpResponse {
     pub status: u16,
     pub headers: HashMap<String, String>,
@@ -51,17 +67,25 @@ pub async fn http_request(
     headers: HashMap<String, String>,
     body: Option<String>,
     accept_invalid_certs: bool,
+    proxy_config: Option<ProxyConfig>,
+    timeout_ms: Option<u64>,
 ) -> Result<HttpResponse, String> {
     let url = validate_url(&url)?;
     let method = validate_method(&method)?;
     validate_body_size(body.as_deref())?;
 
-    let client = reqwest::Client::builder()
+    let timeout = timeout_ms
+        .map(Duration::from_millis)
+        .unwrap_or(REQUEST_TIMEOUT)
+        .clamp(Duration::from_secs(1), Duration::from_secs(60));
+    let mut client_builder = reqwest::Client::builder()
         .danger_accept_invalid_certs(accept_invalid_certs)
         .redirect(reqwest::redirect::Policy::none())
-        .timeout(REQUEST_TIMEOUT)
-        .build()
-        .map_err(|e| e.to_string())?;
+        .timeout(timeout);
+
+    client_builder = apply_proxy_config(client_builder, proxy_config)?;
+
+    let client = client_builder.build().map_err(|e| e.to_string())?;
 
     let mut header_map = HeaderMap::new();
     for (k, v) in &headers {
@@ -109,6 +133,39 @@ pub async fn http_request(
         headers: resp_headers,
         body: body_text,
     })
+}
+
+fn apply_proxy_config(
+    client_builder: reqwest::ClientBuilder,
+    proxy_config: Option<ProxyConfig>,
+) -> Result<reqwest::ClientBuilder, String> {
+    let Some(proxy_config) = proxy_config else {
+        return Ok(client_builder);
+    };
+
+    match proxy_config.mode {
+        ProxyMode::System => Ok(client_builder),
+        ProxyMode::None => Ok(client_builder.no_proxy()),
+        ProxyMode::Http | ProxyMode::Socks => {
+            let host = proxy_config
+                .host
+                .map(|host| host.trim().to_string())
+                .filter(|host| !host.is_empty())
+                .ok_or_else(|| "Proxy host is required".to_string())?;
+            let port = proxy_config
+                .port
+                .filter(|port| *port > 0)
+                .ok_or_else(|| "Proxy port is required".to_string())?;
+            let scheme = match proxy_config.mode {
+                ProxyMode::Http => "http",
+                ProxyMode::Socks => "socks5",
+                ProxyMode::System | ProxyMode::None => unreachable!(),
+            };
+            let proxy_url = format!("{scheme}://{host}:{port}");
+            let proxy = Proxy::all(proxy_url).map_err(|error| error.to_string())?;
+            Ok(client_builder.proxy(proxy))
+        }
+    }
 }
 
 fn validate_url(raw_url: &str) -> Result<Url, String> {

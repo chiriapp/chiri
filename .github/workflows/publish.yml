@@ -125,8 +125,8 @@ jobs:
           CHANGELOG="${CHANGELOG}- [Debian/Ubuntu ARM64 (.deb)](https://github.com/${REPO}/releases/download/${TAG}/Chiri_${VERSION}_arm64.deb)"$'\n'
           CHANGELOG="${CHANGELOG}- [Fedora/RHEL x86_64 (.rpm)](https://github.com/${REPO}/releases/download/${TAG}/Chiri-${VERSION}-1.x86_64.rpm)"$'\n'
           CHANGELOG="${CHANGELOG}- [Fedora/RHEL ARM64 (.rpm)](https://github.com/${REPO}/releases/download/${TAG}/Chiri-${VERSION}-1.aarch64.rpm)"$'\n'
-          CHANGELOG="${CHANGELOG}- [AppImage (x86_64)](https://github.com/${REPO}/releases/download/${TAG}/Chiri_${VERSION}_amd64.AppImage)"$'\n'
-          CHANGELOG="${CHANGELOG}- [AppImage (ARM64)](https://github.com/${REPO}/releases/download/${TAG}/Chiri_${VERSION}_aarch64.AppImage)"
+          CHANGELOG="${CHANGELOG}- [AppImage (x86_64)](https://github.com/${REPO}/releases/download/${TAG}/garden.chiri.Chiri_${VERSION}_amd64.AppImage)"$'\n'
+          CHANGELOG="${CHANGELOG}- [AppImage (ARM64)](https://github.com/${REPO}/releases/download/${TAG}/garden.chiri.Chiri_${VERSION}_aarch64.AppImage)"
 
           # Use heredoc syntax for multiline output
           {
@@ -222,10 +222,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
+          - platform: 'macos-26'
             label: 'macOS (Apple Silicon)'
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-15-intel'
+          - platform: 'macos-26-intel'
             label: 'macOS (Intel)'
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
@@ -251,7 +251,15 @@ jobs:
         uses: ./.github/actions/setup-tauri-build
         with:
           platform: ${{ matrix.platform }}
-          rust-targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin' || '' }}
+          rust-targets: ${{ matrix.platform == 'macos-26' && 'aarch64-apple-darwin' || '' }}
+
+      - name: Show Apple toolchain
+        if: startsWith(matrix.platform, 'macos')
+        shell: bash
+        run: |
+          xcodebuild -version
+          xcrun --sdk macosx --show-sdk-version
+          xcrun --sdk macosx --show-sdk-path
 
       - name: Load signing secrets from 1Password
         if: matrix.platform != 'windows-11-arm'
@@ -291,7 +299,7 @@ jobs:
           "TAURI_SIGNING_PRIVATE_KEY_PASSWORD=$signingKeyPassword" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Import Apple signing certificate [macOS]
-        if: matrix.platform == 'macos-latest' || matrix.platform == 'macos-15-intel'
+        if: startsWith(matrix.platform, 'macos')
         shell: bash
         run: |
           printf '%s' "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
@@ -311,7 +319,7 @@ jobs:
           rm certificate.p12
 
       - name: Prepare Apple API key for signing [macOS]
-        if: matrix.platform == 'macos-latest' || matrix.platform == 'macos-15-intel'
+        if: startsWith(matrix.platform, 'macos')
         shell: bash
         run: |
           APPLE_KEY_FILE="$RUNNER_TEMP/apple_api_key.p8"
@@ -328,6 +336,9 @@ jobs:
           APPLE_API_ISSUER: ${{ env.APPLE_API_ISSUER }}
           APPLE_API_KEY: ${{ env.APPLE_API_KEY }}
           APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
+          MACOSX_DEPLOYMENT_TARGET: '12.0'
+          CARGO_TARGET_AARCH64_APPLE_DARWIN_RUSTFLAGS: '-C link-arg=-mmacosx-version-min=12.0'
+          CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: '-C link-arg=-mmacosx-version-min=12.0'
         with:
           # use existing release created by prepare-release job
           releaseId: ${{ needs.prepare-release.outputs.release_id }}
@@ -383,11 +394,12 @@ jobs:
           TAURI_BUNDLER_NEW_APPIMAGE_FORMAT: 'true'
           TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY || secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ env.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          VERSION: ${{ needs.prepare-release.outputs.version }}
         with:
           tauriScript: cargo tauri
           releaseId: ${{ needs.prepare-release.outputs.release_id }}
           tagName: app-v${{ needs.prepare-release.outputs.version }}
-          args: --bundles appimage
+          args: --bundles appimage --config src-tauri/tauri.appimage.conf.json
 
       - name: Attest build provenance
         uses: actions/attest@v4

@@ -19,7 +19,6 @@ const log = loggers.menu;
 // store menu item references for updates
 const menuItemRefs: {
   sync?: MenuItem;
-  deleteTask?: MenuItem;
   toggleCompleted?: CheckMenuItem;
   toggleUnstarted?: CheckMenuItem;
   sortManual?: MenuItem;
@@ -93,6 +92,11 @@ interface MenuAccount {
   calendars?: MenuCalendar[];
 }
 
+interface DockMenuFilter {
+  id: string;
+  label: string;
+}
+
 export const createMacMenu = async (options?: {
   showCompleted?: boolean;
   showUnstarted?: boolean;
@@ -102,7 +106,6 @@ export const createMacMenu = async (options?: {
   accounts?: MenuAccount[];
   caldavAccountCount?: number;
   isSyncing?: boolean;
-  isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
   const showCompleted = options?.showCompleted ?? true;
@@ -114,7 +117,6 @@ export const createMacMenu = async (options?: {
   const hasAccounts = accounts.length > 0;
   const hasCaldavAccounts = (options?.caldavAccountCount ?? accounts.length) > 0;
   const isSyncing = options?.isSyncing ?? false;
-  const isEditorOpen = options?.isEditorOpen ?? false;
   const isAppActionEnabled = (enabled = true) =>
     isEnabledOutsideModal(options?.isModalOpen ?? false, enabled);
 
@@ -226,9 +228,34 @@ export const createMacMenu = async (options?: {
         text: 'Paste',
         item: 'Paste',
       }),
-      await PredefinedMenuItem.new({
+      await MenuItem.new({
+        id: 'select-all',
         text: 'Select All',
-        item: 'SelectAll',
+        accelerator: getAcceleratorOrDefault(shortcuts, 'select-all-tasks', 'CmdOrCtrl+A'),
+        enabled: isAppActionEnabled(),
+        action: () => {
+          const active = document.activeElement as HTMLElement | null;
+          if (
+            active &&
+            (active.tagName === 'INPUT' ||
+              active.tagName === 'TEXTAREA' ||
+              active.isContentEditable)
+          ) {
+            if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) {
+              active.select();
+            } else {
+              const selection = window.getSelection();
+              if (selection) {
+                const range = document.createRange();
+                range.selectNodeContents(active);
+                selection.removeAllRanges();
+                selection.addRange(range);
+              }
+            }
+            return;
+          }
+          emit(MENU_EVENTS.SELECT_ALL);
+        },
       }),
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await MenuItem.new({
@@ -240,20 +267,6 @@ export const createMacMenu = async (options?: {
           emit(MENU_EVENTS.SEARCH);
         },
       }),
-      await PredefinedMenuItem.new({ item: 'Separator' }),
-      await (async () => {
-        const item = await MenuItem.new({
-          id: 'delete-task',
-          text: 'Delete Task',
-          accelerator: getAcceleratorOrDefault(shortcuts, 'delete', 'CmdOrCtrl+Backspace'),
-          enabled: isAppActionEnabled(isEditorOpen),
-          action: () => {
-            emit(MENU_EVENTS.DELETE_TASK);
-          },
-        });
-        menuItemRefs.deleteTask = item;
-        return item;
-      })(),
     ],
   });
 
@@ -600,10 +613,13 @@ export const createMacMenu = async (options?: {
         text: 'Zoom',
         item: 'Maximize',
       }),
+      await PredefinedMenuItem.new({ item: 'Separator' }),
+      await PredefinedMenuItem.new({
+        text: 'Bring All to Front',
+        item: 'BringAllToFront',
+      }),
     ],
   });
-
-  await windowSubmenu.setAsWindowsMenuForNSApp();
 
   // help submenu
   const helpSubmenu = await Submenu.new({
@@ -652,7 +668,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  return menu;
+  return { menu, windowSubmenu };
 };
 
 /**
@@ -667,20 +683,33 @@ export const initAppMenu = async (options?: {
   accounts?: MenuAccount[];
   caldavAccountCount?: number;
   isSyncing?: boolean;
-  isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
   // only create menu on macOS
   if (!isMacPlatform()) return;
 
   try {
-    const menu = await createMacMenu(options);
+    const { menu, windowSubmenu } = await createMacMenu(options);
     await menu.setAsAppMenu();
+    await windowSubmenu.setAsWindowsMenuForNSApp();
     // fix macOS Help menu search bar; muda's setAsHelpMenuForNSApp() is broken,
     // so we call NSApp.setHelpMenu() directly from Rust after the menu is live
     await invoke('apply_macos_menu_fixes').catch(() => {});
   } catch (error) {
     log.error('Failed to initialize menu:', error);
+  }
+};
+
+export const updateDockMenu = async (options: {
+  filters: DockMenuFilter[];
+  syncEnabled: boolean;
+}) => {
+  if (!isMacPlatform()) return;
+
+  try {
+    await invoke('update_macos_dock_menu', options);
+  } catch (error) {
+    log.error('Failed to update Dock menu:', error);
   }
 };
 
@@ -697,7 +726,6 @@ export const rebuildAppMenu = async (options?: {
   accounts?: MenuAccount[];
   caldavAccountCount?: number;
   isSyncing?: boolean;
-  isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
   await initAppMenu(options);
@@ -721,9 +749,6 @@ export const updateMenuItem = async (
     switch (menuId) {
       case 'sync':
         item = menuItemRefs.sync;
-        break;
-      case 'delete-task':
-        item = menuItemRefs.deleteTask;
         break;
       case 'toggle-completed':
         item = menuItemRefs.toggleCompleted;
@@ -791,7 +816,6 @@ export const updateMenuState = async (options: {
   sortMode?: SortMode;
   sortDirection?: SortDirection;
   isSyncing?: boolean;
-  isEditorOpen?: boolean;
   isModalOpen?: boolean;
 }) => {
   const isAppActionEnabled = (enabled = true) =>
@@ -801,9 +825,6 @@ export const updateMenuState = async (options: {
     const hasAccounts = (options.accountCount ?? 1) > 0;
     const isSyncing = options.isSyncing ?? false;
     await updateMenuItem('sync', { enabled: isAppActionEnabled(hasAccounts && !isSyncing) });
-  }
-  if (options.isEditorOpen !== undefined) {
-    await updateMenuItem('delete-task', { enabled: isAppActionEnabled(options.isEditorOpen) });
   }
   if (options.showCompleted !== undefined) {
     await updateMenuItem('toggle-completed', { checked: options.showCompleted });

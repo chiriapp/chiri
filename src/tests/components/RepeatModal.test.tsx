@@ -1,7 +1,7 @@
 import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RepeatModal } from '$components/modals/RepeatModal';
+import { RepeatModal } from '$components/modals/RepeatModal/RepeatModal';
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
   true;
@@ -63,6 +63,14 @@ describe('RepeatModal', () => {
     expect(container.textContent).not.toContain('Does not repeat');
     expect(container.textContent).not.toContain('Clear');
     expect(container.textContent).toContain('Custom…');
+    expect(Array.from(container.querySelectorAll('option')).map((option) => option.value)).toEqual([
+      'MINUTELY',
+      'HOURLY',
+      'DAILY',
+      'WEEKLY',
+      'MONTHLY',
+      'YEARLY',
+    ]);
   });
 
   it('builds an ordinal monthly weekday rule', async () => {

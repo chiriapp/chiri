@@ -11,6 +11,7 @@ interface SidebarCalendarItemProps {
   isAnyAccountDragging?: boolean;
   isAnyCalendarDragging?: boolean;
   taskCount: number;
+  showTaskCount: boolean;
   calendarColor: string;
   sortable?: boolean;
   onSelect: () => void;
@@ -25,6 +26,7 @@ export const SidebarCalendarItem = ({
   isAnyAccountDragging,
   isAnyCalendarDragging,
   taskCount,
+  showTaskCount,
   calendarColor,
   sortable = false,
   onSelect,
@@ -67,7 +69,7 @@ export const SidebarCalendarItem = ({
         <CalendarIcon className="h-4 w-4 shrink-0" style={{ color: calendarColor }} />
       )}
       <span className="flex-1 truncate text-left">{calendar.displayName}</span>
-      <span className="text-xs">{taskCount}</span>
+      {showTaskCount && <span className="text-xs">{taskCount}</span>}
     </button>
   );
 

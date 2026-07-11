@@ -4,6 +4,7 @@ import {
   DEFAULT_SORT_CONFIG,
   DEFAULT_TAG_SORT_CONFIG,
 } from '$constants';
+import { settingsStore } from '$context/settingsContext';
 import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import type { DataChangeListener, DataStore, UIState } from '$types/store';
@@ -60,9 +61,15 @@ class Store {
 
     this.initPromise = (async () => {
       await db.init();
-      const expiredDeletedCount = await db.deleteExpiredRecentlyDeletedTasks();
-      if (expiredDeletedCount > 0) {
-        log.info(`Cleaned up ${expiredDeletedCount} expired recently deleted tasks`);
+      const { autoEmptyRecentlyDeleted, recentlyDeletedRetentionDays } = settingsStore.getState();
+      if (autoEmptyRecentlyDeleted) {
+        const expiredDeletedCount = await db.deleteExpiredRecentlyDeletedTasks(
+          undefined,
+          recentlyDeletedRetentionDays,
+        );
+        if (expiredDeletedCount > 0) {
+          log.info(`Cleaned up ${expiredDeletedCount} expired recently deleted tasks`);
+        }
       }
       await this.refreshCache();
       this.initialized = true;

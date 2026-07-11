@@ -10,6 +10,7 @@ interface SidebarTagItemProps {
   isContextMenuOpen: boolean;
   isAnyModalOpen: boolean;
   taskCount: number;
+  showTaskCount: boolean;
   isAnyTagDragging?: boolean;
   sortable?: boolean;
   onSelect: () => void;
@@ -22,6 +23,7 @@ export const SidebarTagItem = ({
   isContextMenuOpen,
   isAnyModalOpen,
   taskCount,
+  showTaskCount,
   isAnyTagDragging,
   sortable = false,
   onSelect,
@@ -70,7 +72,7 @@ export const SidebarTagItem = ({
         <TagIcon className="h-3.5 w-3.5" style={{ color: tagColor }} />
       )}
       <span className="flex-1 truncate text-left">{tag.name}</span>
-      <span className="text-xs">{taskCount}</span>
+      {showTaskCount && <span className="text-xs">{taskCount}</span>}
     </button>
   );
 

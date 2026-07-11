@@ -39,7 +39,7 @@ export const gruvboxColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#a89984',
-        inProcess: '#83a598',
+        inProcess: '#fabd2f',
         completed: '#b8bb26',
         cancelled: '#fb4934',
       },
@@ -80,7 +80,7 @@ export const gruvboxColorScheme: ColorSchemeDefinition = {
       },
       statusColors: {
         needsAction: '#7c6f64',
-        inProcess: '#458588',
+        inProcess: '#d79921',
         completed: '#98971a',
         cancelled: '#cc241d',
       },

@@ -15,8 +15,6 @@ pub(in crate::tray) fn initialize(
     state: &TrayState,
     enabled: bool,
 ) -> Result<(), String> {
-    debug!("[Tray] initialize_tray called with enabled={}", enabled);
-
     // in dev mode the frontend can reload while the Rust process stays alive
     // guard against creating a second tray icon on top of the existing one
     let tray_id = TrayIconId::new("main");
@@ -75,9 +73,11 @@ pub(in crate::tray) fn initialize(
     )
     .map_err(|e| e.to_string())?;
 
-    debug!("[Tray] Loading tray icon based on system theme");
-    let tray_icon = icon::load(&app_handle)?;
-    debug!("[Tray] Tray icon loaded successfully");
+    let (tray_icon, theme, icon_label) = icon::load(&app_handle)?;
+    debug!(
+        "[Tray] Tray icon loaded (theme: {:?}, icon: {})",
+        theme, icon_label
+    );
 
     let tray_builder = TrayIconBuilder::with_id("main")
         .icon(tray_icon)

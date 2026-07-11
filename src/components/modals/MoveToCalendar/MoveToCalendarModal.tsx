@@ -1,4 +1,5 @@
 import Search from 'lucide-react/icons/search';
+import AlertTriangle from 'lucide-react/icons/triangle-alert';
 import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
@@ -65,6 +66,13 @@ export const MoveToCalendarModal = ({
         </ModalButton>
       }
     >
+      {task?.parentUid && (
+        <div className="mx-4 mt-4 flex items-start gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-sm text-surface-700 dark:text-surface-300">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0 text-semantic-warning" />
+          <span>Changing the calendar will convert this subtask to a regular task.</span>
+        </div>
+      )}
+
       <div className="p-4 pb-3">
         <div className="relative">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-surface-400" />

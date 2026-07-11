@@ -2,14 +2,16 @@ import { useEffect, useMemo } from 'react';
 import { useModalState } from '$context/modalStateContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
+import { useFilters } from '$hooks/queries/useFilters';
 import { useUIState } from '$hooks/queries/useUIState';
-import { rebuildAppMenu, updateMenuState } from '$utils/menu';
+import { rebuildAppMenu, updateDockMenu, updateMenuState } from '$utils/menu';
 
 /**
  * hook to manage macOS app menu state synchronization
  */
 export const useAppMenu = (isSyncing?: boolean) => {
   const { data: accounts = [] } = useAccounts();
+  const { data: filters = [] } = useFilters();
   const { data: uiState } = useUIState();
   const { isAnyModalOpen } = useModalState();
   const { keyboardShortcuts } = useSettingsStore();
@@ -27,13 +29,27 @@ export const useAppMenu = (isSyncing?: boolean) => {
   );
 
   const caldavAccountCount = caldavAccounts.length;
+  const dockSyncEnabled = caldavAccountCount > 0;
 
-  // update lightweight state (sort, filters, sync, editor) without a full rebuild
+  const dockFilters = useMemo(
+    () =>
+      [...filters]
+        .sort((a, b) => a.sortOrder - b.sortOrder)
+        .map((filter) => ({ id: filter.id, label: filter.name })),
+    [filters],
+  );
+
+  useEffect(() => {
+    updateDockMenu({
+      filters: dockFilters,
+      syncEnabled: dockSyncEnabled,
+    });
+  }, [dockFilters, dockSyncEnabled]);
+
+  // update lightweight state (sort, filters, sync) without a full rebuild
   useEffect(() => {
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
     const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
-    const isEditorOpen =
-      (uiState?.isEditorOpen ?? false) && (uiState?.selectedTaskId ?? null) !== null;
 
     updateMenuState({
       accountCount: caldavAccountCount,
@@ -42,7 +58,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
       sortMode,
       sortDirection,
       isSyncing: isSyncing ?? false,
-      isEditorOpen,
       isModalOpen: isAnyModalOpen,
     });
   }, [
@@ -51,8 +66,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
     uiState?.sortConfig?.direction,
-    uiState?.isEditorOpen,
-    uiState?.selectedTaskId,
     isSyncing,
     isAnyModalOpen,
   ]);
@@ -61,8 +74,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
   useEffect(() => {
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
     const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
-    const isEditorOpen =
-      (uiState?.isEditorOpen ?? false) && (uiState?.selectedTaskId ?? null) !== null;
 
     rebuildAppMenu({
       showCompleted: uiState?.showCompletedTasks ?? true,
@@ -73,7 +84,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
       accounts: menuAccounts,
       caldavAccountCount,
       isSyncing: isSyncing ?? false,
-      isEditorOpen,
       isModalOpen: isAnyModalOpen,
     });
   }, [
@@ -84,8 +94,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
     uiState?.sortConfig?.direction,
-    uiState?.isEditorOpen,
-    uiState?.selectedTaskId,
     isSyncing,
     isAnyModalOpen,
   ]);

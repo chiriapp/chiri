@@ -32,20 +32,29 @@ export const ModalBackdrop = ({
   // biome-ignore lint/a11y/noStaticElementInteractions: Import modals need drag handlers on the backdrop to prevent browser file navigation
   <div
     role="presentation"
-    className={`fixed inset-0 ${zIndex} flex animate-fade-in items-center justify-center ${className}`}
+    className={`modal-backdrop-layer pointer-events-none fixed inset-0 ${zIndex} flex animate-fade-in items-center justify-center ${className}`}
     onDrop={onDrop}
     onDragOver={onDragOver}
     onDragLeave={onDragLeave}
   >
+    <div
+      aria-hidden="true"
+      className={`pointer-events-none absolute inset-0 ${backdropClassName}`}
+    />
     {/* Backdrop button - accessible interactive element */}
     <button
       type="button"
       onClick={closeOnBackdropClick ? onClose : undefined}
-      className={`absolute inset-0 cursor-default ${backdropClassName}`}
+      className="pointer-events-auto absolute inset-0 cursor-default"
       aria-label="Close modal"
       tabIndex={-1}
     />
+    <div
+      data-tauri-drag-region
+      aria-hidden="true"
+      className="modal-titlebar-drag-region pointer-events-auto absolute top-0 right-0 left-0 hidden h-13"
+    />
     {/* Modal content container */}
-    {children}
+    <div className="pointer-events-auto contents">{children}</div>
   </div>
 );

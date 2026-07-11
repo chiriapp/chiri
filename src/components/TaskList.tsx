@@ -133,7 +133,7 @@ export const TaskList = () => {
     );
 
     return (
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4">
+      <div className="app-task-list flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4">
         {isRecentlyDeleted && <RecentlyDeletedNoticeBanner />}
         <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
           <Icon className="mb-4 h-16 w-16 text-surface-300 dark:text-surface-600" />
@@ -157,7 +157,7 @@ export const TaskList = () => {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4">
+    <div className="app-task-list flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4">
       {isRecentlyDeleted && <RecentlyDeletedNoticeBanner />}
       <DndContext
         sensors={sensors}

@@ -1,8 +1,10 @@
 import { AccountModal } from '$components/modals/AccountModal/AccountModal';
+import { AppImageIntegrationModal } from '$components/modals/AppImageIntegrationModal';
 import { CalendarModal } from '$components/modals/CalendarModal';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { ImportModal } from '$components/modals/ImportModal/ImportModal';
+import { MobileConfigImportChooserModal } from '$components/modals/MobileConfigImportChooserModal';
 import { OnboardingModal } from '$components/modals/OnboardingModal/OnboardingModal';
 import { SettingsModal } from '$components/modals/SettingsModal';
 import { TaskActionsModal } from '$components/modals/TaskActionsModal';
@@ -12,19 +14,37 @@ import type { UpdateError, UpdateInfo } from '$hooks/system/useUpdateChecker';
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account } from '$types';
 import type { AppModalActions, AppModalState } from '$types/controller';
-import type { MobileConfigCalDAVSettings } from '$types/mobileconfig';
+import type {
+  MobileConfigCalDAVSettings,
+  MobileConfigImportProfile,
+  MobileConfigImportSelection,
+} from '$types/mobileconfig';
 
 interface AppModalsOnboarding {
   show: boolean;
   hasCalDAVAccounts: boolean;
 }
 
+interface AppModalsAppImageIntegration {
+  show: boolean;
+  isIntegrating: boolean;
+  error: string | null;
+  onIntegrate: () => void;
+  onSkip: () => void;
+}
+
 interface AppModalsFileDrop {
   preloadedFile: FileDropResult | null;
-  preloadedConfig: MobileConfigCalDAVSettings | null;
+  preloadedConfigProfile: MobileConfigImportProfile | null;
+  preloadedConfig: MobileConfigImportSelection | null;
   handleImportClose: () => void;
   clearDragState: () => void;
   clearPreloadedConfig: () => void;
+  returnToPreloadedConfigChooser: () => void;
+  selectPreloadedConfig: (
+    settings: MobileConfigCalDAVSettings,
+    profile: MobileConfigImportProfile,
+  ) => void;
 }
 
 interface AppModalsUpdates {
@@ -43,6 +63,7 @@ interface AppModalsUpdates {
 interface AppModalsProps {
   accounts: Account[];
   onboarding: AppModalsOnboarding;
+  appImageIntegration: AppModalsAppImageIntegration;
   modals: AppModalState;
   modalActions: AppModalActions;
   fileDrop: AppModalsFileDrop;
@@ -52,6 +73,7 @@ interface AppModalsProps {
 export const AppModals = ({
   accounts,
   onboarding,
+  appImageIntegration,
   modals,
   modalActions,
   fileDrop,
@@ -84,10 +106,13 @@ export const AppModals = ({
   } = modalActions;
   const {
     preloadedFile,
+    preloadedConfigProfile,
     preloadedConfig,
     handleImportClose,
     clearDragState,
     clearPreloadedConfig,
+    returnToPreloadedConfigChooser,
+    selectPreloadedConfig,
   } = fileDrop;
   const {
     changelogData,
@@ -101,6 +126,7 @@ export const AppModals = ({
     dismissUpdate,
     setShowUpdateModal,
   } = updates;
+  const { show, isIntegrating, error, onIntegrate, onSkip } = appImageIntegration;
   const editingAccount = editingAccountId
     ? (accounts.find((account) => account.id === editingAccountId) ?? null)
     : null;
@@ -140,11 +166,27 @@ export const AppModals = ({
         onFileDrop={clearDragState}
       />
 
+      {preloadedConfigProfile && !preloadedConfig && (
+        <MobileConfigImportChooserModal
+          profile={preloadedConfigProfile}
+          onSelect={(settings) => selectPreloadedConfig(settings, preloadedConfigProfile)}
+          onClose={clearPreloadedConfig}
+        />
+      )}
+
       {showAccountModal && (
         <AccountModal
           account={editingAccount}
           preloadedConfig={preloadedConfig ?? undefined}
           zIndex={accountModalZIndex}
+          onBackToConfigProfileChooser={
+            preloadedConfigProfile
+              ? () => {
+                  closeAccount();
+                  returnToPreloadedConfigChooser();
+                }
+              : undefined
+          }
           onClose={() => {
             closeAccount();
             clearPreloadedConfig();
@@ -188,6 +230,15 @@ export const AppModals = ({
         <OnboardingModal
           hasCalDAVAccount={onboarding.hasCalDAVAccounts}
           onAddAccount={() => openAccountAboveModal()}
+        />
+      )}
+
+      {show && (
+        <AppImageIntegrationModal
+          isIntegrating={isIntegrating}
+          error={error}
+          onIntegrate={onIntegrate}
+          onSkip={onSkip}
         />
       )}
 

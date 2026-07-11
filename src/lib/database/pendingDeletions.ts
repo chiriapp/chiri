@@ -45,6 +45,13 @@ export const clearPendingDeletion = async (conn: DatabasePlugin, uid: string) =>
   await conn.execute('DELETE FROM pending_deletions WHERE uid = $1', [uid]);
 };
 
+export const clearPendingDeletionsForCalendar = async (
+  conn: DatabasePlugin,
+  calendarId: string,
+) => {
+  await conn.execute('DELETE FROM pending_deletions WHERE calendar_id = $1', [calendarId]);
+};
+
 export const markPendingDeletionAttempt = async (
   conn: DatabasePlugin,
   uid: string,

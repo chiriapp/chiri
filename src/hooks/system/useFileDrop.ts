@@ -6,8 +6,8 @@ import { loggers } from '$lib/logger';
 import { isMobileConfigFileName, MOBILE_CONFIG_EXTENSION } from '$lib/mobileconfig';
 import { importMobileConfig } from '$lib/mobileconfig/import';
 import type {
-  MobileConfigCalDAVSettings,
   MobileConfigImportFailureReason,
+  MobileConfigImportProfile,
 } from '$types/mobileconfig';
 
 const log = loggers.fileDrop;
@@ -42,7 +42,7 @@ export interface FileDropResult {
 
 interface UseFileDropOptions {
   onFileDrop?: (file: FileDropResult) => void;
-  onConfigProfileDrop?: (config: MobileConfigCalDAVSettings) => void;
+  onConfigProfileDrop?: (profile: MobileConfigImportProfile) => void;
   onConfigProfileError?: (message: string) => void;
 }
 
@@ -70,6 +70,24 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
   // we use this ref to stop them from overriding the state Tauri already set
   const tauriDragActive = useRef(false);
 
+  const processMobileConfigBytes = useCallback(
+    async (bytes: Uint8Array) => {
+      try {
+        const result = await importMobileConfig(bytes);
+        if (result.ok) {
+          onConfigProfileDrop?.(result);
+        } else {
+          log.warn(`Failed to import Apple Configuration Profile: ${result.reason}`);
+          onConfigProfileError?.(CONFIG_PROFILE_IMPORT_ERRORS[result.reason]);
+        }
+      } catch (err) {
+        log.error('Failed to read Apple Configuration Profile:', err);
+        onConfigProfileError?.(CONFIG_PROFILE_READ_ERROR);
+      }
+    },
+    [onConfigProfileDrop, onConfigProfileError],
+  );
+
   // process a file by its path; used by Tauri drop events (Linux/WebKitGTK)
   const processFilePath = useCallback(
     async (filePath: string) => {
@@ -81,15 +99,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
       if (isMobileConfig) {
         try {
           const rawBytes = await invoke<number[]>('read_file_bytes', { path: filePath });
-          const bytes = new Uint8Array(rawBytes);
-          const result = await importMobileConfig(bytes);
-          if (result.ok) {
-            // step 5 adds a chooser for profiles containing more than one account
-            onConfigProfileDrop?.(result.candidates[0]);
-          } else {
-            log.warn(`Failed to import Apple Configuration Profile: ${result.reason}`);
-            onConfigProfileError?.(CONFIG_PROFILE_IMPORT_ERRORS[result.reason]);
-          }
+          await processMobileConfigBytes(new Uint8Array(rawBytes));
         } catch (err) {
           log.error('Failed to read Apple Configuration Profile:', err);
           onConfigProfileError?.(CONFIG_PROFILE_READ_ERROR);
@@ -110,7 +120,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
         }
       }
     },
-    [onFileDrop, onConfigProfileDrop, onConfigProfileError],
+    [onFileDrop, onConfigProfileError, processMobileConfigBytes],
   );
 
   // register Tauri drop event listeners for Linux (WebKitGTK)
@@ -191,15 +201,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
         try {
           // read file as array buffer first
           const arrayBuffer = await file.arrayBuffer();
-          const bytes = new Uint8Array(arrayBuffer);
-          const result = await importMobileConfig(bytes);
-          if (result.ok) {
-            // step 5 adds a chooser for profiles containing more than one account
-            onConfigProfileDrop?.(result.candidates[0]);
-          } else {
-            log.warn(`Failed to import Apple Configuration Profile: ${result.reason}`);
-            onConfigProfileError?.(CONFIG_PROFILE_IMPORT_ERRORS[result.reason]);
-          }
+          await processMobileConfigBytes(new Uint8Array(arrayBuffer));
         } catch (err) {
           log.error('Failed to read Apple Configuration Profile:', err);
           onConfigProfileError?.(CONFIG_PROFILE_READ_ERROR);
@@ -220,7 +222,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
         }
       }
     },
-    [onFileDrop, onConfigProfileDrop, onConfigProfileError],
+    [onFileDrop, onConfigProfileError, processMobileConfigBytes],
   );
 
   const handleDragOver = useCallback(

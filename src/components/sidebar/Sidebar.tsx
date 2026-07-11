@@ -1,5 +1,3 @@
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeTextFile } from '@tauri-apps/plugin-fs';
 import Inbox from 'lucide-react/icons/inbox';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -8,7 +6,7 @@ import { CalendarModal } from '$components/modals/CalendarModal';
 import { ExportModal } from '$components/modals/ExportModal';
 import { FilterModal } from '$components/modals/FilterModal';
 import { FilterPresetModal } from '$components/modals/FilterPresetModal';
-import { MobileConfigExportModal } from '$components/modals/MobileConfigExportModal';
+import { SidebarMobileConfigExportModal } from '$components/modals/SidebarMobileConfigExportModal';
 import { TagModal } from '$components/modals/TagModal';
 import { SidebarAccountsList } from '$components/sidebar/SidebarAccountsList';
 import { SidebarCollapsedView } from '$components/sidebar/SidebarCollapsedView';
@@ -47,13 +45,11 @@ import {
   resetStaleCursorAfterLayout,
   resetStaleCursorOnLayerClose,
 } from '$hooks/ui/useStaleCursorReset';
-import { MOBILE_CONFIG_MIME_TYPE } from '$lib/mobileconfig';
-import { getMobileConfigFileName } from '$lib/mobileconfig/export';
-import { generateMobileConfig } from '$lib/mobileconfig/generate';
+import { exportMobileConfigFile } from '$lib/mobileconfig/export';
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account, Calendar, KeyboardShortcut } from '$types';
+import type { SidebarSectionKey } from '$types/settings';
 import { formatShortcut, getModifierJoiner } from '$utils/keyboard';
-import { downloadFile } from '$utils/misc';
 
 interface SidebarProps {
   onOpenSettings?: () => void;
@@ -94,6 +90,7 @@ export const Sidebar = ({
   onWidthChange,
   updateAvailable,
   onUpdateClick,
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: Sidebar owns navigation rendering, context menus, and section visibility in one coordinated surface.
 }: SidebarProps) => {
   const { data: accounts = [] } = useAccounts();
   const localAccounts = useMemo(() => accounts.filter((a) => !a.caldav), [accounts]);
@@ -132,13 +129,18 @@ export const Sidebar = ({
   const { isAnyModalOpen } = useModalState();
   const {
     expandedAccountIds,
-    defaultAccountsExpanded,
     toggleAccountExpanded,
     setExpandedAccountIds,
     localSectionCollapsed,
     accountsSectionCollapsed,
     filtersSectionCollapsed,
     tagsSectionCollapsed,
+    showLocalSection,
+    showAccountsSection,
+    showFiltersSection,
+    showTagsSection,
+    showSidebarTaskCounts,
+    sidebarSectionOrder,
     toggleLocalSectionCollapsed,
     toggleAccountsSectionCollapsed,
     toggleFiltersSectionCollapsed,
@@ -149,7 +151,7 @@ export const Sidebar = ({
   // track which account IDs we've already initialized (to avoid re-processing)
   const initializedAccountIdsRef = useRef<Set<string>>(new Set(expandedAccountIds));
 
-  // initialize expanded accounts: new accounts should follow defaultAccountsExpanded setting
+  // initialize expanded accounts: new accounts should reveal their calendars right away.
   useEffect(() => {
     const newAccountIds = accounts
       .map((a) => a.id)
@@ -159,11 +161,9 @@ export const Sidebar = ({
       for (const id of newAccountIds) {
         initializedAccountIdsRef.current.add(id);
       }
-      if (defaultAccountsExpanded) {
-        setExpandedAccountIds([...expandedAccountIds, ...newAccountIds]);
-      }
+      setExpandedAccountIds([...expandedAccountIds, ...newAccountIds]);
     }
-  }, [accounts, defaultAccountsExpanded, expandedAccountIds, setExpandedAccountIds]);
+  }, [accounts, expandedAccountIds, setExpandedAccountIds]);
 
   // convert expandedAccountIds array to a Set for efficient lookups
   const expandedAccounts = useMemo(() => new Set(expandedAccountIds), [expandedAccountIds]);
@@ -256,22 +256,8 @@ export const Sidebar = ({
     if (!account) return;
 
     try {
-      const xml = generateMobileConfig(account, includePassword);
-      const fileName = getMobileConfigFileName(account);
-
-      try {
-        const path = await save({
-          defaultPath: fileName,
-          filters: [{ name: 'Apple Configuration Profile', extensions: ['mobileconfig'] }],
-        });
-        if (path) {
-          await writeTextFile(path, xml);
-          setMobileConfigAccountId(null);
-        }
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes('cancelled') || msg.includes('user closed')) return;
-        downloadFile(xml, fileName, MOBILE_CONFIG_MIME_TYPE);
+      const result = await exportMobileConfigFile(account, { includePassword });
+      if (result !== 'cancelled') {
         setMobileConfigAccountId(null);
       }
     } catch (err) {
@@ -397,13 +383,105 @@ export const Sidebar = ({
 
   const getDeletedTaskCount = () => tasks.filter((t) => t.deletedAt).length;
 
+  const renderSidebarSection = (section: SidebarSectionKey) => {
+    if (section === 'filters') {
+      return showFiltersSection ? (
+        <SidebarFiltersList
+          key={section}
+          filters={filters}
+          tasks={tasks}
+          activeFilterId={activeFilterId}
+          contextMenu={contextMenu}
+          isAnyModalOpen={isAnyModalOpen}
+          showTaskCounts={showSidebarTaskCounts}
+          collapsed={filtersSectionCollapsed}
+          onToggle={toggleFiltersSectionCollapsed}
+          onSelectFilter={(filterId) => setActiveFilterMutation.mutate(filterId)}
+          onAddFilter={() => setShowFilterPresetModal(true)}
+          onContextMenu={handleContextMenu}
+        />
+      ) : null;
+    }
+
+    if (section === 'local') {
+      return showLocalSection ? (
+        <SidebarLocalList
+          key={section}
+          accounts={localAccounts}
+          tasks={tasks}
+          activeCalendarId={activeCalendarId}
+          contextMenu={contextMenu}
+          isAnyModalOpen={isAnyModalOpen}
+          showTaskCounts={showSidebarTaskCounts}
+          collapsed={localSectionCollapsed}
+          onToggle={toggleLocalSectionCollapsed}
+          onContextMenu={handleContextMenu}
+          onSelectCalendar={(accountId, calendarId) => {
+            setActiveAccountMutation.mutate(accountId);
+            setActiveCalendarMutation.mutate(calendarId);
+          }}
+          onAddCalendar={handleAddLocalCalendar}
+        />
+      ) : null;
+    }
+
+    if (section === 'accounts') {
+      return showAccountsSection ? (
+        <SidebarAccountsList
+          key={section}
+          accounts={caldavAccounts}
+          tasks={tasks}
+          expandedAccounts={expandedAccounts}
+          activeCalendarId={activeCalendarId}
+          contextMenu={contextMenu}
+          isAnyModalOpen={isAnyModalOpen}
+          activeAccountMenuTriggerId={activeAccountMenuTriggerId}
+          showTaskCounts={showSidebarTaskCounts}
+          accountsSectionCollapsed={accountsSectionCollapsed}
+          onToggleAccountsSection={toggleAccountsSectionCollapsed}
+          onContextMenu={handleContextMenu}
+          onToggleAccount={toggleAccount}
+          onSelectCalendar={(accountId, calendarId) => {
+            setActiveAccountMutation.mutate(accountId);
+            setActiveCalendarMutation.mutate(calendarId);
+          }}
+          onCreateCalendar={(accountId) => setShowCreateCalendarModal(accountId)}
+          onAddAccount={() => {
+            setEditingAccount(null);
+            setShowAccountModal(true);
+          }}
+        />
+      ) : null;
+    }
+
+    return showTagsSection ? (
+      <SidebarTagsList
+        key={section}
+        tags={tags}
+        tasks={tasks}
+        activeTagId={activeTagId}
+        contextMenu={contextMenu}
+        isAnyModalOpen={isAnyModalOpen}
+        showTaskCounts={showSidebarTaskCounts}
+        tagsSectionCollapsed={tagsSectionCollapsed}
+        onToggleTagsSection={toggleTagsSectionCollapsed}
+        onSelectTag={(tagId) => setActiveTagMutation.mutate(tagId)}
+        onContextMenu={handleContextMenu}
+        onAddTag={() => {
+          setEditingTagId(null);
+          setShowTagModal(true);
+        }}
+      />
+    ) : null;
+  };
+
   return (
     <>
       {/* biome-ignore lint/a11y/noStaticElementInteractions: Container onClick for closing context menu on outside click */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: Container onClick for closing context menu on outside click */}
       <div
-        className={`relative flex h-full flex-col overflow-hidden border-surface-200 border-r bg-surface-100 dark:border-surface-700 dark:bg-surface-900 ${!isResizing ? 'motion-safe:transition-[width] motion-safe:duration-200 motion-safe:ease-in-out' : ''}`}
-        style={{ width: isCollapsed ? 48 : width }}
+        className={`app-sidebar relative flex h-full flex-col overflow-hidden bg-surface-100 dark:bg-surface-900 ${!isResizing ? 'motion-safe:transition-[width] motion-safe:duration-200 motion-safe:ease-in-out' : ''}`}
+        style={{ width: isCollapsed ? 52 : width }}
         onClick={handleCloseContextMenu}
       >
         {!isCollapsed && !isTransitioning && (
@@ -416,8 +494,8 @@ export const Sidebar = ({
         )}
 
         <SidebarHeader
-          isCollapsed={isCollapsed}
           showExpandedContent={showExpandedContent}
+          showCollapsedContent={showCollapsedContent}
           onToggleCollapse={onToggleCollapse}
         />
 
@@ -440,7 +518,9 @@ export const Sidebar = ({
               >
                 <Inbox className="h-4 w-4 shrink-0" />
                 <span className="flex-1 text-left">All Tasks</span>
-                <span className="text-xs">{getTotalActiveTaskCount()}</span>
+                {showSidebarTaskCounts && (
+                  <span className="text-xs">{getTotalActiveTaskCount()}</span>
+                )}
               </button>
 
               <button
@@ -456,76 +536,10 @@ export const Sidebar = ({
               >
                 <Trash2 className="h-4 w-4 shrink-0" />
                 <span className="flex-1 text-left">Recently Deleted</span>
-                <span className="text-xs">{getDeletedTaskCount()}</span>
+                {showSidebarTaskCounts && <span className="text-xs">{getDeletedTaskCount()}</span>}
               </button>
 
-              <SidebarFiltersList
-                filters={filters}
-                tasks={tasks}
-                activeFilterId={activeFilterId}
-                contextMenu={contextMenu}
-                isAnyModalOpen={isAnyModalOpen}
-                collapsed={filtersSectionCollapsed}
-                onToggle={toggleFiltersSectionCollapsed}
-                onSelectFilter={(filterId) => setActiveFilterMutation.mutate(filterId)}
-                onAddFilter={() => setShowFilterPresetModal(true)}
-                onContextMenu={handleContextMenu}
-              />
-
-              <SidebarLocalList
-                accounts={localAccounts}
-                tasks={tasks}
-                activeCalendarId={activeCalendarId}
-                contextMenu={contextMenu}
-                isAnyModalOpen={isAnyModalOpen}
-                collapsed={localSectionCollapsed}
-                onToggle={toggleLocalSectionCollapsed}
-                onContextMenu={handleContextMenu}
-                onSelectCalendar={(accountId, calendarId) => {
-                  setActiveAccountMutation.mutate(accountId);
-                  setActiveCalendarMutation.mutate(calendarId);
-                }}
-                onAddCalendar={handleAddLocalCalendar}
-              />
-
-              <SidebarAccountsList
-                accounts={caldavAccounts}
-                tasks={tasks}
-                expandedAccounts={expandedAccounts}
-                activeCalendarId={activeCalendarId}
-                contextMenu={contextMenu}
-                isAnyModalOpen={isAnyModalOpen}
-                activeAccountMenuTriggerId={activeAccountMenuTriggerId}
-                accountsSectionCollapsed={accountsSectionCollapsed}
-                onToggleAccountsSection={toggleAccountsSectionCollapsed}
-                onContextMenu={handleContextMenu}
-                onToggleAccount={toggleAccount}
-                onSelectCalendar={(accountId, calendarId) => {
-                  setActiveAccountMutation.mutate(accountId);
-                  setActiveCalendarMutation.mutate(calendarId);
-                }}
-                onCreateCalendar={(accountId) => setShowCreateCalendarModal(accountId)}
-                onAddAccount={() => {
-                  setEditingAccount(null);
-                  setShowAccountModal(true);
-                }}
-              />
-
-              <SidebarTagsList
-                tags={tags}
-                tasks={tasks}
-                activeTagId={activeTagId}
-                contextMenu={contextMenu}
-                isAnyModalOpen={isAnyModalOpen}
-                tagsSectionCollapsed={tagsSectionCollapsed}
-                onToggleTagsSection={toggleTagsSectionCollapsed}
-                onSelectTag={(tagId) => setActiveTagMutation.mutate(tagId)}
-                onContextMenu={handleContextMenu}
-                onAddTag={() => {
-                  setEditingTagId(null);
-                  setShowTagModal(true);
-                }}
-              />
+              {sidebarSectionOrder.map(renderSidebarSection)}
             </div>
 
             <SidebarFooter
@@ -545,6 +559,7 @@ export const Sidebar = ({
             accounts={accounts}
             tags={tags}
             filters={filters}
+            tasks={tasks}
             activeCalendarId={activeCalendarId}
             activeTagId={activeTagId}
             activeFilterId={activeFilterId}
@@ -555,6 +570,11 @@ export const Sidebar = ({
             accountsSectionCollapsed={accountsSectionCollapsed}
             tagsSectionCollapsed={tagsSectionCollapsed}
             filtersSectionCollapsed={filtersSectionCollapsed}
+            showLocalSection={showLocalSection}
+            showAccountsSection={showAccountsSection}
+            showFiltersSection={showFiltersSection}
+            showTagsSection={showTagsSection}
+            sidebarSectionOrder={sidebarSectionOrder}
             updateAvailable={updateAvailable}
             importShortcut={importShortcut}
             settingsShortcut={settingsShortcut}
@@ -735,17 +755,12 @@ export const Sidebar = ({
         />
       )}
 
-      {mobileConfigAccountId &&
-        (() => {
-          const account = accounts.find((a) => a.id === mobileConfigAccountId);
-          return account ? (
-            <MobileConfigExportModal
-              account={account}
-              onConfirm={handleConfirmMobileConfigExport}
-              onClose={() => setMobileConfigAccountId(null)}
-            />
-          ) : null;
-        })()}
+      <SidebarMobileConfigExportModal
+        accountId={mobileConfigAccountId}
+        accounts={accounts}
+        onConfirm={handleConfirmMobileConfigExport}
+        onClose={() => setMobileConfigAccountId(null)}
+      />
     </>
   );
 };

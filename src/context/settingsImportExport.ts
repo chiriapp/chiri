@@ -3,6 +3,7 @@ import { loggers } from '$lib/logger';
 import type { KeyboardShortcut } from '$types';
 import type { SettingsState } from '$types/settings';
 import { isReservedShortcut } from '$utils/keyboard';
+import { normalizeProxyPort } from '$utils/misc';
 
 const log = loggers.settings;
 
@@ -59,12 +60,15 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'syncOnStartup',
       'syncOnReconnect',
       'confirmBeforeDeletion',
+      'confirmBeforeMoveToRecentlyDeleted',
       'confirmBeforePermanentDelete',
       'confirmBeforeDeleteCalendar',
       'confirmBeforeDeleteAccount',
       'confirmBeforeDeleteFilter',
       'confirmBeforeDeleteTag',
       'deleteSubtasksWithParent',
+      'autoEmptyRecentlyDeleted',
+      'recentlyDeletedRetentionDays',
       'startOfWeek',
       'timeFormat',
       'dateFormat',
@@ -87,15 +91,23 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'taskEditorWidth',
       'onboardingCompleted',
       'expandedAccountIds',
-      'defaultAccountsExpanded',
       'localSectionCollapsed',
       'accountsSectionCollapsed',
       'filtersSectionCollapsed',
       'tagsSectionCollapsed',
+      'showLocalSection',
+      'showAccountsSection',
+      'showFiltersSection',
+      'showTagsSection',
+      'showSidebarTaskCounts',
+      'defaultLaunchView',
       'enableSystemTray',
       'systemTrayAppliedValue',
       'hideDockIconWhenWindowClosed',
+      'showWindowOnNormalLaunch',
       'showWindowOnLoginLaunch',
+      'restoreWindowState',
+      'windowDecorationStyle',
       'checkForUpdatesAutomatically',
       'confirmBeforeQuit',
       'confirmBeforeQuitAppliedValue',
@@ -112,9 +124,15 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'connectivityCheckEnabled',
       'connectivityCheckUrl',
       'connectivityCheckInterval',
+      'connectivityRequestTimeout',
+      'networkProxyMode',
+      'networkProxyHost',
+      'networkProxyPort',
       'enablePush',
       'pushProvider',
       'ntfyServerUrl',
+      'mozillaAutopushWebsocketUrl',
+      'mozillaAutopushEndpointUrl',
       'hasSeenRecentlyDeletedToast',
     ];
 
@@ -137,10 +155,16 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       : defaultState.taskBadgeVisibility;
     newState.taskBadgeOrder = mergeOrder(data.taskBadgeOrder, defaultState.taskBadgeOrder);
 
+    newState.sidebarSectionOrder = mergeOrder(
+      data.sidebarSectionOrder,
+      defaultState.sidebarSectionOrder,
+    );
+
     newState.quickTimePresets =
       data.quickTimePresets && !Array.isArray(data.quickTimePresets)
         ? { ...defaultState.quickTimePresets, ...data.quickTimePresets }
         : defaultState.quickTimePresets;
+    newState.networkProxyPort = normalizeProxyPort(newState.networkProxyPort);
 
     return newState as SettingsState;
   } catch (e) {

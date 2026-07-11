@@ -5,6 +5,7 @@ import { ComposedInput } from '$components/ComposedInput';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { AdvancedSection } from '$components/modals/AccountModal/AdvancedSection';
 import { ConnectionSuccessBanner } from '$components/modals/AccountModal/ConnectionSuccessBanner';
+import { Tooltip } from '$components/Tooltip';
 import { getPredefinedServerUrl } from '$constants/settings';
 import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import type { CalDAVSetupError, CalDAVSetupNotice } from '$lib/caldav/setup';
@@ -170,9 +171,24 @@ export const CredentialsForm = ({
         <div>
           <label
             htmlFor="server-url"
-            className="mb-1 block font-medium text-sm text-surface-700 dark:text-surface-300"
+            className="mb-1 flex items-center gap-1.5 font-medium text-sm text-surface-700 dark:text-surface-300"
           >
-            Server URL
+            <span>Server URL</span>
+            {serverType === 'generic' && (
+              <Tooltip
+                content="The app will attempt to auto-discover for base URLs."
+                position="top"
+                allowInModal
+              >
+                <button
+                  type="button"
+                  aria-label="Server URL help"
+                  className="inline-flex rounded-sm text-surface-400 outline-none transition-colors hover:text-surface-600 focus-visible:ring-2 focus-visible:ring-primary-500 dark:hover:text-surface-300"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </Tooltip>
+            )}
           </label>
           <ComposedInput
             id="server-url"
@@ -183,12 +199,6 @@ export const CredentialsForm = ({
             required
             className="w-full rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-800 transition-colors focus:border-primary-500 focus:bg-white focus:outline-hidden dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
           />
-          {serverType === 'generic' && (
-            <p className="mt-2 flex flex-row text-surface-500 text-xs dark:text-surface-400">
-              <Info className="mr-1 inline h-3.5 w-3.5 text-surface-400" />
-              The app will attempt to auto-discover for base URLs.
-            </p>
-          )}
         </div>
       )}
 
