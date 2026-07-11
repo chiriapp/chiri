@@ -45,8 +45,9 @@ pub(super) fn setup_app(
 
         // AppImage launched from the terminal has no installed icon in the
         // user's icon theme, so the window/dock/alt+tab icon falls back to the
-        // default Wayland icon. install the bundled icon as a best-effort fix.
-        crate::linux::appimage::install_icon_for_appimage();
+        // default Wayland icon. install the bundled icon and a hidden desktop
+        // file as a best-effort fix before the window is shown.
+        crate::linux::appimage::install_desktop_file_for_appimage_on_startup(app.handle());
     }
 
     // disable App Nap after logging has been initialized so App Nap

@@ -2,8 +2,9 @@
 //
 // when running as an AppImage, the binary is not installed through the normal
 // package manager, so the desktop file and icon theme entry are missing. this
-// module installs the bundled icon silently and offers an opt-in desktop file
-// install for users who want launcher integration.
+// module installs a hidden desktop file and icon on startup so the window icon
+// works on Wayland, and offers an opt-in toggle for users who want a launcher
+// entry in the app menu
 
 #[cfg(target_os = "linux")]
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,12 @@ use std::path::{Path, PathBuf};
 use tauri::Manager;
 
 /// persistent user choice for AppImage desktop integration
+///
+/// `prompted` tracks whether the app-menu integration prompt has been shown
+/// `integrated` means the desktop file is currently visible in the app menu
+/// `skipped` means the user explicitly declined the app-menu prompt
+/// a hidden desktop file (icon-only) is always installed on startup unless
+/// an external integration tool has opted out
 #[cfg(target_os = "linux")]
 #[derive(Debug, Default, Serialize, Deserialize)]
 struct IntegrationState {
@@ -266,18 +273,12 @@ pub fn is_appimage_desktop_integration_needed(app_handle: tauri::AppHandle) -> b
     !state.prompted && !state.integrated && !state.skipped
 }
 
-/// Tauri command: returns true when the AppImage desktop file is installed
+/// Tauri command: returns true when the AppImage desktop file is visible in
+/// the app menu (i.e. the user has enabled app-menu integration)
 #[cfg(target_os = "linux")]
 #[tauri::command]
 pub fn is_appimage_desktop_file_installed() -> bool {
-    let Some(home_dir) = dirs::home_dir() else {
-        return false;
-    };
-
-    let desktop_file = home_dir
-        .join(".local/share/applications")
-        .join("garden.chiri.Chiri.desktop");
-    desktop_file.exists()
+    is_desktop_file_visible()
 }
 
 /// Tauri command: install the AppImage desktop file and refresh caches
@@ -309,7 +310,7 @@ pub fn install_appimage_desktop_integration(app_handle: tauri::AppHandle) -> Res
         }
     };
 
-    install_desktop_file(&app_dir, &appimage_path)
+    install_desktop_file(&app_dir, &appimage_path, true)
         .map_err(|e| format!("failed to install desktop file: {e}"))?;
 
     install_icon_for_appimage();
@@ -337,24 +338,23 @@ pub fn skip_appimage_desktop_integration(app_handle: tauri::AppHandle) {
     }
 }
 
-/// Tauri command: remove the installed AppImage desktop file
+/// Tauri command: hide the AppImage from the app menu while keeping the
+/// hidden desktop file so the window icon keeps resolving on Wayland.
 #[cfg(target_os = "linux")]
 #[tauri::command]
 pub fn remove_appimage_desktop_integration(app_handle: tauri::AppHandle) -> Result<(), String> {
-    let Some(home_dir) = dirs::home_dir() else {
-        return Err("home directory not found".to_string());
+    let Some(app_dir) = app_dir() else {
+        return Err("APPDIR not set".to_string());
     };
 
-    let desktop_file = home_dir
-        .join(".local/share/applications")
-        .join("garden.chiri.Chiri.desktop");
+    let appimage_path = std::env::var_os("APPIMAGE")
+        .map(PathBuf::from)
+        .ok_or_else(|| "APPIMAGE not set".to_string())?;
 
-    if desktop_file.exists() {
-        std::fs::remove_file(&desktop_file)
-            .map_err(|e| format!("failed to remove desktop file: {e}"))?;
-    }
+    install_desktop_file(&app_dir, &appimage_path, false)
+        .map_err(|e| format!("failed to hide desktop file: {e}"))?;
 
-    refresh_applications_cache();
+    install_icon_for_appimage();
 
     if let Some(data_dir) = app_data_dir(&app_handle) {
         let mut state = load_state(&data_dir);
@@ -404,7 +404,11 @@ fn move_appimage_to_applications(appimage_path: &Path) -> Result<PathBuf, std::i
 }
 
 #[cfg(target_os = "linux")]
-fn install_desktop_file(app_dir: &Path, appimage_path: &Path) -> Result<(), std::io::Error> {
+fn install_desktop_file(
+    app_dir: &Path,
+    appimage_path: &Path,
+    visible: bool,
+) -> Result<(), std::io::Error> {
     let source = app_dir.join("garden.chiri.Chiri.desktop");
     if !source.exists() {
         return Err(std::io::Error::new(
@@ -430,21 +434,84 @@ fn install_desktop_file(app_dir: &Path, appimage_path: &Path) -> Result<(), std:
     })?;
 
     let mut patched = String::new();
+    let mut saw_no_display = false;
     for line in content.lines() {
         if line.starts_with("Exec=") {
             patched.push_str(&format!("Exec={appimage_str} %u\n"));
+        } else if line.starts_with("NoDisplay=") {
+            saw_no_display = true;
+            if !visible {
+                patched.push_str("NoDisplay=true\n");
+            }
+            // when visible, drop the NoDisplay line entirely
         } else {
             patched.push_str(line);
             patched.push('\n');
         }
     }
 
+    if !visible && !saw_no_display {
+        patched.push_str("NoDisplay=true\n");
+    }
+
     std::fs::write(&target, patched)?;
-    log::info!("[AppImage] Installed desktop file: {}", target.display());
+    log::info!(
+        "[AppImage] Installed {} desktop file: {}",
+        if visible { "visible" } else { "hidden" },
+        target.display()
+    );
 
     refresh_applications_cache();
 
     Ok(())
+}
+
+/// returns true when the installed desktop file is visible in the app menu
+#[cfg(target_os = "linux")]
+fn is_desktop_file_visible() -> bool {
+    let Some(home_dir) = dirs::home_dir() else {
+        return false;
+    };
+    let desktop_file = home_dir.join(".local/share/applications/garden.chiri.Chiri.desktop");
+    if !desktop_file.exists() {
+        return false;
+    }
+    let Ok(content) = std::fs::read_to_string(&desktop_file) else {
+        return false;
+    };
+    !content.lines().any(|line| line.trim() == "NoDisplay=true")
+}
+
+/// installs a hidden desktop file on startup so the window icon resolves on
+/// Wayland, even before the user opts into app-menu integration. if the user
+/// has already integrated, the file is written as visible instead.
+#[cfg(target_os = "linux")]
+pub fn install_desktop_file_for_appimage_on_startup(app_handle: &tauri::AppHandle) {
+    if !is_running_as_appimage() {
+        return;
+    }
+    if should_skip_install() {
+        return;
+    }
+    let Some(data_dir) = app_data_dir(app_handle) else {
+        return;
+    };
+    let state = load_state(&data_dir);
+
+    let Some(app_dir) = app_dir() else {
+        log::warn!("[AppImage] APPDIR not set, cannot install desktop file");
+        return;
+    };
+    let Some(appimage_path) = std::env::var_os("APPIMAGE").map(PathBuf::from) else {
+        return;
+    };
+
+    let visible = state.integrated;
+    if let Err(e) = install_desktop_file(&app_dir, &appimage_path, visible) {
+        log::warn!("[AppImage] Failed to install startup desktop file: {e}");
+    }
+
+    install_icon_for_appimage();
 }
 
 #[cfg(target_os = "linux")]

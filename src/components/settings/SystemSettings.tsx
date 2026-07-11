@@ -376,7 +376,7 @@ export const SystemSettings = () => {
             <div className="min-w-0">
               <p className="text-sm text-surface-700 dark:text-surface-300">Desktop integration</p>
               <p className="text-surface-500 text-xs dark:text-surface-400">
-                Show Chiri in the app menu and fix its window icon
+                Show Chiri in the app menu
               </p>
             </div>
             <input
