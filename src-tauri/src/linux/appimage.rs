@@ -265,6 +265,10 @@ pub fn is_appimage_desktop_integration_needed(app_handle: tauri::AppHandle) -> b
         return false;
     }
 
+    if detect_external_integration(&app_handle) {
+        return false;
+    }
+
     let Some(data_dir) = app_data_dir(&app_handle) else {
         return false;
     };
@@ -454,6 +458,10 @@ fn install_desktop_file(
         patched.push_str("NoDisplay=true\n");
     }
 
+    // Mark desktop files written by Chiri itself so we can distinguish them
+    // from files written by external integration tools (e.g., AppManager).
+    patched.push_str("X-Chiri-Internal=true\n");
+
     std::fs::write(&target, patched)?;
     log::info!(
         "[AppImage] Installed {} desktop file: {}",
@@ -482,6 +490,73 @@ fn is_desktop_file_visible() -> bool {
     !content.lines().any(|line| line.trim() == "NoDisplay=true")
 }
 
+/// checks whether an external integration tool (e.g., AppManager) has already
+/// installed a desktop file for this AppImage. if so, the integration state is
+/// updated to reflect the existing file and we avoid overwriting it.
+#[cfg(target_os = "linux")]
+fn detect_external_integration(app_handle: &tauri::AppHandle) -> bool {
+    if !is_running_as_appimage() {
+        return false;
+    }
+
+    let Some(appimage_path) = std::env::var_os("APPIMAGE").map(PathBuf::from) else {
+        return false;
+    };
+    let Some(home_dir) = dirs::home_dir() else {
+        return false;
+    };
+
+    let desktop_file = home_dir.join(".local/share/applications/garden.chiri.Chiri.desktop");
+    if !desktop_file.exists() {
+        return false;
+    }
+    let Ok(content) = std::fs::read_to_string(&desktop_file) else {
+        return false;
+    };
+
+    // If Chiri wrote this file, it is not an external integration.
+    if content
+        .lines()
+        .any(|line| line.trim() == "X-Chiri-Internal=true")
+    {
+        return false;
+    }
+
+    let exec_path = content
+        .lines()
+        .find(|line| line.starts_with("Exec="))
+        .and_then(|line| line.strip_prefix("Exec="))
+        .and_then(|exec| exec.split_whitespace().next())
+        .map(|exec| exec.trim_matches('"'))
+        .map(PathBuf::from);
+
+    let Some(exec_path) = exec_path else {
+        return false;
+    };
+
+    if exec_path != appimage_path {
+        return false;
+    }
+
+    let Some(data_dir) = app_data_dir(app_handle) else {
+        return true;
+    };
+
+    let mut state = load_state(&data_dir);
+    let is_visible = !content.lines().any(|line| line.trim() == "NoDisplay=true");
+    state.integrated = is_visible;
+    state.prompted = true;
+    state.skipped = false;
+    save_state(&data_dir, &state);
+
+    log::info!(
+        "[AppImage] Detected external integration at {}",
+        desktop_file.display()
+    );
+
+    true
+}
+
 /// installs a hidden desktop file on startup so the window icon resolves on
 /// Wayland, even before the user opts into app-menu integration. if the user
 /// has already integrated, the file is written as visible instead.
@@ -491,6 +566,9 @@ pub fn install_desktop_file_for_appimage_on_startup(app_handle: &tauri::AppHandl
         return;
     }
     if should_skip_install() {
+        return;
+    }
+    if detect_external_integration(app_handle) {
         return;
     }
     let Some(data_dir) = app_data_dir(app_handle) else {
