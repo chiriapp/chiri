@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { loggers } from '$lib/logger';
-import { getInstallType } from '$utils/platform';
+import { getInstallType, shouldDisableUpdates } from '$utils/platform';
 
 const log = loggers.platform;
 
@@ -9,7 +9,7 @@ const log = loggers.platform;
  * where updates are handled externally
  */
 export const useManagedInstallation = () => {
-  const query = useQuery({
+  const installTypeQuery = useQuery({
     queryKey: ['platform', 'installType'],
     queryFn: async () => {
       try {
@@ -24,13 +24,27 @@ export const useManagedInstallation = () => {
     retry: false,
   });
 
-  const installType = query.data ?? null;
+  const managedQuery = useQuery({
+    queryKey: ['platform', 'shouldDisableUpdates'],
+    queryFn: async () => {
+      try {
+        return await shouldDisableUpdates();
+      } catch (error) {
+        log.error('[Platform] Failed to check managed installation status:', error);
+        return false;
+      }
+    },
+    staleTime: Number.POSITIVE_INFINITY,
+    gcTime: Number.POSITIVE_INFINITY,
+    retry: false,
+  });
 
-  const isManagedInstall = installType !== null && installType !== 'standard';
+  const installType = installTypeQuery.data ?? null;
+  const isManagedInstall = managedQuery.data ?? false;
 
   return {
     isManagedInstall,
     installType,
-    isLoading: query.isPending,
+    isLoading: installTypeQuery.isPending || managedQuery.isPending,
   };
 };
