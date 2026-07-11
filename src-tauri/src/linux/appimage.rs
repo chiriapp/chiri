@@ -150,7 +150,7 @@ fn refresh_icon_cache(theme_dir: &Path) {
     let commands = ["gtk4-update-icon-cache", "gtk-update-icon-cache"];
     for cmd in commands {
         match std::process::Command::new(cmd)
-            .args(["-f", "-t", theme_dir.as_os_str()])
+            .args([OsStr::new("-f"), OsStr::new("-t"), theme_dir.as_os_str()])
             .status()
         {
             Ok(status) if status.success() => {
