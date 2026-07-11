@@ -389,7 +389,7 @@ fn move_appimage_to_applications(appimage_path: &Path) -> Result<PathBuf, std::i
     std::fs::create_dir_all(&applications_dir)?;
     let target = applications_dir.join(filename);
 
-    if appimage_path == &target {
+    if appimage_path == target {
         return Ok(target);
     }
 
