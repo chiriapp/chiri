@@ -8,6 +8,7 @@ import {
   checkNotificationPermission,
   requestNotificationPermission,
   sendNotification,
+  setNotificationActionConfig,
 } from '$lib/notifications';
 import { getTaskSnoozeStatus, snoozeTaskFor } from '$lib/notifications/snoozes';
 import type { Task } from '$types';
@@ -145,12 +146,17 @@ const handleNotificationAction = (
   if (action === 'complete') {
     toggleTaskComplete(taskId);
     log.info('Completing task:', taskId);
-  } else if (action === 'snooze-15min' || action === 'snooze-1hr') {
-    const durationMinutes = action === 'snooze-1hr' ? 60 : 15;
-    snoozeTask(taskId, durationMinutes);
   } else if (action === 'view') {
     log.info('Viewing task:', taskId);
     openTaskActions?.(taskId);
+  } else {
+    const match = action.match(/^snooze-(\d+)min$/);
+    if (match) {
+      const durationMinutes = parseInt(match[1], 10);
+      snoozeTask(taskId, durationMinutes);
+    } else {
+      log.warn('Ignoring unknown notification action:', action);
+    }
   }
 };
 
@@ -194,6 +200,7 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
   const { data: tasks = [] } = useTasks();
   const {
     notifications,
+    notificationActions,
     notifyReminders,
     notifyOverdue,
     quietHoursEnabled,
@@ -212,6 +219,13 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     clearSnoozeKeys(taskId, notifiedRemindersRef.current, notifiedTasksRef.current);
     log.info(`Snoozed notification for task: ${taskId} for ${durationMinutes} minutes`);
   }, []);
+
+  // sync notification action config to the backend whenever it changes
+  useEffect(() => {
+    setNotificationActionConfig(notificationActions).catch((error) => {
+      log.error('Failed to sync notification action config:', error);
+    });
+  }, [notificationActions]);
 
   useEffect(() => {
     if (!notifications) {

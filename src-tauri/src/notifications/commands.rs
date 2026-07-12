@@ -5,7 +5,7 @@ use user_notify::NotificationBuilder;
 
 use super::{
     state::NotificationManagerState,
-    types::{SendNotificationRequest, SimpleNotificationRequest},
+    types::{NotificationActionConfig, SendNotificationRequest, SimpleNotificationRequest},
 };
 
 #[cfg(target_os = "macos")]
@@ -14,23 +14,44 @@ use super::types::{
     USER_INFO_TASK_ID,
 };
 
-/// send a notification with action buttons (Complete / Snooze / View Task)
+/// update the configurable notification action buttons and, on macOS, re-register
+/// the notification categories so the new actions take effect for future notifications
+#[tauri::command]
+pub async fn set_notification_action_config(
+    app: tauri::AppHandle,
+    config: NotificationActionConfig,
+    state: State<'_, NotificationManagerState>,
+) -> Result<(), String> {
+    state.set_config(config.clone());
+
+    #[cfg(target_os = "macos")]
+    state.update_categories(app, &config);
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+    }
+
+    Ok(())
+}
+
+/// send a notification with action buttons (Complete / Snooze / View)
 #[tauri::command]
 pub async fn send_notification_with_actions(
     app: tauri::AppHandle,
     request: SendNotificationRequest,
-    state: State<'_, NotificationManagerState>,
+    _state: State<'_, NotificationManagerState>,
 ) -> Result<(), String> {
     #[cfg(target_os = "linux")]
     {
-        let _ = state;
-        super::linux::send_notification(&app, &request)
+        let config = _state.config();
+        super::linux::send_notification(&app, &request, &config)
     }
 
     #[cfg(target_os = "windows")]
     {
-        let _ = state;
-        return super::windows::send_notification(&app, &request);
+        let config = _state.config();
+        return super::windows::send_notification(&app, &request, &config);
     }
 
     #[cfg(target_os = "macos")]
@@ -55,7 +76,7 @@ pub async fn send_notification_with_actions(
             .set_category_id(category_id)
             .set_user_info(user_info);
 
-        state
+        _state
             .manager
             .send_notification(notification)
             .await
@@ -66,7 +87,7 @@ pub async fn send_notification_with_actions(
 
     #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
     {
-        let _ = (app, request, state);
+        let _ = (app, request, _state);
         Err("Notifications are not supported on this platform".to_string())
     }
 }

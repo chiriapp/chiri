@@ -2,7 +2,10 @@ use tauri::AppHandle;
 
 use super::{
     actions,
-    types::{NotificationType, SendNotificationRequest, SimpleNotificationRequest},
+    types::{
+        NotificationActionConfig, NotificationType, SendNotificationRequest,
+        SimpleNotificationRequest,
+    },
 };
 
 /// search the system hicolor icon theme for the first matching candidate name
@@ -59,23 +62,35 @@ fn apply_notification_identity(app: &AppHandle, notif: &mut notify_rust::Notific
     }
 }
 
-pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> Result<(), String> {
+pub fn send_notification(
+    app: &AppHandle,
+    request: &SendNotificationRequest,
+    config: &NotificationActionConfig,
+) -> Result<(), String> {
     let mut notif = notify_rust::Notification::new();
     notif.summary(&request.title).body(&request.body);
     apply_notification_identity(app, &mut notif);
 
     match request.notification_type {
-        NotificationType::Overdue => {
-            notif
-                .action(actions::COMPLETE, "Complete")
-                .action(actions::SNOOZE_1HR, "Snooze 1hr")
-                .action(actions::VIEW, "View Task");
-        }
-        NotificationType::Reminder => {
-            notif
-                .action(actions::COMPLETE, "Complete")
-                .action(actions::SNOOZE_15MIN, "Snooze 15min")
-                .action(actions::VIEW, "View Task");
+        NotificationType::Overdue | NotificationType::Reminder => {
+            for key in &config.action_order {
+                match key.as_str() {
+                    "complete" if config.show_complete => {
+                        notif.action(actions::COMPLETE, "Complete");
+                    }
+                    "snooze" if config.show_snooze => {
+                        let snooze_id = actions::snooze_action_id(config.snooze_duration_minutes);
+                        notif.action(
+                            &snooze_id,
+                            &format!("Snooze {}min", config.snooze_duration_minutes),
+                        );
+                    }
+                    "view" if config.show_view => {
+                        notif.action(actions::VIEW, "View");
+                    }
+                    _ => {}
+                }
+            }
         }
     }
 
@@ -101,7 +116,7 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
                 actions::show_main_window(&app);
             }
 
-            actions::emit_action(&app, action_name, task_id, notification_type);
+            actions::emit_action(&app, &action_name, task_id, notification_type);
         });
     });
 

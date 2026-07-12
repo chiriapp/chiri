@@ -1,8 +1,27 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import AlarmClock from 'lucide-react/icons/alarm-clock';
+import CheckSquare from 'lucide-react/icons/check-square';
+import Edit from 'lucide-react/icons/edit';
 import { useState } from 'react';
 import { MacNotificationCard } from '$components/MacNotificationCard';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
+import {
+  type NotificationActionConfig,
+  NotificationSettingsSortableAction,
+} from '$components/settings/NotificationSettingsSortableAction';
 import { useNotificationContext } from '$context/notificationContext';
 import { useSettingsStore } from '$context/settingsContext';
+import type { NotificationActionKey } from '$types/settings';
 import { isMacPlatform } from '$utils/platform';
 
 const formatHour = (hour: number, use24h: boolean) => {
@@ -12,6 +31,32 @@ const formatHour = (hour: number, use24h: boolean) => {
   if (hour === 12) return '12:00 PM';
   return `${hour - 12}:00 PM`;
 };
+
+const ACTIONS: NotificationActionConfig[] = [
+  {
+    key: 'complete',
+    label: 'Complete',
+    description: 'Mark the task as done from the notification',
+    icon: <CheckSquare className="h-4 w-4" />,
+  },
+  {
+    key: 'snooze',
+    label: 'Snooze',
+    description: 'Delay task reminders and remind again later',
+    icon: <AlarmClock className="h-4 w-4" />,
+  },
+  {
+    key: 'view',
+    label: 'View',
+    description: 'Open the task in the app',
+    icon: <Edit className="h-4 w-4" />,
+  },
+];
+
+const ACTION_MAP = Object.fromEntries(ACTIONS.map((action) => [action.key, action])) as Record<
+  NotificationActionKey,
+  NotificationActionConfig
+>;
 
 export const NotificationSettings = () => {
   const {
@@ -30,10 +75,13 @@ export const NotificationSettings = () => {
     quietHoursEnd,
     setQuietHoursEnd,
     timeFormat,
+    notificationActions,
+    setNotificationActions,
   } = useSettingsStore();
 
   const [quietHoursStartModalOpen, setQuietHoursStartModalOpen] = useState(false);
   const [quietHoursEndModalOpen, setQuietHoursEndModalOpen] = useState(false);
+  const [activeDragKey, setActiveDragKey] = useState<NotificationActionKey | null>(null);
 
   const use24h = timeFormat === '24';
   const { permissionStatus, isCheckingPermission, requestPermission } = useNotificationContext();
@@ -45,6 +93,35 @@ export const NotificationSettings = () => {
     permissionStatus !== null &&
     permissionStatus !== 'granted' &&
     permissionStatus !== 'provisional';
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const orderedActions = notificationActions.order
+    .map((key) => ACTION_MAP[key])
+    .filter(Boolean) as NotificationActionConfig[];
+
+  const toggleAction = (key: NotificationActionKey, value: boolean) => {
+    setNotificationActions({ ...notificationActions, [key]: value });
+  };
+
+  const setSnoozeDuration = (minutes: number) => {
+    setNotificationActions({ ...notificationActions, snoozeDurationMinutes: minutes });
+  };
+
+  const handleActionDragEnd = ({ active, over }: DragEndEvent) => {
+    setActiveDragKey(null);
+    if (!over || active.id === over.id) return;
+    const oldIndex = notificationActions.order.indexOf(active.id as NotificationActionKey);
+    const newIndex = notificationActions.order.indexOf(over.id as NotificationActionKey);
+    if (oldIndex === -1 || newIndex === -1) return;
+    setNotificationActions({
+      ...notificationActions,
+      order: arrayMove(notificationActions.order, oldIndex, newIndex),
+    });
+  };
+
+  const handleActionDragStart = ({ active }: DragStartEvent) => {
+    setActiveDragKey(active.id as NotificationActionKey);
+  };
 
   return (
     <div className="space-y-4">
@@ -189,6 +266,47 @@ export const NotificationSettings = () => {
             </div>
           </div>
         )}
+      </div>
+
+      <h4 className="font-semibold text-sm text-surface-700 dark:text-surface-300">
+        Notification actions
+      </h4>
+      <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleActionDragStart}
+          onDragEnd={handleActionDragEnd}
+        >
+          <SortableContext items={notificationActions.order} strategy={verticalListSortingStrategy}>
+            {orderedActions.map((action, index) => (
+              <NotificationSettingsSortableAction
+                key={action.key}
+                action={action}
+                showBorder={index > 0}
+                checked={notificationActions[action.key]}
+                disabled={macPermissionPending}
+                snoozeDurationMinutes={notificationActions.snoozeDurationMinutes}
+                onToggle={toggleAction}
+                onSnoozeDurationChange={setSnoozeDuration}
+              />
+            ))}
+          </SortableContext>
+          <DragOverlay>
+            {activeDragKey ? (
+              <NotificationSettingsSortableAction
+                action={ACTION_MAP[activeDragKey]}
+                showBorder={false}
+                checked={notificationActions[activeDragKey]}
+                disabled={macPermissionPending}
+                snoozeDurationMinutes={notificationActions.snoozeDurationMinutes}
+                onToggle={toggleAction}
+                onSnoozeDurationChange={setSnoozeDuration}
+                isOverlay
+              />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
 
       <TimePickerModal

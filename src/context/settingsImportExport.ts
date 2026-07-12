@@ -150,6 +150,14 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       : defaultState.editorFieldVisibility;
     newState.editorFieldOrder = mergeOrder(data.editorFieldOrder, defaultState.editorFieldOrder);
 
+    const notificationActions = data.notificationActions
+      ? { ...defaultState.notificationActions, ...data.notificationActions }
+      : defaultState.notificationActions;
+    notificationActions.order = mergeOrder(
+      notificationActions.order,
+      defaultState.notificationActions.order,
+    );
+    newState.notificationActions = notificationActions;
     newState.taskBadgeVisibility = data.taskBadgeVisibility
       ? { ...defaultState.taskBadgeVisibility, ...data.taskBadgeVisibility }
       : defaultState.taskBadgeVisibility;

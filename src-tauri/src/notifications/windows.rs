@@ -2,7 +2,10 @@ use tauri::AppHandle;
 
 use super::{
     actions,
-    types::{NotificationType, SendNotificationRequest, SimpleNotificationRequest},
+    types::{
+        NotificationActionConfig, NotificationType, SendNotificationRequest,
+        SimpleNotificationRequest,
+    },
 };
 
 /// ensure the app notification icon is present at a stable, known path
@@ -37,7 +40,11 @@ pub fn ensure_notification_icon() -> Option<std::path::PathBuf> {
     Some(icon_path)
 }
 
-pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> Result<(), String> {
+pub fn send_notification(
+    app: &AppHandle,
+    request: &SendNotificationRequest,
+    config: &NotificationActionConfig,
+) -> Result<(), String> {
     use winrt_toast_reborn::{Action, Toast, ToastManager};
 
     let app_id = app.config().identifier.clone();
@@ -51,17 +58,26 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
         .text2(request.body.as_str());
 
     match request.notification_type {
-        NotificationType::Overdue => {
-            toast
-                .action(Action::new("Complete", actions::COMPLETE, ""))
-                .action(Action::new("Snooze 1hr", actions::SNOOZE_1HR, ""))
-                .action(Action::new("View Task", actions::VIEW, ""));
-        }
-        NotificationType::Reminder => {
-            toast
-                .action(Action::new("Complete", actions::COMPLETE, ""))
-                .action(Action::new("Snooze 15min", actions::SNOOZE_15MIN, ""))
-                .action(Action::new("View Task", actions::VIEW, ""));
+        NotificationType::Overdue | NotificationType::Reminder => {
+            for key in &config.action_order {
+                match key.as_str() {
+                    "complete" if config.show_complete => {
+                        toast.action(Action::new("Complete", actions::COMPLETE, ""));
+                    }
+                    "snooze" if config.show_snooze => {
+                        let snooze_id = actions::snooze_action_id(config.snooze_duration_minutes);
+                        toast.action(Action::new(
+                            &format!("Snooze {}min", config.snooze_duration_minutes),
+                            &snooze_id,
+                            "",
+                        ));
+                    }
+                    "view" if config.show_view => {
+                        toast.action(Action::new("View", actions::VIEW, ""));
+                    }
+                    _ => {}
+                }
+            }
         }
     }
 
@@ -75,7 +91,7 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
                     None => return,
                 },
                 // body click with no button arg → treat as view/open
-                None => actions::VIEW,
+                None => actions::VIEW.to_string(),
             };
 
             if action_name == actions::VIEW {
@@ -84,7 +100,7 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
 
             actions::emit_action(
                 &app,
-                action_name,
+                &action_name,
                 task_id.clone(),
                 notification_type.clone(),
             );

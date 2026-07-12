@@ -1,3 +1,4 @@
+import BellOff from 'lucide-react/icons/bell-off';
 import CalendarClock from 'lucide-react/icons/calendar-clock';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import ChevronRight from 'lucide-react/icons/chevron-right';
@@ -52,6 +53,12 @@ const PREVIEW_BADGE_RENDERERS: Record<TaskBadgeKey, () => ReactNode> = {
     <span className="inline-flex items-center gap-1 rounded-sm border border-status-in-process/30 bg-status-in-process/10 px-2 py-0.5 font-medium text-status-in-process text-xs">
       <Timer className="h-3 w-3 shrink-0 text-status-in-process" />
       50%
+    </span>
+  ),
+  snooze: () => (
+    <span className="inline-flex items-center gap-1 rounded border border-semantic-warning bg-semantic-warning/15 px-2 py-0.5 font-medium text-semantic-warning text-xs">
+      <BellOff className="h-3 w-3 shrink-0" />
+      Snoozed
     </span>
   ),
   repeat: () => (

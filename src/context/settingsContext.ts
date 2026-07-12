@@ -17,6 +17,7 @@ import type {
   EditorFieldKey,
   EditorFieldVisibility,
   NetworkProxyMode,
+  NotificationActionSettings,
   QuickTimePresets,
   SettingsState,
   SettingsStore,
@@ -27,6 +28,7 @@ import type {
   TaskListDensity,
   WindowDecorationStyle,
 } from '$types/settings';
+
 import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$utils/color/accent';
 import { applyColorScheme, getColorSchemeFlavor } from '$utils/color/scheme';
 import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
@@ -61,10 +63,19 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
         ...defaultState.editorFieldVisibility,
         ...loadedState.editorFieldVisibility,
       };
+      loadedState.notificationActions = {
+        ...defaultState.notificationActions,
+        ...loadedState.notificationActions,
+      };
+      loadedState.notificationActions.order = mergeOrder(
+        loadedState.notificationActions.order,
+        defaultState.notificationActions.order,
+      );
       loadedState.taskBadgeVisibility = {
         ...defaultState.taskBadgeVisibility,
         ...loadedState.taskBadgeVisibility,
       };
+
       loadedState.editorFieldOrder = mergeOrder(
         loadedState.editorFieldOrder,
         defaultState.editorFieldOrder,
@@ -232,6 +243,9 @@ export const settingsStore = {
   setTimeFormat: (timeFormat: TimeFormat) => setState({ timeFormat }),
   setDateFormat: (dateFormat: DateFormat) => setState({ dateFormat }),
   setNotifications: (notifications: boolean) => setState({ notifications }),
+  setNotificationActions: (notificationActions: NotificationActionSettings) =>
+    setState({ notificationActions }),
+
   setNotifyReminders: (notifyReminders: boolean) => setState({ notifyReminders }),
   setNotifyOverdue: (notifyOverdue: boolean) => setState({ notifyOverdue }),
   setShowAppIconBadge: (showAppIconBadge: boolean) => setState({ showAppIconBadge }),

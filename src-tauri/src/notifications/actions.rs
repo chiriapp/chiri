@@ -3,38 +3,51 @@ use tauri::{AppHandle, Emitter, Manager};
 use super::types::NotificationActionEvent;
 
 pub const COMPLETE: &str = "complete";
-pub const SNOOZE_15MIN: &str = "snooze-15min";
-pub const SNOOZE_1HR: &str = "snooze-1hr";
 pub const VIEW: &str = "view";
 
 #[cfg(target_os = "macos")]
 pub const MACOS_COMPLETE: &str = "garden.chiri.Chiri.action.complete";
 #[cfg(target_os = "macos")]
-pub const MACOS_SNOOZE_15MIN: &str = "garden.chiri.Chiri.action.snooze.15min";
-#[cfg(target_os = "macos")]
-pub const MACOS_SNOOZE_1HR: &str = "garden.chiri.Chiri.action.snooze.1hr";
-#[cfg(target_os = "macos")]
 pub const MACOS_VIEW: &str = "garden.chiri.Chiri.action.view";
 
 #[cfg(any(target_os = "linux", target_os = "windows"))]
-pub fn plain_action_name(action_id: &str) -> Option<&'static str> {
+pub fn snooze_action_id(minutes: u32) -> String {
+    format!("snooze-{minutes}min")
+}
+
+#[cfg(target_os = "macos")]
+pub fn macos_snooze_action_id(minutes: u32) -> String {
+    format!("garden.chiri.Chiri.action.snooze-{minutes}min")
+}
+
+pub fn parse_snooze_duration(action_id: &str) -> Option<u32> {
+    let suffix = action_id.strip_prefix("snooze-")?.strip_suffix("min")?;
+    suffix.parse().ok()
+}
+
+#[cfg(any(target_os = "linux", target_os = "windows"))]
+pub fn plain_action_name(action_id: &str) -> Option<String> {
     match action_id {
-        COMPLETE => Some(COMPLETE),
-        SNOOZE_15MIN => Some(SNOOZE_15MIN),
-        SNOOZE_1HR => Some(SNOOZE_1HR),
-        VIEW | "__default" => Some(VIEW),
-        _ => None,
+        COMPLETE => Some(COMPLETE.to_string()),
+        VIEW | "__default" => Some(VIEW.to_string()),
+        _ => parse_snooze_duration(action_id).map(|_| action_id.to_string()),
     }
 }
 
 #[cfg(target_os = "macos")]
-pub fn macos_action_name(action_id: &str) -> Option<&'static str> {
-    match action_id {
-        MACOS_COMPLETE => Some(COMPLETE),
-        MACOS_SNOOZE_15MIN => Some(SNOOZE_15MIN),
-        MACOS_SNOOZE_1HR => Some(SNOOZE_1HR),
-        MACOS_VIEW => Some(VIEW),
-        _ => None,
+pub fn macos_action_name(action_id: &str) -> Option<String> {
+    let canonical = match action_id {
+        MACOS_COMPLETE => COMPLETE,
+        MACOS_VIEW => VIEW,
+        _ => action_id
+            .strip_prefix("garden.chiri.Chiri.action.")
+            .unwrap_or(action_id),
+    };
+
+    if canonical == COMPLETE || canonical == VIEW || parse_snooze_duration(canonical).is_some() {
+        Some(canonical.to_string())
+    } else {
+        None
     }
 }
 

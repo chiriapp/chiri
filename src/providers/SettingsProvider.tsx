@@ -15,6 +15,7 @@ import type {
   EditorFieldKey,
   EditorFieldVisibility,
   NetworkProxyMode,
+  NotificationActionSettings,
   QuickTimePresets,
   SettingsStore,
   SidebarSectionKey,
@@ -391,6 +392,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (seen: boolean) => settingsStore.setHasSeenRecentlyDeletedToast(seen),
     [],
   );
+  const setNotificationActions = useCallback(
+    (notificationActions: NotificationActionSettings) =>
+      settingsStore.setNotificationActions(notificationActions),
+    [],
+  );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
   const importSettings = useCallback((json: string) => settingsStore.importSettings(json), []);
   const resetSettings = useCallback(() => settingsStore.resetSettings(), []);
@@ -494,6 +500,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setMozillaAutopushWebsocketUrl,
     setMozillaAutopushEndpointUrl,
     setHasSeenRecentlyDeletedToast,
+    setNotificationActions,
     exportSettings,
     importSettings,
     resetSettings,

@@ -6,6 +6,7 @@ import type {
   SendNotificationOptions,
   SimpleNotificationOptions,
 } from '$types/notification';
+import type { NotificationActionSettings } from '$types/settings';
 
 // cache for permission status to avoid re-checking on every component mount
 let cachedPermissionStatus: NotificationPermissionStatus | null = null;
@@ -54,4 +55,19 @@ export const sendNotification = async (options: SendNotificationOptions) => {
  */
 export const sendSimpleNotification = async (options: SimpleNotificationOptions) => {
   await invoke('send_simple_notification', { request: options });
+};
+
+/**
+ * configure which notification action buttons are shown and the snooze duration
+ */
+export const setNotificationActionConfig = async (config: NotificationActionSettings) => {
+  await invoke('set_notification_action_config', {
+    config: {
+      showComplete: config.complete,
+      showSnooze: config.snooze,
+      showView: config.view,
+      snoozeDurationMinutes: config.snoozeDurationMinutes,
+      actionOrder: config.order,
+    },
+  });
 };

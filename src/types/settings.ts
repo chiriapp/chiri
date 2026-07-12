@@ -55,6 +55,16 @@ export interface EditorFieldVisibility {
 
 export type EditorFieldKey = keyof EditorFieldVisibility;
 
+export type NotificationActionKey = 'complete' | 'snooze' | 'view';
+
+export interface NotificationActionSettings {
+  complete: boolean;
+  snooze: boolean;
+  view: boolean;
+  snoozeDurationMinutes: number;
+  order: NotificationActionKey[];
+}
+
 export interface TaskBadgeVisibility {
   startDate: boolean;
   dueDate: boolean;
@@ -62,6 +72,7 @@ export interface TaskBadgeVisibility {
   calendar: boolean;
   url: boolean;
   status: boolean;
+  snooze: boolean;
   repeat: boolean;
   subtasks: boolean;
 }
@@ -105,6 +116,7 @@ export interface SettingsState {
   startOfWeek: StartOfWeek;
   timeFormat: TimeFormat;
   dateFormat: DateFormat;
+  notificationActions: NotificationActionSettings;
   notifications: boolean;
   notifyReminders: boolean;
   notifyOverdue: boolean;
@@ -205,6 +217,7 @@ interface SettingsActions {
   setStartOfWeek: (day: StartOfWeek) => void;
   setTimeFormat: (format: TimeFormat) => void;
   setDateFormat: (format: DateFormat) => void;
+  setNotificationActions: (notificationActions: NotificationActionSettings) => void;
   setNotifications: (enabled: boolean) => void;
   setNotifyReminders: (enabled: boolean) => void;
   setNotifyOverdue: (enabled: boolean) => void;

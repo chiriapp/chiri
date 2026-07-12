@@ -1,5 +1,37 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct NotificationActionConfig {
+    pub show_complete: bool,
+    pub show_snooze: bool,
+    pub show_view: bool,
+    pub snooze_duration_minutes: u32,
+    pub action_order: Vec<String>,
+}
+
+impl NotificationActionConfig {
+    pub fn default_config() -> Self {
+        Self {
+            show_complete: true,
+            show_snooze: true,
+            show_view: true,
+            snooze_duration_minutes: 15,
+            action_order: vec![
+                "complete".to_string(),
+                "snooze".to_string(),
+                "view".to_string(),
+            ],
+        }
+    }
+}
+
+impl Default for NotificationActionConfig {
+    fn default() -> Self {
+        Self::default_config()
+    }
+}
+
 #[cfg(target_os = "macos")]
 pub const TASK_OVERDUE_CATEGORY: &str = "garden.chiri.Chiri.task.overdue";
 #[cfg(target_os = "macos")]
