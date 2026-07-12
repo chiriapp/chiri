@@ -388,6 +388,7 @@ export const settingsStore = {
   setNetworkProxyHost: (networkProxyHost: string) => setState({ networkProxyHost }),
   setNetworkProxyPort: (networkProxyPort: string) => setState({ networkProxyPort }),
   setEnablePush: (enablePush: boolean) => setState({ enablePush }),
+  setEnforceVapid: (enforceVapid: boolean) => setState({ enforceVapid }),
   setPushProvider: (pushProvider: PushProviderId) => setState({ pushProvider }),
   setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),
   setMozillaAutopushWebsocketUrl: (mozillaAutopushWebsocketUrl: string) =>

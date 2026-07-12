@@ -211,13 +211,14 @@ export const getSetupNotice = (
 export const probeSetupVtodoCreationIfNeeded = async (
   client: CalDAVClient,
   diagnostics: CalendarDiscoveryDiagnostics,
+  enforceVapid = false,
 ) => {
   if (diagnostics.includedCalendarCount > 0) {
     return false;
   }
 
   try {
-    await client.probeVtodoCalendarCreation();
+    await client.probeVtodoCalendarCreation(enforceVapid);
     return true;
   } catch (error) {
     const detail = getErrorMessage(error);

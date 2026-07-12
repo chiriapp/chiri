@@ -148,6 +148,7 @@ export const defaultState: SettingsState = {
   networkProxyHost: '',
   networkProxyPort: '',
   enablePush: false,
+  enforceVapid: false,
   pushProvider: NTFY_DIRECT_PROVIDER_ID,
   ntfyServerUrl: 'https://ntfy.sh',
   mozillaAutopushWebsocketUrl: DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL,

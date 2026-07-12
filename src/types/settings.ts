@@ -187,6 +187,7 @@ export interface SettingsState {
   networkProxyHost: string;
   networkProxyPort: string;
   enablePush: boolean;
+  enforceVapid: boolean;
   pushProvider: PushProviderId;
   ntfyServerUrl: string;
   mozillaAutopushWebsocketUrl: string;
@@ -289,6 +290,7 @@ interface SettingsActions {
   setNetworkProxyHost: (host: string) => void;
   setNetworkProxyPort: (port: string) => void;
   setEnablePush: (enabled: boolean) => void;
+  setEnforceVapid: (enabled: boolean) => void;
   setPushProvider: (provider: PushProviderId) => void;
   setNtfyServerUrl: (url: string) => void;
   setMozillaAutopushWebsocketUrl: (url: string) => void;

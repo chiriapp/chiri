@@ -375,6 +375,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
   const setEnablePush = useCallback((enabled: boolean) => settingsStore.setEnablePush(enabled), []);
+  const setEnforceVapid = useCallback(
+    (enabled: boolean) => settingsStore.setEnforceVapid(enabled),
+    [],
+  );
   const setPushProvider = useCallback(
     (provider: PushProviderId) => settingsStore.setPushProvider(provider),
     [],
@@ -495,6 +499,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setNetworkProxyHost,
     setNetworkProxyPort,
     setEnablePush,
+    setEnforceVapid,
     setPushProvider,
     setNtfyServerUrl,
     setMozillaAutopushWebsocketUrl,

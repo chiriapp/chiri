@@ -13,6 +13,7 @@ import { MobileConfigExportModal } from '$components/modals/MobileConfigExportMo
 import { WebDAVPushAccountStatus } from '$components/settings/ConnectionSettings/WebDAVPushAccountStatus';
 import { Tooltip } from '$components/Tooltip';
 import { useConnectionStore } from '$context/connectionContext';
+import { useSettingsStore } from '$context/settingsContext';
 import { useAccountDeletion } from '$hooks/deletion/useAccountDeletion';
 import { useTasks } from '$hooks/queries/useTasks';
 import { CalDAVClient } from '$lib/caldav';
@@ -32,6 +33,7 @@ export const ConnectionsSettings = ({
   onEditAccount,
 }: ConnectionsSettingsProps) => {
   const accounts = allAccounts.filter((a) => a.caldav);
+  const { enforceVapid } = useSettingsStore();
   const { deleteAccount } = useAccountDeletion();
   const { hasConnection } = useConnectionStore();
   const { data: tasks = [] } = useTasks();
@@ -77,7 +79,7 @@ export const ConnectionsSettings = ({
 
     try {
       await CalDAVClient.reconnect(account);
-      const calendars = await CalDAVClient.getForAccount(account.id).fetchCalendars();
+      const calendars = await CalDAVClient.getForAccount(account.id).fetchCalendars(enforceVapid);
 
       setTestResults((prev) => ({
         ...prev,

@@ -62,6 +62,7 @@ const getPushSubscriptionTargetKey = (accounts: Account[]) =>
 const subscribeToPushEnabledCalendars = async (
   accounts: Account[],
   providerConfig: PushProviderConfig,
+  enforceVapid: boolean,
   isCancelled: () => boolean,
 ) => {
   const providerAvailable = await isPushProviderAvailable(providerConfig);
@@ -74,7 +75,12 @@ const subscribeToPushEnabledCalendars = async (
     if (isCancelled()) return false;
 
     try {
-      const success = await enablePushForCalendar(accountId, calendar, providerConfig);
+      const success = await enablePushForCalendar(
+        accountId,
+        calendar,
+        providerConfig,
+        enforceVapid,
+      );
       if (success) {
         log.debug(`Push enabled for calendar: ${calendar.displayName}`);
       }
@@ -103,6 +109,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
   const { data: accounts = [] } = useAccounts();
   const {
     enablePush,
+    enforceVapid,
     pushProvider,
     ntfyServerUrl,
     mozillaAutopushWebsocketUrl,
@@ -207,6 +214,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
       const completed = await subscribeToPushEnabledCalendars(
         accountsRef.current,
         pushProviderConfig,
+        enforceVapid,
         () => cancelled,
       );
 
@@ -222,6 +230,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     };
   }, [
     enablePush,
+    enforceVapid,
     isResolvingKUnifiedPush,
     lastSyncTime,
     pushProviderConfig,
@@ -292,6 +301,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
             await subscribeToPushEnabledCalendars(
               accountsRef.current,
               pushProviderConfig,
+              enforceVapid,
               () => cancelled,
             );
           },
@@ -312,7 +322,7 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
       cancelled = true;
       unlistenMaintenance?.();
     };
-  }, [enablePush, isResolvingKUnifiedPush, pushProviderConfig]);
+  }, [enablePush, enforceVapid, isResolvingKUnifiedPush, pushProviderConfig]);
 
   useEffect(() => {
     const hasPushTargets = getPushSubscriptionTargets(accounts).length > 0;

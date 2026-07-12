@@ -129,6 +129,7 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'networkProxyHost',
       'networkProxyPort',
       'enablePush',
+      'enforceVapid',
       'pushProvider',
       'ntfyServerUrl',
       'mozillaAutopushWebsocketUrl',
