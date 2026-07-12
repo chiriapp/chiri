@@ -156,9 +156,8 @@ export const defaultState: SettingsState = {
   notificationActions: {
     complete: true,
     snooze: true,
-    view: true,
     snoozeDurationMinutes: 15,
-    order: ['complete', 'snooze', 'view'],
+    order: ['complete', 'snooze'],
   },
   hasSeenRecentlyDeletedToast: false,
 };

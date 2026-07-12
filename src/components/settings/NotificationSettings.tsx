@@ -11,7 +11,6 @@ import {
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AlarmClock from 'lucide-react/icons/alarm-clock';
 import CheckSquare from 'lucide-react/icons/check-square';
-import Edit from 'lucide-react/icons/edit';
 import { useState } from 'react';
 import { MacNotificationCard } from '$components/MacNotificationCard';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
@@ -44,12 +43,6 @@ const ACTIONS: NotificationActionConfig[] = [
     label: 'Snooze',
     description: 'Delay task reminders and remind again later',
     icon: <AlarmClock className="h-4 w-4" />,
-  },
-  {
-    key: 'view',
-    label: 'View',
-    description: 'Open the task in the app',
-    icon: <Edit className="h-4 w-4" />,
   },
 ];
 

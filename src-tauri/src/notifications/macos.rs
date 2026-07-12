@@ -107,9 +107,7 @@ pub async fn send_notification(
 }
 
 use super::{
-    actions::{
-        self, emit_action, macos_action_name, show_main_window, MACOS_COMPLETE, MACOS_VIEW, VIEW,
-    },
+    actions::{self, emit_action, macos_action_name, show_main_window, MACOS_COMPLETE},
     state::NotificationManagerState,
     types::{
         NotificationActionConfig, TASK_OVERDUE_CATEGORY, TASK_REMINDER_CATEGORY,
@@ -218,10 +216,6 @@ fn build_category_actions(config: &NotificationActionConfig) -> Vec<Notification
                     title: format!("Snooze {}min", config.snooze_duration_minutes),
                 })
             }
-            "view" if config.show_view => Some(NotificationCategoryAction::Action {
-                identifier: MACOS_VIEW.to_string(),
-                title: "View".to_string(),
-            }),
             _ => None,
         })
         .collect()
@@ -247,7 +241,6 @@ async fn handle_response(app: &AppHandle<impl tauri::Runtime>, response: Notific
     match response.action {
         NotificationResponseAction::Default => {
             show_main_window(app);
-            emit_action(app, VIEW, task_id, notification_type);
         }
         NotificationResponseAction::Dismiss => {
             log::debug!("[Notifications] Notification dismissed");
@@ -259,10 +252,6 @@ async fn handle_response(app: &AppHandle<impl tauri::Runtime>, response: Notific
             };
 
             emit_action(app, &action_name, task_id, notification_type);
-
-            if action_name == VIEW {
-                show_main_window(app);
-            }
         }
     }
 }

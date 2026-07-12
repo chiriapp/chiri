@@ -20,7 +20,6 @@ interface UseAppLifecycleOptions {
   onSyncCalendar: SyncQuery['syncCalendar'];
   onTraySync: () => void;
   onKeyboardSync: () => void;
-  onOpenTaskActions: (taskId: string) => void;
   onOpenSettings: () => void;
   onOpenKeyboardShortcuts: () => void;
   onOpenImport: () => void;
@@ -32,7 +31,6 @@ export const useAppLifecycle = ({
   onSyncCalendar,
   onTraySync,
   onKeyboardSync,
-  onOpenTaskActions,
   onOpenSettings,
   onOpenKeyboardShortcuts,
   onOpenImport,
@@ -49,7 +47,7 @@ export const useAppLifecycle = ({
   useRefreshStaleCursorAfterPointerMutation();
   useConfirmQuit();
   useDeepLink();
-  useNotifications({ onOpenTaskActions });
+  useNotifications();
   useRecentlyDeletedCleanup();
   useAppBadge();
 

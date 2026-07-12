@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 pub struct NotificationActionConfig {
     pub show_complete: bool,
     pub show_snooze: bool,
-    pub show_view: bool,
     pub snooze_duration_minutes: u32,
     pub action_order: Vec<String>,
 }
@@ -15,13 +14,8 @@ impl NotificationActionConfig {
         Self {
             show_complete: true,
             show_snooze: true,
-            show_view: true,
             snooze_duration_minutes: 15,
-            action_order: vec![
-                "complete".to_string(),
-                "snooze".to_string(),
-                "view".to_string(),
-            ],
+            action_order: vec!["complete".to_string(), "snooze".to_string()],
         }
     }
 }

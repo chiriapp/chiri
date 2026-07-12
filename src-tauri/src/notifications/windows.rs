@@ -72,9 +72,6 @@ pub fn send_notification(
                             "",
                         ));
                     }
-                    "view" if config.show_view => {
-                        toast.action(Action::new("View", actions::VIEW, ""));
-                    }
                     _ => {}
                 }
             }
@@ -90,13 +87,13 @@ pub fn send_notification(
                     Some(action_name) => action_name,
                     None => return,
                 },
-                // body click with no button arg → treat as view/open
-                None => actions::VIEW.to_string(),
+                // body click with no button arg → just bring the main window forward.
+                // highlight/focus-task behavior will be added in a follow-up.
+                None => {
+                    actions::show_main_window(&app);
+                    return;
+                }
             };
-
-            if action_name == actions::VIEW {
-                actions::show_main_window(&app);
-            }
 
             actions::emit_action(
                 &app,

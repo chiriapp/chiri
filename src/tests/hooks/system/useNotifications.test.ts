@@ -56,9 +56,8 @@ const settingsMock = vi.hoisted(() => ({
   notificationActions: {
     complete: true,
     snooze: true,
-    view: true,
     snoozeDurationMinutes: 15,
-    order: ['complete', 'snooze', 'view'],
+    order: ['complete', 'snooze'],
   },
   notifyReminders: true,
   notifyOverdue: true,
@@ -84,12 +83,8 @@ vi.mock('$hooks/queries/useTasks', () => ({
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-interface HarnessProps {
-  onOpenTaskActions?: (taskId: string) => void;
-}
-
-const Harness = ({ onOpenTaskActions }: HarnessProps) => {
-  useNotifications({ onOpenTaskActions });
+const Harness = () => {
+  useNotifications();
   return null;
 };
 
@@ -114,9 +109,9 @@ describe('useNotifications notification-action listener', () => {
     container.remove();
   });
 
-  const renderHarness = async (onOpenTaskActions?: (taskId: string) => void) => {
+  const renderHarness = async () => {
     await act(async () => {
-      root.render(createElement(Harness, { onOpenTaskActions }));
+      root.render(createElement(Harness));
     });
   };
 
@@ -132,9 +127,8 @@ describe('useNotifications notification-action listener', () => {
     expect(notificationMocks.setNotificationActionConfig).toHaveBeenCalledWith({
       complete: true,
       snooze: true,
-      view: true,
       snoozeDurationMinutes: 15,
-      order: ['complete', 'snooze', 'view'],
+      order: ['complete', 'snooze'],
     });
   });
 
@@ -145,16 +139,6 @@ describe('useNotifications notification-action listener', () => {
 
     expect(taskMocks.toggleTaskComplete).toHaveBeenCalledOnce();
     expect(taskMocks.toggleTaskComplete).toHaveBeenCalledWith('task-1');
-  });
-
-  it('opens task actions when the action is view', async () => {
-    const onOpenTaskActions = vi.fn();
-    await renderHarness(onOpenTaskActions);
-
-    emitAction({ action: 'view', taskId: 'task-2', notificationType: 'overdue' });
-
-    expect(onOpenTaskActions).toHaveBeenCalledOnce();
-    expect(onOpenTaskActions).toHaveBeenCalledWith('task-2');
   });
 
   it('snoozes the task for the parsed duration when action matches snooze-{n}min', async () => {

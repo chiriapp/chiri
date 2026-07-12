@@ -55,12 +55,11 @@ export interface EditorFieldVisibility {
 
 export type EditorFieldKey = keyof EditorFieldVisibility;
 
-export type NotificationActionKey = 'complete' | 'snooze' | 'view';
+export type NotificationActionKey = 'complete' | 'snooze';
 
 export interface NotificationActionSettings {
   complete: boolean;
   snooze: boolean;
-  view: boolean;
   snoozeDurationMinutes: number;
   order: NotificationActionKey[];
 }

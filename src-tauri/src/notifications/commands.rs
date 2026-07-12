@@ -35,7 +35,7 @@ pub async fn set_notification_action_config(
     Ok(())
 }
 
-/// send a notification with action buttons (Complete / Snooze / View)
+/// send a notification with action buttons (Complete / Snooze)
 #[tauri::command]
 pub async fn send_notification_with_actions(
     app: tauri::AppHandle,

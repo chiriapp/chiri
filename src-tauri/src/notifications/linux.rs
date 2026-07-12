@@ -85,9 +85,6 @@ pub fn send_notification(
                             &format!("Snooze {}min", config.snooze_duration_minutes),
                         );
                     }
-                    "view" if config.show_view => {
-                        notif.action(actions::VIEW, "View");
-                    }
                     _ => {}
                 }
             }
@@ -108,13 +105,16 @@ pub fn send_notification(
             }
         };
         handle.wait_for_action(|action| {
+            // body click on Linux is reported as the default action; just bring the
+            // main window forward without emitting a notification-action event.
+            if action == "__default" {
+                actions::show_main_window(&app);
+                return;
+            }
+
             let Some(action_name) = actions::plain_action_name(action) else {
                 return;
             };
-
-            if action_name == actions::VIEW {
-                actions::show_main_window(&app);
-            }
 
             actions::emit_action(&app, &action_name, task_id, notification_type);
         });

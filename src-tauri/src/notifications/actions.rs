@@ -3,12 +3,9 @@ use tauri::{AppHandle, Emitter, Manager};
 use super::types::NotificationActionEvent;
 
 pub const COMPLETE: &str = "complete";
-pub const VIEW: &str = "view";
 
 #[cfg(target_os = "macos")]
 pub const MACOS_COMPLETE: &str = "garden.chiri.Chiri.action.complete";
-#[cfg(target_os = "macos")]
-pub const MACOS_VIEW: &str = "garden.chiri.Chiri.action.view";
 
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 pub fn snooze_action_id(minutes: u32) -> String {
@@ -29,7 +26,6 @@ pub fn parse_snooze_duration(action_id: &str) -> Option<u32> {
 pub fn plain_action_name(action_id: &str) -> Option<String> {
     match action_id {
         COMPLETE => Some(COMPLETE.to_string()),
-        VIEW | "__default" => Some(VIEW.to_string()),
         _ => parse_snooze_duration(action_id).map(|_| action_id.to_string()),
     }
 }
@@ -38,13 +34,12 @@ pub fn plain_action_name(action_id: &str) -> Option<String> {
 pub fn macos_action_name(action_id: &str) -> Option<String> {
     let canonical = match action_id {
         MACOS_COMPLETE => COMPLETE,
-        MACOS_VIEW => VIEW,
         _ => action_id
             .strip_prefix("garden.chiri.Chiri.action.")
             .unwrap_or(action_id),
     };
 
-    if canonical == COMPLETE || canonical == VIEW || parse_snooze_duration(canonical).is_some() {
+    if canonical == COMPLETE || parse_snooze_duration(canonical).is_some() {
         Some(canonical.to_string())
     } else {
         None

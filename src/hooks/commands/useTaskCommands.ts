@@ -1,21 +1,14 @@
 import { useCallback } from 'react';
-import { useModalState } from '$context/modalStateContext';
 import { useTaskSelection } from '$context/taskSelectionContext';
 import { useTaskDeletion } from '$hooks/deletion/useTaskDeletion';
 import { useCreateTask } from '$hooks/queries/useTasks';
 import { useSetEditorOpen, useSetSelectedTask, useUIState } from '$hooks/queries/useUIState';
 import { useVisibleTasks } from '$hooks/queries/useVisibleTasks';
-import type { AppModals } from '$types/controller';
 
-interface UseTaskCommandsOptions {
-  modals: AppModals;
-}
-
-export const useTaskCommands = ({ modals }: UseTaskCommandsOptions) => {
+export const useTaskCommands = () => {
   const createTaskMutation = useCreateTask();
   const setSelectedTaskMutation = useSetSelectedTask();
   const { data: uiState } = useUIState();
-  const { isAnyModalOpen } = useModalState();
   const { moveTaskToRecentlyDeleted } = useTaskDeletion();
 
   const { selectedTaskIds, setSelection, clearSelection } = useTaskSelection();
@@ -56,18 +49,9 @@ export const useTaskCommands = ({ modals }: UseTaskCommandsOptions) => {
     );
   }, [clearSelection, flattenedTasks, selectedTaskIds.length, setEditorOpenMutation, setSelection]);
 
-  const openTaskActions = useCallback(
-    (taskId: string) => {
-      if (isAnyModalOpen) return;
-      modals.openTaskActions(taskId);
-    },
-    [isAnyModalOpen, modals],
-  );
-
   return {
     newTask,
     deleteTask,
     selectAll,
-    openTaskActions,
   };
 };

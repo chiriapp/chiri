@@ -141,14 +141,10 @@ const handleNotificationAction = (
   taskId: string,
   toggleTaskComplete: (taskId: string) => void,
   snoozeTask: (taskId: string, durationMinutes: number) => void,
-  openTaskActions?: (taskId: string) => void,
 ) => {
   if (action === 'complete') {
     toggleTaskComplete(taskId);
     log.info('Completing task:', taskId);
-  } else if (action === 'view') {
-    log.info('Viewing task:', taskId);
-    openTaskActions?.(taskId);
   } else {
     const match = action.match(/^snooze-(\d+)min$/);
     if (match) {
@@ -169,10 +165,6 @@ const cleanupNotificationRefs = (notifiedTasks: Set<string>, notifiedReminders: 
     notifiedReminders.clear();
   }
 };
-
-interface UseNotificationsOptions {
-  onOpenTaskActions?: (taskId: string) => void;
-}
 
 // helper: Clear snooze notification keys for a task
 const clearSnoozeKeys = (
@@ -195,8 +187,7 @@ const clearSnoozeKeys = (
 /**
  * hook that monitors tasks and shows notifications for due tasks and reminders
  */
-export const useNotifications = (options: UseNotificationsOptions = {}) => {
-  const { onOpenTaskActions } = options;
+export const useNotifications = () => {
   const { data: tasks = [] } = useTasks();
   const {
     notifications,
@@ -279,7 +270,6 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
         taskId,
         (id) => toggleTaskCompleteMutation.mutate(id),
         handleSnoozeTask,
-        onOpenTaskActions,
       );
     });
 
@@ -300,6 +290,5 @@ export const useNotifications = (options: UseNotificationsOptions = {}) => {
     quietHoursEnd,
     toggleTaskCompleteMutation,
     handleSnoozeTask,
-    onOpenTaskActions,
   ]);
 };
