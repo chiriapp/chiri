@@ -4,6 +4,108 @@ use user_notify::{
     NotificationResponseAction,
 };
 
+#[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
+pub enum InterruptionLevel {
+    Passive,
+    Active,
+    TimeSensitive,
+}
+
+/// Send a macOS notification directly through UNUserNotificationCenter so we can
+/// set the interruption level (e.g., time-sensitive). The categories and delegate
+/// are still registered via `user-notify`, so action buttons and response handling
+/// continue to work.
+pub async fn send_notification(
+    title: &str,
+    body: &str,
+    category_id: &str,
+    user_info: std::collections::HashMap<String, String>,
+    interruption_level: InterruptionLevel,
+) -> Result<(), String> {
+    use objc2::rc::Retained;
+    use objc2::runtime::AnyObject;
+    use objc2_foundation::{NSBundle, NSDictionary, NSString};
+    use objc2_user_notifications::{
+        UNMutableNotificationContent, UNNotificationInterruptionLevel, UNNotificationRequest,
+        UNNotificationSound, UNUserNotificationCenter,
+    };
+    use std::ops::Deref;
+
+    let bundle_id = NSBundle::mainBundle()
+        .bundleIdentifier()
+        .map(|ns| ns.to_string())
+        .ok_or("No bundle identifier found")?;
+
+    let (tx, rx) = tokio::sync::oneshot::channel::<Result<(), String>>();
+
+    unsafe {
+        let content = UNMutableNotificationContent::new();
+
+        content.setTitle(&NSString::from_str(title));
+        content.setBody(&NSString::from_str(body));
+        content.setCategoryIdentifier(&NSString::from_str(category_id));
+        content.setSound(Some(UNNotificationSound::defaultSound().deref()));
+
+        let level = match interruption_level {
+            InterruptionLevel::Passive => UNNotificationInterruptionLevel::Passive,
+            InterruptionLevel::Active => UNNotificationInterruptionLevel::Active,
+            InterruptionLevel::TimeSensitive => UNNotificationInterruptionLevel::TimeSensitive,
+        };
+        content.setInterruptionLevel(level);
+
+        let mut keys = Vec::with_capacity(user_info.len());
+        let mut values = Vec::with_capacity(user_info.len());
+        for (key, value) in &user_info {
+            keys.push(NSString::from_str(key));
+            values.push(NSString::from_str(value));
+        }
+
+        let string_dictionary = NSDictionary::from_slices(
+            keys.iter()
+                .map(|r| r.deref())
+                .collect::<Vec<&NSString>>()
+                .as_slice(),
+            values
+                .iter()
+                .map(|r| r.deref())
+                .collect::<Vec<&NSString>>()
+                .as_slice(),
+        );
+        let anyobject_dictionary =
+            Retained::cast_unchecked::<NSDictionary<AnyObject, AnyObject>>(string_dictionary);
+        content.setUserInfo(anyobject_dictionary.deref());
+
+        let id = format!("{}.{}", uuid::Uuid::new_v4(), bundle_id);
+        let request = UNNotificationRequest::requestWithIdentifier_content_trigger(
+            &NSString::from_str(&id),
+            &content,
+            None,
+        );
+
+        let cb = std::cell::RefCell::new(Some(tx));
+        let block = block2::RcBlock::new(move |error: *mut objc2_foundation::NSError| {
+            if error.is_null() {
+                if let Some(cb) = cb.take() {
+                    let _ = cb.send(Ok(()));
+                }
+            } else if let Some(cb) = cb.take() {
+                let err = error
+                    .as_ref()
+                    .map(|e| e.localizedDescription().to_string())
+                    .unwrap_or_else(|| "Failed to read error".to_string());
+                let _ = cb.send(Err(err));
+            }
+        });
+
+        UNUserNotificationCenter::currentNotificationCenter()
+            .addNotificationRequest_withCompletionHandler(&request, Some(&block));
+    }
+
+    rx.await
+        .map_err(|e| format!("Notification send cancelled: {e}"))?
+}
+
 use super::{
     actions::{
         self, emit_action, macos_action_name, show_main_window, MACOS_COMPLETE, MACOS_VIEW, VIEW,

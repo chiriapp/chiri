@@ -70,17 +70,15 @@ pub async fn send_notification_with_actions(
             serde_json::to_string(&request.notification_type).map_err(|e| e.to_string())?,
         );
 
-        let notification = NotificationBuilder::new()
-            .title(&request.title)
-            .body(&request.body)
-            .set_category_id(category_id)
-            .set_user_info(user_info);
-
-        _state
-            .manager
-            .send_notification(notification)
-            .await
-            .map_err(|e| format!("Failed to send notification: {e:?}"))?;
+        super::macos::send_notification(
+            &request.title,
+            &request.body,
+            category_id,
+            user_info,
+            super::macos::InterruptionLevel::TimeSensitive,
+        )
+        .await
+        .map_err(|e| format!("Failed to send notification: {e}"))?;
 
         Ok(())
     }
