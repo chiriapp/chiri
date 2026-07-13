@@ -13,6 +13,7 @@ pub const MAX_NOTIFICATION_ACTIONS: usize = 5;
 /// - 60 -> "1 hour"
 /// - 120 -> "2 hours"
 /// - 90 -> "90 min"
+#[cfg(target_os = "macos")]
 pub fn format_snooze_duration(minutes: u32) -> String {
     if minutes == 1 {
         "1 min".to_string()
@@ -134,6 +135,7 @@ pub fn emit_action<R: tauri::Runtime>(
 mod tests {
     use super::*;
 
+    #[cfg(target_os = "macos")]
     #[test]
     fn formats_snooze_durations() {
         assert_eq!(format_snooze_duration(1), "1 min");
