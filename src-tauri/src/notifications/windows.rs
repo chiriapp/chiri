@@ -68,7 +68,7 @@ pub fn send_notification(
 
                 match key.as_str() {
                     "complete" if config.show_complete => {
-                        toast.action(Action::new("Complete", actions::COMPLETE, ""));
+                        toast.action(Action::new(actions::COMPLETE_LABEL, actions::COMPLETE, ""));
                         action_count += 1;
                     }
                     "snooze" if config.show_snooze => {

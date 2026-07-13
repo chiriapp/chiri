@@ -7,6 +7,13 @@ pub const HIGHLIGHT: &str = "highlight";
 
 pub const MAX_NOTIFICATION_ACTIONS: usize = 5;
 
+/// label shown on the complete action button
+#[cfg(target_os = "macos")]
+pub const COMPLETE_LABEL: &str = "Complete";
+
+#[cfg(any(target_os = "linux", target_os = "windows"))]
+pub const COMPLETE_LABEL: &str = "Done";
+
 /// formats a snooze duration in minutes into a human-readable label
 /// - 1 -> "1 min"
 /// - 59 -> "59 min"

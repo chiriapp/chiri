@@ -82,7 +82,7 @@ pub fn send_notification(
 
                 match key.as_str() {
                     "complete" if config.show_complete => {
-                        notif.action(actions::COMPLETE, "Complete");
+                        notif.action(actions::COMPLETE, actions::COMPLETE_LABEL);
                         action_count += 1;
                     }
                     "snooze" if config.show_snooze => {

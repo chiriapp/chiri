@@ -237,7 +237,7 @@ fn build_category_actions(config: &NotificationActionConfig) -> Vec<Notification
             "complete" if config.show_complete => {
                 actions.push(NotificationCategoryAction::Action {
                     identifier: MACOS_COMPLETE.to_string(),
-                    title: "Complete".to_string(),
+                    title: actions::COMPLETE_LABEL.to_string(),
                 });
             }
             "snooze" if config.show_snooze => {
