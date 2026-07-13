@@ -115,12 +115,27 @@ use super::{
     },
 };
 
+/// macOS notifications require the process to be running inside a proper `.app` bundle
+/// when launched from `cargo run`/`target/debug/`, the main bundle has no identifier,
+/// and `UNUserNotificationCenter::currentNotificationCenter` throws an exception
+fn running_in_app_bundle() -> bool {
+    use objc2_foundation::NSBundle;
+    NSBundle::mainBundle().bundleIdentifier().is_some()
+}
+
 impl NotificationManagerState {
     pub fn register_categories_and_handler(
         &self,
         app: AppHandle<impl tauri::Runtime>,
         config: &NotificationActionConfig,
     ) {
+        if !running_in_app_bundle() {
+            log::warn!(
+                "[Notifications] Not running inside an app bundle; skipping notification category registration."
+            );
+            return;
+        }
+
         let categories = vec![
             NotificationCategory {
                 identifier: TASK_OVERDUE_CATEGORY.to_string(),
@@ -159,6 +174,13 @@ impl NotificationManagerState {
             UNNotificationAction, UNNotificationActionOptions, UNNotificationCategory,
             UNNotificationCategoryOptions, UNUserNotificationCenter,
         };
+
+        if !running_in_app_bundle() {
+            log::warn!(
+                "[Notifications] Not running inside an app bundle; skipping notification category update."
+            );
+            return;
+        }
 
         let config = config.clone();
         let _ = app.run_on_main_thread(move || {
