@@ -3,7 +3,9 @@ import { CSS } from '@dnd-kit/utilities';
 import GripVertical from 'lucide-react/icons/grip-vertical';
 import type { CSSProperties, ReactNode } from 'react';
 import { MAX_NOTIFICATION_ACTIONS } from '$constants';
+import { SNOOZE_DURATION_UNITS } from '$lib/notifications/duration';
 import type { NotificationActionKey, SnoozeDuration } from '$types/settings';
+import { Select } from '../Select';
 
 export type NotificationActionConfig = {
   key: NotificationActionKey;
@@ -48,12 +50,26 @@ export const NotificationSettingsSortableAction = ({
 
   const isSnooze = action.key === 'snooze';
 
-  const updateSnoozeDuration = (id: string, minutes: number) => {
+  const updateSnoozeDuration = (id: string, value: number, unit: SnoozeDuration['unit']) => {
     if (!snoozeDurations) return;
     const next = snoozeDurations.map((duration) =>
-      duration.id === id ? { ...duration, minutes } : duration,
+      duration.id === id ? { ...duration, value, unit } : duration,
     );
     onSnoozeDurationsChange?.(next);
+  };
+
+  const updateSnoozeValue = (id: string, value: number) => {
+    if (!snoozeDurations) return;
+    const duration = snoozeDurations.find((d) => d.id === id);
+    if (!duration) return;
+    updateSnoozeDuration(id, value, duration.unit);
+  };
+
+  const updateSnoozeUnit = (id: string, unit: SnoozeDuration['unit']) => {
+    if (!snoozeDurations) return;
+    const duration = snoozeDurations.find((d) => d.id === id);
+    if (!duration) return;
+    updateSnoozeDuration(id, duration.value, unit);
   };
 
   const removeSnoozeDuration = (id: string) => {
@@ -69,8 +85,9 @@ export const NotificationSettingsSortableAction = ({
     if (!canAddSnoozeDuration) return;
     const next = snoozeDurations ? [...snoozeDurations] : [];
     const last = next[next.length - 1];
-    const minutes = last ? last.minutes * 2 : 15;
-    onSnoozeDurationsChange?.([...next, { id: crypto.randomUUID(), minutes }]);
+    const value = last ? last.value * 2 : 15;
+    const unit = last?.unit ?? 'minutes';
+    onSnoozeDurationsChange?.([...next, { id: crypto.randomUUID(), value, unit }]);
   };
 
   return (
@@ -119,18 +136,31 @@ export const NotificationSettingsSortableAction = ({
                     <input
                       type="number"
                       min={1}
-                      value={duration.minutes}
+                      value={duration.value}
                       onChange={(e) => {
                         const parsed = parseInt(e.target.value, 10);
-                        updateSnoozeDuration(
+                        updateSnoozeValue(
                           duration.id,
-                          Number.isInteger(parsed) && parsed > 0 ? parsed : 15,
+                          Number.isInteger(parsed) && parsed > 0 ? parsed : 1,
                         );
                       }}
                       disabled={disabled}
                       className="w-20 shrink-0 rounded-lg border border-surface-200 bg-surface-50 px-3 py-1.5 text-sm text-surface-800 outline-none transition-colors focus:border-primary-500 focus:bg-white disabled:cursor-not-allowed dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
                     />
-                    <span className="text-sm text-surface-600 dark:text-surface-400">min</span>
+                    <Select
+                      value={duration.unit}
+                      onChange={(e) =>
+                        updateSnoozeUnit(duration.id, e.target.value as SnoozeDuration['unit'])
+                      }
+                      disabled={disabled}
+                      className="shrink-0 rounded-lg border border-surface-200 bg-surface-50 px-2 py-1.5 text-sm text-surface-800 outline-none transition-colors focus:border-primary-500 focus:bg-white disabled:cursor-not-allowed dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
+                    >
+                      {SNOOZE_DURATION_UNITS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Select>
                   </label>
                   {snoozeDurations.length > 1 && (
                     <button

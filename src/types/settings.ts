@@ -57,9 +57,12 @@ export type EditorFieldKey = keyof EditorFieldVisibility;
 
 export type NotificationActionKey = 'complete' | 'snooze';
 
+export type SnoozeDurationUnit = 'seconds' | 'minutes' | 'hours' | 'days' | 'weeks';
+
 export interface SnoozeDuration {
   id: string;
-  minutes: number;
+  value: number;
+  unit: SnoozeDurationUnit;
 }
 
 export interface NotificationActionSettings {

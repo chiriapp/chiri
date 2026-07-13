@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import { snoozeDurationToSeconds } from '$lib/notifications/duration';
 import type {
   NotificationPermissionResult,
   NotificationPermissionStatus,
@@ -65,7 +66,7 @@ export const setNotificationActionConfig = async (config: NotificationActionSett
     config: {
       showComplete: config.complete,
       showSnooze: config.snooze,
-      snoozeDurations: config.snoozeDurations.map((duration) => duration.minutes),
+      snoozeDurations: config.snoozeDurations.map((duration) => snoozeDurationToSeconds(duration)),
       actionOrder: config.order,
     },
   });
