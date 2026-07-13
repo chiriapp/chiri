@@ -3,6 +3,7 @@ import Loader2 from 'lucide-react/icons/loader-2';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Zap from 'lucide-react/icons/zap';
 import { useMemo, useState } from 'react';
+import { useSettingsStore } from '$context/settingsContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { getAllPushSubscriptions, resubscribeAllPushCalendars } from '$lib/push';
 import { getPushProviderConfigKey, getPushProviderLabel } from '$lib/push/providers';
@@ -69,6 +70,7 @@ export const PushOperationalControls = ({
   providerConfig,
   isResolvingProvider,
 }: PushOperationalControlsProps) => {
+  const { enforceVapid } = useSettingsStore();
   const { data: accounts = [] } = useAccounts();
   const [resubscribeMessage, setResubscribeMessage] = useState<string | null>(null);
   const [resubscribeError, setResubscribeError] = useState<string | null>(null);
@@ -114,7 +116,7 @@ export const PushOperationalControls = ({
     setResubscribeError(null);
 
     try {
-      const result = await resubscribeAllPushCalendars(pushAccounts, providerConfig);
+      const result = await resubscribeAllPushCalendars(pushAccounts, providerConfig, enforceVapid);
       setResubscribeMessage(
         `Resubscribed ${result.succeeded}/${result.attempted} push calendar${
           result.attempted === 1 ? '' : 's'

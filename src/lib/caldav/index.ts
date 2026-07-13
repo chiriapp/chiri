@@ -78,24 +78,24 @@ export class CalDAVClient {
   }
 
   // calendars
-  async fetchCalendars() {
-    return calendarOps.fetchCalendars(this.conn, this.accountId);
+  async fetchCalendars(enforceVapid: boolean) {
+    return calendarOps.fetchCalendars(this.conn, this.accountId, enforceVapid);
   }
 
-  async discoverCalendars() {
-    return calendarOps.discoverCalendars(this.conn, this.accountId);
+  async discoverCalendars(enforceVapid: boolean) {
+    return calendarOps.discoverCalendars(this.conn, this.accountId, enforceVapid);
   }
 
   async calendarExists(calendarUrl: string) {
     return calendarOps.calendarExists(this.conn, calendarUrl);
   }
 
-  async createCalendar(displayName: string, color?: string) {
-    return calendarOps.createCalendar(this.conn, this.accountId, displayName, color);
+  async createCalendar(displayName: string, color?: string, enforceVapid = false) {
+    return calendarOps.createCalendar(this.conn, this.accountId, displayName, color, enforceVapid);
   }
 
-  async probeVtodoCalendarCreation() {
-    return calendarOps.probeVtodoCalendarCreation(this.conn, this.accountId);
+  async probeVtodoCalendarCreation(enforceVapid = false) {
+    return calendarOps.probeVtodoCalendarCreation(this.conn, this.accountId, enforceVapid);
   }
 
   async updateCalendar(

@@ -29,6 +29,7 @@ import {
   deleteCalendar,
   discoverCalendars,
   fetchCalendars,
+  parsePushProperties,
   probeVtodoCalendarCreation,
   updateCalendar,
 } from '$lib/caldav/calendars';
@@ -76,6 +77,54 @@ describe('calendarExists', () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(500));
 
     await expect(calendarExists(conn, 'https://x.com/cal/')).rejects.toThrow(/HTTP 500/i);
+  });
+});
+
+describe('parsePushProperties', () => {
+  it('treats web-push with topic as supported when not enforcing VAPID', () => {
+    const result = parsePushProperties('topic', '<transports><web-push/></transports>');
+
+    expect(result.topic).toBe('topic');
+    expect(result.vapidKey).toBeUndefined();
+    expect(result.supported).toBe(true);
+  });
+
+  it('extracts VAPID key when present', () => {
+    const result = parsePushProperties(
+      'topic',
+      '<transports><web-push><vapid-public-key>test-key</vapid-public-key></web-push></transports>',
+    );
+
+    expect(result.topic).toBe('topic');
+    expect(result.vapidKey).toBe('test-key');
+    expect(result.supported).toBe(true);
+  });
+
+  it('rejects web-push without VAPID when enforcement is on', () => {
+    const result = parsePushProperties('topic', '<transports><web-push/></transports>', true);
+
+    expect(result.topic).toBe('topic');
+    expect(result.vapidKey).toBeUndefined();
+    expect(result.supported).toBe(false);
+  });
+
+  it('accepts web-push with VAPID when enforcement is on', () => {
+    const result = parsePushProperties(
+      'topic',
+      '<transports><web-push><vapid-public-key>test-key</vapid-public-key></web-push></transports>',
+      true,
+    );
+
+    expect(result.topic).toBe('topic');
+    expect(result.vapidKey).toBe('test-key');
+    expect(result.supported).toBe(true);
+  });
+
+  it('rejects unsupported transports even with a topic', () => {
+    const result = parsePushProperties('topic', '<transports></transports>');
+
+    expect(result.topic).toBe('topic');
+    expect(result.supported).toBe(false);
   });
 });
 

@@ -97,6 +97,7 @@ pub fn run() {
             macos::dock_menu::update_macos_dock_menu,
             #[cfg(target_os = "macos")]
             macos::window_controls::set_macos_window_decoration_style,
+            notifications::commands::set_notification_action_config,
             notifications::commands::send_notification_with_actions,
             notifications::commands::send_simple_notification,
             notifications::permission::check_notification_permission,

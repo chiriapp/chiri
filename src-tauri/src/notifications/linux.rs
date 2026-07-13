@@ -1,8 +1,11 @@
 use tauri::AppHandle;
 
 use super::{
-    actions,
-    types::{NotificationType, SendNotificationRequest, SimpleNotificationRequest},
+    actions::{self, MAX_NOTIFICATION_ACTIONS},
+    types::{
+        NotificationActionConfig, NotificationType, SendNotificationRequest,
+        SimpleNotificationRequest,
+    },
 };
 
 /// search the system hicolor icon theme for the first matching candidate name
@@ -59,23 +62,42 @@ fn apply_notification_identity(app: &AppHandle, notif: &mut notify_rust::Notific
     }
 }
 
-pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> Result<(), String> {
+pub fn send_notification(
+    app: &AppHandle,
+    request: &SendNotificationRequest,
+    config: &NotificationActionConfig,
+) -> Result<(), String> {
     let mut notif = notify_rust::Notification::new();
     notif.summary(&request.title).body(&request.body);
     apply_notification_identity(app, &mut notif);
 
     match request.notification_type {
-        NotificationType::Overdue => {
-            notif
-                .action(actions::COMPLETE, "Complete")
-                .action(actions::SNOOZE_1HR, "Snooze 1hr")
-                .action(actions::VIEW, "View Task");
-        }
-        NotificationType::Reminder => {
-            notif
-                .action(actions::COMPLETE, "Complete")
-                .action(actions::SNOOZE_15MIN, "Snooze 15min")
-                .action(actions::VIEW, "View Task");
+        NotificationType::Overdue | NotificationType::Reminder => {
+            let mut action_count = 0usize;
+
+            for key in &config.action_order {
+                if action_count >= MAX_NOTIFICATION_ACTIONS {
+                    break;
+                }
+
+                match key.as_str() {
+                    "complete" if config.show_complete => {
+                        notif.action(actions::COMPLETE, actions::COMPLETE_LABEL);
+                        action_count += 1;
+                    }
+                    "snooze" if config.show_snooze => {
+                        for duration in &config.snooze_durations {
+                            if action_count >= MAX_NOTIFICATION_ACTIONS {
+                                break;
+                            }
+                            let snooze_id = actions::snooze_action_id(*duration);
+                            notif.action(&snooze_id, &actions::compact_snooze_label(*duration));
+                            action_count += 1;
+                        }
+                    }
+                    _ => {}
+                }
+            }
         }
     }
 
@@ -93,15 +115,19 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
             }
         };
         handle.wait_for_action(|action| {
+            // body click on Linux is reported as the default action; bring the
+            // main window forward and ask the frontend to highlight the task.
+            if action == "__default" {
+                actions::show_main_window(&app);
+                actions::emit_action(&app, actions::HIGHLIGHT, task_id, notification_type);
+                return;
+            }
+
             let Some(action_name) = actions::plain_action_name(action) else {
                 return;
             };
 
-            if action_name == actions::VIEW {
-                actions::show_main_window(&app);
-            }
-
-            actions::emit_action(&app, action_name, task_id, notification_type);
+            actions::emit_action(&app, &action_name, task_id, notification_type);
         });
     });
 

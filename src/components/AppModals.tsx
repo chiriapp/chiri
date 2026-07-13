@@ -7,7 +7,6 @@ import { ImportModal } from '$components/modals/ImportModal/ImportModal';
 import { MobileConfigImportChooserModal } from '$components/modals/MobileConfigImportChooserModal';
 import { OnboardingModal } from '$components/modals/OnboardingModal/OnboardingModal';
 import { SettingsModal } from '$components/modals/SettingsModal';
-import { TaskActionsModal } from '$components/modals/TaskActionsModal';
 import { UpdateModal } from '$components/modals/UpdateModal';
 import type { FileDropResult } from '$hooks/system/useFileDrop';
 import type { UpdateError, UpdateInfo } from '$hooks/system/useUpdateChecker';
@@ -92,8 +91,6 @@ export const AppModals = ({
     editingCalendar,
     showExportModal,
     exportCalendarId,
-    showTaskActions,
-    taskActionsId,
   } = modals;
   const {
     closeSettings,
@@ -102,7 +99,6 @@ export const AppModals = ({
     closeCreateCalendar,
     closeCalendar,
     closeExport,
-    closeTaskActions,
   } = modalActions;
   const {
     preloadedFile,
@@ -215,14 +211,6 @@ export const AppModals = ({
             exportCalendar?.displayName.replace(/[^a-z0-9]/gi, '-').toLowerCase() ?? 'export'
           }
           onClose={closeExport}
-        />
-      )}
-
-      {showTaskActions && taskActionsId && (
-        <TaskActionsModal
-          isOpen={showTaskActions}
-          taskId={taskActionsId}
-          onClose={closeTaskActions}
         />
       )}
 

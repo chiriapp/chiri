@@ -15,6 +15,7 @@ import type {
   EditorFieldKey,
   EditorFieldVisibility,
   NetworkProxyMode,
+  NotificationActionSettings,
   QuickTimePresets,
   SettingsStore,
   SidebarSectionKey,
@@ -374,6 +375,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     [],
   );
   const setEnablePush = useCallback((enabled: boolean) => settingsStore.setEnablePush(enabled), []);
+  const setEnforceVapid = useCallback(
+    (enabled: boolean) => settingsStore.setEnforceVapid(enabled),
+    [],
+  );
   const setPushProvider = useCallback(
     (provider: PushProviderId) => settingsStore.setPushProvider(provider),
     [],
@@ -389,6 +394,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   );
   const setHasSeenRecentlyDeletedToast = useCallback(
     (seen: boolean) => settingsStore.setHasSeenRecentlyDeletedToast(seen),
+    [],
+  );
+  const setNotificationActions = useCallback(
+    (notificationActions: NotificationActionSettings) =>
+      settingsStore.setNotificationActions(notificationActions),
     [],
   );
   const exportSettings = useCallback(() => settingsStore.exportSettings(), []);
@@ -489,11 +499,13 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setNetworkProxyHost,
     setNetworkProxyPort,
     setEnablePush,
+    setEnforceVapid,
     setPushProvider,
     setNtfyServerUrl,
     setMozillaAutopushWebsocketUrl,
     setMozillaAutopushEndpointUrl,
     setHasSeenRecentlyDeletedToast,
+    setNotificationActions,
     exportSettings,
     importSettings,
     resetSettings,

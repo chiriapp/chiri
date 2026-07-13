@@ -475,9 +475,10 @@ export const subscribeCalendarToPush = async (
   accountId: string,
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+  enforceVapid = false,
 ) => {
-  // check if calendar supports push
-  if (!calendar.pushSupported || !calendar.pushTopic) {
+  // check if calendar supports push (and respects VAPID enforcement if enabled)
+  if (!calendar.pushSupported || !calendar.pushTopic || (enforceVapid && !calendar.pushVapidKey)) {
     log.debug(`Calendar ${calendar.displayName} does not support push`);
     return null;
   }
@@ -656,6 +657,7 @@ const enablePushForCalendarInner = async (
   accountId: string,
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+  enforceVapid = false,
 ) => {
   const subscriptions = await getFreshCalendarSubscriptions(calendar.id);
   const validSubscription = subscriptions.find((sub) =>
@@ -714,7 +716,12 @@ const enablePushForCalendarInner = async (
   }
 
   // subscribe to push
-  const subscription = await subscribeCalendarToPush(accountId, calendar, providerConfig);
+  const subscription = await subscribeCalendarToPush(
+    accountId,
+    calendar,
+    providerConfig,
+    enforceVapid,
+  );
   if (!subscription) {
     return false;
   }
@@ -732,6 +739,7 @@ export const enablePushForCalendar = async (
   accountId: string,
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+  enforceVapid = false,
 ) => {
   const setupKey = getPushSetupKey(accountId, calendar, providerConfig);
   const inFlight = pushEnableInFlight.get(setupKey);
@@ -740,7 +748,7 @@ export const enablePushForCalendar = async (
     return inFlight;
   }
 
-  const setup = enablePushForCalendarInner(accountId, calendar, providerConfig);
+  const setup = enablePushForCalendarInner(accountId, calendar, providerConfig, enforceVapid);
   pushEnableInFlight.set(setupKey, setup);
 
   try {
@@ -801,6 +809,7 @@ export interface ResubscribeAllPushCalendarsResult {
 export const resubscribeAllPushCalendars = async (
   accounts: Account[],
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+  enforceVapid = false,
 ): Promise<ResubscribeAllPushCalendarsResult> => {
   const targets = getPushSubscriptionTargets(accounts);
   let succeeded = 0;
@@ -808,7 +817,12 @@ export const resubscribeAllPushCalendars = async (
   for (const { accountId, calendar } of targets) {
     try {
       await disablePushForCalendar(accountId, calendar.id, providerConfig);
-      const enabled = await enablePushForCalendar(accountId, calendar, providerConfig);
+      const enabled = await enablePushForCalendar(
+        accountId,
+        calendar,
+        providerConfig,
+        enforceVapid,
+      );
       if (enabled) succeeded++;
     } catch (error) {
       log.error(`Failed to resubscribe push for ${calendar.displayName}:`, error);
