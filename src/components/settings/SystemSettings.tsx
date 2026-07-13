@@ -15,6 +15,7 @@ import {
   isMacPlatform,
   removeAppImageDesktopIntegration,
 } from '$utils/platform';
+import { Select } from '../Select';
 
 const formatRestartReasons = (reasons: string[]) => {
   if (reasons.length <= 1) return reasons[0] ?? 'changes';
@@ -310,14 +311,18 @@ export const SystemSettings = () => {
 
       {isMac && (
         <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
-          <label className="flex items-center justify-between gap-4 p-4">
+          <label
+            htmlFor="window-decoration-style"
+            className="flex items-center justify-between gap-4 p-4"
+          >
             <div>
               <p className="text-sm text-surface-700 dark:text-surface-300">Window decorations</p>
               <p className="text-surface-500 text-xs dark:text-surface-400">
                 Choose between integrated or standard decorations
               </p>
             </div>
-            <select
+            <Select
+              id="window-decoration-style"
               value={windowDecorationStyle}
               onChange={(event) =>
                 setWindowDecorationStyle(event.target.value as 'integrated' | 'native')
@@ -326,7 +331,7 @@ export const SystemSettings = () => {
             >
               <option value="integrated">Integrated</option>
               <option value="native">Standard</option>
-            </select>
+            </Select>
           </label>
         </div>
       )}
