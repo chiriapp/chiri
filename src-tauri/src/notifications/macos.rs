@@ -107,7 +107,7 @@ pub async fn send_notification(
 }
 
 use super::{
-    actions::{self, emit_action, macos_action_name, show_main_window, MACOS_COMPLETE},
+    actions::{self, emit_action, macos_action_name, show_main_window, HIGHLIGHT, MACOS_COMPLETE},
     state::NotificationManagerState,
     types::{
         NotificationActionConfig, TASK_OVERDUE_CATEGORY, TASK_REMINDER_CATEGORY,
@@ -240,7 +240,9 @@ async fn handle_response(app: &AppHandle<impl tauri::Runtime>, response: Notific
 
     match response.action {
         NotificationResponseAction::Default => {
+            // body click on macOS: bring the window forward and highlight the task.
             show_main_window(app);
+            emit_action(app, HIGHLIGHT, task_id, notification_type);
         }
         NotificationResponseAction::Dismiss => {
             log::debug!("[Notifications] Notification dismissed");

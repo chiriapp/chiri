@@ -2,6 +2,8 @@ import { listen } from '@tauri-apps/api/event';
 import { differenceInSeconds, isPast } from 'date-fns';
 import { useCallback, useEffect, useRef } from 'react';
 import { useSettingsStore } from '$context/settingsContext';
+import { useTaskHighlight } from '$context/taskHighlightContext';
+import { useTaskSelection } from '$context/taskSelectionContext';
 import { useTasks, useToggleTaskComplete } from '$hooks/queries/useTasks';
 import { loggers } from '$lib/logger';
 import {
@@ -141,10 +143,14 @@ const handleNotificationAction = (
   taskId: string,
   toggleTaskComplete: (taskId: string) => void,
   snoozeTask: (taskId: string, durationMinutes: number) => void,
+  highlightTask: (taskId: string) => void,
 ) => {
   if (action === 'complete') {
     toggleTaskComplete(taskId);
     log.info('Completing task:', taskId);
+  } else if (action === 'highlight') {
+    highlightTask(taskId);
+    log.info('Highlighting task from notification:', taskId);
   } else {
     const match = action.match(/^snooze-(\d+)min$/);
     if (match) {
@@ -199,6 +205,8 @@ export const useNotifications = () => {
     quietHoursEnd,
   } = useSettingsStore();
   const toggleTaskCompleteMutation = useToggleTaskComplete();
+  const { clearSelection } = useTaskSelection();
+  const { highlightTask } = useTaskHighlight();
   const notifiedTasksRef = useRef<Set<string>>(new Set());
   const notifiedRemindersRef = useRef<Set<string>>(new Set());
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -210,6 +218,15 @@ export const useNotifications = () => {
     clearSnoozeKeys(taskId, notifiedRemindersRef.current, notifiedTasksRef.current);
     log.info(`Snoozed notification for task: ${taskId} for ${durationMinutes} minutes`);
   }, []);
+
+  // helper function to highlight a task when its notification body is clicked
+  const handleHighlightTask = useCallback(
+    (taskId: string) => {
+      clearSelection();
+      highlightTask(taskId);
+    },
+    [clearSelection, highlightTask],
+  );
 
   // sync notification action config to the backend whenever it changes
   useEffect(() => {
@@ -270,6 +287,7 @@ export const useNotifications = () => {
         taskId,
         (id) => toggleTaskCompleteMutation.mutate(id),
         handleSnoozeTask,
+        handleHighlightTask,
       );
     });
 
@@ -290,5 +308,6 @@ export const useNotifications = () => {
     quietHoursEnd,
     toggleTaskCompleteMutation,
     handleSnoozeTask,
+    handleHighlightTask,
   ]);
 };

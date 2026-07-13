@@ -79,6 +79,22 @@ vi.mock('$hooks/queries/useTasks', () => ({
   useToggleTaskComplete: () => ({ mutate: taskMocks.toggleTaskComplete }),
 }));
 
+const taskHighlightMocks = vi.hoisted(() => ({
+  highlightTask: vi.fn(),
+}));
+
+vi.mock('$context/taskHighlightContext', () => ({
+  useTaskHighlight: () => ({ highlightTask: taskHighlightMocks.highlightTask }),
+}));
+
+const taskSelectionMocks = vi.hoisted(() => ({
+  clearSelection: vi.fn(),
+}));
+
+vi.mock('$context/taskSelectionContext', () => ({
+  useTaskSelection: () => ({ clearSelection: taskSelectionMocks.clearSelection }),
+}));
+
 (
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
@@ -102,6 +118,8 @@ describe('useNotifications notification-action listener', () => {
     notificationMocks.setNotificationActionConfig.mockClear();
     taskMocks.toggleTaskComplete.mockClear();
     snoozeMocks.snoozeTaskFor.mockClear();
+    taskHighlightMocks.highlightTask.mockClear();
+    taskSelectionMocks.clearSelection.mockClear();
   });
 
   afterEach(async () => {
@@ -157,5 +175,15 @@ describe('useNotifications notification-action listener', () => {
 
     expect(taskMocks.toggleTaskComplete).not.toHaveBeenCalled();
     expect(snoozeMocks.snoozeTaskFor).not.toHaveBeenCalled();
+  });
+
+  it('highlights the task and clears multi-selection when the action is highlight', async () => {
+    await renderHarness();
+
+    emitAction({ action: 'highlight', taskId: 'task-2', notificationType: 'overdue' });
+
+    expect(taskSelectionMocks.clearSelection).toHaveBeenCalledOnce();
+    expect(taskHighlightMocks.highlightTask).toHaveBeenCalledOnce();
+    expect(taskHighlightMocks.highlightTask).toHaveBeenCalledWith('task-2');
   });
 });

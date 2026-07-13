@@ -3,6 +3,7 @@ use tauri::{AppHandle, Emitter, Manager};
 use super::types::NotificationActionEvent;
 
 pub const COMPLETE: &str = "complete";
+pub const HIGHLIGHT: &str = "highlight";
 
 #[cfg(target_os = "macos")]
 pub const MACOS_COMPLETE: &str = "garden.chiri.Chiri.action.complete";

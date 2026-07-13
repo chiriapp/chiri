@@ -105,10 +105,11 @@ pub fn send_notification(
             }
         };
         handle.wait_for_action(|action| {
-            // body click on Linux is reported as the default action; just bring the
-            // main window forward without emitting a notification-action event.
+            // body click on Linux is reported as the default action; bring the
+            // main window forward and ask the frontend to highlight the task.
             if action == "__default" {
                 actions::show_main_window(&app);
+                actions::emit_action(&app, actions::HIGHLIGHT, task_id, notification_type);
                 return;
             }
 

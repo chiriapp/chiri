@@ -87,10 +87,15 @@ pub fn send_notification(
                     Some(action_name) => action_name,
                     None => return,
                 },
-                // body click with no button arg → just bring the main window forward.
-                // highlight/focus-task behavior will be added in a follow-up.
+                // body click with no button arg → bring the window forward and highlight the task.
                 None => {
                     actions::show_main_window(&app);
+                    actions::emit_action(
+                        &app,
+                        actions::HIGHLIGHT,
+                        task_id.clone(),
+                        notification_type.clone(),
+                    );
                     return;
                 }
             };

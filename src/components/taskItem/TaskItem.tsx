@@ -9,6 +9,7 @@ import { TaskItemContextMenu } from '$components/taskItem/TaskItemContextMenu';
 import { TaskItemTitle } from '$components/taskItem/TaskItemTitle';
 import { getPriorityColor, getPriorityRingColor } from '$constants/priority';
 import { useSettingsStore } from '$context/settingsContext';
+import { useTaskHighlight } from '$context/taskHighlightContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useToggleTaskComplete, useUpdateTask } from '$hooks/queries/useTasks';
 import {
@@ -73,8 +74,11 @@ const getOpacityClass = (status: Task['status'], isUnstarted: boolean) => {
 const getSelectionClass = (
   isSelected: boolean,
   isMultiSelected: boolean,
+  isHighlighted: boolean,
   priority: Task['priority'],
 ) => {
+  if (isHighlighted)
+    return 'border-primary-500 bg-primary-50/40 dark:bg-primary-900/20 ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-surface-900';
   if (isMultiSelected)
     return 'border-surface-400 dark:border-surface-500 ring-1 ring-surface-300 dark:ring-surface-600';
   if (isSelected) return `border-transparent ${getPriorityRingColor(priority)}`;
@@ -95,6 +99,7 @@ export const TaskItem = ({
 }: TaskItemProps) => {
   const { data: uiState } = useUIState();
   const { data: accounts = [] } = useAccounts();
+  const { highlightedTaskId } = useTaskHighlight();
   const toggleTaskCompleteMutation = useToggleTaskComplete();
   const updateTaskMutation = useUpdateTask();
   const setActiveTagMutation = useSetActiveTag();
@@ -114,7 +119,8 @@ export const TaskItem = ({
   const activeTagId = uiState?.activeTagId ?? null;
   const showCompletedTasks = uiState?.showCompletedTasks ?? true;
   const isSelected = selectedTaskId === task.id;
-  const isVisuallySelected = isSelected || isMultiSelected;
+  const isHighlighted = highlightedTaskId === task.id;
+  const isVisuallySelected = isSelected || isMultiSelected || isHighlighted;
 
   // focus the task element when it becomes selected via keyboard navigation
   useEffect(() => {
@@ -127,6 +133,13 @@ export const TaskItem = ({
       taskElementRef.current?.focus();
     }
   }, [isSelected, isMultiSelected, isOverlay]);
+
+  // scroll the task into view when it is highlighted from a notification click
+  useEffect(() => {
+    if (isHighlighted && !isOverlay && taskElementRef.current) {
+      taskElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [isHighlighted, isOverlay]);
 
   const checkmarkColor = getContrastTextColor(resolvedAccentColor);
 
@@ -149,7 +162,6 @@ export const TaskItem = ({
   // prevents the "jumping" animation when drag ends and displaced items return to their natural positions
   const style: CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    transition: 'none',
     opacity: isDragging ? 0 : undefined,
     pointerEvents: isDragging ? 'none' : undefined,
   };
@@ -228,7 +240,7 @@ export const TaskItem = ({
   const paddingLeft = 12 + depth * 4;
 
   const containerClass = [
-    'group relative flex items-start gap-3 pr-3 rounded-lg border transition-all outline-hidden',
+    'group relative flex items-start gap-3 pr-3 rounded-lg border task-item-transition outline-hidden',
     'focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-900',
     taskListDensity === 'compact' ? 'py-2' : 'py-3',
     getBackgroundClass(isMultiSelected, isOverlay, contextMenu),
@@ -237,7 +249,7 @@ export const TaskItem = ({
     getOpacityClass(task.status, isUnstarted),
     isDragging ? 'cursor-grabbing' : 'cursor-pointer',
     !isOverlay ? 'hover:bg-surface-50 dark:hover:bg-surface-800/70' : '',
-    getSelectionClass(isSelected, isMultiSelected, task.priority),
+    getSelectionClass(isSelected, isMultiSelected, isHighlighted, task.priority),
     getPriorityColor(task.priority),
   ].join(' ');
 
