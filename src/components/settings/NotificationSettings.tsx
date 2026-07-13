@@ -20,7 +20,7 @@ import {
 } from '$components/settings/NotificationSettingsSortableAction';
 import { useNotificationContext } from '$context/notificationContext';
 import { useSettingsStore } from '$context/settingsContext';
-import type { NotificationActionKey } from '$types/settings';
+import type { NotificationActionKey, SnoozeDuration } from '$types/settings';
 import { isMacPlatform } from '$utils/platform';
 
 const formatHour = (hour: number, use24h: boolean) => {
@@ -96,8 +96,8 @@ export const NotificationSettings = () => {
     setNotificationActions({ ...notificationActions, [key]: value });
   };
 
-  const setSnoozeDuration = (minutes: number) => {
-    setNotificationActions({ ...notificationActions, snoozeDurationMinutes: minutes });
+  const setSnoozeDurations = (durations: SnoozeDuration[]) => {
+    setNotificationActions({ ...notificationActions, snoozeDurations: durations });
   };
 
   const handleActionDragEnd = ({ active, over }: DragEndEvent) => {
@@ -279,9 +279,9 @@ export const NotificationSettings = () => {
                 showBorder={index > 0}
                 checked={notificationActions[action.key]}
                 disabled={macPermissionPending}
-                snoozeDurationMinutes={notificationActions.snoozeDurationMinutes}
+                snoozeDurations={notificationActions.snoozeDurations}
                 onToggle={toggleAction}
-                onSnoozeDurationChange={setSnoozeDuration}
+                onSnoozeDurationsChange={setSnoozeDurations}
               />
             ))}
           </SortableContext>
@@ -292,9 +292,9 @@ export const NotificationSettings = () => {
                 showBorder={false}
                 checked={notificationActions[activeDragKey]}
                 disabled={macPermissionPending}
-                snoozeDurationMinutes={notificationActions.snoozeDurationMinutes}
+                snoozeDurations={notificationActions.snoozeDurations}
                 onToggle={toggleAction}
-                onSnoozeDurationChange={setSnoozeDuration}
+                onSnoozeDurationsChange={setSnoozeDurations}
                 isOverlay
               />
             ) : null}

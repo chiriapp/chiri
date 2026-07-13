@@ -226,19 +226,22 @@ fn build_category_actions(config: &NotificationActionConfig) -> Vec<Notification
     config
         .action_order
         .iter()
-        .filter_map(|key| match key.as_str() {
-            "complete" if config.show_complete => Some(NotificationCategoryAction::Action {
-                identifier: MACOS_COMPLETE.to_string(),
-                title: "Complete".to_string(),
-            }),
-            "snooze" if config.show_snooze => {
-                let identifier = actions::macos_snooze_action_id(config.snooze_duration_minutes);
-                Some(NotificationCategoryAction::Action {
-                    identifier,
-                    title: format!("Snooze {}min", config.snooze_duration_minutes),
-                })
+        .flat_map(|key| match key.as_str() {
+            "complete" if config.show_complete => {
+                vec![NotificationCategoryAction::Action {
+                    identifier: MACOS_COMPLETE.to_string(),
+                    title: "Complete".to_string(),
+                }]
             }
-            _ => None,
+            "snooze" if config.show_snooze => config
+                .snooze_durations
+                .iter()
+                .map(|duration| NotificationCategoryAction::Action {
+                    identifier: actions::macos_snooze_action_id(*duration),
+                    title: format!("Snooze {}min", duration),
+                })
+                .collect(),
+            _ => vec![],
         })
         .collect()
 }

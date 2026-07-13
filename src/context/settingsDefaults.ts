@@ -156,7 +156,10 @@ export const defaultState: SettingsState = {
   notificationActions: {
     complete: true,
     snooze: true,
-    snoozeDurationMinutes: 15,
+    snoozeDurations: [
+      { id: '15m', minutes: 15 },
+      { id: '1h', minutes: 60 },
+    ],
     order: ['complete', 'snooze'],
   },
   hasSeenRecentlyDeletedToast: false,

@@ -65,7 +65,7 @@ export const setNotificationActionConfig = async (config: NotificationActionSett
     config: {
       showComplete: config.complete,
       showSnooze: config.snooze,
-      snoozeDurationMinutes: config.snoozeDurationMinutes,
+      snoozeDurations: config.snoozeDurations.map((duration) => duration.minutes),
       actionOrder: config.order,
     },
   });

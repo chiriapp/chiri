@@ -65,12 +65,14 @@ pub fn send_notification(
                         toast.action(Action::new("Complete", actions::COMPLETE, ""));
                     }
                     "snooze" if config.show_snooze => {
-                        let snooze_id = actions::snooze_action_id(config.snooze_duration_minutes);
-                        toast.action(Action::new(
-                            &format!("Snooze {}min", config.snooze_duration_minutes),
-                            &snooze_id,
-                            "",
-                        ));
+                        for duration in &config.snooze_durations {
+                            let snooze_id = actions::snooze_action_id(*duration);
+                            toast.action(Action::new(
+                                &format!("Snooze {}min", duration),
+                                &snooze_id,
+                                "",
+                            ));
+                        }
                     }
                     _ => {}
                 }

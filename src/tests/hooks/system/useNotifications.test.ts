@@ -56,7 +56,10 @@ const settingsMock = vi.hoisted(() => ({
   notificationActions: {
     complete: true,
     snooze: true,
-    snoozeDurationMinutes: 15,
+    snoozeDurations: [
+      { id: '15m', minutes: 15 },
+      { id: '1h', minutes: 60 },
+    ],
     order: ['complete', 'snooze'],
   },
   notifyReminders: true,
@@ -145,7 +148,10 @@ describe('useNotifications notification-action listener', () => {
     expect(notificationMocks.setNotificationActionConfig).toHaveBeenCalledWith({
       complete: true,
       snooze: true,
-      snoozeDurationMinutes: 15,
+      snoozeDurations: [
+        { id: '15m', minutes: 15 },
+        { id: '1h', minutes: 60 },
+      ],
       order: ['complete', 'snooze'],
     });
   });

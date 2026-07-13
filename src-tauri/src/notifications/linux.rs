@@ -79,11 +79,10 @@ pub fn send_notification(
                         notif.action(actions::COMPLETE, "Complete");
                     }
                     "snooze" if config.show_snooze => {
-                        let snooze_id = actions::snooze_action_id(config.snooze_duration_minutes);
-                        notif.action(
-                            &snooze_id,
-                            &format!("Snooze {}min", config.snooze_duration_minutes),
-                        );
+                        for duration in &config.snooze_durations {
+                            let snooze_id = actions::snooze_action_id(*duration);
+                            notif.action(&snooze_id, &format!("Snooze {}min", duration));
+                        }
                     }
                     _ => {}
                 }
