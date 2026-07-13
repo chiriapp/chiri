@@ -7,7 +7,13 @@ pub fn initialize<R: tauri::Runtime>(app: &mut tauri::App<R>) {
     let notification_manager = NotificationManagerState::new(bundle_id.clone());
 
     #[cfg(target_os = "macos")]
-    notification_manager.register_categories_and_handler(app.handle().clone());
+    {
+        let app_handle = app.handle().clone();
+        let nm = notification_manager.clone();
+        let _ = app.handle().run_on_main_thread(move || {
+            nm.register_categories_and_handler(app_handle, &nm.config());
+        });
+    }
 
     app.manage(notification_manager);
 

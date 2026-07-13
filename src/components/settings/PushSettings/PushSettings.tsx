@@ -89,6 +89,8 @@ export const PushSettings = () => {
   const {
     enablePush,
     setEnablePush,
+    enforceVapid,
+    setEnforceVapid,
     pushProvider,
     setPushProvider,
     ntfyServerUrl,
@@ -299,6 +301,41 @@ export const PushSettings = () => {
           </>
         )}
       </div>
+
+      {enablePush && !pushGated && (
+        <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+          <label className="flex items-center justify-between p-4">
+            <div>
+              <p className="text-sm text-surface-700 dark:text-surface-300">
+                Require VAPID public key
+              </p>
+              <p className="text-surface-500 text-xs dark:text-surface-400">
+                Only use WebDAV Push when the server provides a VAPID key
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={enforceVapid}
+              onChange={(e) => setEnforceVapid(e.target.checked)}
+              className="rounded border-surface-300 outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:border-surface-600"
+            />
+          </label>
+
+          <div className="mx-4 mb-4 flex gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-surface-700 text-xs dark:text-surface-300">
+            <TriangleAlert className="mt-px size-3.5 shrink-0 text-semantic-warning" />
+            <div className="min-w-0 space-y-1">
+              <p>
+                VAPID binds push subscriptions to a specific server, so only that server can send
+                push messages to this device.
+              </p>
+              <p>
+                However, some servers don't support VAPID yet. Enforcing it will disable WebDAV Push
+                on those servers.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {enablePush && (
         <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">

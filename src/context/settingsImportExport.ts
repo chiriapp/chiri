@@ -1,7 +1,7 @@
-import { DEFAULT_SHORTCUTS } from '$constants';
+import { DEFAULT_SHORTCUTS, MAX_NOTIFICATION_ACTIONS } from '$constants';
 import { loggers } from '$lib/logger';
 import type { KeyboardShortcut } from '$types';
-import type { SettingsState } from '$types/settings';
+import type { NotificationActionSettings, SettingsState } from '$types/settings';
 import { isReservedShortcut } from '$utils/keyboard';
 import { normalizeProxyPort } from '$utils/misc';
 
@@ -29,6 +29,13 @@ export const mergeOrder = <T extends string>(storedOrder: unknown, defaultOrder:
   const validStoredOrder = storedOrder.filter((key): key is T => defaultOrder.includes(key as T));
   const missingKeys = defaultOrder.filter((key) => !validStoredOrder.includes(key));
   return [...validStoredOrder, ...missingKeys];
+};
+
+export const clampSnoozeDurations = (actions: NotificationActionSettings) => {
+  const maxSnoozeDurations = actions.complete
+    ? MAX_NOTIFICATION_ACTIONS - 1
+    : MAX_NOTIFICATION_ACTIONS;
+  return actions.snoozeDurations.slice(0, maxSnoozeDurations);
 };
 
 export const exportSettings = (state: SettingsState) => {
@@ -129,6 +136,7 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'networkProxyHost',
       'networkProxyPort',
       'enablePush',
+      'enforceVapid',
       'pushProvider',
       'ntfyServerUrl',
       'mozillaAutopushWebsocketUrl',
@@ -150,6 +158,15 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       : defaultState.editorFieldVisibility;
     newState.editorFieldOrder = mergeOrder(data.editorFieldOrder, defaultState.editorFieldOrder);
 
+    const notificationActions = data.notificationActions
+      ? { ...defaultState.notificationActions, ...data.notificationActions }
+      : defaultState.notificationActions;
+    notificationActions.order = mergeOrder(
+      notificationActions.order,
+      defaultState.notificationActions.order,
+    );
+    notificationActions.snoozeDurations = clampSnoozeDurations(notificationActions);
+    newState.notificationActions = notificationActions;
     newState.taskBadgeVisibility = data.taskBadgeVisibility
       ? { ...defaultState.taskBadgeVisibility, ...data.taskBadgeVisibility }
       : defaultState.taskBadgeVisibility;

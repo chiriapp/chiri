@@ -4,3 +4,13 @@
 .task-item:focus-visible {
   outline: none;
 }
+
+/* applies a highlight to a task item when a user clicks on a notification */
+.task-item-transition {
+  transition:
+    box-shadow 0.2s ease-out,
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out,
+    opacity 0s,
+    transform 0s;
+}

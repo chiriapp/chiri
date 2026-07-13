@@ -55,6 +55,20 @@ export interface EditorFieldVisibility {
 
 export type EditorFieldKey = keyof EditorFieldVisibility;
 
+export type NotificationActionKey = 'complete' | 'snooze';
+
+export interface SnoozeDuration {
+  id: string;
+  minutes: number;
+}
+
+export interface NotificationActionSettings {
+  complete: boolean;
+  snooze: boolean;
+  snoozeDurations: SnoozeDuration[];
+  order: NotificationActionKey[];
+}
+
 export interface TaskBadgeVisibility {
   startDate: boolean;
   dueDate: boolean;
@@ -62,6 +76,7 @@ export interface TaskBadgeVisibility {
   calendar: boolean;
   url: boolean;
   status: boolean;
+  snooze: boolean;
   repeat: boolean;
   subtasks: boolean;
 }
@@ -105,6 +120,7 @@ export interface SettingsState {
   startOfWeek: StartOfWeek;
   timeFormat: TimeFormat;
   dateFormat: DateFormat;
+  notificationActions: NotificationActionSettings;
   notifications: boolean;
   notifyReminders: boolean;
   notifyOverdue: boolean;
@@ -175,6 +191,7 @@ export interface SettingsState {
   networkProxyHost: string;
   networkProxyPort: string;
   enablePush: boolean;
+  enforceVapid: boolean;
   pushProvider: PushProviderId;
   ntfyServerUrl: string;
   mozillaAutopushWebsocketUrl: string;
@@ -205,6 +222,7 @@ interface SettingsActions {
   setStartOfWeek: (day: StartOfWeek) => void;
   setTimeFormat: (format: TimeFormat) => void;
   setDateFormat: (format: DateFormat) => void;
+  setNotificationActions: (notificationActions: NotificationActionSettings) => void;
   setNotifications: (enabled: boolean) => void;
   setNotifyReminders: (enabled: boolean) => void;
   setNotifyOverdue: (enabled: boolean) => void;
@@ -276,6 +294,7 @@ interface SettingsActions {
   setNetworkProxyHost: (host: string) => void;
   setNetworkProxyPort: (port: string) => void;
   setEnablePush: (enabled: boolean) => void;
+  setEnforceVapid: (enabled: boolean) => void;
   setPushProvider: (provider: PushProviderId) => void;
   setNtfyServerUrl: (url: string) => void;
   setMozillaAutopushWebsocketUrl: (url: string) => void;

@@ -21,6 +21,7 @@ import { ModalStateProvider } from '$providers/ModalStateProvider';
 import { NotificationProvider } from '$providers/NotificationProvider';
 import { SettingsProvider } from '$providers/SettingsProvider';
 import { SyncProvider } from '$providers/SyncProvider';
+import { TaskHighlightProvider } from '$providers/TaskHighlightProvider';
 import { TaskSelectionProvider } from '$providers/TaskSelectionProvider';
 import { ToastProvider } from '$providers/ToastProvider';
 
@@ -53,8 +54,10 @@ const renderApp = () => {
                   <ModalStateProvider>
                     <ConfirmDialogProvider>
                       <TaskSelectionProvider>
-                        <ToastProvider />
-                        <App />
+                        <TaskHighlightProvider>
+                          <ToastProvider />
+                          <App />
+                        </TaskHighlightProvider>
                       </TaskSelectionProvider>
                     </ConfirmDialogProvider>
                   </ModalStateProvider>

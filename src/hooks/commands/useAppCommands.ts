@@ -12,7 +12,7 @@ interface UseAppCommandsOptions {
 export const useAppCommands = ({ modals, onSyncCalendar }: UseAppCommandsOptions) => {
   const accountCommands = useAccountCommands({ modals });
   const calendarCommands = useCalendarCommands({ modals, onSyncCalendar });
-  const taskCommands = useTaskCommands({ modals });
+  const taskCommands = useTaskCommands();
   const viewCommands = useViewCommands({ modals });
 
   return {

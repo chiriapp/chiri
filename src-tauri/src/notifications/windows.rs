@@ -1,8 +1,11 @@
 use tauri::AppHandle;
 
 use super::{
-    actions,
-    types::{NotificationType, SendNotificationRequest, SimpleNotificationRequest},
+    actions::{self, MAX_NOTIFICATION_ACTIONS},
+    types::{
+        NotificationActionConfig, NotificationType, SendNotificationRequest,
+        SimpleNotificationRequest,
+    },
 };
 
 /// ensure the app notification icon is present at a stable, known path
@@ -37,7 +40,11 @@ pub fn ensure_notification_icon() -> Option<std::path::PathBuf> {
     Some(icon_path)
 }
 
-pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> Result<(), String> {
+pub fn send_notification(
+    app: &AppHandle,
+    request: &SendNotificationRequest,
+    config: &NotificationActionConfig,
+) -> Result<(), String> {
     use winrt_toast_reborn::{Action, Toast, ToastManager};
 
     let app_id = app.config().identifier.clone();
@@ -51,17 +58,36 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
         .text2(request.body.as_str());
 
     match request.notification_type {
-        NotificationType::Overdue => {
-            toast
-                .action(Action::new("Complete", actions::COMPLETE, ""))
-                .action(Action::new("Snooze 1hr", actions::SNOOZE_1HR, ""))
-                .action(Action::new("View Task", actions::VIEW, ""));
-        }
-        NotificationType::Reminder => {
-            toast
-                .action(Action::new("Complete", actions::COMPLETE, ""))
-                .action(Action::new("Snooze 15min", actions::SNOOZE_15MIN, ""))
-                .action(Action::new("View Task", actions::VIEW, ""));
+        NotificationType::Overdue | NotificationType::Reminder => {
+            let mut action_count = 0usize;
+
+            for key in &config.action_order {
+                if action_count >= MAX_NOTIFICATION_ACTIONS {
+                    break;
+                }
+
+                match key.as_str() {
+                    "complete" if config.show_complete => {
+                        toast.action(Action::new(actions::COMPLETE_LABEL, actions::COMPLETE, ""));
+                        action_count += 1;
+                    }
+                    "snooze" if config.show_snooze => {
+                        for duration in &config.snooze_durations {
+                            if action_count >= MAX_NOTIFICATION_ACTIONS {
+                                break;
+                            }
+                            let snooze_id = actions::snooze_action_id(*duration);
+                            toast.action(Action::new(
+                                &actions::compact_snooze_label(*duration),
+                                &snooze_id,
+                                "",
+                            ));
+                            action_count += 1;
+                        }
+                    }
+                    _ => {}
+                }
+            }
         }
     }
 
@@ -74,17 +100,22 @@ pub fn send_notification(app: &AppHandle, request: &SendNotificationRequest) -> 
                     Some(action_name) => action_name,
                     None => return,
                 },
-                // body click with no button arg → treat as view/open
-                None => actions::VIEW,
+                // body click with no button arg → bring the window forward and highlight the task.
+                None => {
+                    actions::show_main_window(&app);
+                    actions::emit_action(
+                        &app,
+                        actions::HIGHLIGHT,
+                        task_id.clone(),
+                        notification_type.clone(),
+                    );
+                    return;
+                }
             };
-
-            if action_name == actions::VIEW {
-                actions::show_main_window(&app);
-            }
 
             actions::emit_action(
                 &app,
-                action_name,
+                &action_name,
                 task_id.clone(),
                 notification_type.clone(),
             );

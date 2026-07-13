@@ -122,9 +122,11 @@ export const defaultState: SettingsState = {
     calendar: true,
     url: true,
     status: true,
+    snooze: true,
     repeat: true,
     subtasks: true,
   },
+
   taskBadgeOrder: [
     'startDate',
     'dueDate',
@@ -132,9 +134,11 @@ export const defaultState: SettingsState = {
     'calendar',
     'url',
     'status',
+    'snooze',
     'repeat',
     'subtasks',
   ],
+
   quickTimePresets: { morning: 540, afternoon: 720, evening: 1020, night: 1260 },
   connectivityCheckEnabled: true,
   connectivityCheckUrl: '',
@@ -144,9 +148,19 @@ export const defaultState: SettingsState = {
   networkProxyHost: '',
   networkProxyPort: '',
   enablePush: false,
+  enforceVapid: false,
   pushProvider: NTFY_DIRECT_PROVIDER_ID,
   ntfyServerUrl: 'https://ntfy.sh',
   mozillaAutopushWebsocketUrl: DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL,
   mozillaAutopushEndpointUrl: DEFAULT_MOZILLA_AUTOPUSH_ENDPOINT_URL,
+  notificationActions: {
+    complete: true,
+    snooze: true,
+    snoozeDurations: [
+      { id: '15m', minutes: 15 },
+      { id: '1h', minutes: 60 },
+    ],
+    order: ['complete', 'snooze'],
+  },
   hasSeenRecentlyDeletedToast: false,
 };

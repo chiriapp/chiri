@@ -1,6 +1,13 @@
 import { createContext, useContext } from 'react';
 import { DEFAULT_SHORTCUTS } from '$constants';
 import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import {
+  clampSnoozeDurations,
+  exportSettings,
+  importSettings,
+  mergeOrder,
+  mergeShortcuts,
+} from '$context/settingsImportExport';
 import { loggers } from '$lib/logger';
 import type {
   DefaultDateOffset,
@@ -17,6 +24,7 @@ import type {
   EditorFieldKey,
   EditorFieldVisibility,
   NetworkProxyMode,
+  NotificationActionSettings,
   QuickTimePresets,
   SettingsState,
   SettingsStore,
@@ -33,7 +41,6 @@ import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
 import { getShortcutSignature } from '$utils/keyboard';
 import { normalizeProxyPort } from '$utils/misc';
 import { defaultState } from './settingsDefaults';
-import { exportSettings, importSettings, mergeOrder, mergeShortcuts } from './settingsImportExport';
 
 const log = loggers.settings;
 
@@ -61,10 +68,22 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
         ...defaultState.editorFieldVisibility,
         ...loadedState.editorFieldVisibility,
       };
+      loadedState.notificationActions = {
+        ...defaultState.notificationActions,
+        ...loadedState.notificationActions,
+      };
+      loadedState.notificationActions.order = mergeOrder(
+        loadedState.notificationActions.order,
+        defaultState.notificationActions.order,
+      );
+      loadedState.notificationActions.snoozeDurations = clampSnoozeDurations(
+        loadedState.notificationActions,
+      );
       loadedState.taskBadgeVisibility = {
         ...defaultState.taskBadgeVisibility,
         ...loadedState.taskBadgeVisibility,
       };
+
       loadedState.editorFieldOrder = mergeOrder(
         loadedState.editorFieldOrder,
         defaultState.editorFieldOrder,
@@ -232,6 +251,9 @@ export const settingsStore = {
   setTimeFormat: (timeFormat: TimeFormat) => setState({ timeFormat }),
   setDateFormat: (dateFormat: DateFormat) => setState({ dateFormat }),
   setNotifications: (notifications: boolean) => setState({ notifications }),
+  setNotificationActions: (notificationActions: NotificationActionSettings) =>
+    setState({ notificationActions }),
+
   setNotifyReminders: (notifyReminders: boolean) => setState({ notifyReminders }),
   setNotifyOverdue: (notifyOverdue: boolean) => setState({ notifyOverdue }),
   setShowAppIconBadge: (showAppIconBadge: boolean) => setState({ showAppIconBadge }),
@@ -374,6 +396,7 @@ export const settingsStore = {
   setNetworkProxyHost: (networkProxyHost: string) => setState({ networkProxyHost }),
   setNetworkProxyPort: (networkProxyPort: string) => setState({ networkProxyPort }),
   setEnablePush: (enablePush: boolean) => setState({ enablePush }),
+  setEnforceVapid: (enforceVapid: boolean) => setState({ enforceVapid }),
   setPushProvider: (pushProvider: PushProviderId) => setState({ pushProvider }),
   setNtfyServerUrl: (ntfyServerUrl: string) => setState({ ntfyServerUrl }),
   setMozillaAutopushWebsocketUrl: (mozillaAutopushWebsocketUrl: string) =>

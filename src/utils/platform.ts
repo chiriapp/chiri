@@ -111,6 +111,10 @@ export const isAppImageInstall = async () => {
  * returns true when the AppImage desktop integration prompt should be shown
  */
 export const isAppImageDesktopIntegrationNeeded = async () => {
+  if (!isLinuxPlatform()) {
+    return false;
+  }
+
   try {
     return await invoke<boolean>('is_appimage_desktop_integration_needed');
   } catch (error) {
@@ -123,6 +127,10 @@ export const isAppImageDesktopIntegrationNeeded = async () => {
  * returns true when the AppImage desktop file is installed
  */
 export const isAppImageDesktopFileInstalled = async () => {
+  if (!isLinuxPlatform()) {
+    return false;
+  }
+
   try {
     return await invoke<boolean>('is_appimage_desktop_file_installed');
   } catch (error) {
@@ -135,6 +143,10 @@ export const isAppImageDesktopFileInstalled = async () => {
  * install the AppImage desktop file and icon into the user's home directory
  */
 export const installAppImageDesktopIntegration = async () => {
+  if (!isLinuxPlatform()) {
+    return false;
+  }
+
   try {
     await invoke('install_appimage_desktop_integration');
     return true;
@@ -148,6 +160,10 @@ export const installAppImageDesktopIntegration = async () => {
  * decline the AppImage desktop integration prompt
  */
 export const skipAppImageDesktopIntegration = async () => {
+  if (!isLinuxPlatform()) {
+    return false;
+  }
+
   try {
     await invoke('skip_appimage_desktop_integration');
     return true;
@@ -161,6 +177,10 @@ export const skipAppImageDesktopIntegration = async () => {
  * remove the installed AppImage desktop file
  */
 export const removeAppImageDesktopIntegration = async () => {
+  if (!isLinuxPlatform()) {
+    return false;
+  }
+
   try {
     await invoke('remove_appimage_desktop_integration');
     return true;
