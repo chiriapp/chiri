@@ -34,11 +34,32 @@ pub fn macos_snooze_label(minutes: u32) -> String {
     format!("Snooze for {}", format_snooze_duration(minutes))
 }
 
+/// formats a snooze duration in minutes into a compact label for Windows/Linux
+/// - 1 -> "1m"
+/// - 59 -> "59m"
+/// - 60 -> "1h"
+/// - 120 -> "2h"
+/// - 90 -> "90m"
+#[cfg(any(target_os = "linux", target_os = "windows"))]
+pub fn format_compact_snooze_duration(minutes: u32) -> String {
+    if minutes == 1 {
+        "1m".to_string()
+    } else if minutes < 60 {
+        format!("{minutes}m")
+    } else if minutes == 60 {
+        "1h".to_string()
+    } else if minutes.is_multiple_of(60) {
+        format!("{}h", minutes / 60)
+    } else {
+        format!("{minutes}m")
+    }
+}
+
 /// label shown on Windows and Linux notification action buttons
 /// these platforms have constrained button widths, so we use a short "+" prefix
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 pub fn compact_snooze_label(minutes: u32) -> String {
-    format!("+ {}", format_snooze_duration(minutes))
+    format!("+ {}", format_compact_snooze_duration(minutes))
 }
 
 #[cfg(target_os = "macos")]
@@ -135,8 +156,8 @@ mod tests {
     #[cfg(any(target_os = "linux", target_os = "windows"))]
     #[test]
     fn compact_snooze_labels_use_plus_prefix() {
-        assert_eq!(compact_snooze_label(15), "+ 15 min");
-        assert_eq!(compact_snooze_label(60), "+ 1 hour");
-        assert_eq!(compact_snooze_label(120), "+ 2 hours");
+        assert_eq!(compact_snooze_label(15), "+ 15m");
+        assert_eq!(compact_snooze_label(60), "+ 1h");
+        assert_eq!(compact_snooze_label(120), "+ 2h");
     }
 }
