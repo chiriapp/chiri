@@ -29,6 +29,7 @@ pub fn format_snooze_duration(minutes: u32) -> String {
 
 /// label shown on macOS notification action buttons
 /// macOS has space in its Options dropdown, so we can use full wording
+#[cfg(target_os = "macos")]
 pub fn macos_snooze_label(minutes: u32) -> String {
     format!("Snooze for {}", format_snooze_duration(minutes))
 }
@@ -123,6 +124,7 @@ mod tests {
         assert_eq!(format_snooze_duration(180), "3 hours");
     }
 
+    #[cfg(target_os = "macos")]
     #[test]
     fn macos_snooze_labels_use_full_phrasing() {
         assert_eq!(macos_snooze_label(15), "Snooze for 15 min");
