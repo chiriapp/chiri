@@ -1,6 +1,13 @@
 import { createContext, useContext } from 'react';
 import { DEFAULT_SHORTCUTS } from '$constants';
 import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import {
+  clampSnoozeDurations,
+  exportSettings,
+  importSettings,
+  mergeOrder,
+  mergeShortcuts,
+} from '$context/settingsImportExport';
 import { loggers } from '$lib/logger';
 import type {
   DefaultDateOffset,
@@ -28,14 +35,12 @@ import type {
   TaskListDensity,
   WindowDecorationStyle,
 } from '$types/settings';
-
 import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$utils/color/accent';
 import { applyColorScheme, getColorSchemeFlavor } from '$utils/color/scheme';
 import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
 import { getShortcutSignature } from '$utils/keyboard';
 import { normalizeProxyPort } from '$utils/misc';
 import { defaultState } from './settingsDefaults';
-import { exportSettings, importSettings, mergeOrder, mergeShortcuts } from './settingsImportExport';
 
 const log = loggers.settings;
 
@@ -70,6 +75,9 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
       loadedState.notificationActions.order = mergeOrder(
         loadedState.notificationActions.order,
         defaultState.notificationActions.order,
+      );
+      loadedState.notificationActions.snoozeDurations = clampSnoozeDurations(
+        loadedState.notificationActions,
       );
       loadedState.taskBadgeVisibility = {
         ...defaultState.taskBadgeVisibility,

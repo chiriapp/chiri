@@ -11,6 +11,7 @@ import {
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import AlarmClock from 'lucide-react/icons/alarm-clock';
 import CheckSquare from 'lucide-react/icons/check-square';
+import Info from 'lucide-react/icons/info';
 import { useState } from 'react';
 import { MacNotificationCard } from '$components/MacNotificationCard';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
@@ -18,10 +19,12 @@ import {
   type NotificationActionConfig,
   NotificationSettingsSortableAction,
 } from '$components/settings/NotificationSettingsSortableAction';
+import { MAX_NOTIFICATION_ACTIONS } from '$constants';
 import { useNotificationContext } from '$context/notificationContext';
 import { useSettingsStore } from '$context/settingsContext';
+import { usePlatform } from '$hooks/system/usePlatform';
 import type { NotificationActionKey, SnoozeDuration } from '$types/settings';
-import { isMacPlatform } from '$utils/platform';
+import { isLinuxPlatform, isMacPlatform, isWindowsPlatform } from '$utils/platform';
 
 const formatHour = (hour: number, use24h: boolean) => {
   if (use24h) return `${String(hour).padStart(2, '0')}:00`;
@@ -93,7 +96,14 @@ export const NotificationSettings = () => {
     .filter(Boolean) as NotificationActionConfig[];
 
   const toggleAction = (key: NotificationActionKey, value: boolean) => {
-    setNotificationActions({ ...notificationActions, [key]: value });
+    const nextActions = { ...notificationActions, [key]: value };
+    if (key === 'complete' && value) {
+      nextActions.snoozeDurations = nextActions.snoozeDurations.slice(
+        0,
+        MAX_NOTIFICATION_ACTIONS - 1,
+      );
+    }
+    setNotificationActions(nextActions);
   };
 
   const setSnoozeDurations = (durations: SnoozeDuration[]) => {
@@ -115,6 +125,23 @@ export const NotificationSettings = () => {
   const handleActionDragStart = ({ active }: DragStartEvent) => {
     setActiveDragKey(active.id as NotificationActionKey);
   };
+
+  const isLinux = isLinuxPlatform();
+  const isMac = isMacPlatform();
+  const isWindows = isWindowsPlatform();
+  const { isGNOME, isKDE } = usePlatform();
+
+  const platformActionWarning = isMac
+    ? 'macOS supports up to 30 notification actions at once.'
+    : isWindows
+      ? 'Windows supports up to 5 notification actions at once, though the notification layout becomes cramped and button text may be cut off at larger action amounts. More than 5 actions can result in the notification appearing incorrectly.'
+      : isLinux && isGNOME
+        ? 'GNOME only supports up to 3 notification actions at once. Past that, additional actions may not be displayed correctly, or at all.'
+        : isLinux && isKDE
+          ? 'KDE supports up to about 30 notification actions at once, though the notification layout may be uncomfortable to read due to its large width and button text may be cut off at larger action amounts.'
+          : isLinux
+            ? 'Linux desktop environments vary in how many notification actions they display.'
+            : 'Different platforms support different numbers of notification actions.';
 
   return (
     <div className="space-y-4">
@@ -264,6 +291,17 @@ export const NotificationSettings = () => {
       <h4 className="font-semibold text-sm text-surface-700 dark:text-surface-300">
         Notification actions
       </h4>
+      <div className="flex items-start gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-surface-700 text-xs dark:text-surface-300">
+        <Info className="mt-0.5 size-3.5 shrink-0 text-semantic-info" />
+        <div className="space-y-1">
+          <p>{platformActionWarning}</p>
+          <p>
+            Chiri limits notifications to {MAX_NOTIFICATION_ACTIONS} actions (for example, Complete
+            plus up to {MAX_NOTIFICATION_ACTIONS - 1} snooze durations). For practical purposes,
+            it's recommended to keep the number of notification actions active short.
+          </p>
+        </div>
+      </div>
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <DndContext
           sensors={sensors}
@@ -278,6 +316,7 @@ export const NotificationSettings = () => {
                 action={action}
                 showBorder={index > 0}
                 checked={notificationActions[action.key]}
+                complete={notificationActions.complete}
                 disabled={macPermissionPending}
                 snoozeDurations={notificationActions.snoozeDurations}
                 onToggle={toggleAction}
@@ -291,6 +330,7 @@ export const NotificationSettings = () => {
                 action={ACTION_MAP[activeDragKey]}
                 showBorder={false}
                 checked={notificationActions[activeDragKey]}
+                complete={notificationActions.complete}
                 disabled={macPermissionPending}
                 snoozeDurations={notificationActions.snoozeDurations}
                 onToggle={toggleAction}

@@ -2,6 +2,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import GripVertical from 'lucide-react/icons/grip-vertical';
 import type { CSSProperties, ReactNode } from 'react';
+import { MAX_NOTIFICATION_ACTIONS } from '$constants';
 import type { NotificationActionKey, SnoozeDuration } from '$types/settings';
 
 export type NotificationActionConfig = {
@@ -15,6 +16,7 @@ interface NotificationSettingsSortableActionProps {
   action: NotificationActionConfig;
   showBorder: boolean;
   checked: boolean;
+  complete: boolean;
   disabled?: boolean;
   isOverlay?: boolean;
   snoozeDurations?: SnoozeDuration[];
@@ -26,6 +28,7 @@ export const NotificationSettingsSortableAction = ({
   action,
   showBorder,
   checked,
+  complete,
   disabled = false,
   isOverlay = false,
   snoozeDurations,
@@ -59,7 +62,11 @@ export const NotificationSettingsSortableAction = ({
     onSnoozeDurationsChange?.(next);
   };
 
+  const maxSnoozeDurations = complete ? MAX_NOTIFICATION_ACTIONS - 1 : MAX_NOTIFICATION_ACTIONS;
+  const canAddSnoozeDuration = !snoozeDurations || snoozeDurations.length < maxSnoozeDurations;
+
   const addSnoozeDuration = () => {
+    if (!canAddSnoozeDuration) return;
     const next = snoozeDurations ? [...snoozeDurations] : [];
     const last = next[next.length - 1];
     const minutes = last ? last.minutes * 2 : 15;
@@ -140,7 +147,7 @@ export const NotificationSettingsSortableAction = ({
               <button
                 type="button"
                 onClick={addSnoozeDuration}
-                disabled={disabled}
+                disabled={disabled || !canAddSnoozeDuration}
                 className="text-primary-600 text-sm hover:text-primary-700 disabled:cursor-not-allowed dark:text-primary-400 dark:hover:text-primary-300"
               >
                 + Add duration

@@ -1,7 +1,7 @@
 use tauri::AppHandle;
 
 use super::{
-    actions,
+    actions::{self, MAX_NOTIFICATION_ACTIONS},
     types::{
         NotificationActionConfig, NotificationType, SendNotificationRequest,
         SimpleNotificationRequest,
@@ -73,15 +73,26 @@ pub fn send_notification(
 
     match request.notification_type {
         NotificationType::Overdue | NotificationType::Reminder => {
+            let mut action_count = 0usize;
+
             for key in &config.action_order {
+                if action_count >= MAX_NOTIFICATION_ACTIONS {
+                    break;
+                }
+
                 match key.as_str() {
                     "complete" if config.show_complete => {
                         notif.action(actions::COMPLETE, "Complete");
+                        action_count += 1;
                     }
                     "snooze" if config.show_snooze => {
                         for duration in &config.snooze_durations {
+                            if action_count >= MAX_NOTIFICATION_ACTIONS {
+                                break;
+                            }
                             let snooze_id = actions::snooze_action_id(*duration);
-                            notif.action(&snooze_id, &format!("Snooze {}min", duration));
+                            notif.action(&snooze_id, &actions::compact_snooze_label(*duration));
+                            action_count += 1;
                         }
                     }
                     _ => {}

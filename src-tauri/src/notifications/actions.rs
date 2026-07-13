@@ -5,6 +5,41 @@ use super::types::NotificationActionEvent;
 pub const COMPLETE: &str = "complete";
 pub const HIGHLIGHT: &str = "highlight";
 
+pub const MAX_NOTIFICATION_ACTIONS: usize = 5;
+
+/// formats a snooze duration in minutes into a human-readable label
+/// - 1 -> "1 min"
+/// - 59 -> "59 min"
+/// - 60 -> "1 hour"
+/// - 120 -> "2 hours"
+/// - 90 -> "90 min"
+pub fn format_snooze_duration(minutes: u32) -> String {
+    if minutes == 1 {
+        "1 min".to_string()
+    } else if minutes < 60 {
+        format!("{minutes} min")
+    } else if minutes == 60 {
+        "1 hour".to_string()
+    } else if minutes.is_multiple_of(60) {
+        format!("{} hours", minutes / 60)
+    } else {
+        format!("{minutes} min")
+    }
+}
+
+/// label shown on macOS notification action buttons
+/// macOS has space in its Options dropdown, so we can use full wording
+pub fn macos_snooze_label(minutes: u32) -> String {
+    format!("Snooze for {}", format_snooze_duration(minutes))
+}
+
+/// label shown on Windows and Linux notification action buttons
+/// these platforms have constrained button widths, so we use a short "+" prefix
+#[cfg(any(target_os = "linux", target_os = "windows"))]
+pub fn compact_snooze_label(minutes: u32) -> String {
+    format!("+ {}", format_snooze_duration(minutes))
+}
+
 #[cfg(target_os = "macos")]
 pub const MACOS_COMPLETE: &str = "garden.chiri.Chiri.action.complete";
 
@@ -71,4 +106,35 @@ pub fn emit_action<R: tauri::Runtime>(
             notification_type,
         },
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn formats_snooze_durations() {
+        assert_eq!(format_snooze_duration(1), "1 min");
+        assert_eq!(format_snooze_duration(15), "15 min");
+        assert_eq!(format_snooze_duration(59), "59 min");
+        assert_eq!(format_snooze_duration(60), "1 hour");
+        assert_eq!(format_snooze_duration(90), "90 min");
+        assert_eq!(format_snooze_duration(120), "2 hours");
+        assert_eq!(format_snooze_duration(180), "3 hours");
+    }
+
+    #[test]
+    fn macos_snooze_labels_use_full_phrasing() {
+        assert_eq!(macos_snooze_label(15), "Snooze for 15 min");
+        assert_eq!(macos_snooze_label(60), "Snooze for 1 hour");
+        assert_eq!(macos_snooze_label(120), "Snooze for 2 hours");
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    #[test]
+    fn compact_snooze_labels_use_plus_prefix() {
+        assert_eq!(compact_snooze_label(15), "+ 15 min");
+        assert_eq!(compact_snooze_label(60), "+ 1 hour");
+        assert_eq!(compact_snooze_label(120), "+ 2 hours");
+    }
 }

@@ -107,7 +107,10 @@ pub async fn send_notification(
 }
 
 use super::{
-    actions::{self, emit_action, macos_action_name, show_main_window, HIGHLIGHT, MACOS_COMPLETE},
+    actions::{
+        self, emit_action, macos_action_name, show_main_window, HIGHLIGHT, MACOS_COMPLETE,
+        MAX_NOTIFICATION_ACTIONS,
+    },
     state::NotificationManagerState,
     types::{
         NotificationActionConfig, TASK_OVERDUE_CATEGORY, TASK_REMINDER_CATEGORY,
@@ -223,27 +226,36 @@ impl NotificationManagerState {
 }
 
 fn build_category_actions(config: &NotificationActionConfig) -> Vec<NotificationCategoryAction> {
-    config
-        .action_order
-        .iter()
-        .flat_map(|key| match key.as_str() {
+    let mut actions: Vec<NotificationCategoryAction> = Vec::new();
+
+    for key in &config.action_order {
+        if actions.len() >= MAX_NOTIFICATION_ACTIONS {
+            break;
+        }
+
+        match key.as_str() {
             "complete" if config.show_complete => {
-                vec![NotificationCategoryAction::Action {
+                actions.push(NotificationCategoryAction::Action {
                     identifier: MACOS_COMPLETE.to_string(),
                     title: "Complete".to_string(),
-                }]
+                });
             }
-            "snooze" if config.show_snooze => config
-                .snooze_durations
-                .iter()
-                .map(|duration| NotificationCategoryAction::Action {
-                    identifier: actions::macos_snooze_action_id(*duration),
-                    title: format!("Snooze {}min", duration),
-                })
-                .collect(),
-            _ => vec![],
-        })
-        .collect()
+            "snooze" if config.show_snooze => {
+                for duration in &config.snooze_durations {
+                    if actions.len() >= MAX_NOTIFICATION_ACTIONS {
+                        break;
+                    }
+                    actions.push(NotificationCategoryAction::Action {
+                        identifier: actions::macos_snooze_action_id(*duration),
+                        title: actions::macos_snooze_label(*duration),
+                    });
+                }
+            }
+            _ => {}
+        }
+    }
+
+    actions
 }
 
 async fn handle_response(app: &AppHandle<impl tauri::Runtime>, response: NotificationResponse) {
