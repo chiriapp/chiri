@@ -89,7 +89,6 @@ const App = () => {
     onOpenKeyboardShortcuts: () =>
       toggleSettings({ category: 'app', subtab: 'keyboard-shortcuts' }),
     onOpenSettings: () => toggleSettings(),
-    onOpenTaskActions: commands.openTaskActions,
     onSyncCalendar: syncCalendar,
     onTraySync: syncFromTray,
   });

@@ -7,6 +7,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import BellOff from 'lucide-react/icons/bell-off';
 import CalendarClock from 'lucide-react/icons/calendar-clock';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import Clock from 'lucide-react/icons/clock';
@@ -59,6 +60,12 @@ const BADGES: BadgeConfig[] = [
     label: 'Status',
     description: 'In-progress status indicators with percent complete',
     icon: <Timer className="h-4 w-4" />,
+  },
+  {
+    key: 'snooze',
+    label: 'Snooze',
+    description: 'Shown when a task is snoozed',
+    icon: <BellOff className="h-4 w-4" />,
   },
   {
     key: 'repeat',

@@ -1,9 +1,30 @@
+import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import AlarmClock from 'lucide-react/icons/alarm-clock';
+import CheckSquare from 'lucide-react/icons/check-square';
+import Info from 'lucide-react/icons/info';
 import { useState } from 'react';
 import { MacNotificationCard } from '$components/MacNotificationCard';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
+import {
+  type NotificationActionConfig,
+  NotificationSettingsSortableAction,
+} from '$components/settings/NotificationSettingsSortableAction';
+import { MAX_NOTIFICATION_ACTIONS } from '$constants';
 import { useNotificationContext } from '$context/notificationContext';
 import { useSettingsStore } from '$context/settingsContext';
-import { isMacPlatform } from '$utils/platform';
+import { usePlatform } from '$hooks/system/usePlatform';
+import type { NotificationActionKey, SnoozeDuration } from '$types/settings';
+import { isLinuxPlatform, isMacPlatform, isWindowsPlatform } from '$utils/platform';
 
 const formatHour = (hour: number, use24h: boolean) => {
   if (use24h) return `${String(hour).padStart(2, '0')}:00`;
@@ -12,6 +33,26 @@ const formatHour = (hour: number, use24h: boolean) => {
   if (hour === 12) return '12:00 PM';
   return `${hour - 12}:00 PM`;
 };
+
+const ACTIONS: NotificationActionConfig[] = [
+  {
+    key: 'complete',
+    label: 'Complete',
+    description: 'Mark the task as done from the notification',
+    icon: <CheckSquare className="h-4 w-4" />,
+  },
+  {
+    key: 'snooze',
+    label: 'Snooze',
+    description: 'Delay task reminders and remind again later',
+    icon: <AlarmClock className="h-4 w-4" />,
+  },
+];
+
+const ACTION_MAP = Object.fromEntries(ACTIONS.map((action) => [action.key, action])) as Record<
+  NotificationActionKey,
+  NotificationActionConfig
+>;
 
 export const NotificationSettings = () => {
   const {
@@ -30,10 +71,13 @@ export const NotificationSettings = () => {
     quietHoursEnd,
     setQuietHoursEnd,
     timeFormat,
+    notificationActions,
+    setNotificationActions,
   } = useSettingsStore();
 
   const [quietHoursStartModalOpen, setQuietHoursStartModalOpen] = useState(false);
   const [quietHoursEndModalOpen, setQuietHoursEndModalOpen] = useState(false);
+  const [activeDragKey, setActiveDragKey] = useState<NotificationActionKey | null>(null);
 
   const use24h = timeFormat === '24';
   const { permissionStatus, isCheckingPermission, requestPermission } = useNotificationContext();
@@ -45,6 +89,59 @@ export const NotificationSettings = () => {
     permissionStatus !== null &&
     permissionStatus !== 'granted' &&
     permissionStatus !== 'provisional';
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  const orderedActions = notificationActions.order
+    .map((key) => ACTION_MAP[key])
+    .filter(Boolean) as NotificationActionConfig[];
+
+  const toggleAction = (key: NotificationActionKey, value: boolean) => {
+    const nextActions = { ...notificationActions, [key]: value };
+    if (key === 'complete' && value) {
+      nextActions.snoozeDurations = nextActions.snoozeDurations.slice(
+        0,
+        MAX_NOTIFICATION_ACTIONS - 1,
+      );
+    }
+    setNotificationActions(nextActions);
+  };
+
+  const setSnoozeDurations = (durations: SnoozeDuration[]) => {
+    setNotificationActions({ ...notificationActions, snoozeDurations: durations });
+  };
+
+  const handleActionDragEnd = ({ active, over }: DragEndEvent) => {
+    setActiveDragKey(null);
+    if (!over || active.id === over.id) return;
+    const oldIndex = notificationActions.order.indexOf(active.id as NotificationActionKey);
+    const newIndex = notificationActions.order.indexOf(over.id as NotificationActionKey);
+    if (oldIndex === -1 || newIndex === -1) return;
+    setNotificationActions({
+      ...notificationActions,
+      order: arrayMove(notificationActions.order, oldIndex, newIndex),
+    });
+  };
+
+  const handleActionDragStart = ({ active }: DragStartEvent) => {
+    setActiveDragKey(active.id as NotificationActionKey);
+  };
+
+  const isLinux = isLinuxPlatform();
+  const isMac = isMacPlatform();
+  const isWindows = isWindowsPlatform();
+  const { isGNOME, isKDE } = usePlatform();
+
+  const platformActionWarning = isMac
+    ? 'macOS supports up to 30 notification actions at once.'
+    : isWindows
+      ? 'Windows supports up to 5 notification actions at once, though the notification layout becomes cramped and button text may be cut off at larger action amounts. More than 5 actions can result in the notification appearing incorrectly.'
+      : isLinux && isGNOME
+        ? 'GNOME only supports up to 3 notification actions at once. Past that, additional actions may not be displayed correctly, or at all.'
+        : isLinux && isKDE
+          ? 'KDE supports up to about 30 notification actions at once, though the notification layout may be uncomfortable to read due to its large width and button text may be cut off at larger action amounts.'
+          : isLinux
+            ? 'Linux desktop environments vary in how many notification actions they display.'
+            : 'Different platforms support different numbers of notification actions.';
 
   return (
     <div className="space-y-4">
@@ -189,6 +286,60 @@ export const NotificationSettings = () => {
             </div>
           </div>
         )}
+      </div>
+
+      <h4 className="font-semibold text-sm text-surface-700 dark:text-surface-300">
+        Notification actions
+      </h4>
+      <div className="flex items-start gap-2 rounded-lg border border-semantic-info/30 bg-semantic-info/10 px-3 py-2 text-surface-700 text-xs dark:text-surface-300">
+        <Info className="mt-0.5 size-3.5 shrink-0 text-semantic-info" />
+        <div className="space-y-1">
+          <p>{platformActionWarning}</p>
+          <p>
+            Chiri limits notifications to {MAX_NOTIFICATION_ACTIONS} actions (for example, Complete
+            plus up to {MAX_NOTIFICATION_ACTIONS - 1} snooze durations). For practical purposes,
+            it's recommended to keep the number of notification actions active short.
+          </p>
+        </div>
+      </div>
+      <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleActionDragStart}
+          onDragEnd={handleActionDragEnd}
+        >
+          <SortableContext items={notificationActions.order} strategy={verticalListSortingStrategy}>
+            {orderedActions.map((action, index) => (
+              <NotificationSettingsSortableAction
+                key={action.key}
+                action={action}
+                showBorder={index > 0}
+                checked={notificationActions[action.key]}
+                complete={notificationActions.complete}
+                disabled={macPermissionPending}
+                snoozeDurations={notificationActions.snoozeDurations}
+                onToggle={toggleAction}
+                onSnoozeDurationsChange={setSnoozeDurations}
+              />
+            ))}
+          </SortableContext>
+          <DragOverlay>
+            {activeDragKey ? (
+              <NotificationSettingsSortableAction
+                action={ACTION_MAP[activeDragKey]}
+                showBorder={false}
+                checked={notificationActions[activeDragKey]}
+                complete={notificationActions.complete}
+                disabled={macPermissionPending}
+                snoozeDurations={notificationActions.snoozeDurations}
+                onToggle={toggleAction}
+                onSnoozeDurationsChange={setSnoozeDurations}
+                isOverlay
+              />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       </div>
 
       <TimePickerModal

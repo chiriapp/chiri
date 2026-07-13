@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { useEffect, useState } from 'react';
+import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
 import {
@@ -33,6 +34,7 @@ export const FastmailOAuthStep = ({
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
   const { syncAll } = useSyncQuery();
+  const { enforceVapid } = useSettingsStore();
 
   const handleConnect = async () => {
     setError('');
@@ -65,7 +67,7 @@ export const FastmailOAuthStep = ({
       const username = usernameFromPrincipalUrl(principalUrl);
 
       log.info('[FastmailOAuth] Fetching calendars');
-      const calendars = await CalDAVClient.getForAccount(accountId).fetchCalendars();
+      const calendars = await CalDAVClient.getForAccount(accountId).fetchCalendars(enforceVapid);
       log.info(`[FastmailOAuth] Found ${calendars.length} calendars`);
 
       createAccountMutation.mutate(

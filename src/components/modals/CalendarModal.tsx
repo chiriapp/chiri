@@ -31,6 +31,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
   const {
     defaultCalendarColor,
     enablePush,
+    enforceVapid,
     pushProvider,
     ntfyServerUrl,
     mozillaAutopushWebsocketUrl,
@@ -139,6 +140,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
       const newCalendar = await CalDAVClient.getForAccount(accountId).createCalendar(
         displayName,
         color,
+        enforceVapid,
       );
       const calendarData = { ...newCalendar, icon, emoji };
       await addCalendarMutation.mutateAsync({ accountId, calendarData });
@@ -158,7 +160,7 @@ export const CalendarModal = ({ calendar, accountId, onClose }: CalendarModalPro
             return;
           }
 
-          await enablePushForCalendar(accountId, calendarData, pushProviderConfig);
+          await enablePushForCalendar(accountId, calendarData, pushProviderConfig, enforceVapid);
         } catch (error) {
           log.warn(
             `Failed to enable push for newly created calendar ${calendarData.displayName}:`,

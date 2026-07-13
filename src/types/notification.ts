@@ -25,7 +25,7 @@ export interface SimpleNotificationOptions {
 }
 
 export interface NotificationActionEvent {
-  action: 'complete' | 'snooze-15min' | 'snooze-1hr' | 'view';
+  action: string;
   taskId: string;
   notificationType: string;
 }

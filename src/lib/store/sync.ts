@@ -548,7 +548,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
 
   let remoteCalendars: Calendar[];
   try {
-    remoteCalendars = await client.fetchCalendars();
+    remoteCalendars = await client.fetchCalendars(settingsStore.getState().enforceVapid);
   } catch (error) {
     syncLog.error(`Failed to fetch calendars for ${account.name}:`, error);
     const errorMessage = getErrorMessage(error);

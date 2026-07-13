@@ -54,6 +54,10 @@ winrt-toast-reborn = "0.3.8"
 tauri-plugin-http = { version = "2", default-features = false, features = ["native-tls", "macos-system-configuration"] }
 reqwest = { version = "0.12", features = ["native-tls", "socks"] }
 user-notify = "0.4.1"
+objc2 = "0.6"
+objc2-foundation = "0.3"
+objc2-user-notifications = "0.3"
+block2 = "0.6"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 tauri-plugin-http = { version = "2", default-features = false, features = ["rustls-tls-native-roots"] }

@@ -37,9 +37,10 @@ export const calendarExists = async (conn: Connection, calendarUrl: string) => {
  * scanning the full response body, which would cause all calendars to inherit the first
  * match found anywhere in the document
  */
-const parsePushProperties = (
+export const parsePushProperties = (
   topicProp: string | null | undefined,
   transportsProp: string | null | undefined,
+  enforceVapid = false,
 ): { topic?: string; vapidKey?: string; supported: boolean } => {
   const topic = (topicProp ?? '').trim() || undefined;
 
@@ -52,7 +53,7 @@ const parsePushProperties = (
   return {
     topic,
     vapidKey,
-    supported: !!topic && hasWebPush,
+    supported: !!topic && hasWebPush && (!enforceVapid || !!vapidKey),
   };
 };
 
@@ -79,6 +80,7 @@ export interface CalendarDiscoveryResult {
 export const discoverCalendars = async (
   conn: Connection,
   accountId: string,
+  enforceVapid = false,
 ): Promise<CalendarDiscoveryResult> => {
   // include WebDAV Push properties in the PROPFIND request
   const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
@@ -151,7 +153,11 @@ export const discoverCalendars = async (
     const calendarUrl = makeAbsoluteUrl(result.href, conn.serverUrl);
     const serverOrder = result.props['calendar-order'];
 
-    const pushProps = parsePushProperties(result.props.topic, result.props.transports);
+    const pushProps = parsePushProperties(
+      result.props.topic,
+      result.props.transports,
+      enforceVapid,
+    );
 
     calendars.push({
       id: calendarUrl,
@@ -173,8 +179,8 @@ export const discoverCalendars = async (
   return { calendars, diagnostics };
 };
 
-export const fetchCalendars = async (conn: Connection, accountId: string) => {
-  return (await discoverCalendars(conn, accountId)).calendars;
+export const fetchCalendars = async (conn: Connection, accountId: string, enforceVapid = false) => {
+  return (await discoverCalendars(conn, accountId, enforceVapid)).calendars;
 };
 
 export const createCalendar = async (
@@ -182,6 +188,7 @@ export const createCalendar = async (
   accountId: string,
   displayName: string,
   color?: string,
+  enforceVapid = false,
 ) => {
   const isVikunja = conn.serverType === 'vikunja' || conn.calendarHome.includes('/dav/projects');
   if (isVikunja) {
@@ -231,7 +238,7 @@ export const createCalendar = async (
   };
 
   try {
-    const { calendars } = await discoverCalendars(conn, accountId);
+    const { calendars } = await discoverCalendars(conn, accountId, enforceVapid);
     const discoveredCalendar = calendars.find(
       (calendar) => calendar.id === calendarUrl || calendar.url === calendarUrl,
     );
@@ -248,9 +255,13 @@ export const createCalendar = async (
   return fallbackCalendar;
 };
 
-export const probeVtodoCalendarCreation = async (conn: Connection, accountId: string) => {
+export const probeVtodoCalendarCreation = async (
+  conn: Connection,
+  accountId: string,
+  enforceVapid = false,
+) => {
   const displayName = `Chiri VTODO capability check ${Date.now()} ${Math.random().toString(36).slice(2, 8)}`;
-  const probeCalendar = await createCalendar(conn, accountId, displayName);
+  const probeCalendar = await createCalendar(conn, accountId, displayName, undefined, enforceVapid);
 
   try {
     await deleteCalendar(conn, probeCalendar.url);

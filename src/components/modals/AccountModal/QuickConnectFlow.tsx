@@ -2,6 +2,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
 import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
@@ -69,6 +70,7 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
     const createAccountMutation = useCreateAccount();
     const addCalendarMutation = useAddCalendar();
     const { syncAll } = useSyncQuery();
+    const { enforceVapid } = useSettingsStore();
 
     const config = CONFIG[serverType];
     const isLoading = isValidating || isLoggingIn || isProcessing;
@@ -167,7 +169,7 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
           serverType,
         );
 
-        const calendars = await CalDAVClient.getForAccount(accountId).fetchCalendars();
+        const calendars = await CalDAVClient.getForAccount(accountId).fetchCalendars(enforceVapid);
         log.info(`Found ${calendars?.length ?? 0} calendars`);
 
         await createAccountMutation.mutateAsync({

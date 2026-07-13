@@ -31,8 +31,6 @@ export interface AppModalState {
   editingCalendar: EditingCalendar | null;
   showExportModal: boolean;
   exportCalendarId: string | null;
-  showTaskActions: boolean;
-  taskActionsId: string | null;
   mobileConfigAccountId: string | null;
 }
 
@@ -50,8 +48,6 @@ export interface AppModalActions {
   closeCalendar: () => void;
   openExport: (calendarId: string) => void;
   closeExport: () => void;
-  openTaskActions: (taskId: string) => void;
-  closeTaskActions: () => void;
   openMobileConfigExport: (accountId: string) => void;
   closeMobileConfigExport: () => void;
 }

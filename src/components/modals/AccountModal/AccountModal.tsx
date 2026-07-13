@@ -17,6 +17,7 @@ import { ServerTypePicker } from '$components/modals/AccountModal/ServerTypePick
 import { MobileConfigSignatureWarning } from '$components/modals/MobileConfigSignatureWarning';
 import { getPredefinedServerUrl, SERVER_TYPE_OPTIONS } from '$constants/settings';
 import { useConfirmDialog } from '$context/confirmDialogContext';
+import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount, useUpdateAccount } from '$hooks/queries/useAccounts';
 import { CalDAVClient } from '$lib/caldav';
 import {
@@ -104,6 +105,7 @@ export function AccountModal({
     useState<QuickConnectLoginStep>('input');
   const [fastmailOAuthSetupInProgress, setFastmailOAuthSetupInProgress] = useState(false);
   const [navDirection, setNavDirection] = useState<'forward' | 'back' | null>(null);
+  const { enforceVapid } = useSettingsStore();
   const [quickConnectButtonState, setQuickConnectButtonState] = useState({
     disabled: true,
     loading: false,
@@ -390,8 +392,12 @@ export function AccountModal({
 
       log.debug(`Fetching calendars...`);
       const client = CalDAVClient.getForAccount(tempId);
-      const { calendars, diagnostics } = await client.discoverCalendars();
-      const canCreateVtodoCalendar = await probeSetupVtodoCreationIfNeeded(client, diagnostics);
+      const { calendars, diagnostics } = await client.discoverCalendars(enforceVapid);
+      const canCreateVtodoCalendar = await probeSetupVtodoCreationIfNeeded(
+        client,
+        diagnostics,
+        enforceVapid,
+      );
       log.info(`Connection test successful - found ${calendars.length} calendars`);
 
       setTestedConnectionId(tempId);
@@ -486,8 +492,12 @@ export function AccountModal({
 
     log.debug(`Fetching calendars...`);
     const client = CalDAVClient.getForAccount(tempId);
-    const { calendars, diagnostics } = await client.discoverCalendars();
-    const canCreateVtodoCalendar = await probeSetupVtodoCreationIfNeeded(client, diagnostics);
+    const { calendars, diagnostics } = await client.discoverCalendars(enforceVapid);
+    const canCreateVtodoCalendar = await probeSetupVtodoCreationIfNeeded(
+      client,
+      diagnostics,
+      enforceVapid,
+    );
     log.info(`Found ${calendars.length} calendars:`, calendars);
     setSetupNotice(getSetupNotice(diagnostics, canCreateVtodoCalendar));
 
