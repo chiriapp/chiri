@@ -12,12 +12,12 @@ import { PushOperationalControls } from '$components/settings/PushSettings/PushO
 import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/push/usePushProviderAvailability';
 import { useAccounts } from '$hooks/queries/useAccounts';
+import { getPushProviderDescription, getPushProviderLabel } from '$lib/push/providers';
 import {
   DEFAULT_MOZILLA_AUTOPUSH_ENDPOINT_URL,
   DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL,
-} from '$lib/push/mozillaAutopushProvider';
-import { DEFAULT_NTFY_SERVER_URL } from '$lib/push/ntfyProvider';
-import { getPushProviderDescription, getPushProviderLabel } from '$lib/push/providers';
+} from '$lib/push/providers/mozillaAutopush';
+import { DEFAULT_NTFY_SERVER_URL } from '$lib/push/providers/ntfy';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,
   MOZILLA_AUTOPUSH_PROVIDER_ID,

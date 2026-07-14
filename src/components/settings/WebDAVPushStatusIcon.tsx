@@ -3,7 +3,7 @@ import Loader2 from 'lucide-react/icons/loader-2';
 import TriangleAlert from 'lucide-react/icons/triangle-alert';
 import Zap from 'lucide-react/icons/zap';
 import ZapOff from 'lucide-react/icons/zap-off';
-import type { WebDAVPushStatus } from '$lib/push/webDAVPushStatus';
+import type { WebDAVPushStatus } from '$lib/push/status';
 
 export const WebDAVPushStatusIcon = ({ icon }: { icon: WebDAVPushStatus['icon'] }) => {
   switch (icon) {

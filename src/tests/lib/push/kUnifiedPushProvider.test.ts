@@ -4,7 +4,7 @@ import {
   createKUnifiedPushProviderSubscription,
   removeKUnifiedPushProviderSubscription,
   restoreKUnifiedPushProviderSubscription,
-} from '$lib/push/kUnifiedPushProvider';
+} from '$lib/push/providers/kUnifiedPush';
 import type { Calendar } from '$types';
 import { KUNIFIED_PUSH_PROVIDER_ID, type PushSubscription } from '$types/push';
 

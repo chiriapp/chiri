@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { usePlatform } from '$hooks/system/usePlatform';
 import { isPushProviderAvailable } from '$lib/push';
-import { createMozillaAutopushProviderConfig } from '$lib/push/mozillaAutopushProvider';
-import { createNtfyProviderConfig } from '$lib/push/ntfyProvider';
 import { getPushProviderConfigKey } from '$lib/push/providers';
+import { createMozillaAutopushProviderConfig } from '$lib/push/providers/mozillaAutopush';
+import { createNtfyProviderConfig } from '$lib/push/providers/ntfy';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,
   MOZILLA_AUTOPUSH_PROVIDER_ID,

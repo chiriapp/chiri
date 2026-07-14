@@ -8,7 +8,7 @@ import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color';
 import {
   DEFAULT_MOZILLA_AUTOPUSH_ENDPOINT_URL,
   DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL,
-} from '$lib/push/mozillaAutopushProvider';
+} from '$lib/push/providers/mozillaAutopush';
 import { NTFY_DIRECT_PROVIDER_ID } from '$types/push';
 import type { SettingsState } from '$types/settings';
 import { getDefaultAccentColor } from '$utils/color/scheme';

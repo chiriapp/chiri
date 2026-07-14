@@ -17,7 +17,7 @@ import {
   resubscribeAllPushCalendars,
 } from '$lib/push';
 import { getPushProviderConfigKey } from '$lib/push/providers';
-import { getWebDAVPushStatus, webdavPushToneClass } from '$lib/push/webDAVPushStatus';
+import { getWebDAVPushStatus, webdavPushToneClass } from '$lib/push/status';
 import { queryKeys } from '$lib/queryClient';
 import type { Account } from '$types';
 import type {

@@ -7,7 +7,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { log } from '$lib/caldav/utils';
-import { base64UrlEncode, generateWebPushKeyPair } from '$lib/push/webPushKeys';
+import { base64UrlEncode, generateWebPushKeyPair } from '$lib/push/keys';
 import type { Calendar } from '$types';
 import {
   NTFY_DIRECT_PROVIDER_ID,

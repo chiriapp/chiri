@@ -11,7 +11,7 @@ import { fetchCalendars } from '$lib/caldav/calendars';
 import { connect } from '$lib/caldav/connection';
 import { registerPushSubscription, unregisterPushSubscription } from '$lib/caldav/push';
 import { createTask, deleteTask } from '$lib/caldav/tasks';
-import { generateWebPushKeyPair } from '$lib/push/webPushKeys';
+import { generateWebPushKeyPair } from '$lib/push/keys';
 import type { Calendar, Task } from '$types';
 import { makeTask } from '../fixtures';
 import {

@@ -7,7 +7,7 @@ import {
   removeMozillaAutopushProviderSubscription,
   restoreMozillaAutopushProviderSubscription,
   startMozillaAutopushProviderListening,
-} from '$lib/push/mozillaAutopushProvider';
+} from '$lib/push/providers/mozillaAutopush';
 import type { Calendar } from '$types';
 import { MOZILLA_AUTOPUSH_PROVIDER_ID, type PushSubscription } from '$types/push';
 

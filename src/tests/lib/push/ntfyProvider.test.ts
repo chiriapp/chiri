@@ -9,7 +9,7 @@ import {
   removeNtfyProviderSubscription,
   restoreNtfyProviderSubscription,
   startNtfyProviderListening,
-} from '$lib/push/ntfyProvider';
+} from '$lib/push/providers/ntfy';
 import type { Calendar } from '$types';
 import { NTFY_DIRECT_PROVIDER_ID, type PushSubscription } from '$types/push';
 

@@ -7,7 +7,7 @@ import {
   startKUnifiedPushProviderListening,
   stopAllKUnifiedPushProviderListeners,
   stopKUnifiedPushProviderListening,
-} from '$lib/push/kUnifiedPushProvider';
+} from '$lib/push/providers/kUnifiedPush';
 import {
   createMozillaAutopushProviderSubscription,
   getMozillaAutopushProviderSubscriptionDiagnostics,
@@ -18,7 +18,7 @@ import {
   startMozillaAutopushProviderListening,
   stopAllMozillaAutopushProviderListeners,
   stopMozillaAutopushProviderListening,
-} from '$lib/push/mozillaAutopushProvider';
+} from '$lib/push/providers/mozillaAutopush';
 import {
   createNtfyProviderSubscription,
   getNtfyProviderSubscriptionDiagnostics,
@@ -29,7 +29,7 @@ import {
   startNtfyProviderListening,
   stopAllNtfyProviderListeners,
   stopNtfyProviderListening,
-} from '$lib/push/ntfyProvider';
+} from '$lib/push/providers/ntfy';
 import type { Calendar } from '$types';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,

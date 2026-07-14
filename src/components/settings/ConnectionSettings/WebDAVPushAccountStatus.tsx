@@ -8,7 +8,7 @@ import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/push/usePushProviderAvailability';
 import { getWebDAVPushAccountDiagnostics } from '$lib/push';
 import { getPushProviderConfigKey, getPushProviderLabel } from '$lib/push/providers';
-import { getWebDAVPushStatus, webdavPushToneClass } from '$lib/push/webDAVPushStatus';
+import { getWebDAVPushStatus, webdavPushToneClass } from '$lib/push/status';
 import { queryKeys } from '$lib/queryClient';
 import type { Account } from '$types';
 import type { PushProviderConfig, WebDAVPushAccountDiagnostics } from '$types/push';
