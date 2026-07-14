@@ -8,7 +8,6 @@ import Info from 'lucide-react/icons/info';
 import { useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
-import { EXPORT_FORMATS } from '$constants/export';
 import {
   exportTasksAsCsv,
   exportTasksAsIcs,
@@ -68,6 +67,38 @@ const getExportContent = (format: ExportFormat, tasks: Task[]) => {
       return '';
   }
 };
+
+const EXPORT_FORMATS: Array<{
+  id: ExportFormat;
+  label: string;
+  description: string;
+  ext: string;
+}> = [
+  {
+    id: 'ics',
+    label: 'iCalendar (.ics)',
+    description: 'Universal calendar format, compatible with most apps',
+    ext: 'ics',
+  },
+  {
+    id: 'json',
+    label: 'JSON',
+    description: 'Complete data export for backup or reimport',
+    ext: 'json',
+  },
+  {
+    id: 'markdown',
+    label: 'Markdown',
+    description: 'Readable checklist format for notes and wikis',
+    ext: 'md',
+  },
+  {
+    id: 'csv',
+    label: 'CSV',
+    description: 'Spreadsheet-compatible format',
+    ext: 'csv',
+  },
+];
 
 interface ExportModalProps {
   tasks: Task[];
