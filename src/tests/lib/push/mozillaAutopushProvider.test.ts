@@ -35,7 +35,7 @@ vi.mock('$lib/caldav/utils', () => ({
   log: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 
-vi.mock('$lib/push/webPushKeys', () => ({
+vi.mock('$lib/push/keys', () => ({
   generateWebPushKeyPair: vi.fn(() =>
     Promise.resolve({
       publicKey: 'public-key',

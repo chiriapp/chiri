@@ -33,7 +33,7 @@ vi.mock('@tauri-apps/api/event', () => ({
   listen: tauriMocks.listen,
 }));
 
-vi.mock('$lib/push/webPushKeys', () => ({
+vi.mock('$lib/push/keys', () => ({
   base64UrlEncode: () => 'abc123abc123',
   generateWebPushKeyPair: vi.fn(() =>
     Promise.resolve({
