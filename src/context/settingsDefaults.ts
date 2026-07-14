@@ -4,7 +4,7 @@ import {
   DEFAULT_SHORTCUTS,
   DEFAULT_SIDEBAR_WIDTH,
 } from '$constants';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color';
 import {
   DEFAULT_MOZILLA_AUTOPUSH_ENDPOINT_URL,
   DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL,

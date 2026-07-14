@@ -1,4 +1,4 @@
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color';
 import type { AccentColor } from '$types/color';
 import { getColorSchemeColorPresets } from '$utils/color/scheme';
 

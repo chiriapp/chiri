@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import { DEFAULT_SHORTCUTS } from '$constants';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/colorSchemes';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color';
 import {
   clampSnoozeDurations,
   exportSettings,
