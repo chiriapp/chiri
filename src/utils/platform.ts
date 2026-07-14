@@ -6,10 +6,8 @@ import type { InstallType } from '$types';
 const log = loggers.platform;
 
 const platformDisplayNames: Record<string, string> = {
-  android: 'Android',
   dragonfly: 'DragonFly BSD',
   freebsd: 'FreeBSD',
-  ios: 'iOS',
   linux: 'Linux',
   macos: 'macOS',
   netbsd: 'NetBSD',
