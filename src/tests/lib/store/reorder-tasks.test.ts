@@ -3,7 +3,7 @@ import { DEFAULT_SORT_CONFIG } from '$constants';
 import { reorderTaskList } from '$lib/store/reorder/tasks';
 import type { Task } from '$types';
 import type { FlattenedTask } from '$types/store';
-import { flattenTasks } from '$utils/tree';
+import { flattenTasks } from '$utils/sortable';
 import { makeTask } from '../../fixtures';
 
 vi.mock('$lib/store', () => ({

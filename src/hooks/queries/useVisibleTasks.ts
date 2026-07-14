@@ -7,7 +7,7 @@ import { getChildTasks } from '$lib/store/tasks';
 import type { Task } from '$types';
 import type { SortConfig } from '$types/sort';
 import type { UIState } from '$types/store';
-import { flattenTasks } from '$utils/tree';
+import { flattenTasks } from '$utils/sortable';
 
 interface VisibleTasksOptions {
   activeView: UIState['activeView'];
