@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import { useRef, useState } from 'react';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
-import { WebDAVPushStatusIcon } from '$components/settings/WebDAVPushStatusIcon';
+import { WebDAVPushStatusIcon } from '$components/WebDAVPushStatusIcon';
 import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/push/usePushProviderAvailability';
 import { getWebDAVPushAccountDiagnostics } from '$lib/push';
