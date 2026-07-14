@@ -1,5 +1,3 @@
-import { save } from '@tauri-apps/plugin-dialog';
-import { writeTextFile } from '@tauri-apps/plugin-fs';
 import AlertCircle from 'lucide-react/icons/alert-circle';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import Copy from 'lucide-react/icons/copy';
@@ -16,7 +14,8 @@ import {
 } from '$lib/ical/export';
 import { loggers } from '$lib/logger';
 import type { Calendar, ExportFormat, ExportType, Task } from '$types';
-import { downloadFile, pluralize } from '$utils/misc';
+import { saveTextFile } from '$utils/fs';
+import { pluralize } from '$utils/misc';
 
 const log = loggers.export;
 
@@ -143,36 +142,18 @@ export const ExportModal = ({
       const format = EXPORT_FORMATS.find((f) => f.id === selectedFormat);
       const fullFileName = `${fileName}.${format?.ext}`;
 
-      try {
-        // use the dialog plugin to get save path
-        const path = await save({
-          defaultPath: fullFileName,
-          filters: [
-            {
-              name: format?.label || 'Export',
-              extensions: [format?.ext || 'txt'],
-            },
-          ],
-        });
+      const result = await saveTextFile(content, {
+        defaultPath: fullFileName,
+        filterName: format?.label || 'Export',
+        extensions: [format?.ext || 'txt'],
+      });
 
-        if (path) {
-          // write the file using the fs plugin
-          await writeTextFile(path, content);
-          onClose();
-        }
-      } catch (err: unknown) {
-        // if dialog is cancelled or error, fall back to browser download
-        const errorMessage = err instanceof Error ? err.message : '';
-        if (errorMessage.includes('dialog cancelled') || errorMessage.includes('user closed')) {
-          // silently handle user cancellation
-          setExporting(false);
-          return;
-        }
-
-        // for any other error, try browser fallback
-        downloadFile(content, fullFileName, `text/plain;charset=utf-8`);
-        onClose();
+      if (result === 'cancelled') {
+        setExporting(false);
+        return;
       }
+
+      onClose();
     } catch (err) {
       setError(`Failed to export: ${err instanceof Error ? err.message : 'Unknown error'}`);
       log.error('Failed to export:', err);
