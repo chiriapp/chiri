@@ -1,7 +1,7 @@
 import { connectionStore } from '$context/connectionContext';
 import { hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
-import type { CalDAVCredentials } from '$lib/tauriHttp';
-import { parseMultiStatus, propfind, tauriRequest } from '$lib/tauriHttp';
+import type { CalDAVCredentials } from '$lib/http';
+import { parseMultiStatus, propfind, tauriRequest } from '$lib/http';
 import type { Account, ServerType } from '$types';
 
 interface ServerConfig {

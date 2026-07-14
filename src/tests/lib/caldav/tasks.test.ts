@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTask, deleteTask, updateTask } from '$lib/caldav/tasks';
-import type { HttpResponse, MultiStatusResponse } from '$lib/tauriHttp';
-import * as http from '$lib/tauriHttp';
+import type { HttpResponse, MultiStatusResponse } from '$lib/http';
+import * as http from '$lib/http';
 import { makeCalendar, makeConnection, makeTask } from '../../fixtures';
 
 // mock the entire tauri-http module. all functions call into Tauri IPC which
 // isn't available outside the Tauri runtime
-vi.mock('$lib/tauriHttp', () => ({
+vi.mock('$lib/http', () => ({
   put: vi.fn(),
   propfind: vi.fn(),
   parseMultiStatus: vi.fn(),

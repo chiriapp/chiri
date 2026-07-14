@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { HttpResponse } from '$lib/tauriHttp';
+import type { HttpResponse } from '$lib/http';
 
-vi.mock('$lib/tauriHttp', () => ({
+vi.mock('$lib/http', () => ({
   propfind: vi.fn(),
   parseMultiStatus: vi.fn(() => []),
   tauriRequest: vi.fn(),
@@ -27,7 +27,7 @@ vi.mock('$lib/caldav/utils', () => ({
 }));
 
 import { connect, detectVikunja, handleCommonHttpErrors } from '$lib/caldav/connection';
-import * as http from '$lib/tauriHttp';
+import * as http from '$lib/http';
 
 const httpOk = (status: number, body = ''): HttpResponse => ({ status, headers: {}, body });
 

@@ -1,9 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { settingsStore } from '$context/settingsContext';
+import { getNetworkProxyConfig, type HttpResponse } from '$lib/http';
 import { loggers } from '$lib/logger';
 import { getAllAccounts } from '$lib/store/accounts';
-import { getNetworkProxyConfig, type HttpResponse } from '$lib/tauriHttp';
 
 const log = loggers.connectivity;
 

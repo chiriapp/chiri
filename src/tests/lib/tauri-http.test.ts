@@ -6,7 +6,7 @@ vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 vi.mock('@tauri-apps/plugin-http', () => ({ fetch: vi.fn() }));
 
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
-import { parseMultiStatus, tauriRequest } from '$lib/tauriHttp';
+import { parseMultiStatus, tauriRequest } from '$lib/http';
 
 const xml = (body: string) => `<?xml version="1.0" encoding="utf-8"?>${body}`;
 

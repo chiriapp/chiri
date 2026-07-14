@@ -10,7 +10,7 @@
  */
 
 import { log } from '$lib/caldav/utils';
-import { type CalDAVCredentials, tauriRequest } from '$lib/tauriHttp';
+import { type CalDAVCredentials, tauriRequest } from '$lib/http';
 import type { PushRegistration, PushTrigger, WebPushSubscription } from '$types/push';
 
 // WebDAV Push XML namespace

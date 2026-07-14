@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CalDAVCredentials, HttpResponse } from '$lib/tauriHttp';
+import type { CalDAVCredentials, HttpResponse } from '$lib/http';
 
-vi.mock('$lib/tauriHttp', () => ({
+vi.mock('$lib/http', () => ({
   tauriRequest: vi.fn(),
 }));
 vi.mock('$lib/caldav/utils', () => ({
@@ -9,7 +9,7 @@ vi.mock('$lib/caldav/utils', () => ({
 }));
 
 import { registerPushSubscription } from '$lib/caldav/push';
-import * as http from '$lib/tauriHttp';
+import * as http from '$lib/http';
 
 const response = (headers: Record<string, string>): HttpResponse => ({
   status: 201,

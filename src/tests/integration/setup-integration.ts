@@ -1,7 +1,7 @@
 /**
  * integration-test setup. loaded by vitest before integration tests run
  *
- * the key trick: swap `$lib/tauriHttp` for the fetch shim so the real
+ * the key trick: swap `$lib/http` for the fetch shim so the real
  * production CalDAV functions can run without a Tauri runtime. also stub the
  * connection store (writes are a side effect we don't care about in tests)
  */
@@ -15,7 +15,7 @@ for (const [key, value] of Object.entries(integrationEnv)) {
   process.env[key] ??= value;
 }
 
-vi.mock('$lib/tauriHttp', async () => {
+vi.mock('$lib/http', async () => {
   const shim = await import('./fetch-shim');
   return shim;
 });

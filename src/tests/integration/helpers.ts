@@ -6,7 +6,7 @@ import {
 } from '$lib/caldav/calendars';
 import type { Connection } from '$lib/caldav/connection';
 import { deleteTask, fetchTasks } from '$lib/caldav/tasks';
-import type { CalDAVCredentials } from '$lib/tauriHttp';
+import type { CalDAVCredentials } from '$lib/http';
 import type { Calendar, ServerType } from '$types';
 
 export const url = process.env.CHIRI_TEST_CALDAV_URL;

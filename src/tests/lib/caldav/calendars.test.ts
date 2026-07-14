@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { HttpResponse, MultiStatusResponse } from '$lib/tauriHttp';
+import type { HttpResponse, MultiStatusResponse } from '$lib/http';
 import { makeConnection } from '../../fixtures';
 
-vi.mock('$lib/tauriHttp', () => ({
+vi.mock('$lib/http', () => ({
   propfind: vi.fn(),
   proppatch: vi.fn(),
   mkcalendar: vi.fn(),
@@ -33,7 +33,7 @@ import {
   probeVtodoCalendarCreation,
   updateCalendar,
 } from '$lib/caldav/calendars';
-import * as http from '$lib/tauriHttp';
+import * as http from '$lib/http';
 
 const httpOk = (status: number, body = ''): HttpResponse => ({ status, headers: {}, body });
 const multi = (

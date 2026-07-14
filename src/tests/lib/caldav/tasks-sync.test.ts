@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { HttpResponse, MultiStatusResponse } from '$lib/tauriHttp';
+import type { HttpResponse, MultiStatusResponse } from '$lib/http';
 import type { Task } from '$types';
 import { makeCalendar, makeConnection, makeTask } from '../../fixtures';
 
 // syncCalendar internally calls fetchTasks (same module). ESM bindings mean we
 // can't replace fetchTasks via vi.mock. mock the layer below (http + ical)
 // instead, and drive the fetchTasks pipeline by controlling those responses
-vi.mock('$lib/tauriHttp', () => ({
+vi.mock('$lib/http', () => ({
   put: vi.fn(),
   propfind: vi.fn(),
   parseMultiStatus: vi.fn(),
@@ -26,8 +26,8 @@ vi.mock('$lib/caldav/utils', () => ({
 }));
 
 import { syncCalendar } from '$lib/caldav/tasks';
+import * as http from '$lib/http';
 import * as ical from '$lib/ical/vtodo';
-import * as http from '$lib/tauriHttp';
 
 const conn = makeConnection();
 const calendar = makeCalendar({ id: 'cal-1', url: 'https://cal.example.com/calendars/default/' });

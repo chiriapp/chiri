@@ -12,8 +12,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { registerDeepLinkHandler, unregisterDeepLinkHandler } from '$lib/deepLink';
+import type { HttpResponse } from '$lib/http';
 import { loggers } from '$lib/logger';
-import type { HttpResponse } from '$lib/tauriHttp';
 
 const log = loggers.account;
 

@@ -5,6 +5,7 @@ import { settingsStore } from '$context/settingsContext';
 import { toastManager } from '$hooks/ui/useToast';
 import { CalDAVClient } from '$lib/caldav';
 import { db } from '$lib/database';
+import { getErrorMessage } from '$lib/http';
 import { taskToVTodo, vtodoToTask } from '$lib/ical/vtodo';
 import { loggers } from '$lib/logger';
 import { disablePushForCalendar } from '$lib/push';
@@ -15,7 +16,6 @@ import { addCalendar, deleteCalendar, updateCalendar } from '$lib/store/calendar
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
 import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$lib/store/tasks';
 import { getUIState, setAllTasksView } from '$lib/store/ui';
-import { getErrorMessage } from '$lib/tauriHttp';
 import type { Account, CalDAVTaskObject, Calendar, Task, TaskWithCalDAVObject } from '$types';
 import { getColorSchemeColorPresets } from '$utils/color/scheme';
 import { generateTagColor } from '$utils/color/tag';

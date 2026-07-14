@@ -29,10 +29,10 @@ import {
 } from '$lib/caldav/setup';
 import { hasHttpUrlScheme, isValidPrincipalUrlOverride } from '$lib/caldav/utils';
 import { getServerWarning, getUrlWarning, toConfirmOptions } from '$lib/caldav/warnings';
+import { isCertError, tauriRequest } from '$lib/http';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
-import { isCertError, tauriRequest } from '$lib/tauriHttp';
 import type { Account, Calendar, ServerType } from '$types';
 import type { MobileConfigImportSelection } from '$types/mobileconfig';
 import { generateUUID } from '$utils/misc';

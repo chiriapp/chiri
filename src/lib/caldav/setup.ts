@@ -1,6 +1,6 @@
 import type { CalDAVClient } from '$lib/caldav';
 import type { CalendarDiscoveryDiagnostics } from '$lib/caldav/calendars';
-import { getErrorMessage, isCertError } from '$lib/tauriHttp';
+import { getErrorMessage, isCertError } from '$lib/http';
 import type { ServerType } from '$types';
 
 export interface CalDAVSetupError {

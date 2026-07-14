@@ -1,7 +1,7 @@
 import type { Connection } from '$lib/caldav/connection';
 import { NS_WEBDAV_PUSH } from '$lib/caldav/push';
 import { log, makeAbsoluteUrl } from '$lib/caldav/utils';
-import { del, mkcalendar, parseMultiStatus, propfind, proppatch } from '$lib/tauriHttp';
+import { del, mkcalendar, parseMultiStatus, propfind, proppatch } from '$lib/http';
 import type { Calendar } from '$types';
 import { normalizeHexColor } from '$utils/color';
 

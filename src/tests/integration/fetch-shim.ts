@@ -1,5 +1,5 @@
 /**
- * fetch shim of $lib/tauriHttp for integration tests
+ * fetch shim of $lib/http for integration tests
  *
  * the production module routes through Tauri IPC (`invoke('http_request', ...)`
  * or `tauriFetch`). neither is available in plain Node. this shim re-implements
@@ -12,7 +12,7 @@
  */
 
 import { DOMParser, type Element, type Node } from '@xmldom/xmldom';
-import type { CalDAVCredentials, HttpResponse, MultiStatusResponse } from '$lib/tauriHttp';
+import type { CalDAVCredentials, HttpResponse, MultiStatusResponse } from '$lib/http';
 
 const authHeader = (credentials: CalDAVCredentials) =>
   credentials.bearerToken

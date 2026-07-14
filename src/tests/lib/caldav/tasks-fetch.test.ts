@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { HttpResponse, MultiStatusResponse } from '$lib/tauriHttp';
+import type { HttpResponse, MultiStatusResponse } from '$lib/http';
 import { makeCalendar, makeConnection, makeTask } from '../../fixtures';
 
-vi.mock('$lib/tauriHttp', () => ({
+vi.mock('$lib/http', () => ({
   put: vi.fn(),
   propfind: vi.fn(),
   parseMultiStatus: vi.fn(),
@@ -22,8 +22,8 @@ vi.mock('$lib/caldav/utils', () => ({
 }));
 
 import { fetchTasks } from '$lib/caldav/tasks';
+import * as http from '$lib/http';
 import * as ical from '$lib/ical/vtodo';
-import * as http from '$lib/tauriHttp';
 
 const conn = makeConnection({ serverUrl: 'https://cal.example.com' });
 const calendar = makeCalendar({ id: 'cal-1', url: 'https://cal.example.com/calendars/default/' });
