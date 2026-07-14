@@ -7,8 +7,8 @@ import { createElement, useCallback, useEffect, useState } from 'react';
 import { settingsStore } from '$context/settingsContext';
 import { toastManager } from '$hooks/ui/useToast';
 import { loggers } from '$lib/logger';
+import { fetchReleaseNotes } from '$utils/meta';
 import { getInstallType, getPackageManagerName, shouldDisableUpdates } from '$utils/platform';
-import { fetchReleaseNotes } from '$utils/version';
 
 const log = loggers.updater;
 

@@ -15,7 +15,7 @@ import { ChangelogModal } from '$components/modals/ChangelogModal';
 import { AboutSettingsLinkRow } from '$components/settings/AboutSettings/AboutSettingsLinkRow';
 import { AboutSettingsSection } from '$components/settings/AboutSettings/AboutSettingsSection';
 import { useChangelog } from '$hooks/useChangelog';
-import { getAppInfo } from '$utils/version';
+import { getAppInfo } from '$utils/meta';
 
 const GITHUB_URL = 'https://github.com/chiriapp/chiri';
 const NEW_ISSUE_URL = 'https://github.com/chiriapp/chiri/issues/new';

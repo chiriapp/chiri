@@ -10,8 +10,8 @@ import { ChangelogModal } from '$components/modals/ChangelogModal';
 import { useSettingsStore } from '$context/settingsContext';
 import { useManagedInstallation } from '$hooks/system/useManagedInstallation';
 import { useUpdateChecker } from '$hooks/system/useUpdateChecker';
+import { getAppInfo } from '$utils/meta';
 import { getPackageManagerName } from '$utils/platform';
-import { getAppInfo } from '$utils/version';
 
 export const UpdateSettings = () => {
   const { version } = getAppInfo();

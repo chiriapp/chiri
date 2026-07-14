@@ -6,7 +6,7 @@ import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { useSettingsStore } from '$context/settingsContext';
 import { formatDate } from '$utils/date';
-import { cleanChangelog } from '$utils/github';
+import { cleanChangelog } from '$utils/meta';
 
 interface ChangelogModalProps {
   version: string;

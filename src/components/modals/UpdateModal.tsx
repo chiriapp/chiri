@@ -8,7 +8,7 @@ import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import type { UpdateError, UpdateInfo } from '$hooks/system/useUpdateChecker';
-import { cleanChangelog, getChangelogPreview } from '$utils/github';
+import { cleanChangelog, getChangelogPreview } from '$utils/meta';
 
 interface UpdateModalProps {
   updateInfo: UpdateInfo;

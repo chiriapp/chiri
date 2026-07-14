@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { fetchReleaseNotes } from '$utils/version';
+import { fetchReleaseNotes } from '$utils/meta';
 
 interface ChangelogData {
   version: string;
