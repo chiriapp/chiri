@@ -3,7 +3,7 @@ import {
   type CalDAVWarning,
   UNSUPPORTED_CALDAV_WARNINGS,
   type UnsupportedCalDAVProvider,
-} from '$constants/caldav';
+} from '$constants/warnings';
 import type { ConfirmOptions } from '$context/confirmDialogContext';
 import type { ServerType } from '$types';
 
