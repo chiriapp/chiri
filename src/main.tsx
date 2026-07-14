@@ -13,7 +13,7 @@ import {
 } from '$lib/bootstrap';
 import { loggers } from '$lib/logger';
 import { queryClient } from '$lib/queryClient';
-import { watchWindowState } from '$lib/windowState';
+import { watchWindowState } from '$lib/window';
 import { ConfirmDialogProvider } from '$providers/ConfirmDialogProvider';
 import { ConnectionProvider } from '$providers/ConnectionProvider';
 import { DismissableLayerProvider } from '$providers/DismissableLayerProvider';
