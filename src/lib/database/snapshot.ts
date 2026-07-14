@@ -3,7 +3,7 @@ import { DEFAULT_CALENDAR_NAME } from '$constants';
 import { createAccount, getAllAccounts } from '$lib/database/accounts';
 import { addCalendar } from '$lib/database/calendars';
 import { bootstrapDefaultFilters, getAllFilters } from '$lib/database/filters';
-import { getPendingDeletions } from '$lib/database/pendingDeletions';
+import { getPendingDeletions } from '$lib/database/pending';
 import { getAllTags } from '$lib/database/tags';
 import { getAllTasks } from '$lib/database/tasks';
 import { getUIState, setAllTasksView } from '$lib/database/ui';

@@ -4,7 +4,7 @@ import * as caldavTaskObjectOps from '$lib/database/caldav';
 import * as calendarOps from '$lib/database/calendars';
 import * as filterOps from '$lib/database/filters';
 import * as historyOps from '$lib/database/history';
-import * as pendingOps from '$lib/database/pendingDeletions';
+import * as pendingOps from '$lib/database/pending';
 import * as pushOps from '$lib/database/pushSubscriptions';
 import * as snapshotOps from '$lib/database/snapshot';
 import * as tagOps from '$lib/database/tags';
