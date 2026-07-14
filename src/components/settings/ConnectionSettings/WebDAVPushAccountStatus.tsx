@@ -1,27 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import ChevronDown from 'lucide-react/icons/chevron-down';
-import CircleAlert from 'lucide-react/icons/circle-alert';
-import Loader2 from 'lucide-react/icons/loader-2';
-import Zap from 'lucide-react/icons/zap';
-import ZapOff from 'lucide-react/icons/zap-off';
 import { useRef, useState } from 'react';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
+import { WebDAVPushStatusIcon } from '$components/settings/WebDAVPushStatusIcon';
 import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderAvailability } from '$hooks/push/usePushProviderAvailability';
 import { getWebDAVPushAccountDiagnostics } from '$lib/push';
 import { getPushProviderConfigKey, getPushProviderLabel } from '$lib/push/providers';
+import { getWebDAVPushStatus, webdavPushToneClass } from '$lib/push/webDAVPushStatus';
 import { queryKeys } from '$lib/queryClient';
 import type { Account } from '$types';
 import type { PushProviderConfig, WebDAVPushAccountDiagnostics } from '$types/push';
-
-type WebDAVPushStatusTone = 'success' | 'warning' | 'muted' | 'info';
-
-interface WebDAVPushStatus {
-  label: string;
-  tone: WebDAVPushStatusTone;
-  icon: 'ready' | 'off' | 'warning' | 'checking';
-}
 
 interface WebDAVPushAccountStatusProps {
   account: Account;
@@ -31,101 +21,6 @@ interface WebDAVPushStatusDetail {
   label: string;
   value: string;
 }
-
-const webdavPushToneClass: Record<WebDAVPushStatusTone, string> = {
-  success: 'text-semantic-success',
-  warning: 'text-semantic-warning',
-  muted: 'text-surface-500 dark:text-surface-400',
-  info: 'text-semantic-info',
-};
-
-const getWebDAVPushStatus = (
-  account: Account,
-  providerAvailable: boolean | undefined,
-  providerChecking: boolean,
-  diagnostics: WebDAVPushAccountDiagnostics | undefined,
-): WebDAVPushStatus => {
-  const calendarCount = account.calendars.length;
-  const supportedCount = account.calendars.filter((calendar) => calendar.pushSupported).length;
-
-  if (calendarCount === 0) {
-    return {
-      label: 'No calendars',
-      tone: 'muted',
-      icon: 'off',
-    };
-  }
-
-  if (supportedCount === 0) {
-    return {
-      label: 'Unsupported',
-      tone: 'muted',
-      icon: 'off',
-    };
-  }
-
-  if (providerChecking) {
-    return {
-      label: 'Checking provider',
-      tone: 'info',
-      icon: 'checking',
-    };
-  }
-
-  if (providerAvailable === false) {
-    return {
-      label: 'Provider unavailable',
-      tone: 'warning',
-      icon: 'warning',
-    };
-  }
-
-  if (!diagnostics) {
-    return {
-      label: 'Checking status',
-      tone: 'info',
-      icon: 'checking',
-    };
-  }
-
-  if (diagnostics.registeredCalendars === 0) {
-    return {
-      label: 'Not registered',
-      tone: 'warning',
-      icon: 'warning',
-    };
-  }
-
-  if (diagnostics.listeningCalendars === 0) {
-    return {
-      label: 'Registered, not listening',
-      tone: 'warning',
-      icon: 'warning',
-    };
-  }
-
-  if (diagnostics.listeningCalendars < diagnostics.registeredCalendars) {
-    return {
-      label: 'Partially listening',
-      tone: 'warning',
-      icon: 'warning',
-    };
-  }
-
-  if (diagnostics.expiringSoonCalendars > 0) {
-    return {
-      label: 'Renewal due',
-      tone: 'info',
-      icon: 'ready',
-    };
-  }
-
-  return {
-    label: 'Listening',
-    tone: 'success',
-    icon: 'ready',
-  };
-};
 
 const formatAge = (date: Date | null) => {
   if (!date) return null;
@@ -171,19 +66,6 @@ const getWebDAVPushStatusDetails = (
   }
 
   return details;
-};
-
-const WebDAVPushStatusIcon = ({ icon }: { icon: WebDAVPushStatus['icon'] }) => {
-  switch (icon) {
-    case 'checking':
-      return <Loader2 className="size-3.5 shrink-0 animate-spin" />;
-    case 'warning':
-      return <CircleAlert className="size-3.5 shrink-0" />;
-    case 'off':
-      return <ZapOff className="size-3.5 shrink-0" />;
-    case 'ready':
-      return <Zap className="size-3.5 shrink-0 fill-current" />;
-  }
 };
 
 export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProps) => {

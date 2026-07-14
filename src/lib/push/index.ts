@@ -342,6 +342,7 @@ const createRegisteredPushSubscription = async (
   calendar: Calendar,
   conn: Connection,
   providerConfig: PushProviderConfig,
+  invalidate = true,
 ) => {
   const webPushSubscription = await createWebPushSubscription(calendar, providerConfig);
   if (!webPushSubscription) {
@@ -388,7 +389,9 @@ const createRegisteredPushSubscription = async (
   };
 
   await db.upsertPushSubscription(subscription);
-  invalidatePushCaches(calendar.id);
+  if (invalidate) {
+    invalidatePushCaches(calendar.id);
+  }
 
   log.info(
     `Push subscription created for ${calendar.displayName}, expires: ${registration.expires.toISOString()}`,
@@ -403,6 +406,7 @@ const cleanupSupersededSubscriptions = async (
   supersededSubscriptions: PushSubscription[],
   replacement: PushSubscription,
   providerConfig: PushProviderConfig,
+  invalidate = true,
 ) => {
   for (const subscription of supersededSubscriptions) {
     await unregisterStoredSubscription(accountId, subscription);
@@ -420,7 +424,9 @@ const cleanupSupersededSubscriptions = async (
   }
 
   if (supersededSubscriptions.length > 0) {
-    invalidatePushCaches(calendar.id);
+    if (invalidate) {
+      invalidatePushCaches(calendar.id);
+    }
     log.info(
       `Removed ${supersededSubscriptions.length} superseded push subscription(s) for ${calendar.displayName}`,
     );
@@ -433,6 +439,7 @@ const recreateCalendarPushSubscription = async (
   supersededSubscriptions: PushSubscription[],
   providerConfig: PushProviderConfig,
   reason: string,
+  invalidate = true,
 ) => {
   if (!isConnected(accountId)) {
     log.warn(
@@ -453,6 +460,7 @@ const recreateCalendarPushSubscription = async (
     calendar,
     conn,
     providerConfig,
+    invalidate,
   );
   if (!replacement) {
     return null;
@@ -464,6 +472,7 @@ const recreateCalendarPushSubscription = async (
     supersededSubscriptions,
     replacement,
     providerConfig,
+    invalidate,
   );
   return replacement;
 };
@@ -476,6 +485,7 @@ export const subscribeCalendarToPush = async (
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
   enforceVapid = false,
+  invalidate = true,
 ) => {
   // check if calendar supports push (and respects VAPID enforcement if enabled)
   if (!calendar.pushSupported || !calendar.pushTopic || (enforceVapid && !calendar.pushVapidKey)) {
@@ -529,6 +539,7 @@ export const subscribeCalendarToPush = async (
     calendar,
     conn,
     providerConfig,
+    invalidate,
   );
   if (!subscription) {
     return null;
@@ -540,6 +551,7 @@ export const subscribeCalendarToPush = async (
     existingSubscriptions,
     subscription,
     providerConfig,
+    invalidate,
   );
   return subscription;
 };
@@ -547,7 +559,11 @@ export const subscribeCalendarToPush = async (
 /**
  * unsubscribe a calendar from WebDAV Push
  */
-export const unsubscribeCalendarFromPush = async (accountId: string, calendarId: string) => {
+export const unsubscribeCalendarFromPush = async (
+  accountId: string,
+  calendarId: string,
+  invalidate = true,
+) => {
   const subscriptions = await getFreshCalendarSubscriptions(calendarId);
 
   if (subscriptions.length === 0) {
@@ -573,11 +589,14 @@ export const unsubscribeCalendarFromPush = async (accountId: string, calendarId:
     }
 
     await db.deletePushSubscription(subscription.id);
-    removeSubscriptionFromCaches(subscription);
+    if (invalidate) {
+      removeSubscriptionFromCaches(subscription);
+    }
   }
 
-  // invalidate caches
-  invalidatePushCaches(calendarId);
+  if (invalidate) {
+    invalidatePushCaches(calendarId);
+  }
 
   log.info(`Removed ${subscriptions.length} push subscriptions for calendar ${calendarId}`);
 };
@@ -658,6 +677,7 @@ const enablePushForCalendarInner = async (
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
   enforceVapid = false,
+  invalidate = true,
 ) => {
   const subscriptions = await getFreshCalendarSubscriptions(calendar.id);
   const validSubscription = subscriptions.find((sub) =>
@@ -707,6 +727,7 @@ const enablePushForCalendarInner = async (
       [validSubscription],
       providerConfig,
       restored ? 'provider listener failed to start' : 'provider restore failed',
+      invalidate,
     );
     if (!replacement) {
       return false;
@@ -721,6 +742,7 @@ const enablePushForCalendarInner = async (
     calendar,
     providerConfig,
     enforceVapid,
+    invalidate,
   );
   if (!subscription) {
     return false;
@@ -740,6 +762,7 @@ export const enablePushForCalendar = async (
   calendar: Calendar,
   providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
   enforceVapid = false,
+  invalidate = true,
 ) => {
   const setupKey = getPushSetupKey(accountId, calendar, providerConfig);
   const inFlight = pushEnableInFlight.get(setupKey);
@@ -748,7 +771,13 @@ export const enablePushForCalendar = async (
     return inFlight;
   }
 
-  const setup = enablePushForCalendarInner(accountId, calendar, providerConfig, enforceVapid);
+  const setup = enablePushForCalendarInner(
+    accountId,
+    calendar,
+    providerConfig,
+    enforceVapid,
+    invalidate,
+  );
   pushEnableInFlight.set(setupKey, setup);
 
   try {
@@ -769,6 +798,7 @@ export const disablePushForCalendar = async (
   accountId: string,
   calendarId: string,
   providerConfig?: PushProviderConfig,
+  invalidate = true,
 ) => {
   // stop listening first
   stopPushListening(calendarId);
@@ -780,7 +810,7 @@ export const disablePushForCalendar = async (
   }
 
   // unsubscribe from server
-  await unsubscribeCalendarFromPush(accountId, calendarId);
+  await unsubscribeCalendarFromPush(accountId, calendarId, invalidate);
 };
 
 export const disableAllPushSubscriptions = async () => {
@@ -816,12 +846,13 @@ export const resubscribeAllPushCalendars = async (
 
   for (const { accountId, calendar } of targets) {
     try {
-      await disablePushForCalendar(accountId, calendar.id, providerConfig);
+      await disablePushForCalendar(accountId, calendar.id, providerConfig, false);
       const enabled = await enablePushForCalendar(
         accountId,
         calendar,
         providerConfig,
         enforceVapid,
+        false,
       );
       if (enabled) succeeded++;
     } catch (error) {
