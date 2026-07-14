@@ -212,7 +212,9 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
     if (loginStep === 'authenticating') {
       return (
         <div className="py-8 text-center">
-          <Loader2 className={`mx-auto mb-3 h-10 w-10 animate-spin ${config.spinnerColor}`} />
+          <Loader2
+            className={`mx-auto mb-3 h-10 w-10 motion-safe:animate-spin ${config.spinnerColor}`}
+          />
           <h3 className="mb-1 font-medium text-base text-surface-800 dark:text-surface-200">
             Waiting for authentication...
           </h3>
@@ -226,7 +228,9 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
     if (loginStep === 'processing') {
       return (
         <div className="py-8 text-center">
-          <Loader2 className={`mx-auto mb-3 h-10 w-10 animate-spin ${config.spinnerColor}`} />
+          <Loader2
+            className={`mx-auto mb-3 h-10 w-10 motion-safe:animate-spin ${config.spinnerColor}`}
+          />
           <h3 className="mb-1 font-medium text-base text-surface-800 dark:text-surface-200">
             Setting up your account...
           </h3>

@@ -8,7 +8,7 @@ import type { WebDAVPushStatus } from '$lib/push/status';
 export const WebDAVPushStatusIcon = ({ icon }: { icon: WebDAVPushStatus['icon'] }) => {
   switch (icon) {
     case 'checking':
-      return <Loader2 className="size-3.5 shrink-0 animate-spin" />;
+      return <Loader2 className="size-3.5 shrink-0 motion-safe:animate-spin" />;
     case 'alert':
       return <TriangleAlert className="size-3.5 shrink-0" />;
     case 'warning':

@@ -3,17 +3,19 @@
   transform: var(--tooltip-transform, translate(-50%, -100%));
 }
 
-@keyframes tooltip-in {
-  from {
-    opacity: 0;
-    transform: var(--tooltip-transform, translate(-50%, -100%)) scale(0.98);
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes tooltip-in {
+    from {
+      opacity: 0;
+      transform: var(--tooltip-transform, translate(-50%, -100%)) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: var(--tooltip-transform, translate(-50%, -100%)) scale(1);
+    }
   }
-  to {
-    opacity: 1;
-    transform: var(--tooltip-transform, translate(-50%, -100%)) scale(1);
-  }
-}
 
-.animate-tooltip-in {
-  animation: tooltip-in 0.12s ease-out;
+  .animate-tooltip-in {
+    animation: tooltip-in 0.12s ease-out;
+  }
 }

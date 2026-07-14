@@ -10,6 +10,8 @@
   pointer-events: auto;
 }
 
-.hover-flyout-group.is-hover-flyout-open > .hover-flyout > .hover-flyout-panel {
-  animation: scaleIn 0.15s ease-out;
+@media (prefers-reduced-motion: no-preference) {
+  .hover-flyout-group.is-hover-flyout-open > .hover-flyout > .hover-flyout-panel {
+    animation: scaleIn 0.15s ease-out;
+  }
 }

@@ -119,7 +119,7 @@ export const UpdateSettings = () => {
               >
                 {isChecking ? (
                   <>
-                    <Loader className="h-4 w-4 animate-spin" />
+                    <Loader className="h-4 w-4 motion-safe:animate-spin" />
                     Checking...
                   </>
                 ) : (
@@ -228,7 +228,7 @@ export const UpdateSettings = () => {
             >
               {isDownloading ? (
                 <>
-                  <Loader className="h-4 w-4 animate-spin" />
+                  <Loader className="h-4 w-4 motion-safe:animate-spin" />
                   Downloading...
                 </>
               ) : (

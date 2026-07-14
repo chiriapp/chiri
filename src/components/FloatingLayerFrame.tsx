@@ -49,7 +49,7 @@ const DEFAULT_GAP = 4;
 const DEFAULT_FALLBACK_WIDTH = 200;
 const DEFAULT_FALLBACK_HEIGHT = 260;
 const LAYER_BASE_CLASS =
-  'fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 animate-scale-in';
+  'fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-200 dark:border-surface-700 motion-safe:animate-scale-in';
 const Z_INDEX_CLASS_PATTERN = /\bz-(\d+)\b/;
 
 const clamp = (value: number, min: number, max: number) =>

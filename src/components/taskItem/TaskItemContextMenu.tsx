@@ -329,7 +329,7 @@ export const TaskItemContextMenu = ({
             <div
               data-context-menu-content
               role="menu"
-              className="fixed z-60 min-w-35 animate-scale-in rounded-lg border border-surface-200 bg-white shadow-lg dark:border-surface-700 dark:bg-surface-800"
+              className="fixed z-60 min-w-35 rounded-lg border border-surface-200 bg-white shadow-lg motion-safe:animate-scale-in dark:border-surface-700 dark:bg-surface-800"
               style={
                 priorityFlyoutPos.useRight
                   ? { right: priorityFlyoutPos.x, top: priorityFlyoutPos.y }
@@ -364,7 +364,7 @@ export const TaskItemContextMenu = ({
             <div
               data-context-menu-content
               role="menu"
-              className="fixed z-60 min-w-40 animate-scale-in rounded-lg border border-surface-200 bg-white shadow-lg dark:border-surface-700 dark:bg-surface-800"
+              className="fixed z-60 min-w-40 rounded-lg border border-surface-200 bg-white shadow-lg motion-safe:animate-scale-in dark:border-surface-700 dark:bg-surface-800"
               style={
                 statusFlyoutPos.useRight
                   ? { right: statusFlyoutPos.x, top: statusFlyoutPos.y }

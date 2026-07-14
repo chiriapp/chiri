@@ -20,7 +20,7 @@ export const OfflineBanner = ({
     <div className="flex flex-row items-center justify-center gap-2 border border-surface-200 bg-surface-100 p-1.5 text-center text-surface-700 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300">
       {isReconnecting ? (
         <>
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="h-5 w-5 motion-safe:animate-spin" />
           <p>Reconnecting...</p>
         </>
       ) : (

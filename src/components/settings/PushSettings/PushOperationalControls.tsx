@@ -52,7 +52,7 @@ const renderSubscriptionContent = (
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 p-4 text-sm text-surface-500 dark:text-surface-400">
-        <Loader2 className="size-4 animate-spin" />
+        <Loader2 className="size-4 motion-safe:animate-spin" />
         Loading subscriptions
       </div>
     );
@@ -306,7 +306,7 @@ export const PushOperationalControls = ({
           className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-surface-100 px-3 py-1.5 text-sm text-surface-700 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
         >
           {isResubscribing ? (
-            <Loader2 className="size-4 animate-spin" />
+            <Loader2 className="size-4 motion-safe:animate-spin" />
           ) : (
             <RefreshCw className="size-4" />
           )}

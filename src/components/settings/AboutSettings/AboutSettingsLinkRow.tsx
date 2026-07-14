@@ -37,7 +37,7 @@ export const AboutSettingsLinkRow = ({
     </div>
 
     {loading ? (
-      <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-surface-400 dark:text-surface-500" />
+      <Loader2 className="h-3.5 w-3.5 shrink-0 text-surface-400 motion-safe:animate-spin dark:text-surface-500" />
     ) : variant === 'internal' ? (
       <ChevronRight className="h-5 w-5 shrink-0 text-surface-400 transition-colors group-hover:text-surface-600 dark:text-surface-500 dark:group-hover:text-surface-300" />
     ) : (

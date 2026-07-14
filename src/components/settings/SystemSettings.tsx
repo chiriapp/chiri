@@ -143,7 +143,9 @@ export const SystemSettings = () => {
             <p className="text-sm text-surface-700 dark:text-surface-300">Launch at login</p>
             <p className="flex items-center gap-1.5 text-surface-500 text-xs dark:text-surface-400">
               {launchAtLoginBusy && (
-                <Loader2 className={`size-3 shrink-0 animate-spin ${launchAtLoginSpinnerClass}`} />
+                <Loader2
+                  className={`size-3 shrink-0 motion-safe:animate-spin ${launchAtLoginSpinnerClass}`}
+                />
               )}
               {launchAtLoginDescription}
             </p>

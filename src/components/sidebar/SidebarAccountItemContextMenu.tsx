@@ -73,7 +73,9 @@ export const SidebarAccountItemContextMenu = ({
                 : 'text-surface-700 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-700'
             }`}
           >
-            <RefreshCw className={`h-4 w-4 ${isAccountSyncing ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isAccountSyncing ? 'motion-safe:animate-spin' : ''}`}
+            />
             {isAccountSyncing ? 'Syncing...' : 'Sync'}
           </button>
 

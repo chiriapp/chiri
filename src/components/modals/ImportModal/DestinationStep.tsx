@@ -197,7 +197,7 @@ export const DestinationStep = ({
             <span className="text-surface-500 dark:text-surface-400">Select a calendar...</span>
           )}
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-surface-400 transition-transform ${
+            className={`h-4 w-4 shrink-0 text-surface-400 motion-safe:transition-transform ${
               isOpen ? 'rotate-180' : ''
             }`}
           />
@@ -208,7 +208,7 @@ export const DestinationStep = ({
           <div
             ref={listRef}
             role="listbox"
-            className="fixed z-70 max-h-64 animate-fade-in overflow-y-auto rounded-lg border border-surface-200 bg-white py-1 shadow-lg dark:border-surface-600 dark:bg-surface-800"
+            className="fixed z-70 max-h-64 overflow-y-auto rounded-lg border border-surface-200 bg-white py-1 shadow-lg motion-safe:animate-fade-in dark:border-surface-600 dark:bg-surface-800"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,

@@ -347,7 +347,7 @@ export const Tooltip = ({
             id={tooltipId}
             ref={tooltipRef}
             role="tooltip"
-            className={`pointer-events-none fixed z-100 rounded-sm bg-surface-900 px-2 py-1 font-medium text-white text-xs shadow-lg dark:bg-surface-700 ${isVisible ? 'tooltip-anim animate-tooltip-in' : 'invisible'} ${className}`}
+            className={`pointer-events-none fixed z-100 rounded-sm bg-surface-900 px-2 py-1 font-medium text-white text-xs shadow-lg dark:bg-surface-700 ${isVisible ? 'tooltip-anim motion-safe:animate-tooltip-in' : 'invisible'} ${className}`}
             style={
               {
                 left: coords.x,

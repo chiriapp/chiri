@@ -65,7 +65,7 @@ export const SidebarCalendarContextMenu = ({
                 : 'text-surface-700 hover:bg-surface-100 dark:text-surface-300 dark:hover:bg-surface-700'
             }`}
           >
-            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'motion-safe:animate-spin' : ''}`} />
             {isSyncing ? 'Syncing...' : 'Sync'}
           </button>
 

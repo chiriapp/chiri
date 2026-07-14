@@ -111,7 +111,7 @@ export const FileUploadStep = ({
       >
         {isProcessing ? (
           <div className="pointer-events-none flex flex-col items-center gap-2">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary-500 border-t-transparent" />
+            <div className="h-8 w-8 rounded-full border-2 border-primary-500 border-t-transparent motion-safe:animate-spin" />
             <p className="text-sm text-surface-600 dark:text-surface-400">Reading file...</p>
           </div>
         ) : fileName ? (

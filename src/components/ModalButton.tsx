@@ -43,7 +43,7 @@ export const ModalButton = forwardRef<HTMLButtonElement, ModalButtonProps>(
         className={`flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizeClasses[size]} ${className || ''}`}
         {...props}
       >
-        {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {loading && <Loader2 className="h-4 w-4 motion-safe:animate-spin" />}
         {children}
       </button>
     );

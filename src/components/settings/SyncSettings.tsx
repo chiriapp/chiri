@@ -114,7 +114,7 @@ export const SyncSettings = () => {
               className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-surface-100 px-3 py-1.5 text-sm text-surface-700 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-surface-700 dark:text-surface-200 dark:hover:bg-surface-600"
             >
               {isSyncInProgress ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="size-4 motion-safe:animate-spin" />
               ) : (
                 <RefreshCw className="size-4" />
               )}
@@ -125,7 +125,7 @@ export const SyncSettings = () => {
           <div className="mx-4 mb-4 rounded-lg border border-surface-200 bg-surface-50 px-3 py-2 text-xs dark:border-surface-700 dark:bg-surface-900/60">
             {isSyncInProgress ? (
               <div className="flex gap-2">
-                <Loader2 className="mt-px size-4 shrink-0 animate-spin text-semantic-info" />
+                <Loader2 className="mt-px size-4 shrink-0 text-semantic-info motion-safe:animate-spin" />
                 <div className="min-w-0 space-y-1">
                   <p className="font-medium text-surface-700 dark:text-surface-200">
                     {syncingCalendarName ? `Syncing ${syncingCalendarName}` : 'Syncing'}

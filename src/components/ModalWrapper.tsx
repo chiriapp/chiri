@@ -126,7 +126,7 @@ export const ModalWrapper = ({
         role="dialog"
         aria-modal="true"
         tabIndex={initialFocus === 'dialog' ? -1 : undefined}
-        className={`relative flex max-h-[90vh] w-full animate-scale-in flex-col overflow-hidden rounded-xl bg-white shadow-xl outline-hidden dark:bg-surface-800 ${className || MODAL_SIZE_CLASSES[size]}`}
+        className={`relative flex max-h-[90vh] w-full flex-col overflow-hidden rounded-xl bg-white shadow-xl outline-hidden motion-safe:animate-scale-in dark:bg-surface-800 ${className || MODAL_SIZE_CLASSES[size]}`}
         style={dialogAnimationStyle}
       >
         {title && (

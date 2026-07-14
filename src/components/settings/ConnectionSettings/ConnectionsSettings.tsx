@@ -222,7 +222,7 @@ export const ConnectionsSettings = ({
                           className="rounded-sm p-1.5 text-surface-600 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset disabled:opacity-50 dark:text-surface-400 dark:hover:bg-surface-600"
                         >
                           {isTesting ? (
-                            <Loader2 className="h-5 w-5 animate-spin" />
+                            <Loader2 className="h-5 w-5 motion-safe:animate-spin" />
                           ) : (
                             <Activity className="h-5 w-5" />
                           )}

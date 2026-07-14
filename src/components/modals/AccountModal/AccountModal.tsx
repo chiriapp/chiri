@@ -612,9 +612,9 @@ export function AccountModal({
   const preventClose = isQuickConnectInProgress || fastmailOAuthSetupInProgress;
   const stepAnimationClass =
     navDirection === 'forward'
-      ? 'animate-step-forward'
+      ? 'motion-safe:animate-step-forward'
       : navDirection === 'back'
-        ? 'animate-step-back'
+        ? 'motion-safe:animate-step-back'
         : '';
 
   const backButton =

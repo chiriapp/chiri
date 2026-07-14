@@ -278,7 +278,9 @@ export const Header = ({
                 disabled={isSyncing || isOffline || disableSync}
                 className={getSyncButtonClass(isSyncing, isOffline, disableSync, isAnyModalOpen)}
               >
-                <RefreshCw className={`h-5 w-5 shrink-0 ${isSyncing ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-5 w-5 shrink-0 ${isSyncing ? 'motion-safe:animate-spin' : ''}`}
+                />
               </button>
             </Tooltip>
           )}

@@ -34,7 +34,9 @@ export const AdvancedSection = ({
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1 rounded text-surface-500 text-xs outline-none transition-colors hover:text-surface-700 focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-surface-400 dark:hover:text-surface-200"
       >
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${open ? '' : '-rotate-90'}`} />
+        <ChevronDown
+          className={`h-3.5 w-3.5 motion-safe:transition-transform ${open ? '' : '-rotate-90'}`}
+        />
         Advanced
       </button>
       {open && (

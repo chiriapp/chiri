@@ -138,7 +138,7 @@ export const ReviewStep = ({
                 {/* Status indicator */}
                 <div className="shrink-0">
                   {task.importStatus === 'importing' ? (
-                    <Loader2 className="h-4 w-4 animate-spin text-primary-500" />
+                    <Loader2 className="h-4 w-4 text-primary-500 motion-safe:animate-spin" />
                   ) : task.importStatus === 'success' ? (
                     <CheckCircle className="h-4 w-4 text-semantic-success" />
                   ) : task.importStatus === 'error' ? (

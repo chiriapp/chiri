@@ -130,7 +130,7 @@ export const WebDAVPushAccountStatus = ({ account }: WebDAVPushAccountStatusProp
               <WebDAVPushStatusIcon icon={status.icon} />
               <span>WebDAV Push: {status.label}</span>
               <ChevronDown
-                className={`size-3 shrink-0 transition-transform ${detailsOpen ? 'rotate-180' : ''}`}
+                className={`size-3 shrink-0 motion-safe:transition-transform ${detailsOpen ? 'rotate-180' : ''}`}
               />
             </span>
           </button>

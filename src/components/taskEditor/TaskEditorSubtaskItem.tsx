@@ -12,11 +12,16 @@ import {
   useState,
 } from 'react';
 import { useChildTasks } from '$hooks/queries/useTasks';
+import { usePrefersReducedMotion } from '$hooks/ui/usePrefersReducedMotion';
 import type { Task } from '$types';
 import { getSortableItemDisabled, getSortableItemId } from '$utils/sortable';
 
-const animateLayoutChanges: AnimateLayoutChanges = (args) =>
-  defaultAnimateLayoutChanges({ ...args, wasDragging: true });
+const createAnimateLayoutChanges =
+  (prefersReducedMotion: boolean): AnimateLayoutChanges =>
+  (args) => {
+    if (prefersReducedMotion) return false;
+    return defaultAnimateLayoutChanges({ ...args, wasDragging: true });
+  };
 
 // each depth level adds 20px of left-padding. The chevron/spacer (w-4) + gap (gap-1.5)
 // is always shown before the checkbox so all levels align consistently
@@ -98,13 +103,15 @@ export const TaskEditorSubtaskItem = ({
   const [editValue, setEditValue] = useState(task.title);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   const sortableId = getSortableItemId(task.id, isOverlay);
   const sortableDisabled = getSortableItemDisabled(isDragEnabled, isOverlay);
 
   const { listeners, setNodeRef, transform, isDragging } = useSortable({
     id: sortableId,
     disabled: sortableDisabled,
-    animateLayoutChanges,
+    animateLayoutChanges: createAnimateLayoutChanges(prefersReducedMotion),
   });
 
   // disable all transitions - items will snap to positions immediately
@@ -174,7 +181,7 @@ export const TaskEditorSubtaskItem = ({
             aria-label={isExpanded ? 'Collapse subtasks' : 'Expand subtasks'}
           >
             <ChevronRight
-              className={`h-3 w-3 transition-transform duration-150 ${isExpanded ? 'rotate-90' : ''}`}
+              className={`h-3 w-3 motion-safe:transition-transform motion-safe:duration-150 ${isExpanded ? 'rotate-90' : ''}`}
             />
           </button>
         ) : depth > 0 ? (

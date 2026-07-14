@@ -19,6 +19,7 @@ import {
   useUIState,
 } from '$hooks/queries/useUIState';
 import { useContextMenu } from '$hooks/ui/useContextMenu';
+import { usePrefersReducedMotion } from '$hooks/ui/usePrefersReducedMotion';
 import { useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import { refreshStaleCursorAfterLayoutAtEventPoint } from '$hooks/ui/useStaleCursorReset';
 import { filterCalDavDescription } from '$lib/ical/vtodo';
@@ -28,11 +29,14 @@ import { getContrastTextColor } from '$utils/color';
 import { getSortableItemDisabled, getSortableItemId } from '$utils/sortable';
 
 // moved outside component. does not close over any component state
-const animateLayoutChanges: AnimateLayoutChanges = (args) => {
-  const { isSorting, wasDragging } = args;
-  if (wasDragging || !isSorting) return false;
-  return defaultAnimateLayoutChanges(args);
-};
+const createAnimateLayoutChanges =
+  (prefersReducedMotion: boolean): AnimateLayoutChanges =>
+  (args) => {
+    if (prefersReducedMotion) return false;
+    const { isSorting, wasDragging } = args;
+    if (wasDragging || !isSorting) return false;
+    return defaultAnimateLayoutChanges(args);
+  };
 
 const BADGE_VIEW_SWITCH_CURSOR_RESET_DELAY_FRAMES = 4;
 
@@ -110,6 +114,7 @@ export const TaskItem = ({
   const resolvedAccentColor = useResolvedAccentColor();
   const { contextMenu, handleContextMenu, handleCloseContextMenu, setContextMenu } =
     useContextMenu();
+  const prefersReducedMotion = usePrefersReducedMotion();
 
   // ref for the task element to manage focus
   const taskElementRef = useRef<HTMLDivElement>(null);
@@ -137,9 +142,12 @@ export const TaskItem = ({
   // scroll the task into view when it is highlighted from a notification click
   useEffect(() => {
     if (isHighlighted && !isOverlay && taskElementRef.current) {
-      taskElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      taskElementRef.current.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'center',
+      });
     }
-  }, [isHighlighted, isOverlay]);
+  }, [isHighlighted, isOverlay, prefersReducedMotion]);
 
   const checkmarkColor = getContrastTextColor(resolvedAccentColor);
 
@@ -150,7 +158,7 @@ export const TaskItem = ({
     id: sortableId,
     disabled: sortableDisabled,
     data: { ancestorIds },
-    animateLayoutChanges,
+    animateLayoutChanges: createAnimateLayoutChanges(prefersReducedMotion),
   });
 
   const mergedRef = (node: HTMLDivElement | null) => {
