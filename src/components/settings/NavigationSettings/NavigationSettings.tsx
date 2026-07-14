@@ -116,7 +116,7 @@ export const NavigationSettings = () => {
             id="default-launch-view"
             value={defaultLaunchView}
             onChange={(event) => setDefaultLaunchView(event.target.value as DefaultLaunchView)}
-            className="shrink-0 rounded-lg border border-surface-300 bg-white px-3 py-1.5 text-sm text-surface-700 focus:ring-2 focus:ring-primary-500 dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200"
+            className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
           >
             <option value="last-view">Last view</option>
             <option value="all-tasks">All Tasks</option>
