@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { CalendarOption } from '$components/modals/MoveToCalendar/CalendarOption';
+import { getIconByName } from '$constants/icons';
 import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
 import type { Account, Task } from '$types';
 
@@ -34,23 +35,28 @@ export const MoveToCalendarModal = ({
     return ids.length === 1 ? new Set(ids) : new Set<string>();
   }, [currentCalendarIds, task]);
 
-  const otherCalendars = useMemo(
-    () =>
-      accounts.flatMap((a) =>
-        a.calendars
-          .filter((c) => !excludedCalendarIds.has(c.id))
-          .map((c) => ({ ...c, accountName: a.name })),
-      ),
-    [accounts, excludedCalendarIds],
-  );
+  const accountGroups = useMemo(() => {
+    return accounts
+      .map((account) => ({
+        account,
+        calendars: account.calendars.filter((c) => !excludedCalendarIds.has(c.id)),
+      }))
+      .filter((g) => g.calendars.length > 0);
+  }, [accounts, excludedCalendarIds]);
 
-  const filteredCalendars = useMemo(() => {
-    if (!searchQuery.trim()) return otherCalendars;
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return accountGroups;
     const q = searchQuery.toLowerCase();
-    return otherCalendars.filter(
-      (c) => c.displayName.toLowerCase().includes(q) || c.accountName.toLowerCase().includes(q),
-    );
-  }, [otherCalendars, searchQuery]);
+    return accountGroups
+      .map((g) => {
+        const accountMatches = g.account.name.toLowerCase().includes(q);
+        const calendars = accountMatches
+          ? g.calendars
+          : g.calendars.filter((c) => c.displayName.toLowerCase().includes(q));
+        return { ...g, calendars };
+      })
+      .filter((g) => g.calendars.length > 0);
+  }, [accountGroups, searchQuery]);
 
   return (
     <ModalWrapper
@@ -88,17 +94,34 @@ export const MoveToCalendarModal = ({
       </div>
 
       <div className="max-h-72 overflow-y-auto px-2 pt-1 pb-4">
-        {filteredCalendars.length === 0 ? (
+        {filteredGroups.length === 0 ? (
           <div className="p-4 text-center text-sm text-surface-500 dark:text-surface-400">
             {searchQuery.trim()
               ? 'No calendars match your search.'
               : 'No other calendars available.'}
           </div>
         ) : (
-          <div className="space-y-1">
-            {filteredCalendars.map((cal) => (
-              <CalendarOption key={cal.id} cal={cal} onMove={onMove} onClose={onClose} />
-            ))}
+          <div className="space-y-3">
+            {filteredGroups.map((group) => {
+              const AccountIcon = getIconByName(group.account.icon || 'user');
+              return (
+                <div key={group.account.id}>
+                  <div className="flex items-center gap-2 px-3 py-1.5 font-medium text-surface-500 text-xs dark:text-surface-400">
+                    {group.account.emoji ? (
+                      <span className="text-xs leading-none">{group.account.emoji}</span>
+                    ) : (
+                      <AccountIcon className="size-4 shrink-0" />
+                    )}
+                    <span className="truncate">{group.account.name}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {group.calendars.map((cal) => (
+                      <CalendarOption key={cal.id} cal={cal} onMove={onMove} onClose={onClose} />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

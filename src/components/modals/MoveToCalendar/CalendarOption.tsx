@@ -3,7 +3,7 @@ import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useRes
 import type { Account } from '$types';
 
 interface CalendarOptionProps {
-  cal: Account['calendars'][number] & { accountName: string };
+  cal: Account['calendars'][number];
   onMove: (calendarId: string) => void;
   onClose: () => void;
 }
@@ -35,9 +35,6 @@ export const CalendarOption = ({ cal, onMove, onClose }: CalendarOptionProps) =>
         <div className="min-w-0 flex-1 text-left">
           <div className="truncate font-medium text-surface-700 dark:text-surface-300">
             {cal.displayName || 'Calendar'}
-          </div>
-          <div className="truncate text-surface-400 text-xs dark:text-surface-500">
-            {cal.accountName}
           </div>
         </div>
       </span>
