@@ -44,6 +44,7 @@ interface UseFileDropOptions {
   onFileDrop?: (file: FileDropResult) => void;
   onConfigProfileDrop?: (profile: MobileConfigImportProfile) => void;
   onConfigProfileError?: (message: string) => void;
+  onUnsupportedFile?: (fileName: string) => void;
 }
 
 interface UseFileDropReturn {
@@ -62,7 +63,7 @@ interface UseFileDropReturn {
  * supports .mobileconfig files for CalDAV account configuration
  */
 export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn => {
-  const { onFileDrop, onConfigProfileDrop, onConfigProfileError } = options;
+  const { onFileDrop, onConfigProfileDrop, onConfigProfileError, onUnsupportedFile } = options;
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUnsupportedFile, setIsUnsupportedFile] = useState(false);
   // tracks whether a Tauri native drag is active. on Linux/WebKitGTK, HTML5 drag
@@ -93,7 +94,10 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
     async (filePath: string) => {
       const fileName = filePath.split('/').pop() || filePath;
 
-      if (!isSupportedFile(fileName)) return;
+      if (!isSupportedFile(fileName)) {
+        onUnsupportedFile?.(fileName);
+        return;
+      }
 
       const isMobileConfig = isMobileConfigFileName(fileName);
       if (isMobileConfig) {
@@ -120,7 +124,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
         }
       }
     },
-    [onFileDrop, onConfigProfileError, processMobileConfigBytes],
+    [onFileDrop, onConfigProfileError, onUnsupportedFile, processMobileConfigBytes],
   );
 
   // register Tauri drop event listeners for Linux (WebKitGTK)
@@ -191,7 +195,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
 
       // check if it's a supported file type
       if (!isSupportedFile(file.name)) {
-        // unsupported file - don't do anything (already showed feedback during drag)
+        onUnsupportedFile?.(file.name);
         return;
       }
 
@@ -222,7 +226,7 @@ export const useFileDrop = (options: UseFileDropOptions = {}): UseFileDropReturn
         }
       }
     },
-    [onFileDrop, onConfigProfileError, processMobileConfigBytes],
+    [onUnsupportedFile, onFileDrop, onConfigProfileError, processMobileConfigBytes],
   );
 
   const handleDragOver = useCallback(

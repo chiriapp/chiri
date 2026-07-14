@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import CircleX from 'lucide-react/icons/circle-x';
+import { createElement, useCallback, useMemo, useState } from 'react';
 import { type FileDropResult, useFileDrop } from '$hooks/system/useFileDrop';
 import { toastManager } from '$hooks/ui/useToast';
 import type { OpenAccountOptions } from '$types/controller';
@@ -91,6 +92,30 @@ export const useAppFileDrop = ({
     [canHandleGlobalFileDrop],
   );
 
+  const handleUnsupportedFile = useCallback(
+    (fileName: string) => {
+      if (!canHandleGlobalFileDrop) return;
+
+      toastManager.error(
+        createElement(
+          'span',
+          { className: 'inline-flex items-center gap-2' },
+          createElement(CircleX, {
+            className: 'h-4 w-4 shrink-0 text-semantic-error',
+            'aria-hidden': true,
+          }),
+          'Cannot import file',
+        ),
+        `'${fileName}' isn't a supported file type. Chiri supports .ics, .json, and .mobileconfig files.`,
+        'unsupported-file-drop',
+        undefined,
+        false,
+        { icon: null },
+      );
+    },
+    [canHandleGlobalFileDrop],
+  );
+
   const {
     isDragOver,
     isUnsupportedFile,
@@ -103,6 +128,7 @@ export const useAppFileDrop = ({
     onFileDrop: handleDroppedFile,
     onConfigProfileDrop: handleDroppedConfigProfile,
     onConfigProfileError: handleConfigProfileError,
+    onUnsupportedFile: handleUnsupportedFile,
   });
 
   const rootFileDropProps = useMemo(
