@@ -57,8 +57,8 @@ const settingsMock = vi.hoisted(() => ({
     complete: true,
     snooze: true,
     snoozeDurations: [
-      { id: '15m', minutes: 15 },
-      { id: '1h', minutes: 60 },
+      { id: '15m', value: 15, unit: 'minutes' },
+      { id: '1h', value: 1, unit: 'hours' },
     ],
     order: ['complete', 'snooze'],
   },
@@ -149,8 +149,8 @@ describe('useNotifications notification-action listener', () => {
       complete: true,
       snooze: true,
       snoozeDurations: [
-        { id: '15m', minutes: 15 },
-        { id: '1h', minutes: 60 },
+        { id: '15m', value: 15, unit: 'minutes' },
+        { id: '1h', value: 1, unit: 'hours' },
       ],
       order: ['complete', 'snooze'],
     });
@@ -165,10 +165,10 @@ describe('useNotifications notification-action listener', () => {
     expect(taskMocks.toggleTaskComplete).toHaveBeenCalledWith('task-1');
   });
 
-  it('snoozes the task for the parsed duration when action matches snooze-{n}min', async () => {
+  it('snoozes the task for the parsed duration when action matches snooze-{n}s', async () => {
     await renderHarness();
 
-    emitAction({ action: 'snooze-30min', taskId: 'task-3', notificationType: 'overdue' });
+    emitAction({ action: 'snooze-1800s', taskId: 'task-3', notificationType: 'overdue' });
 
     expect(snoozeMocks.snoozeTaskFor).toHaveBeenCalledOnce();
     expect(snoozeMocks.snoozeTaskFor).toHaveBeenCalledWith('task-3', 30);

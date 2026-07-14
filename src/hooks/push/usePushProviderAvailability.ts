@@ -113,6 +113,7 @@ export const usePushProviderAvailability = ({
       }
     },
     enabled: enabled && !isResolvingKUnifiedPush,
+    refetchInterval: 60_000,
     staleTime: 60_000,
   });
 

@@ -106,7 +106,7 @@ interface UseWebDAVPushProps {
  * and routes incoming push messages to sync operations
  */
 export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushProps) => {
-  const { data: accounts = [] } = useAccounts();
+  const { data: accounts = [], isPending: accountsPending } = useAccounts();
   const {
     enablePush,
     enforceVapid,
@@ -134,14 +134,16 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
   accountsRef.current = accounts;
 
   const hasCalDAVAccounts = accounts.some((account) => account.caldav);
+  const accountsLoaded = !accountsPending;
 
   // disable push when no CalDAV accounts remain; the feature is a no-op without them
+  // wait until accounts have finished loading to avoid disabling push on a transient empty state
   useEffect(() => {
-    if (enablePush && !hasCalDAVAccounts) {
+    if (enablePush && accountsLoaded && !hasCalDAVAccounts) {
       log.info('Disabling WebDAV Push: no CalDAV accounts remain');
       setEnablePush(false);
     }
-  }, [enablePush, hasCalDAVAccounts, setEnablePush]);
+  }, [enablePush, accountsLoaded, hasCalDAVAccounts, setEnablePush]);
 
   const pushSubscriptionTargetKey = useMemo(
     () => getPushSubscriptionTargetKey(accounts),

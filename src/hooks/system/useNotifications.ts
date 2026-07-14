@@ -152,10 +152,10 @@ const handleNotificationAction = (
     highlightTask(taskId);
     log.info('Highlighting task from notification:', taskId);
   } else {
-    const match = action.match(/^snooze-(\d+)min$/);
+    const match = action.match(/^snooze-(\d+)s$/);
     if (match) {
-      const durationMinutes = parseInt(match[1], 10);
-      snoozeTask(taskId, durationMinutes);
+      const durationSeconds = parseInt(match[1], 10);
+      snoozeTask(taskId, durationSeconds / 60);
     } else {
       log.warn('Ignoring unknown notification action:', action);
     }
