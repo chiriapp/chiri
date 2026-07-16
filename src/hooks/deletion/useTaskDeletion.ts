@@ -45,7 +45,6 @@ const getRecentlyDeletedMessage = (task: Task, tasks: Task[], deleteChildren: bo
 export const useTaskDeletion = () => {
   const {
     confirmBeforeMoveToRecentlyDeleted,
-    confirmBeforePermanentDelete,
     deleteSubtasksWithParent,
     hasSeenRecentlyDeletedToast,
     setHasSeenRecentlyDeletedToast,
@@ -162,44 +161,35 @@ export const useTaskDeletion = () => {
 
       const deleteChildren = deleteSubtasksWithParent === 'delete';
 
-      if (confirmBeforePermanentDelete) {
-        const taskCount = tasksToDelete.length;
-        const message =
-          taskCount === 1
-            ? getPermanentDeleteMessage(tasksToDelete[0], tasks, deleteChildren)
-            : `This will permanently delete ${taskCount} selected ${pluralize(
-                taskCount,
-                'task',
-              )}. This cannot be undone.`;
+      const taskCount = tasksToDelete.length;
+      const message =
+        taskCount === 1
+          ? getPermanentDeleteMessage(tasksToDelete[0], tasks, deleteChildren)
+          : `This will permanently delete ${taskCount} selected ${pluralize(
+              taskCount,
+              'task',
+            )}. This cannot be undone.`;
 
-        const confirmed = await confirm({
-          title: 'Delete permanently',
-          subtitle:
-            taskCount === 1
-              ? tasksToDelete[0].title || 'Untitled task'
-              : `${taskCount} selected ${pluralize(taskCount, 'task')}`,
-          message,
-          confirmLabel: 'Delete permanently',
-          cancelLabel: 'Cancel',
-          destructive: true,
-        });
-        close();
-        if (!confirmed) return false;
-      }
+      const confirmed = await confirm({
+        title: 'Delete permanently',
+        subtitle:
+          taskCount === 1
+            ? tasksToDelete[0].title || 'Untitled task'
+            : `${taskCount} selected ${pluralize(taskCount, 'task')}`,
+        message,
+        confirmLabel: 'Delete permanently',
+        cancelLabel: 'Cancel',
+        destructive: true,
+      });
+      close();
+      if (!confirmed) return false;
 
       for (const task of tasksToDelete) {
         permanentDeleteTaskMutation.mutate({ id: task.id, deleteChildren });
       }
       return true;
     },
-    [
-      close,
-      confirm,
-      confirmBeforePermanentDelete,
-      deleteSubtasksWithParent,
-      permanentDeleteTaskMutation,
-      tasks,
-    ],
+    [close, confirm, deleteSubtasksWithParent, permanentDeleteTaskMutation, tasks],
   );
 
   const deleteTaskPermanently = useCallback(

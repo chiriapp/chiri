@@ -15,7 +15,7 @@ import Palette from 'lucide-react/icons/palette';
 import RadioTower from 'lucide-react/icons/radio-tower';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Rocket from 'lucide-react/icons/rocket';
-import ShieldCheck from 'lucide-react/icons/shield-check';
+import Shield from 'lucide-react/icons/shield';
 import Sliders from 'lucide-react/icons/sliders';
 import SquarePen from 'lucide-react/icons/square-pen';
 import User from 'lucide-react/icons/user';
@@ -39,7 +39,6 @@ import { SyncSettings } from '$components/settings/SyncSettings';
 import { SystemSettings } from '$components/settings/SystemSettings';
 import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings/TaskDefaultsSettings';
 import { TaskListLayoutSettings } from '$components/settings/TaskListLayoutSettings/TaskListLayoutSettings';
-import { TaskSafetySettings } from '$components/settings/TaskSafetySettings';
 import { TaskSchedulingSettings } from '$components/settings/TaskSchedulingSettings';
 import { UpdateSettings } from '$components/settings/UpdateSettings';
 import { useAccounts } from '$hooks/queries/useAccounts';
@@ -104,7 +103,6 @@ export const SettingsModal = ({
         { id: 'navigation', label: 'Navigation', icon: <Navigation className="h-4 w-4" /> },
         { id: 'notifications', label: 'Notifications', icon: <Bell className="h-4 w-4" /> },
         { id: 'region-and-time', label: 'Region & time', icon: <Globe className="h-4 w-4" /> },
-        { id: 'safety', label: 'Safety', icon: <ShieldCheck className="h-4 w-4" /> },
         {
           id: 'startup-window',
           label: 'Startup & window',
@@ -119,8 +117,8 @@ export const SettingsModal = ({
       subtabs: [
         { id: 'editor', label: 'Editor', icon: <SquarePen className="h-4 w-4" /> },
         { id: 'list-layout', label: 'List & layout', icon: <LayoutList className="h-4 w-4" /> },
-        { id: 'safety', label: 'Safety', icon: <ShieldCheck className="h-4 w-4" /> },
         { id: 'scheduling', label: 'Scheduling', icon: <CalendarClock className="h-4 w-4" /> },
+        { id: 'safety', label: 'Safety', icon: <Shield className="h-4 w-4" /> },
       ],
     },
     {
@@ -222,14 +220,13 @@ export const SettingsModal = ({
           {activeCategory === 'tasks' && currentSubtab === 'list-layout' && (
             <TaskListLayoutSettings />
           )}
-          {activeCategory === 'tasks' && currentSubtab === 'safety' && <TaskSafetySettings />}
           {activeCategory === 'tasks' && currentSubtab === 'editor' && <EditorSettings />}
+          {activeCategory === 'tasks' && currentSubtab === 'safety' && <SafetySettings />}
 
           {activeCategory === 'app' && (
             <>
               {currentSubtab === 'appearance' && <AppearanceSettings />}
               {currentSubtab === 'navigation' && <NavigationSettings />}
-              {currentSubtab === 'safety' && <SafetySettings />}
               {currentSubtab === 'keyboard-shortcuts' && (
                 <ShortcutsSettings onEditingShortcutChange={setIsChildModalOpen} />
               )}

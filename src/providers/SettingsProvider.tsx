@@ -61,32 +61,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (enabled: boolean) => settingsStore.setSyncOnReconnect(enabled),
     [],
   );
-  const setConfirmBeforeDeletion = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeletion(confirm),
-    [],
-  );
   const setConfirmBeforeMoveToRecentlyDeleted = useCallback(
     (confirm: boolean) => settingsStore.setConfirmBeforeMoveToRecentlyDeleted(confirm),
-    [],
-  );
-  const setConfirmBeforePermanentDelete = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforePermanentDelete(confirm),
-    [],
-  );
-  const setConfirmBeforeDeleteCalendar = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeleteCalendar(confirm),
-    [],
-  );
-  const setConfirmBeforeDeleteAccount = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeleteAccount(confirm),
-    [],
-  );
-  const setConfirmBeforeDeleteFilter = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeleteFilter(confirm),
-    [],
-  );
-  const setConfirmBeforeDeleteTag = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeleteTag(confirm),
     [],
   );
   const setDeleteSubtasksWithParent = useCallback(
@@ -417,13 +393,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSyncInterval,
     setSyncOnStartup,
     setSyncOnReconnect,
-    setConfirmBeforeDeletion,
     setConfirmBeforeMoveToRecentlyDeleted,
-    setConfirmBeforePermanentDelete,
-    setConfirmBeforeDeleteCalendar,
-    setConfirmBeforeDeleteAccount,
-    setConfirmBeforeDeleteFilter,
-    setConfirmBeforeDeleteTag,
     setDeleteSubtasksWithParent,
     setAutoEmptyRecentlyDeleted,
     setRecentlyDeletedRetentionDays,

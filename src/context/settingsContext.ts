@@ -53,6 +53,12 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
       const parsed = JSON.parse(stored);
       const {
         confirmBeforeDelete: _confirmBeforeDelete,
+        confirmBeforeDeletion: _confirmBeforeDeletion,
+        confirmBeforePermanentDelete: _confirmBeforePermanentDelete,
+        confirmBeforeDeleteCalendar: _confirmBeforeDeleteCalendar,
+        confirmBeforeDeleteAccount: _confirmBeforeDeleteAccount,
+        confirmBeforeDeleteFilter: _confirmBeforeDeleteFilter,
+        confirmBeforeDeleteTag: _confirmBeforeDeleteTag,
         defaultAccountsExpanded: _defaultAccountsExpanded,
         ...storedState
       } = parsed.state ?? {};
@@ -228,19 +234,8 @@ export const settingsStore = {
   setSyncInterval: (syncInterval: number) => setState({ syncInterval }),
   setSyncOnStartup: (syncOnStartup: boolean) => setState({ syncOnStartup }),
   setSyncOnReconnect: (syncOnReconnect: boolean) => setState({ syncOnReconnect }),
-  setConfirmBeforeDeletion: (confirmBeforeDeletion: boolean) => setState({ confirmBeforeDeletion }),
   setConfirmBeforeMoveToRecentlyDeleted: (confirmBeforeMoveToRecentlyDeleted: boolean) =>
     setState({ confirmBeforeMoveToRecentlyDeleted }),
-  setConfirmBeforePermanentDelete: (confirmBeforePermanentDelete: boolean) =>
-    setState({ confirmBeforePermanentDelete }),
-  setConfirmBeforeDeleteCalendar: (confirmBeforeDeleteCalendar: boolean) =>
-    setState({ confirmBeforeDeleteCalendar }),
-  setConfirmBeforeDeleteAccount: (confirmBeforeDeleteAccount: boolean) =>
-    setState({ confirmBeforeDeleteAccount }),
-  setConfirmBeforeDeleteFilter: (confirmBeforeDeleteFilter: boolean) =>
-    setState({ confirmBeforeDeleteFilter }),
-  setConfirmBeforeDeleteTag: (confirmBeforeDeleteTag: boolean) =>
-    setState({ confirmBeforeDeleteTag }),
   setDeleteSubtasksWithParent: (deleteSubtasksWithParent: SubtaskDeletionBehavior) =>
     setState({ deleteSubtasksWithParent }),
   setAutoEmptyRecentlyDeleted: (autoEmptyRecentlyDeleted: boolean) =>

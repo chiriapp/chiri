@@ -110,13 +110,7 @@ export interface SettingsState {
   syncInterval: number;
   syncOnStartup: boolean;
   syncOnReconnect: boolean;
-  confirmBeforeDeletion: boolean;
   confirmBeforeMoveToRecentlyDeleted: boolean;
-  confirmBeforePermanentDelete: boolean;
-  confirmBeforeDeleteCalendar: boolean;
-  confirmBeforeDeleteAccount: boolean;
-  confirmBeforeDeleteFilter: boolean;
-  confirmBeforeDeleteTag: boolean;
   deleteSubtasksWithParent: SubtaskDeletionBehavior;
   autoEmptyRecentlyDeleted: boolean;
   recentlyDeletedRetentionDays: number;
@@ -212,13 +206,7 @@ interface SettingsActions {
   setSyncInterval: (interval: number) => void;
   setSyncOnStartup: (enabled: boolean) => void;
   setSyncOnReconnect: (enabled: boolean) => void;
-  setConfirmBeforeDeletion: (confirm: boolean) => void;
   setConfirmBeforeMoveToRecentlyDeleted: (confirm: boolean) => void;
-  setConfirmBeforePermanentDelete: (confirm: boolean) => void;
-  setConfirmBeforeDeleteCalendar: (confirm: boolean) => void;
-  setConfirmBeforeDeleteAccount: (confirm: boolean) => void;
-  setConfirmBeforeDeleteFilter: (confirm: boolean) => void;
-  setConfirmBeforeDeleteTag: (confirm: boolean) => void;
   setDeleteSubtasksWithParent: (behavior: SubtaskDeletionBehavior) => void;
   setAutoEmptyRecentlyDeleted: (enabled: boolean) => void;
   setRecentlyDeletedRetentionDays: (days: number) => void;
