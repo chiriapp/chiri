@@ -1,11 +1,13 @@
+import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import { Select } from '$components/Select';
 import { TaskDefaultsColorPicker } from '$components/settings/TaskDefaultsSettings/TaskDefaultsColorPicker';
 import { useSettingsStore } from '$context/settingsContext';
+import { defaultState } from '$context/settingsDefaults';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useColorPresets } from '$hooks/ui/useColorPresets';
 import { useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 
-export const AccountsDefaultsSettings = () => {
+export const TaskDefaultsCalendarSection = () => {
   const {
     defaultCalendarId,
     setDefaultCalendarId,
@@ -19,16 +21,39 @@ export const AccountsDefaultsSettings = () => {
   const { data: accounts = [] } = useAccounts();
   const accountsWithCalendars = accounts.filter((account) => account.calendars.length > 0);
 
+  const handleReset = () => {
+    setDefaultCalendarId(defaultState.defaultCalendarId);
+    setPreferCalDAVCalendarForNewTasks(defaultState.preferCalDAVCalendarForNewTasks);
+    setDefaultCalendarColor(defaultState.defaultCalendarColor);
+  };
+
+  const hasChanged =
+    defaultCalendarId !== defaultState.defaultCalendarId ||
+    preferCalDAVCalendarForNewTasks !== defaultState.preferCalDAVCalendarForNewTasks ||
+    defaultCalendarColor !== defaultState.defaultCalendarColor;
+
   return (
-    <div className="space-y-4">
-      <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">
-        Account defaults
-      </h3>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h4 className="font-semibold text-sm text-surface-700 dark:text-surface-300">Calendar</h4>
+        {hasChanged && (
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center gap-1 text-surface-500 text-xs outline-hidden transition-colors hover:text-surface-700 dark:text-surface-400 dark:hover:text-surface-200"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Reset
+          </button>
+        )}
+      </div>
 
       <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <div className="flex items-center justify-between gap-4 p-4">
           <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">Default calendar</p>
+            <p className="text-sm text-surface-700 dark:text-surface-300">
+              Default calendar for new tasks
+            </p>
             <p className="text-surface-500 text-xs dark:text-surface-400">
               Applied when creating a new task
             </p>
@@ -65,7 +90,8 @@ export const AccountsDefaultsSettings = () => {
                 <div>
                   <p className="text-sm text-surface-700 dark:text-surface-300">Prefer CalDAV</p>
                   <p className="text-surface-500 text-xs dark:text-surface-400">
-                    When added, prefer using a remote calendar instead of local
+                    When an account is added, prefer using the first remote calendar instead of
+                    local
                   </p>
                 </div>
                 <input
@@ -78,9 +104,9 @@ export const AccountsDefaultsSettings = () => {
             </div>
           </div>
         )}
-      </div>
 
-      <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+        <div className="border-surface-200 border-t dark:border-surface-700" />
+
         <TaskDefaultsColorPicker
           label="Default calendar color"
           value={defaultCalendarColor}

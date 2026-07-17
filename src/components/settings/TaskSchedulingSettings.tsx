@@ -30,15 +30,17 @@ export const TaskSchedulingSettings = () => {
     <div className="space-y-4">
       <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">Scheduling</h3>
 
-      <div>
-        <h4 className="mb-2 font-semibold text-sm text-surface-700 dark:text-surface-300">
-          Quick time presets
-        </h4>
+      <div className="space-y-4">
+        <div>
+          <h4 className="mb-1 font-semibold text-sm text-surface-700 dark:text-surface-300">
+            Quick time presets
+          </h4>
+          <p className="text-surface-500 text-xs dark:text-surface-400">
+            Shortcuts shown when picking a time in date and reminder pickers
+          </p>
+        </div>
         <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
           <div className="p-4">
-            <p className="mb-3 text-surface-500 text-xs dark:text-surface-400">
-              Shortcuts shown when picking a time in date and reminder pickers
-            </p>
             <div className="space-y-2">
               {TIME_CATEGORIES.map(({ id, label, Icon }) => {
                 const presetMinutes = quickTimePresets[id];

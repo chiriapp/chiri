@@ -12,13 +12,12 @@ import type { PushProviderId } from '$types/push';
 
 export type SubtaskDeletionBehavior = 'delete' | 'keep';
 
-export type SettingsCategory = 'tasks' | 'app' | 'defaults' | 'accounts' | 'misc';
+export type SettingsCategory = 'app' | 'tasks' | 'accounts' | 'misc';
 export type SettingsSubtab =
   | 'appearance'
   | 'navigation'
   | 'safety'
-  | 'task-defaults'
-  | 'account-defaults'
+  | 'defaults'
   | 'scheduling'
   | 'list-layout'
   | 'editor'
@@ -133,7 +132,9 @@ export interface SettingsState {
   defaultPercentComplete: number;
   defaultTags: string[];
   defaultStartDate: DefaultDateOffset;
+  defaultStartTime: number | null;
   defaultDueDate: DefaultDateOffset;
+  defaultDueTime: number | null;
   defaultReminders: DefaultReminderOffset[];
   defaultRrule: string | undefined;
   defaultRepeatFrom: number;
@@ -230,7 +231,9 @@ interface SettingsActions {
   setDefaultPercentComplete: (pct: number) => void;
   setDefaultTags: (tagIds: string[]) => void;
   setDefaultStartDate: (offset: DefaultDateOffset) => void;
+  setDefaultStartTime: (time: number | null) => void;
   setDefaultDueDate: (offset: DefaultDateOffset) => void;
+  setDefaultDueTime: (time: number | null) => void;
   setDefaultReminders: (reminders: DefaultReminderOffset[]) => void;
   setDefaultRrule: (rrule: string | undefined) => void;
   setDefaultRepeatFrom: (repeatFrom: number) => void;

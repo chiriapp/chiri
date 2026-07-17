@@ -242,7 +242,9 @@ export const createTask = (taskData: Partial<Task>) => {
     defaultPercentComplete,
     defaultTags,
     defaultStartDate,
+    defaultStartTime,
     defaultDueDate,
+    defaultDueTime,
     defaultReminders,
     defaultRrule,
     defaultRepeatFrom,
@@ -274,10 +276,20 @@ export const createTask = (taskData: Partial<Task>) => {
     taskData.dueDate !== undefined
       ? { date: taskData.dueDate, allDay: taskData.dueDateAllDay ?? true }
       : resolveDateOffset(defaultDueDate);
+  if (due.date !== undefined && defaultDueTime != null && taskData.dueDate === undefined) {
+    due.date = new Date(due.date);
+    due.date.setHours(Math.floor(defaultDueTime / 60), defaultDueTime % 60, 0, 0);
+    due.allDay = false;
+  }
   const start =
     taskData.startDate !== undefined
       ? { date: taskData.startDate, allDay: taskData.startDateAllDay ?? true }
       : resolveDateOffset(defaultStartDate, due.date);
+  if (start.date !== undefined && defaultStartTime != null && taskData.startDate === undefined) {
+    start.date = new Date(start.date);
+    start.date.setHours(Math.floor(defaultStartTime / 60), defaultStartTime % 60, 0, 0);
+    start.allDay = false;
+  }
   const defaultResolvedReminders =
     due.date !== undefined && defaultReminders.length > 0
       ? resolveReminderOffsets(defaultReminders, { date: due.date, allDay: due.allDay })

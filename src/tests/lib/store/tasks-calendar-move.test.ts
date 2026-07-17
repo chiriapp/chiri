@@ -15,7 +15,9 @@ const { mockAddPendingDeletion, mockUpdateTask, mockGetSettingsState, mockSettin
       defaultPercentComplete: 0,
       defaultTags: [],
       defaultStartDate: 'none',
+      defaultStartTime: null,
       defaultDueDate: 'none',
+      defaultDueTime: null,
       defaultReminders: [],
       defaultRrule: undefined,
       defaultRepeatFrom: 0,
@@ -430,5 +432,40 @@ describe('createTask: all-day reminder notifications', () => {
     expect(task.dueDateAllDay).toBe(false);
     expect(task.reminders).toHaveLength(1);
     expect(task.reminders?.[0].trigger).toEqual(dueDate);
+  });
+});
+
+describe('createTask: default start/due times', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    seedStore([]);
+  });
+
+  it('applies default due time to the due date', () => {
+    mockGetSettingsState.mockReturnValue({
+      ...mockSettingsState,
+      defaultDueDate: 'today',
+      defaultDueTime: 17 * 60,
+    });
+
+    const task = createTask({ title: 'Task with due time' });
+
+    expect(task.dueDateAllDay).toBe(false);
+    expect(task.dueDate?.getHours()).toBe(17);
+    expect(task.dueDate?.getMinutes()).toBe(0);
+  });
+
+  it('applies default start time to the start date', () => {
+    mockGetSettingsState.mockReturnValue({
+      ...mockSettingsState,
+      defaultStartDate: 'today',
+      defaultStartTime: 9 * 60,
+    });
+
+    const task = createTask({ title: 'Task with start time' });
+
+    expect(task.startDateAllDay).toBe(false);
+    expect(task.startDate?.getHours()).toBe(9);
+    expect(task.startDate?.getMinutes()).toBe(0);
   });
 });

@@ -144,8 +144,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (offset: DefaultDateOffset) => settingsStore.setDefaultStartDate(offset),
     [],
   );
+  const setDefaultStartTime = useCallback(
+    (time: number | null) => settingsStore.setDefaultStartTime(time),
+    [],
+  );
   const setDefaultDueDate = useCallback(
     (offset: DefaultDateOffset) => settingsStore.setDefaultDueDate(offset),
+    [],
+  );
+  const setDefaultDueTime = useCallback(
+    (time: number | null) => settingsStore.setDefaultDueTime(time),
     [],
   );
   const setDefaultReminders = useCallback(
@@ -416,7 +424,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setDefaultPercentComplete,
     setDefaultTags,
     setDefaultStartDate,
+    setDefaultStartTime,
     setDefaultDueDate,
+    setDefaultDueTime,
     setDefaultReminders,
     setDefaultRrule,
     setDefaultRepeatFrom,

@@ -294,7 +294,9 @@ export const settingsStore = {
     setState({ defaultPercentComplete }),
   setDefaultTags: (defaultTags: string[]) => setState({ defaultTags }),
   setDefaultStartDate: (defaultStartDate: DefaultDateOffset) => setState({ defaultStartDate }),
+  setDefaultStartTime: (defaultStartTime: number | null) => setState({ defaultStartTime }),
   setDefaultDueDate: (defaultDueDate: DefaultDateOffset) => setState({ defaultDueDate }),
+  setDefaultDueTime: (defaultDueTime: number | null) => setState({ defaultDueTime }),
   setDefaultReminders: (defaultReminders: DefaultReminderOffset[]) =>
     setState({ defaultReminders }),
   setDefaultRrule: (defaultRrule: string | undefined) => setState({ defaultRrule }),

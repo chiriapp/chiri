@@ -1,5 +1,6 @@
 import Bell from 'lucide-react/icons/bell';
 import CalendarClock from 'lucide-react/icons/calendar-clock';
+import ClipboardPlus from 'lucide-react/icons/clipboard-plus';
 import Database from 'lucide-react/icons/database';
 import Download from 'lucide-react/icons/download';
 import Globe from 'lucide-react/icons/globe';
@@ -16,14 +17,12 @@ import RadioTower from 'lucide-react/icons/radio-tower';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Rocket from 'lucide-react/icons/rocket';
 import Shield from 'lucide-react/icons/shield';
-import Sliders from 'lucide-react/icons/sliders';
 import SquarePen from 'lucide-react/icons/square-pen';
 import User from 'lucide-react/icons/user';
 import Wifi from 'lucide-react/icons/wifi';
 import { type ReactNode, useRef, useState } from 'react';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { AboutSettings } from '$components/settings/AboutSettings/AboutSettings';
-import { AccountsDefaultsSettings } from '$components/settings/AccountsDefaultsSettings';
 import { AppearanceSettings } from '$components/settings/AppearanceSettings';
 import { ConnectionsSettings } from '$components/settings/ConnectionSettings/ConnectionsSettings';
 import { DataSettings } from '$components/settings/DataSettings';
@@ -69,8 +68,7 @@ export const SettingsModal = ({
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>(initialCategory || 'app');
   const [activeSubtabs, setActiveSubtabs] = useState<Record<SettingsCategory, SettingsSubtab>>({
     app: initialCategory === 'app' && initialSubtab ? initialSubtab : 'appearance',
-    tasks: initialCategory === 'tasks' && initialSubtab ? initialSubtab : 'editor',
-    defaults: initialCategory === 'defaults' && initialSubtab ? initialSubtab : 'task-defaults',
+    tasks: initialCategory === 'tasks' && initialSubtab ? initialSubtab : 'defaults',
     accounts: initialCategory === 'accounts' && initialSubtab ? initialSubtab : 'connections',
     misc: initialCategory === 'misc' && initialSubtab ? initialSubtab : 'about',
   });
@@ -115,19 +113,11 @@ export const SettingsModal = ({
       label: 'Tasks',
       icon: <ListTodo className="h-4 w-4" />,
       subtabs: [
+        { id: 'defaults', label: 'Defaults', icon: <ClipboardPlus className="h-4 w-4" /> },
         { id: 'editor', label: 'Editor', icon: <SquarePen className="h-4 w-4" /> },
         { id: 'list-layout', label: 'List & layout', icon: <LayoutList className="h-4 w-4" /> },
         { id: 'scheduling', label: 'Scheduling', icon: <CalendarClock className="h-4 w-4" /> },
         { id: 'safety', label: 'Safety', icon: <Shield className="h-4 w-4" /> },
-      ],
-    },
-    {
-      id: 'defaults',
-      label: 'Defaults',
-      icon: <Sliders className="h-4 w-4" />,
-      subtabs: [
-        { id: 'task-defaults', label: 'Tasks', icon: <ListTodo className="h-4 w-4" /> },
-        { id: 'account-defaults', label: 'Accounts', icon: <User className="h-4 w-4" /> },
       ],
     },
     {
@@ -214,6 +204,7 @@ export const SettingsModal = ({
         </div>
 
         <div ref={contentRef} className="flex-1 overflow-y-auto overscroll-contain p-6">
+          {activeCategory === 'tasks' && currentSubtab === 'defaults' && <TaskDefaultsSettings />}
           {activeCategory === 'tasks' && currentSubtab === 'scheduling' && (
             <TaskSchedulingSettings />
           )}
@@ -234,13 +225,6 @@ export const SettingsModal = ({
               {currentSubtab === 'region-and-time' && <RegionAndTimeSettings />}
               {currentSubtab === 'startup-window' && <SystemSettings />}
               {currentSubtab === 'data-diagnostics' && <DataSettings onClose={onClose} />}
-            </>
-          )}
-
-          {activeCategory === 'defaults' && (
-            <>
-              {currentSubtab === 'task-defaults' && <TaskDefaultsSettings />}
-              {currentSubtab === 'account-defaults' && <AccountsDefaultsSettings />}
             </>
           )}
 
