@@ -46,7 +46,10 @@ const TIGHT_TOOLBAR_WIDTH = 460;
 const actionButtonClass =
   'inline-flex h-8 shrink-0 items-center rounded-lg border border-surface-200 dark:border-surface-700 text-sm font-medium text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset disabled:opacity-50 disabled:cursor-not-allowed';
 const destructiveButtonClass =
-  'inline-flex h-8 shrink-0 items-center gap-2 rounded-lg bg-semantic-error px-3 text-sm font-medium text-primary-contrast hover:opacity-90 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset';
+  'inline-flex h-8 shrink-0 items-center rounded-lg bg-semantic-error text-sm font-medium text-primary-contrast hover:opacity-90 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset';
+
+const getDestructiveButtonClass = (isCompact: boolean) =>
+  `${destructiveButtonClass} ${isCompact ? 'w-8 justify-center gap-0 px-0' : 'gap-2 px-3'}`;
 
 const getActionButtonClass = ({
   isActive = false,
@@ -60,7 +63,7 @@ const getActionButtonClass = ({
   `${actionButtonClass} ${
     isCompact
       ? hasDisclosure
-        ? 'w-12 justify-center gap-1 px-2'
+        ? 'w-12 justify-center gap-0.5 px-1'
         : 'w-8 justify-center gap-0 px-0'
       : 'gap-2 px-3'
   }${
@@ -130,6 +133,21 @@ export const TaskBatchActionsBar = ({
   }, [selectedTasks]);
   const isCompact = toolbarWidth !== null && toolbarWidth < COMPACT_TOOLBAR_WIDTH;
   const isTight = toolbarWidth !== null && toolbarWidth < TIGHT_TOOLBAR_WIDTH;
+
+  const CompactTooltip = ({
+    content,
+    children,
+  }: {
+    content: string;
+    children: React.ReactNode;
+  }) => {
+    if (!isCompact) return <>{children}</>;
+    return (
+      <Tooltip content={content} position="bottom">
+        {children}
+      </Tooltip>
+    );
+  };
 
   const allCalendars = useMemo(
     () =>
@@ -261,134 +279,146 @@ export const TaskBatchActionsBar = ({
         <div className="ml-auto flex min-w-0 items-center gap-2 overflow-hidden">
           {mode === 'deleted' ? (
             <>
-              <button
-                type="button"
-                onClick={handleRestore}
-                className={getActionButtonClass({ isCompact })}
-                title="Restore selected tasks"
-              >
-                <RotateCcw className="h-4 w-4" />
-                <span className={compactLabelClass(isCompact)}>Restore</span>
-              </button>
+              <CompactTooltip content="Restore selected tasks">
+                <button
+                  type="button"
+                  onClick={handleRestore}
+                  className={getActionButtonClass({ isCompact })}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span className={compactLabelClass(isCompact)}>Restore</span>
+                </button>
+              </CompactTooltip>
 
-              <button
-                type="button"
-                onClick={handlePermanentDelete}
-                className={destructiveButtonClass}
-                title="Delete selected tasks permanently"
-              >
-                <Trash2 className="h-4 w-4" />
-                {isCompact ? 'Delete' : 'Delete permanently'}
-              </button>
+              <CompactTooltip content="Delete selected tasks permanently">
+                <button
+                  type="button"
+                  onClick={handlePermanentDelete}
+                  className={getDestructiveButtonClass(isCompact)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className={compactLabelClass(isCompact)}>
+                    {isCompact ? 'Delete' : 'Delete permanently'}
+                  </span>
+                </button>
+              </CompactTooltip>
             </>
           ) : (
             <>
-              <button
-                type="button"
-                onClick={() => setShowTagsModal(true)}
-                className={getActionButtonClass({ isCompact })}
-                title="Edit tags"
-              >
-                <Tag className="h-4 w-4" />
-                <span className={compactLabelClass(isCompact)}>Tags</span>
-              </button>
+              <CompactTooltip content="Edit tags">
+                <button
+                  type="button"
+                  onClick={() => setShowTagsModal(true)}
+                  className={getActionButtonClass({ isCompact })}
+                >
+                  <Tag className="h-4 w-4" />
+                  <span className={compactLabelClass(isCompact)}>Tags</span>
+                </button>
+              </CompactTooltip>
 
-              <button
-                type="button"
-                onClick={() => setShowDatesModal(true)}
-                className={getActionButtonClass({ isCompact })}
-                title="Edit dates"
-              >
-                <CalendarClock className="h-4 w-4" />
-                <span className={compactLabelClass(isCompact)}>Dates</span>
-              </button>
+              <CompactTooltip content="Edit dates">
+                <button
+                  type="button"
+                  onClick={() => setShowDatesModal(true)}
+                  className={getActionButtonClass({ isCompact })}
+                >
+                  <CalendarClock className="h-4 w-4" />
+                  <span className={compactLabelClass(isCompact)}>Dates</span>
+                </button>
+              </CompactTooltip>
 
-              <Tooltip
+              <CompactTooltip
                 content={
-                  allCalendars.length === 0 ? 'Add a calendar to be able to move tasks' : null
+                  allCalendars.length === 0
+                    ? 'Add a calendar to be able to move tasks'
+                    : 'Move to calendar'
                 }
-                position="bottom"
               >
                 <button
                   type="button"
                   onClick={() => setShowMoveModal(true)}
                   className={getActionButtonClass({ isCompact })}
                   disabled={allCalendars.length === 0}
-                  title={allCalendars.length === 0 ? undefined : 'Move to calendar'}
                 >
                   <CalendarMove className="h-4 w-4" />
                   <span className={compactLabelClass(isCompact)}>Move</span>
                 </button>
-              </Tooltip>
+              </CompactTooltip>
 
-              <button
-                type="button"
-                ref={statusButtonRef}
-                onClick={() => setOpenMenu((current) => (current === 'status' ? null : 'status'))}
-                className={getActionButtonClass({
-                  isActive: openMenu === 'status',
-                  isCompact,
-                  hasDisclosure: true,
-                })}
-                aria-haspopup="menu"
-                aria-expanded={openMenu === 'status'}
-                title="Set status"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                <span className={compactLabelClass(isCompact)}>Status</span>
-                <ChevronDown className={getDisclosureChevronClass(openMenu === 'status')} />
-              </button>
+              <CompactTooltip content="Set status">
+                <button
+                  type="button"
+                  ref={statusButtonRef}
+                  onClick={() => setOpenMenu((current) => (current === 'status' ? null : 'status'))}
+                  className={getActionButtonClass({
+                    isActive: openMenu === 'status',
+                    isCompact,
+                    hasDisclosure: true,
+                  })}
+                  aria-haspopup="menu"
+                  aria-expanded={openMenu === 'status'}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span className={compactLabelClass(isCompact)}>Status</span>
+                  <ChevronDown className={getDisclosureChevronClass(openMenu === 'status')} />
+                </button>
+              </CompactTooltip>
 
-              <button
-                type="button"
-                ref={priorityButtonRef}
-                onClick={() =>
-                  setOpenMenu((current) => (current === 'priority' ? null : 'priority'))
-                }
-                className={getActionButtonClass({
-                  isActive: openMenu === 'priority',
-                  isCompact,
-                  hasDisclosure: true,
-                })}
-                aria-haspopup="menu"
-                aria-expanded={openMenu === 'priority'}
-                title="Change priority"
-              >
-                <Flag className="h-4 w-4" />
-                <span className={compactLabelClass(isCompact)}>Priority</span>
-                <ChevronDown className={getDisclosureChevronClass(openMenu === 'priority')} />
-              </button>
+              <CompactTooltip content="Change priority">
+                <button
+                  type="button"
+                  ref={priorityButtonRef}
+                  onClick={() =>
+                    setOpenMenu((current) => (current === 'priority' ? null : 'priority'))
+                  }
+                  className={getActionButtonClass({
+                    isActive: openMenu === 'priority',
+                    isCompact,
+                    hasDisclosure: true,
+                  })}
+                  aria-haspopup="menu"
+                  aria-expanded={openMenu === 'priority'}
+                >
+                  <Flag className="h-4 w-4" />
+                  <span className={compactLabelClass(isCompact)}>Priority</span>
+                  <ChevronDown className={getDisclosureChevronClass(openMenu === 'priority')} />
+                </button>
+              </CompactTooltip>
 
-              <button
-                type="button"
-                onClick={() => setShowExportModal(true)}
-                className={getActionButtonClass({ isCompact })}
-                title="Export selected tasks"
-              >
-                <Share2 className="h-4 w-4" />
-                <span className={compactLabelClass(isCompact)}>Export</span>
-              </button>
+              <CompactTooltip content="Export selected tasks">
+                <button
+                  type="button"
+                  onClick={() => setShowExportModal(true)}
+                  className={getActionButtonClass({ isCompact })}
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className={compactLabelClass(isCompact)}>Export</span>
+                </button>
+              </CompactTooltip>
 
-              <button
-                type="button"
-                onClick={handleDelete}
-                className={destructiveButtonClass}
-                title="Delete selected tasks"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
+              <CompactTooltip content="Delete selected tasks">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  className={getDestructiveButtonClass(isCompact)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className={compactLabelClass(isCompact)}>Delete</span>
+                </button>
+              </CompactTooltip>
             </>
           )}
 
-          <button
-            type="button"
-            onClick={onClearSelection}
-            aria-label="Clear selection"
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-100 hover:text-surface-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:hover:bg-surface-700 dark:hover:text-surface-200"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <Tooltip content="Clear" position="bottom">
+            <button
+              type="button"
+              onClick={onClearSelection}
+              aria-label="Clear"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-100 hover:text-surface-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:hover:bg-surface-700 dark:hover:text-surface-200"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </Tooltip>
         </div>
       </div>
 
