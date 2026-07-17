@@ -703,6 +703,7 @@ export const initAppMenu = async (options?: {
 export const updateDockMenu = async (options: {
   filters: DockMenuFilter[];
   syncEnabled: boolean;
+  isModalOpen?: boolean;
 }) => {
   if (!isMacPlatform()) return;
 

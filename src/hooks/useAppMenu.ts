@@ -43,8 +43,9 @@ export const useAppMenu = (isSyncing?: boolean) => {
     updateDockMenu({
       filters: dockFilters,
       syncEnabled: dockSyncEnabled,
+      isModalOpen: isAnyModalOpen,
     });
-  }, [dockFilters, dockSyncEnabled]);
+  }, [dockFilters, dockSyncEnabled, isAnyModalOpen]);
 
   // update lightweight state (sort, filters, sync) without a full rebuild
   useEffect(() => {

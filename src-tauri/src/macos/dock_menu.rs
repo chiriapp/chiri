@@ -39,6 +39,7 @@ extern "C" {
         filter_ids: *const *const c_char,
         filter_labels: *const *const c_char,
     );
+    fn chiri_macos_set_dock_menu_modal_open(modal_open: c_int);
 }
 
 pub fn initialize(app: &tauri::AppHandle<tauri::Wry>) {
@@ -53,6 +54,7 @@ pub fn update_macos_dock_menu(
     app: tauri::AppHandle<tauri::Wry>,
     sync_enabled: bool,
     filters: Vec<DockMenuFilter>,
+    is_modal_open: Option<bool>,
 ) -> Result<(), String> {
     DOCK_SYNC_ENABLED.store(sync_enabled, Ordering::Relaxed);
 
@@ -82,6 +84,7 @@ pub fn update_macos_dock_menu(
             filter_id_ptrs.as_ptr(),
             filter_label_ptrs.as_ptr(),
         );
+        chiri_macos_set_dock_menu_modal_open(i32::from(is_modal_open.unwrap_or(false)));
     })
     .map_err(|error| error.to_string())
 }
