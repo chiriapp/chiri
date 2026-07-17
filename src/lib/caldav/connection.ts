@@ -210,79 +210,80 @@ export const connect = async (
   acceptInvalidCerts?: boolean,
   bearerToken?: string,
 ) => {
-  const credentials: CalDAVCredentials = {
-    username,
-    password,
-    acceptInvalidCerts,
-    ...(bearerToken ? { bearerToken } : {}),
-  };
+  try {
+    const credentials: CalDAVCredentials = {
+      username,
+      password,
+      acceptInvalidCerts,
+      ...(bearerToken ? { bearerToken } : {}),
+    };
 
-  const trimmedServerUrl = serverUrl.trim();
-  if (!hasHttpUrlScheme(trimmedServerUrl)) {
-    throw new Error('Server URL must start with http:// or https://.');
-  }
+    const trimmedServerUrl = serverUrl.trim();
+    if (!hasHttpUrlScheme(trimmedServerUrl)) {
+      throw new Error('Server URL must start with http:// or https://.');
+    }
 
-  let baseUrl = normalizeUrl(trimmedServerUrl);
+    let baseUrl = normalizeUrl(trimmedServerUrl);
 
-  if (serverType === 'generic') {
-    for (const pattern of CALDAV_PATH_PATTERNS) {
-      if (pattern.test(baseUrl)) {
-        baseUrl = baseUrl.replace(pattern, '');
-        break;
+    if (serverType === 'generic') {
+      for (const pattern of CALDAV_PATH_PATTERNS) {
+        if (pattern.test(baseUrl)) {
+          baseUrl = baseUrl.replace(pattern, '');
+          break;
+        }
       }
     }
-  }
 
-  let principalUrl: string;
-  let calendarHome: string;
+    let principalUrl: string;
+    let calendarHome: string;
 
-  // if a direct calendar home URL is provided, skip autodiscovery entirely
-  if (calendarHomeUrl) {
-    const trimmedCalendarHomeUrl = calendarHomeUrl.trim();
-    if (!hasHttpUrlScheme(trimmedCalendarHomeUrl)) {
-      throw new Error('Calendar Home URL must start with http:// or https://.');
-    }
-    calendarHome = `${normalizeUrl(trimmedCalendarHomeUrl)}/`;
-    principalUrl = calendarHome;
-  } else if (principalUrlOverride) {
-    // principal URL provided, derive calendar home from it
-    principalUrl = makeAbsoluteUrl(principalUrlOverride, baseUrl);
-    const discoveredCalendarHome = await discoverCalendarHome(principalUrl, credentials);
-    if (!discoveredCalendarHome) {
-      throw new Error('Failed to discover calendar-home-set from the provided Principal URL.');
-    }
-    calendarHome = makeAbsoluteUrl(discoveredCalendarHome, baseUrl);
-  } else {
-    switch (serverType) {
-      case 'baikal':
-      case 'fruux':
-      case 'nextcloud':
-      case 'radicale':
-      case 'rustical':
-      case 'vikunja':
-      case 'xandikos': {
-        const config = SERVER_CONFIGS[serverType];
-        principalUrl = `${baseUrl}${config.principalPath(username)}`;
-        calendarHome = config.calendarHomePath
-          ? `${baseUrl}${config.calendarHomePath(username)}`
-          : principalUrl;
-        break;
+    // if a direct calendar home URL is provided, skip autodiscovery entirely
+    if (calendarHomeUrl) {
+      const trimmedCalendarHomeUrl = calendarHomeUrl.trim();
+      if (!hasHttpUrlScheme(trimmedCalendarHomeUrl)) {
+        throw new Error('Calendar Home URL must start with http:// or https://.');
       }
-      case 'fastmail':
-      case 'mailbox':
-      case 'migadu':
-      case 'purelymail':
-      case 'runbox':
-      case 'generic': {
-        ({ principalUrl, calendarHome } = await discoverGenericUrls(baseUrl, credentials));
-        break;
+      calendarHome = `${normalizeUrl(trimmedCalendarHomeUrl)}/`;
+      principalUrl = calendarHome;
+    } else if (principalUrlOverride) {
+      // principal URL provided, derive calendar home from it
+      principalUrl = makeAbsoluteUrl(principalUrlOverride, baseUrl);
+      const discoveredCalendarHome = await discoverCalendarHome(principalUrl, credentials);
+      if (!discoveredCalendarHome) {
+        throw new Error('Failed to discover calendar-home-set from the provided Principal URL.');
       }
-      default:
-        throw new Error(`Unknown server type: ${serverType}`);
+      calendarHome = makeAbsoluteUrl(discoveredCalendarHome, baseUrl);
+    } else {
+      switch (serverType) {
+        case 'baikal':
+        case 'fruux':
+        case 'nextcloud':
+        case 'radicale':
+        case 'rustical':
+        case 'vikunja':
+        case 'xandikos': {
+          const config = SERVER_CONFIGS[serverType];
+          principalUrl = `${baseUrl}${config.principalPath(username)}`;
+          calendarHome = config.calendarHomePath
+            ? `${baseUrl}${config.calendarHomePath(username)}`
+            : principalUrl;
+          break;
+        }
+        case 'fastmail':
+        case 'mailbox':
+        case 'migadu':
+        case 'purelymail':
+        case 'runbox':
+        case 'generic': {
+          ({ principalUrl, calendarHome } = await discoverGenericUrls(baseUrl, credentials));
+          break;
+        }
+        default:
+          throw new Error(`Unknown server type: ${serverType}`);
+      }
     }
-  }
 
-  const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
+    const propfindBody = `<?xml version="1.0" encoding="utf-8"?>
 <d:propfind xmlns:d="DAV:">
   <d:prop>
     <d:displayname/>
@@ -290,23 +291,27 @@ export const connect = async (
   </d:prop>
 </d:propfind>`;
 
-  const response = await propfind(principalUrl, credentials, propfindBody, '0');
+    const response = await propfind(principalUrl, credentials, propfindBody, '0');
 
-  if (response.status === 401) throw new Error('Authentication failed. Check your credentials.');
-  if (response.status !== 207) throw new Error(`Failed to connect: HTTP ${response.status}`);
+    if (response.status === 401) throw new Error('Authentication failed. Check your credentials.');
+    if (response.status !== 207) throw new Error(`Failed to connect: HTTP ${response.status}`);
 
-  const results = parseMultiStatus(response.body);
-  const displayName = results[0]?.props.displayname ?? username;
+    const results = parseMultiStatus(response.body);
+    const displayName = results[0]?.props.displayname ?? username;
 
-  connectionStore.setConnection(accountId, {
-    serverUrl: baseUrl,
-    credentials,
-    principalUrl,
-    calendarHome,
-    serverType,
-  });
+    connectionStore.setConnection(accountId, {
+      serverUrl: baseUrl,
+      credentials,
+      principalUrl,
+      calendarHome,
+      serverType,
+    });
 
-  return { principalUrl, displayName, calendarHome };
+    return { principalUrl, displayName, calendarHome };
+  } catch (error) {
+    connectionStore.deleteConnection(accountId);
+    throw error;
+  }
 };
 
 /** connect() variant for OAuth bearer-token accounts */
