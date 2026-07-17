@@ -4,7 +4,6 @@ import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
 import { TaskDefaultsReminderPickerModal } from '$components/modals/TaskDefaultsReminderPickerModal';
-import { TimePickerModal } from '$components/modals/TimePickerModal';
 import { useSettingsStore } from '$context/settingsContext';
 import { defaultState } from '$context/settingsDefaults';
 import type { DefaultReminderOffset } from '$types';
@@ -21,34 +20,16 @@ const REMINDER_OPTIONS: { value: DefaultReminderOffset; label: string }[] = [
   { value: '1week-before-due', label: '1 week before due' },
 ];
 
-const formatHour = (hour: number, use24h: boolean) => {
-  if (use24h) return `${String(hour).padStart(2, '0')}:00`;
-  if (hour === 0) return '12:00 AM';
-  if (hour < 12) return `${hour}:00 AM`;
-  if (hour === 12) return '12:00 PM';
-  return `${hour - 12}:00 PM`;
-};
-
 const REMINDER_LABELS = Object.fromEntries(
   REMINDER_OPTIONS.map((o) => [o.value, o.label]),
 ) as Record<DefaultReminderOffset, string>;
 
 export const TaskDefaultsRemindersSection = () => {
-  const {
-    defaultReminders,
-    setDefaultReminders,
-    allDayReminderNotificationsEnabled,
-    setAllDayReminderNotificationsEnabled,
-    defaultAllDayReminderHour,
-    setDefaultAllDayReminderHour,
-    timeFormat,
-  } = useSettingsStore();
+  const { defaultReminders, setDefaultReminders } = useSettingsStore();
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [editingReminderOffset, setEditingReminderOffset] = useState<DefaultReminderOffset | null>(
     null,
   );
-  const [editingReminderTime, setEditingReminderTime] = useState(false);
-  const use24h = timeFormat === '24';
 
   const availableReminderOptions = REMINDER_OPTIONS.filter(
     (o) => !defaultReminders.includes(o.value),
@@ -85,15 +66,11 @@ export const TaskDefaultsRemindersSection = () => {
 
   const handleReset = () => {
     setDefaultReminders(defaultState.defaultReminders);
-    setAllDayReminderNotificationsEnabled(defaultState.allDayReminderNotificationsEnabled);
-    setDefaultAllDayReminderHour(defaultState.defaultAllDayReminderHour);
   };
 
   const hasChanged =
     defaultReminders.length !== defaultState.defaultReminders.length ||
-    !defaultReminders.every((reminder) => defaultState.defaultReminders.includes(reminder)) ||
-    allDayReminderNotificationsEnabled !== defaultState.allDayReminderNotificationsEnabled ||
-    defaultAllDayReminderHour !== defaultState.defaultAllDayReminderHour;
+    !defaultReminders.every((reminder) => defaultState.defaultReminders.includes(reminder));
 
   return (
     <div className="space-y-2">
@@ -164,42 +141,6 @@ export const TaskDefaultsRemindersSection = () => {
             </button>
           )}
         </div>
-
-        <div className="border-surface-200 border-t dark:border-surface-700" />
-
-        <label className="flex items-center justify-between p-4">
-          <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">
-              All-day reminder notifications
-            </p>
-            <p className="text-surface-500 text-xs dark:text-surface-400">
-              Add default reminders to all-day tasks
-            </p>
-          </div>
-          <input
-            type="checkbox"
-            checked={allDayReminderNotificationsEnabled}
-            onChange={(e) => setAllDayReminderNotificationsEnabled(e.target.checked)}
-            className="rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-          />
-        </label>
-
-        {allDayReminderNotificationsEnabled && (
-          <div className="px-4 pb-4">
-            <div className="border-surface-200 border-l-2 pl-4 dark:border-surface-600">
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-surface-600 dark:text-surface-400">Notification time</p>
-                <button
-                  type="button"
-                  onClick={() => setEditingReminderTime(true)}
-                  className="shrink-0 rounded-lg border border-transparent bg-surface-100 px-3 py-1 text-sm text-surface-800 outline-hidden transition-colors hover:bg-surface-200 focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800 dark:hover:bg-surface-600"
-                >
-                  {formatHour(defaultAllDayReminderHour, use24h)}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {showReminderPicker && (
@@ -210,19 +151,6 @@ export const TaskDefaultsRemindersSection = () => {
           editing={editingReminderOffset ?? undefined}
         />
       )}
-
-      <TimePickerModal
-        isOpen={editingReminderTime}
-        onClose={() => setEditingReminderTime(false)}
-        onConfirm={(hour, _minute) => {
-          setDefaultAllDayReminderHour(hour);
-          setEditingReminderTime(false);
-        }}
-        initialHour={defaultAllDayReminderHour}
-        initialMinute={0}
-        title="All-day reminder time"
-        description="Default time for all-day task reminders"
-      />
     </div>
   );
 };

@@ -73,10 +73,15 @@ export const NotificationSettings = () => {
     timeFormat,
     notificationActions,
     setNotificationActions,
+    allDayReminderNotificationsEnabled,
+    setAllDayReminderNotificationsEnabled,
+    defaultAllDayReminderHour,
+    setDefaultAllDayReminderHour,
   } = useSettingsStore();
 
   const [quietHoursStartModalOpen, setQuietHoursStartModalOpen] = useState(false);
   const [quietHoursEndModalOpen, setQuietHoursEndModalOpen] = useState(false);
+  const [allDayReminderTimeModalOpen, setAllDayReminderTimeModalOpen] = useState(false);
   const [activeDragKey, setActiveDragKey] = useState<NotificationActionKey | null>(null);
 
   const use24h = timeFormat === '24';
@@ -288,6 +293,40 @@ export const NotificationSettings = () => {
         )}
       </div>
 
+      <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+        <label className="flex items-center justify-between p-4">
+          <div>
+            <p className="text-sm text-surface-700 dark:text-surface-300">All-day reminders</p>
+            <p className="text-surface-500 text-xs dark:text-surface-400">
+              Add default reminders to all-day tasks
+            </p>
+          </div>
+          <input
+            type="checkbox"
+            checked={allDayReminderNotificationsEnabled}
+            onChange={(e) => setAllDayReminderNotificationsEnabled(e.target.checked)}
+            className="rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+          />
+        </label>
+
+        {allDayReminderNotificationsEnabled && (
+          <div className="px-4 pb-4">
+            <div className="border-surface-200 border-l-2 pl-4 dark:border-surface-600">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-surface-600 dark:text-surface-400">Notification time</p>
+                <button
+                  type="button"
+                  onClick={() => setAllDayReminderTimeModalOpen(true)}
+                  className="shrink-0 rounded-lg border border-transparent bg-surface-100 px-3 py-1 text-sm text-surface-800 outline-hidden transition-colors hover:bg-surface-200 focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800 dark:hover:bg-surface-600"
+                >
+                  {formatHour(defaultAllDayReminderHour, use24h)}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
       <h4 className="font-semibold text-sm text-surface-700 dark:text-surface-300">
         Notification actions
       </h4>
@@ -366,6 +405,19 @@ export const NotificationSettings = () => {
         initialMinute={0}
         title="Quiet hours end time"
         description="Notifications will resume after this time"
+      />
+
+      <TimePickerModal
+        isOpen={allDayReminderTimeModalOpen}
+        onClose={() => setAllDayReminderTimeModalOpen(false)}
+        onConfirm={(hour, _minute) => {
+          setDefaultAllDayReminderHour(hour);
+          setAllDayReminderTimeModalOpen(false);
+        }}
+        initialHour={defaultAllDayReminderHour}
+        initialMinute={0}
+        title="All-day reminder time"
+        description="Default time for all-day task reminders"
       />
     </div>
   );
