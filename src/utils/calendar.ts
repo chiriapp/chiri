@@ -1,4 +1,66 @@
+import { addDays, startOfDay } from 'date-fns';
+import type { StartOfWeek, WorkingDay } from '$types/preference';
+
 type WeekStartDay = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+
+const WORKING_DAY_TO_DATE_FNS_DAY: Record<WorkingDay, number> = {
+  su: 0,
+  mo: 1,
+  tu: 2,
+  we: 3,
+  th: 4,
+  fr: 5,
+  sa: 6,
+};
+
+const DEFAULT_WORKING_DAYS: WorkingDay[] = ['mo', 'tu', 'we', 'th', 'fr'];
+
+/**
+ * check whether a date falls on one of the configured working days
+ */
+export const isWorkingDay = (date: Date, workingDays: WorkingDay[] = DEFAULT_WORKING_DAYS) => {
+  const allowed = new Set(workingDays.map((d) => WORKING_DAY_TO_DATE_FNS_DAY[d]));
+  return allowed.has(date.getDay());
+};
+
+/**
+ * get the next working day strictly after the given date.
+ * if the given date is already a working day, it still returns the following working day.
+ */
+/**
+ * get the next working day strictly after the given date.
+ * if the given date is already a working day, it still returns the following working day.
+ */
+export const getNextWorkingDay = (
+  date: Date,
+  workingDays: WorkingDay[] = DEFAULT_WORKING_DAYS,
+): Date => {
+  const allowed = new Set(workingDays.map((d) => WORKING_DAY_TO_DATE_FNS_DAY[d]));
+  let candidate = addDays(startOfDay(date), 1);
+  while (!allowed.has(candidate.getDay())) {
+    candidate = addDays(candidate, 1);
+  }
+  return candidate;
+};
+
+const DAY_INDEX_TO_WORKING_DAY: Record<number, WorkingDay> = {
+  0: 'su',
+  1: 'mo',
+  2: 'tu',
+  3: 'we',
+  4: 'th',
+  5: 'fr',
+  6: 'sa',
+};
+
+/**
+ * return working day identifiers ordered by the user's "week starts on" preference
+ */
+export const getOrderedWorkingDays = (startOfWeek: StartOfWeek): WorkingDay[] => {
+  const weekStart = getWeekStartValue(startOfWeek);
+  const indices = Array.from({ length: 7 }, (_, index) => (weekStart + index) % 7);
+  return indices.map((index) => DAY_INDEX_TO_WORKING_DAY[index]);
+};
 
 export const DAYS_OF_WEEK_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] as const;
 const CALENDAR_GRID_CELLS = 42;

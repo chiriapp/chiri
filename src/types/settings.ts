@@ -7,7 +7,7 @@ import type {
   TaskStatus,
 } from '$types';
 import type { AccentColor, Theme } from '$types/color';
-import type { DateFormat, StartOfWeek, TimeFormat } from '$types/preference';
+import type { DateFormat, StartOfWeek, TimeFormat, WorkingDay } from '$types/preference';
 import type { PushProviderId } from '$types/push';
 
 export type SubtaskDeletionBehavior = 'delete' | 'keep';
@@ -181,6 +181,7 @@ export interface SettingsState {
   taskBadgeVisibility: TaskBadgeVisibility;
   taskBadgeOrder: TaskBadgeKey[];
   quickTimePresets: QuickTimePresets;
+  workingDays: WorkingDay[];
   connectivityCheckEnabled: boolean;
   connectivityCheckUrl: string;
   connectivityCheckInterval: number;
@@ -280,6 +281,7 @@ interface SettingsActions {
   setTaskBadgeVisibility: (visibility: TaskBadgeVisibility) => void;
   setTaskBadgeOrder: (order: TaskBadgeKey[]) => void;
   setQuickTimePresets: (presets: QuickTimePresets) => void;
+  setWorkingDays: (days: WorkingDay[]) => void;
   setConnectivityCheckEnabled: (enabled: boolean) => void;
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;

@@ -136,6 +136,7 @@ export const defaultState: SettingsState = {
   ],
 
   quickTimePresets: { morning: 540, afternoon: 720, evening: 1020, night: 1260 },
+  workingDays: ['mo', 'tu', 'we', 'th', 'fr'],
   connectivityCheckEnabled: true,
   connectivityCheckUrl: '',
   connectivityCheckInterval: 30,

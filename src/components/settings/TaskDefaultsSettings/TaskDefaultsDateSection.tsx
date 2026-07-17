@@ -8,6 +8,7 @@ const DUE_DATE_OPTIONS = [
   { value: 'none', label: 'None' },
   { value: 'today', label: 'Today' },
   { value: 'tomorrow', label: 'Tomorrow' },
+  { value: 'next-working-day', label: 'Next business day' },
   { value: '1week', label: 'In 1 week' },
   { value: '2weeks', label: 'In 2 weeks' },
 ] as const;
@@ -18,6 +19,7 @@ const START_DATE_OPTION_GROUPS = [
     options: [
       { value: 'today', label: 'Today' },
       { value: 'tomorrow', label: 'Tomorrow' },
+      { value: 'next-working-day', label: 'Next business day' },
       { value: '1week', label: 'In 1 week' },
       { value: '2weeks', label: 'In 2 weeks' },
     ],

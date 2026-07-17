@@ -33,12 +33,12 @@ import { NotificationSettings } from '$components/settings/NotificationSettings'
 import { PushSettings } from '$components/settings/PushSettings/PushSettings';
 import { RegionAndTimeSettings } from '$components/settings/RegionAndTimeSettings';
 import { SafetySettings } from '$components/settings/SafetySettings';
+import { SchedulingSettings } from '$components/settings/SchedulingSettings';
 import { ShortcutsSettings } from '$components/settings/ShortcutsSettings/ShortcutsSettings';
 import { SyncSettings } from '$components/settings/SyncSettings';
 import { SystemSettings } from '$components/settings/SystemSettings';
 import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings/TaskDefaultsSettings';
 import { TaskListLayoutSettings } from '$components/settings/TaskListLayoutSettings/TaskListLayoutSettings';
-import { TaskSchedulingSettings } from '$components/settings/TaskSchedulingSettings';
 import { UpdateSettings } from '$components/settings/UpdateSettings';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import type { SettingsCategory, SettingsSubtab } from '$types/settings';
@@ -205,9 +205,7 @@ export const SettingsModal = ({
 
         <div ref={contentRef} className="flex-1 overflow-y-auto overscroll-contain p-6">
           {activeCategory === 'tasks' && currentSubtab === 'defaults' && <TaskDefaultsSettings />}
-          {activeCategory === 'tasks' && currentSubtab === 'scheduling' && (
-            <TaskSchedulingSettings />
-          )}
+          {activeCategory === 'tasks' && currentSubtab === 'scheduling' && <SchedulingSettings />}
           {activeCategory === 'tasks' && currentSubtab === 'list-layout' && (
             <TaskListLayoutSettings />
           )}

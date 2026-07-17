@@ -17,7 +17,7 @@ import type {
   TaskStatus,
 } from '$types';
 import type { AccentColor, Theme } from '$types/color';
-import type { DateFormat, StartOfWeek, TimeFormat } from '$types/preference';
+import type { DateFormat, StartOfWeek, TimeFormat, WorkingDay } from '$types/preference';
 import type { PushProviderId } from '$types/push';
 import type {
   DefaultLaunchView,
@@ -382,6 +382,7 @@ export const settingsStore = {
     setState({ taskBadgeVisibility }),
   setTaskBadgeOrder: (taskBadgeOrder: TaskBadgeKey[]) => setState({ taskBadgeOrder }),
   setQuickTimePresets: (quickTimePresets: QuickTimePresets) => setState({ quickTimePresets }),
+  setWorkingDays: (workingDays: WorkingDay[]) => setState({ workingDays }),
   setConnectivityCheckEnabled: (connectivityCheckEnabled: boolean) =>
     setState({ connectivityCheckEnabled }),
   setConnectivityCheckUrl: (connectivityCheckUrl: string) => setState({ connectivityCheckUrl }),

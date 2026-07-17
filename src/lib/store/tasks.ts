@@ -6,6 +6,8 @@ import { toAppleEpoch } from '$lib/ical/vtodo';
 import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import type { DefaultDateOffset, DefaultReminderOffset, Reminder, Task } from '$types';
+import type { WorkingDay } from '$types/preference';
+import { getNextWorkingDay } from '$utils/calendar';
 import { generateUUID } from '$utils/misc';
 import { getNextOccurrence, parseRRule } from '$utils/recurrence';
 import { isExpiredRecentlyDeletedTask } from '$utils/taskDeletion';
@@ -43,11 +45,14 @@ const resolveReminderOffsets = (
 
 const resolveDateOffset = (
   offset: DefaultDateOffset,
-  dueDate?: Date,
+  dueDate: Date | undefined,
+  workingDays: WorkingDay[],
 ): { date: Date | undefined; allDay: boolean } => {
   const today = startOfDay(new Date());
   if (offset === 'today') return { date: today, allDay: true };
   if (offset === 'tomorrow') return { date: addDays(today, 1), allDay: true };
+  if (offset === 'next-working-day')
+    return { date: getNextWorkingDay(today, workingDays), allDay: true };
   if (offset === '1week') return { date: addDays(today, 7), allDay: true };
   if (offset === '2weeks') return { date: addDays(today, 14), allDay: true };
   if (dueDate !== undefined) {
@@ -248,6 +253,7 @@ export const createTask = (taskData: Partial<Task>) => {
     defaultReminders,
     defaultRrule,
     defaultRepeatFrom,
+    workingDays,
   } = settingsStore.getState();
 
   // resolve tags using helper
@@ -275,7 +281,7 @@ export const createTask = (taskData: Partial<Task>) => {
   const due =
     taskData.dueDate !== undefined
       ? { date: taskData.dueDate, allDay: taskData.dueDateAllDay ?? true }
-      : resolveDateOffset(defaultDueDate);
+      : resolveDateOffset(defaultDueDate, undefined, workingDays);
   if (due.date !== undefined && defaultDueTime != null && taskData.dueDate === undefined) {
     due.date = new Date(due.date);
     due.date.setHours(Math.floor(defaultDueTime / 60), defaultDueTime % 60, 0, 0);
@@ -284,7 +290,7 @@ export const createTask = (taskData: Partial<Task>) => {
   const start =
     taskData.startDate !== undefined
       ? { date: taskData.startDate, allDay: taskData.startDateAllDay ?? true }
-      : resolveDateOffset(defaultStartDate, due.date);
+      : resolveDateOffset(defaultStartDate, due.date, workingDays);
   if (start.date !== undefined && defaultStartTime != null && taskData.startDate === undefined) {
     start.date = new Date(start.date);
     start.date.setHours(Math.floor(defaultStartTime / 60), defaultStartTime % 60, 0, 0);

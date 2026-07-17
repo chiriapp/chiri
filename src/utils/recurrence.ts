@@ -7,9 +7,21 @@
 
 import { format } from 'date-fns';
 import { RRuleTemporal } from 'rrule-temporal';
-import type { DateFormat } from '$types/preference';
+import type { DateFormat, WorkingDay } from '$types/preference';
 import type { RecurrenceFrequency } from '$types/recurrence';
 import { formatDate } from '$utils/date';
+
+const WORKING_DAY_TO_RRULE: Record<WorkingDay, string> = {
+  su: 'SU',
+  mo: 'MO',
+  tu: 'TU',
+  we: 'WE',
+  th: 'TH',
+  fr: 'FR',
+  sa: 'SA',
+};
+
+const DEFAULT_WORKING_DAYS: WorkingDay[] = ['mo', 'tu', 'we', 'th', 'fr'];
 
 /** format a JS Date as a UTC iCal datetime string (YYYYMMDDTHHMMSSZ) */
 const toICalUTC = (date: Date) => {
@@ -327,9 +339,16 @@ const getOrdinal = (day: number) => {
 };
 
 /** common repeat choices, contextualized by the task's current due date */
-export const getRepeatPresets = (dueDate?: Date): RepeatPreset[] => [
+export const getRepeatPresets = (
+  dueDate?: Date,
+  workingDays: WorkingDay[] = DEFAULT_WORKING_DAYS,
+): RepeatPreset[] => [
   { id: 'daily', label: 'Daily', rrule: frequencyToRRule('daily') },
-  { id: 'weekdays', label: 'Weekdays', rrule: frequencyToRRule('weekdays') },
+  {
+    id: 'weekdays',
+    label: 'Weekdays',
+    rrule: frequencyToRRule('weekdays', undefined, workingDays),
+  },
   {
     id: 'weekly',
     label: dueDate ? `Weekly on ${format(dueDate, 'EEEE')}` : 'Weekly',
@@ -458,12 +477,15 @@ export const rruleToText = (rruleValue: string, repeatFrom?: number, dateFormat?
 export const frequencyToRRule = (
   freq: Exclude<RecurrenceFrequency, 'none' | 'custom'>,
   dueDateForMonthly?: Date,
+  workingDays: WorkingDay[] = DEFAULT_WORKING_DAYS,
 ) => {
   switch (freq) {
     case 'daily':
       return 'FREQ=DAILY';
-    case 'weekdays':
-      return 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR';
+    case 'weekdays': {
+      const byday = workingDays.map((d) => WORKING_DAY_TO_RRULE[d]).join(',');
+      return byday ? `FREQ=WEEKLY;BYDAY=${byday}` : 'FREQ=WEEKLY';
+    }
     case 'weekly': {
       // default to the day of the week of the due date
       if (dueDateForMonthly) {

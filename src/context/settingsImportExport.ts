@@ -1,7 +1,9 @@
 import { DEFAULT_SHORTCUTS, MAX_NOTIFICATION_ACTIONS } from '$constants';
 import { loggers } from '$lib/logger';
 import type { KeyboardShortcut } from '$types';
+import type { WorkingDay } from '$types/preference';
 import type { NotificationActionSettings, SettingsState } from '$types/settings';
+
 import { isReservedShortcut } from '$utils/keyboard';
 import { normalizeProxyPort } from '$utils/misc';
 
@@ -30,6 +32,9 @@ export const mergeOrder = <T extends string>(storedOrder: unknown, defaultOrder:
   const missingKeys = defaultOrder.filter((key) => !validStoredOrder.includes(key));
   return [...validStoredOrder, ...missingKeys];
 };
+
+const isWorkingDay = (value: unknown): value is WorkingDay =>
+  typeof value === 'string' && ['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'].includes(value);
 
 export const clampSnoozeDurations = (actions: NotificationActionSettings) => {
   const maxSnoozeDurations = actions.complete
@@ -124,6 +129,7 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'quietHoursEnd',
       'editorFieldOrder',
       'taskBadgeOrder',
+      'workingDays',
       'connectivityCheckEnabled',
       'connectivityCheckUrl',
       'connectivityCheckInterval',
@@ -172,6 +178,10 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       data.sidebarSectionOrder,
       defaultState.sidebarSectionOrder,
     );
+
+    newState.workingDays = Array.isArray(data.workingDays)
+      ? (data.workingDays.filter(isWorkingDay) as WorkingDay[])
+      : defaultState.workingDays;
 
     newState.quickTimePresets =
       data.quickTimePresets && !Array.isArray(data.quickTimePresets)
