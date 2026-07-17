@@ -1,17 +1,7 @@
 import { useSettingsStore } from '$context/settingsContext';
-import type { WorkingDay } from '$types/preference';
 import type { RecurrenceFrequency } from '$types/recurrence';
+import { WORKING_DAY_META } from '$utils/calendar';
 import { frequencyToRRule, parseRRule } from '$utils/recurrence';
-
-const WORKING_DAY_TO_BYDAY: Record<WorkingDay, string> = {
-  su: 'SU',
-  mo: 'MO',
-  tu: 'TU',
-  we: 'WE',
-  th: 'TH',
-  fr: 'FR',
-  sa: 'SA',
-};
 
 const OPTIONS: { value: RecurrenceFrequency; label: string }[] = [
   { value: 'daily', label: 'Daily' },
@@ -41,7 +31,7 @@ export const RepeatFrequencyList = ({ value, dueDate, onChange }: RepeatFrequenc
           onClick={() => {
             const byday =
               option.value === 'weekdays'
-                ? workingDays.map((d) => WORKING_DAY_TO_BYDAY[d])
+                ? workingDays.map((d) => WORKING_DAY_META[d].rruleByday)
                 : option.value === 'weekly'
                   ? (parseRRule(frequencyToRRule('weekly', dueDate)).BYDAY?.split(',') ?? [])
                   : [];

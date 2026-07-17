@@ -9,7 +9,7 @@ import { useSettingsStore } from '$context/settingsContext';
 import { defaultState } from '$context/settingsDefaults';
 import type { WorkingDay } from '$types/preference';
 import type { QuickTimePresets } from '$types/settings';
-import { getOrderedWorkingDays } from '$utils/calendar';
+import { getOrderedWorkingDays, WORKING_DAY_META } from '$utils/calendar';
 import { formatTime } from '$utils/date';
 
 const TIME_CATEGORIES = [
@@ -18,16 +18,6 @@ const TIME_CATEGORIES = [
   { id: 'evening' as const, label: 'Evening', Icon: Sunset },
   { id: 'night' as const, label: 'Night', Icon: Moon },
 ] as const;
-
-const DAY_LABELS: Record<WorkingDay, string> = {
-  su: 'Sun',
-  mo: 'Mon',
-  tu: 'Tue',
-  we: 'Wed',
-  th: 'Thu',
-  fr: 'Fri',
-  sa: 'Sat',
-};
 
 const minutesToTimeLabel = (minutes: number) => {
   const d = new Date();
@@ -154,7 +144,7 @@ export const SchedulingSettings = () => {
                       : 'bg-surface-100 text-surface-600 hover:bg-surface-200 dark:bg-surface-700 dark:text-surface-400 dark:hover:bg-surface-600'
                   }`}
                 >
-                  {DAY_LABELS[day]}
+                  {WORKING_DAY_META[day].shortLabel}
                 </button>
               );
             })}
