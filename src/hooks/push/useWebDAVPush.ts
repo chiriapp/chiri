@@ -8,13 +8,16 @@
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { connectionStore } from '$context/connectionContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { usePushProviderConfigState } from '$hooks/push/usePushProviderAvailability';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import type { SyncTrigger } from '$hooks/queries/useSync';
+import { isConnected } from '$lib/caldav/connection';
 import { loggers } from '$lib/logger';
 import {
   disableAllPushSubscriptions,
+  disablePushForAccount,
   enablePushForCalendar,
   initializePushManager,
   isPushProviderAvailable,
@@ -71,8 +74,23 @@ const subscribeToPushEnabledCalendars = async (
     return false;
   }
 
+  // tear down push registrations for accounts that are not currently connected.
+  // push messages for a disconnected account cannot be acted on, so keeping a
+  // server-side registration only makes the status look registered.
+  const disconnectedAccounts = accounts.filter(
+    (account) => account.caldav && !isConnected(account.id),
+  );
+  for (const account of disconnectedAccounts) {
+    if (isCancelled()) return false;
+    await disablePushForAccount(account, providerConfig);
+  }
+
   for (const { accountId, calendar } of getPushSubscriptionTargets(accounts)) {
     if (isCancelled()) return false;
+
+    if (!isConnected(accountId)) {
+      continue;
+    }
 
     try {
       const success = await enablePushForCalendar(
@@ -240,6 +258,77 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     pushSubscriptionTargetKey,
   ]); // trigger after successful sync or push-capable calendar changes
 
+  // when an account reconnects (e.g. via "test connection"), enable push for its
+  // calendars right away instead of waiting for the next full sync.
+  const connectedAccountIdsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (isResolvingKUnifiedPush || !enablePush) return;
+
+    let cancelled = false;
+
+    const enablePushForReconnectedAccount = async (accountId: string) => {
+      const account = accountsRef.current.find((a) => a.id === accountId);
+      if (!account?.caldav) return;
+
+      for (const calendar of account.calendars.filter((c) => c.pushSupported)) {
+        if (cancelled) return;
+
+        try {
+          const success = await enablePushForCalendar(
+            accountId,
+            calendar,
+            pushProviderConfig,
+            enforceVapid,
+          );
+          if (success) {
+            log.debug(`Push enabled after reconnect for calendar: ${calendar.displayName}`);
+          }
+        } catch (error) {
+          log.error(`Failed to enable push after reconnect for ${calendar.displayName}:`, error);
+        }
+      }
+    };
+
+    const disablePushForDisconnectedAccount = async (accountId: string) => {
+      const account = accountsRef.current.find((a) => a.id === accountId);
+      if (!account?.caldav) return;
+
+      try {
+        await disablePushForAccount(account, pushProviderConfig);
+      } catch (error) {
+        log.error(`Failed to disable push after disconnect for ${account.name}:`, error);
+      }
+    };
+
+    const handleConnectionChange = () => {
+      const currentIds = new Set(Object.keys(connectionStore.getState().connections));
+      const previousIds = connectedAccountIdsRef.current;
+
+      for (const accountId of previousIds) {
+        if (!currentIds.has(accountId)) {
+          void disablePushForDisconnectedAccount(accountId);
+        }
+      }
+
+      for (const accountId of currentIds) {
+        if (!previousIds.has(accountId)) {
+          void enablePushForReconnectedAccount(accountId);
+        }
+      }
+
+      connectedAccountIdsRef.current = currentIds;
+    };
+
+    const unsubscribe = connectionStore.subscribe(handleConnectionChange);
+    handleConnectionChange();
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [enablePush, enforceVapid, isResolvingKUnifiedPush, pushProviderConfig]);
+
   useEffect(() => {
     if (previousPushProviderConfigKeyRef.current === pushProviderConfigKey) return;
 
@@ -253,6 +342,9 @@ export const useWebDAVPush = ({ onSyncCalendar, lastSyncTime }: UseWebDAVPushPro
     previousEnablePushRef.current = enablePush;
 
     if (enablePush) {
+      // reset tracked connection ids so the connection listener re-enables push
+      // for all currently connected accounts after push is turned back on.
+      connectedAccountIdsRef.current = new Set();
       return;
     }
 
