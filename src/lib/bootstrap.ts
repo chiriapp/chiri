@@ -89,8 +89,17 @@ export const applyTrayDefaultForGNOME = async () => {
   });
 
   if (isGNOME) {
-    log.info('GNOME detected; disabling system tray by default');
-    settingsStore.setEnableSystemTray(false);
+    const trayHostAvailable = await invoke<boolean>('is_tray_host_available').catch((error) => {
+      log.warn('Failed to detect SNI tray host for GNOME default:', error);
+      return false;
+    });
+
+    if (!trayHostAvailable) {
+      log.info('GNOME detected without an SNI tray host; disabling system tray by default');
+      settingsStore.setEnableSystemTray(false);
+    } else {
+      log.info('GNOME detected with an SNI tray host; leaving system tray enabled by default');
+    }
   }
 
   settingsStore.setEnableSystemTrayExplicitlySet(true);
@@ -118,8 +127,9 @@ export const initializeApp = async () => {
 
   await applyMacDockIconPreference();
 
-  // On first run, default the system tray to disabled on GNOME because GNOME
-  // does not show tray icons without a third-party extension.
+  // On first run, default the system tray based on the desktop environment. On
+  // GNOME we only disable it if no SNI tray host (e.g., AppIndicator extension)
+  // is present on the session bus.
   await applyTrayDefaultForGNOME();
 
   // initialize system tray based on settings
