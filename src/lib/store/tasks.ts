@@ -223,11 +223,11 @@ export const countChildren = (parentUid: string, filter: ChildTaskFilter = 'all'
   return getChildTasks(parentUid, filter).length;
 };
 
-export const getAllDescendants = (parentUid: string) => {
+export const getAllDescendants = (parentUid: string, filter: ChildTaskFilter = 'all') => {
   const tasks = dataStore.load().tasks;
 
   const getDescendants = (uid: string): Task[] => {
-    const children = tasks.filter((t) => t.parentUid === uid);
+    const children = tasks.filter((t) => t.parentUid === uid && matchesChildTaskFilter(t, filter));
     return [...children, ...children.flatMap((child) => getDescendants(child.uid))];
   };
 
@@ -694,5 +694,7 @@ export const exportTaskAndChildren = (taskId: string) => {
   const task = data.tasks.find((t) => t.id === taskId);
   if (!task) return null;
 
-  return { task, descendants: getAllDescendants(task.uid) };
+  // exclude subtasks that have been moved to Recently Deleted so they don't
+  // appear in the export modal count or the exported file
+  return { task, descendants: getAllDescendants(task.uid, 'active') };
 };
