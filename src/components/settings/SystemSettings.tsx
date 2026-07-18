@@ -35,6 +35,8 @@ export const SystemSettings = () => {
   const {
     enableSystemTray,
     setEnableSystemTray,
+    enableSystemTrayExplicitlySet,
+    setEnableSystemTrayExplicitlySet,
     showWindowOnNormalLaunch,
     setShowWindowOnNormalLaunch,
     showWindowOnLoginLaunch,
@@ -102,6 +104,9 @@ export const SystemSettings = () => {
 
   const handleSystemTrayChange = (checked: boolean) => {
     setEnableSystemTray(checked);
+    if (!enableSystemTrayExplicitlySet) {
+      setEnableSystemTrayExplicitlySet(true);
+    }
   };
 
   const handleHideDockIconWhenWindowClosedChange = async (checked: boolean) => {

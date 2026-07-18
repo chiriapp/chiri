@@ -158,6 +158,7 @@ export interface SettingsState {
   hideDockIconWhenWindowClosed: boolean;
   showWindowOnNormalLaunch: boolean;
   showWindowOnLoginLaunch: boolean;
+  enableSystemTrayExplicitlySet: boolean;
   restoreWindowState: boolean;
   windowDecorationStyle: WindowDecorationStyle;
   confirmBeforeQuit: boolean;
@@ -254,6 +255,7 @@ interface SettingsActions {
   setSidebarSectionOrder: (order: SidebarSectionKey[]) => void;
   setDefaultLaunchView: (view: DefaultLaunchView) => void;
   setEnableSystemTray: (enabled: boolean) => void;
+  setEnableSystemTrayExplicitlySet: (explicitlySet: boolean) => void;
   setSystemTrayAppliedValue: (value: boolean) => void;
   setHideDockIconWhenWindowClosed: (enabled: boolean) => void;
   setShowWindowOnNormalLaunch: (show: boolean) => void;
