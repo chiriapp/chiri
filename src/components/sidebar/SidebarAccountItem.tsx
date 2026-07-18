@@ -3,6 +3,7 @@ import ChevronDown from 'lucide-react/icons/chevron-down';
 import MoreVertical from 'lucide-react/icons/more-vertical';
 import Plus from 'lucide-react/icons/plus';
 import type { HTMLAttributes, MouseEvent } from 'react';
+import { SidebarAccountItemDisconnectedIndicator } from '$components/sidebar/SidebarAccountItemDisconnectedIndicator';
 import { SidebarCalendarList } from '$components/sidebar/SidebarCalendarList';
 import { Tooltip } from '$components/Tooltip';
 import { getIconByName } from '$constants/icons';
@@ -114,9 +115,15 @@ export const SidebarAccountItem = ({
           ) : (
             <AccountIcon className="h-4 w-4 shrink-0 text-surface-500 dark:text-surface-400" />
           )}
-          <span className="min-w-0 flex-1 truncate pr-2 text-left text-surface-600 dark:text-surface-400">
-            {account.name}
-          </span>
+          <div className="flex min-w-0 flex-1 items-center overflow-hidden">
+            <span className="truncate pr-2 text-left text-sm text-surface-600 dark:text-surface-400">
+              {account.name}
+            </span>
+            <SidebarAccountItemDisconnectedIndicator
+              accountId={account.id}
+              isCalDAV={!!account.caldav}
+            />
+          </div>
         </button>
 
         <div
