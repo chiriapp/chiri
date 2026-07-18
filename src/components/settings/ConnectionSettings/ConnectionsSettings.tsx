@@ -1,14 +1,12 @@
 import Activity from 'lucide-react/icons/activity';
-import CheckCircle from 'lucide-react/icons/check-circle';
-import CircleAlert from 'lucide-react/icons/circle-alert';
 import Download from 'lucide-react/icons/download';
 import Edit2 from 'lucide-react/icons/edit-2';
 import Loader2 from 'lucide-react/icons/loader-2';
 import Plus from 'lucide-react/icons/plus';
 import Trash2 from 'lucide-react/icons/trash-2';
 import User from 'lucide-react/icons/user';
-import X from 'lucide-react/icons/x';
 import { useMemo, useState } from 'react';
+import { ConnectionNoticeBanner } from '$components/ConnectionNoticeBanner';
 import { MobileConfigExportModal } from '$components/modals/MobileConfigExportModal';
 import { WebDAVPushAccountStatus } from '$components/settings/ConnectionSettings/WebDAVPushAccountStatus';
 import { Tooltip } from '$components/Tooltip';
@@ -17,6 +15,12 @@ import { useSettingsStore } from '$context/settingsContext';
 import { useAccountDeletion } from '$hooks/deletion/useAccountDeletion';
 import { useTasks } from '$hooks/queries/useTasks';
 import { CalDAVClient } from '$lib/caldav';
+import type { CalDAVSetupError, CalDAVSetupNotice } from '$lib/caldav/setup';
+import {
+  getSetupErrorInfo,
+  getSetupNotice,
+  probeSetupVtodoCreationIfNeeded,
+} from '$lib/caldav/setup';
 import { exportMobileConfigFile } from '$lib/mobileconfig/export';
 import type { Account } from '$types';
 import { pluralize } from '$utils/misc';
@@ -40,7 +44,15 @@ export const ConnectionsSettings = ({
 
   const [testingAccounts, setTestingAccounts] = useState<Set<string>>(new Set());
   const [testResults, setTestResults] = useState<
-    Record<string, { success: boolean; message: string }>
+    Record<
+      string,
+      {
+        success: boolean;
+        error: CalDAVSetupError | null;
+        notice: CalDAVSetupNotice | null;
+        calendarCount: number;
+      }
+    >
   >({});
   const [exportingAccount, setExportingAccount] = useState<Account | null>(null);
 
@@ -79,13 +91,21 @@ export const ConnectionsSettings = ({
 
     try {
       await CalDAVClient.reconnect(account);
-      const calendars = await CalDAVClient.getForAccount(account.id).fetchCalendars(enforceVapid);
+      const client = CalDAVClient.getForAccount(account.id);
+      const { calendars, diagnostics } = await client.discoverCalendars(enforceVapid);
+      const canCreateVtodoCalendar = await probeSetupVtodoCreationIfNeeded(
+        client,
+        diagnostics,
+        enforceVapid,
+      );
 
       setTestResults((prev) => ({
         ...prev,
         [account.id]: {
           success: true,
-          message: `Connected successfully. Found ${calendars.length} ${pluralize(calendars.length, 'calendar', 'calendars')}.`,
+          error: null,
+          notice: getSetupNotice(diagnostics, canCreateVtodoCalendar),
+          calendarCount: calendars.length,
         },
       }));
     } catch (error) {
@@ -93,7 +113,14 @@ export const ConnectionsSettings = ({
         ...prev,
         [account.id]: {
           success: false,
-          message: error instanceof Error ? error.message : 'Connection test failed',
+          error: getSetupErrorInfo(
+            error,
+            'Failed to test CalDAV connection',
+            account.caldav?.serverType ?? 'generic',
+            account.caldav?.serverUrl ?? '',
+          ),
+          notice: null,
+          calendarCount: 0,
         },
       }));
     } finally {
@@ -241,39 +268,15 @@ export const ConnectionsSettings = ({
                   </div>
 
                   {testResult && (
-                    <>
-                      <div className="border-surface-200 border-t dark:border-surface-700" />
-                      <div
-                        className={`flex items-center gap-2 px-4 py-3 ${
-                          testResult.success ? 'bg-semantic-success/10' : 'bg-semantic-error/10'
-                        }`}
-                      >
-                        {testResult.success ? (
-                          <CheckCircle className="h-4 w-4 shrink-0 text-semantic-success" />
-                        ) : (
-                          <CircleAlert className="h-4 w-4 shrink-0 text-semantic-error" />
-                        )}
-                        <p
-                          className={`flex-1 text-sm ${
-                            testResult.success ? 'text-semantic-success' : 'text-semantic-error'
-                          }`}
-                        >
-                          {testResult.message}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => handleDismissTestResult(account.id)}
-                          aria-label="Dismiss connection test message"
-                          className={`-mr-1 rounded-sm p-1 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-                            testResult.success
-                              ? 'text-semantic-success hover:bg-semantic-success/10'
-                              : 'text-semantic-error hover:bg-semantic-error/10'
-                          }`}
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </>
+                    <div className="px-4 pb-3">
+                      <ConnectionNoticeBanner
+                        success={testResult.success}
+                        error={testResult.error}
+                        notice={testResult.notice}
+                        calendarCount={testResult.calendarCount}
+                        onDismiss={() => handleDismissTestResult(account.id)}
+                      />
+                    </div>
                   )}
                 </div>
               );
