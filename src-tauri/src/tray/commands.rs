@@ -26,7 +26,7 @@ pub async fn initialize_tray(
     enabled: bool,
 ) -> Result<(), String> {
     #[cfg(target_os = "linux")]
-    refresh_tray_host_availability(&*state).await;
+    refresh_tray_host_availability(&state).await;
 
     menu::initialize(app_handle, &state, enabled)
 }
@@ -70,7 +70,7 @@ pub async fn set_tray_visible(
     visible: bool,
 ) -> Result<(), String> {
     #[cfg(target_os = "linux")]
-    refresh_tray_host_availability(&*state).await;
+    refresh_tray_host_availability(&state).await;
 
     let tray_id = TrayIconId::new("main");
     if let Some(tray) = app_handle.tray_by_id(&tray_id) {
