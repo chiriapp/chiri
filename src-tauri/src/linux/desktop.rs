@@ -71,9 +71,11 @@ async fn tray_host_available() -> Result<bool, String> {
     let proxy = DBusProxy::new(&connection)
         .await
         .map_err(|e| e.to_string())?;
+    let watcher_name = zbus::names::BusName::try_from(SNI_WATCHER_BUS_NAME)
+        .map_err(|e| format!("Invalid SNI watcher bus name: {e}"))?;
 
     proxy
-        .name_has_owner(SNI_WATCHER_BUS_NAME)
+        .name_has_owner(watcher_name)
         .await
         .map_err(|e| e.to_string())
 }
