@@ -103,7 +103,7 @@ export const useTaskDeletion = () => {
         }
       }
 
-      if (!hasSeenRecentlyDeletedToast) {
+      if (normalTasks.length > 0 && !hasSeenRecentlyDeletedToast) {
         setHasSeenRecentlyDeletedToast(true);
         toastManager.info(
           createElement(
