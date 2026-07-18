@@ -56,7 +56,7 @@ fn apply_notification_identity(app: &AppHandle, notif: &mut notify_rust::Notific
     // .desktop file's Name, which is unaffected
     let display_name = pkg_name
         .split('.')
-        .last()
+        .next_back()
         .map(|s| s.to_string())
         .unwrap_or(pkg_name);
     notif.appname(&display_name);
