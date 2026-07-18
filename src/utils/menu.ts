@@ -232,7 +232,7 @@ export const createMacMenu = async (options?: {
         id: 'select-all',
         text: 'Select All',
         accelerator: getAcceleratorOrDefault(shortcuts, 'select-all-tasks', 'CmdOrCtrl+A'),
-        enabled: isAppActionEnabled(),
+        enabled: true,
         action: () => {
           const active = document.activeElement as HTMLElement | null;
           if (
