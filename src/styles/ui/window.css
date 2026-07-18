@@ -162,3 +162,47 @@
 body:has(.app-shell[data-platform="macos"]) .modal-titlebar-drag-region {
   display: block;
 }
+
+/* global drag region is only needed when the app shell is not rendered
+   (e.g. error screens); the shell provides its own drag regions otherwise */
+body:has(.app-shell) .app-global-drag-region {
+  display: none;
+}
+
+/* when the main header is wrapped in a centralized drag region, only the
+   specific container elements that block the wrapper need to be transparent
+   to pointer events. pointer events are restored for interactive children
+   (buttons, inputs, context menus, tooltip triggers) so they remain clickable */
+.app-shell[data-platform="macos"] .app-main-header [data-drag-region-pass-through] {
+  pointer-events: none;
+}
+
+.app-shell[data-platform="macos"]
+  .app-main-header
+  [data-drag-region-pass-through]
+  :is(
+    button,
+    input,
+    label,
+    a,
+    [role="button"],
+    [role="link"],
+    [data-context-menu-content],
+    [data-tooltip-trigger]
+  ),
+.app-shell[data-platform="macos"]
+  .app-main-header
+  [data-drag-region-pass-through]
+  :is(
+    button,
+    input,
+    label,
+    a,
+    [role="button"],
+    [role="link"],
+    [data-context-menu-content],
+    [data-tooltip-trigger]
+  )
+  * {
+  pointer-events: auto;
+}

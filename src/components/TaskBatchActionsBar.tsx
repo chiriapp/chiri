@@ -31,6 +31,7 @@ interface TaskBatchActionsBarProps {
   selectedTasks: Task[];
   onClearSelection: () => void;
   mode?: 'active' | 'deleted';
+  'data-drag-region-pass-through'?: boolean;
 }
 
 const STATUS_OPTIONS = [
@@ -94,6 +95,7 @@ export const TaskBatchActionsBar = ({
   selectedTasks,
   onClearSelection,
   mode = 'active',
+  'data-drag-region-pass-through': dataDragRegionPassThrough,
 }: TaskBatchActionsBarProps) => {
   const { data: accounts = [] } = useAccounts();
   const { data: tags = [] } = useTags();
@@ -262,7 +264,11 @@ export const TaskBatchActionsBar = ({
 
   return (
     <>
-      <div ref={toolbarRef} className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+      <div
+        ref={toolbarRef}
+        data-drag-region-pass-through={dataDragRegionPassThrough ? '' : undefined}
+        className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden"
+      >
         <div className="flex shrink-0 items-center gap-2">
           <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-sm bg-primary-500 px-2 font-semibold text-primary-contrast text-xs">
             {selectedCount}

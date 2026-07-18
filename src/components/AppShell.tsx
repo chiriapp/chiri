@@ -136,16 +136,32 @@ export const AppShell = ({
       />
 
       <main className="flex min-w-0 flex-1 flex-col">
-        <Header
-          isSyncing={isSyncInProgress}
-          syncingCalendarId={syncingCalendarId}
-          syncProgress={syncProgress}
-          onSync={onSync}
-          disableSync={disableSync}
-          isOffline={isOffline}
-          lastSyncTime={lastSyncTime}
-          lastSyncSource={lastSyncSource}
-        />
+        {usesIntegratedTitlebar ? (
+          <div data-tauri-drag-region className="pointer-events-auto flex h-13 shrink-0 flex-col">
+            <Header
+              className="pointer-events-none"
+              isSyncing={isSyncInProgress}
+              syncingCalendarId={syncingCalendarId}
+              syncProgress={syncProgress}
+              onSync={onSync}
+              disableSync={disableSync}
+              isOffline={isOffline}
+              lastSyncTime={lastSyncTime}
+              lastSyncSource={lastSyncSource}
+            />
+          </div>
+        ) : (
+          <Header
+            isSyncing={isSyncInProgress}
+            syncingCalendarId={syncingCalendarId}
+            syncProgress={syncProgress}
+            onSync={onSync}
+            disableSync={disableSync}
+            isOffline={isOffline}
+            lastSyncTime={lastSyncTime}
+            lastSyncSource={lastSyncSource}
+          />
+        )}
 
         <OfflineBanner
           isOffline={isOffline}

@@ -336,6 +336,7 @@ export const Tooltip = ({
         onFocus={handleFocus}
         onBlur={handleBlur}
         onKeyDown={handleTriggerKeyDown}
+        data-tooltip-trigger
         className={`inline-flex ${triggerClassName}`}
         aria-describedby={triggerChild === children ? describedBy : undefined}
       >

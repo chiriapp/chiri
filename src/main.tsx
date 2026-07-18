@@ -3,6 +3,7 @@ import { type ReactNode, StrictMode } from 'react';
 import ReactDOM, { type Root } from 'react-dom/client';
 import { BootstrapErrorScreen } from '$components/BootstrapErrorScreen';
 import { ErrorBoundary } from '$components/ErrorBoundary';
+import { GlobalDragRegion } from '$components/GlobalDragRegion';
 import {
   applyHiddenWindowDockIconState,
   deleteDatabase,
@@ -39,7 +40,12 @@ const renderRoot = (children: ReactNode) => {
   }
 
   root ??= ReactDOM.createRoot(rootElement);
-  root.render(<StrictMode>{children}</StrictMode>);
+  root.render(
+    <StrictMode>
+      <GlobalDragRegion />
+      {children}
+    </StrictMode>,
+  );
 };
 
 const renderApp = () => {
