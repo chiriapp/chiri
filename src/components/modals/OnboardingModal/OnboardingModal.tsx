@@ -1,3 +1,4 @@
+import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import ArrowLeft from 'lucide-react/icons/arrow-left';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Bell from 'lucide-react/icons/bell';
@@ -5,7 +6,12 @@ import BellOff from 'lucide-react/icons/bell-off';
 import Check from 'lucide-react/icons/check';
 import Clock from 'lucide-react/icons/clock';
 import Cloud from 'lucide-react/icons/cloud';
+import EyeOff from 'lucide-react/icons/eye-off';
 import HardDrive from 'lucide-react/icons/hard-drive';
+import Loader2 from 'lucide-react/icons/loader-2';
+import LogIn from 'lucide-react/icons/log-in';
+import PanelTop from 'lucide-react/icons/panel-top';
+import Rocket from 'lucide-react/icons/rocket';
 import Sparkles from 'lucide-react/icons/sparkles';
 import { useEffect, useRef, useState } from 'react';
 import AppIcon from '$components/Icon';
@@ -18,7 +24,9 @@ import { RegionTimeSettings } from '$components/modals/OnboardingModal/RegionTim
 import { ToggleRow } from '$components/modals/OnboardingModal/ToggleRow';
 import { useNotificationContext } from '$context/notificationContext';
 import { useSettingsStore } from '$context/settingsContext';
-import { isMacPlatform } from '$utils/platform';
+import { useAutostart } from '$hooks/system/useAutostart';
+import { usePlatform } from '$hooks/system/usePlatform';
+import { isLinuxPlatform, isMacPlatform } from '$utils/platform';
 
 interface OnboardingModalProps {
   hasCalDAVAccount: boolean;
@@ -27,8 +35,16 @@ interface OnboardingModalProps {
 
 type TaskHome = 'local' | 'caldav';
 
-const STEP_COUNT = 6;
-const STEP_IDS = ['welcome', 'home', 'theme', 'region-time', 'notifications', 'ready'] as const;
+const STEP_COUNT = 7;
+const STEP_IDS = [
+  'welcome',
+  'home',
+  'theme',
+  'region-time',
+  'notifications',
+  'startup-window',
+  'ready',
+] as const;
 
 export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingModalProps) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -43,8 +59,16 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
     setNotifyReminders,
     notifyOverdue,
     setNotifyOverdue,
+    enableSystemTray,
+    setEnableSystemTray,
+    showWindowOnNormalLaunch,
+    setShowWindowOnNormalLaunch,
+    showWindowOnLoginLaunch,
+    setShowWindowOnLoginLaunch,
   } = useSettingsStore();
   const { permissionStatus, isCheckingPermission, requestPermission } = useNotificationContext();
+  const { isGNOME } = usePlatform();
+  const autostart = useAutostart();
 
   const isMac = isMacPlatform();
   const macPermissionPending =
@@ -325,8 +349,88 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
             </section>
           </div>
         )}
-
         {currentStep === 5 && (
+          <div className="flex flex-1 flex-col justify-between gap-5">
+            <div>
+              <h2 className="font-semibold text-2xl text-surface-950 dark:text-surface-50">
+                Startup & window
+              </h2>
+              <p className="mt-2 text-sm text-surface-600 leading-6 dark:text-surface-400">
+                Choose how Chiri starts up and behaves in the background.
+              </p>
+            </div>
+
+            <section className="space-y-2 rounded-lg border border-surface-200 p-3 dark:border-surface-700">
+              <ToggleRow
+                icon={
+                  autostart.enabled === null || autostart.pending ? (
+                    <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
+                  ) : (
+                    <Rocket className="h-4 w-4" />
+                  )
+                }
+                label="Launch at login"
+                description="Start Chiri automatically when you sign in."
+                checked={autostart.enabled ?? false}
+                disabled={autostart.enabled === null || autostart.pending}
+                onChange={(checked) => autostart.setEnabled(checked)}
+              />
+              <div className="border-surface-200 border-l-2 pl-4 dark:border-surface-600">
+                <ToggleRow
+                  icon={<LogIn className="h-4 w-4" />}
+                  label="Start quietly in tray at login"
+                  description="Hide the main window when Chiri starts automatically. Requires system tray."
+                  checked={!showWindowOnLoginLaunch}
+                  disabled={autostart.enabled !== true || !enableSystemTray}
+                  onChange={(checked) => setShowWindowOnLoginLaunch(!checked)}
+                />
+              </div>
+              <ToggleRow
+                icon={<EyeOff className="h-4 w-4" />}
+                label="Start hidden on normal launch"
+                description="Hide the main window when Chiri starts manually. Requires system tray."
+                checked={!showWindowOnNormalLaunch}
+                disabled={!enableSystemTray}
+                onChange={(checked) => setShowWindowOnNormalLaunch(!checked)}
+              />
+              <ToggleRow
+                icon={<PanelTop className="h-4 w-4" />}
+                label="Enable system tray"
+                description="Let Chiri stay open in the background when you close the window."
+                checked={enableSystemTray}
+                onChange={setEnableSystemTray}
+              />
+            </section>
+
+            {autostart.error && (
+              <div className="flex gap-2 rounded-lg border border-semantic-error/30 bg-semantic-error/10 p-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-semantic-error" />
+                <p className="text-semantic-error text-xs">{autostart.error}</p>
+              </div>
+            )}
+
+            {isLinuxPlatform() && isGNOME && (
+              <div className="flex gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 p-3">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-semantic-warning" />
+                <p className="text-semantic-warning text-xs">
+                  <strong>GNOME detected:</strong> GNOME does not show tray icons by default. The
+                  system tray works only with the{' '}
+                  <a
+                    href="https://extensions.gnome.org/extension/615/appindicator-support/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:opacity-80"
+                  >
+                    AppIndicator and KStatusNotifierItem Support
+                  </a>{' '}
+                  extension installed.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {currentStep === 6 && (
           <div className="flex flex-1 flex-col justify-between gap-6">
             <div className="flex flex-col gap-5">
               <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-primary-500 text-primary-contrast">
