@@ -57,6 +57,22 @@ export const useAppImageIntegration = () => {
     await skipAppImageDesktopIntegration();
     setShowPrompt(false);
     setError(null);
+    toastManager.info(
+      createElement(
+        'span',
+        { className: 'inline-flex items-center gap-2' },
+        createElement(Check, {
+          className: 'h-4 w-4 shrink-0 text-primary-500',
+          'aria-hidden': true,
+        }),
+        'You can add Chiri to your app menu later',
+      ),
+      'Go to Settings → Startup & window whenever you’re ready.',
+      'appimage-integration-skip',
+      undefined,
+      false,
+      { icon: null },
+    );
   };
 
   return {
