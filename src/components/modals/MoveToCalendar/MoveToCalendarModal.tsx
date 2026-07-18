@@ -1,3 +1,4 @@
+import HardDrive from 'lucide-react/icons/hard-drive';
 import Search from 'lucide-react/icons/search';
 import AlertTriangle from 'lucide-react/icons/triangle-alert';
 import { useMemo, useState } from 'react';
@@ -103,7 +104,8 @@ export const MoveToCalendarModal = ({
         ) : (
           <div className="space-y-3">
             {filteredGroups.map((group) => {
-              const AccountIcon = getIconByName(group.account.icon || 'user');
+              const isLocal = group.account.caldav === null;
+              const AccountIcon = isLocal ? HardDrive : getIconByName(group.account.icon || 'user');
               return (
                 <div key={group.account.id}>
                   <div className="flex items-center gap-2 px-3 py-1.5 font-medium text-surface-500 text-xs dark:text-surface-400">

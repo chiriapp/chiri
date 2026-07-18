@@ -9,12 +9,15 @@ vi.mock('$lib/http', () => ({
 
 // mock the connection store. vi.hoisted runs before vi.mock factories so the
 // spy reference is initialized in time
-const { setConnection } = vi.hoisted(() => ({ setConnection: vi.fn() }));
+const { setConnection, deleteConnection } = vi.hoisted(() => ({
+  setConnection: vi.fn(),
+  deleteConnection: vi.fn(),
+}));
 vi.mock('$context/connectionContext', () => ({
   connectionStore: {
     setConnection,
     getConnection: vi.fn(),
-    deleteConnection: vi.fn(),
+    deleteConnection,
     hasConnection: vi.fn(),
   },
 }));
@@ -252,6 +255,7 @@ describe('connect: explicit server type URL construction', () => {
     await expect(connect('a1', 'https://x.com', 'alice', 'pw', 'baikal')).rejects.toThrow(
       /authentication failed/i,
     );
+    expect(deleteConnection).toHaveBeenCalledWith('a1');
   });
 
   it('throws on non-207 from final PROPFIND', async () => {
@@ -260,6 +264,7 @@ describe('connect: explicit server type URL construction', () => {
     await expect(connect('a1', 'https://x.com', 'alice', 'pw', 'baikal')).rejects.toThrow(
       /failed to connect: HTTP 500/i,
     );
+    expect(deleteConnection).toHaveBeenCalledWith('a1');
   });
 });
 

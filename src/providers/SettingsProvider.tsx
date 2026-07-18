@@ -8,7 +8,7 @@ import type {
   TaskStatus,
 } from '$types';
 import type { AccentColor, Theme } from '$types/color';
-import type { DateFormat, StartOfWeek, TimeFormat } from '$types/preference';
+import type { DateFormat, StartOfWeek, TimeFormat, WorkingDay } from '$types/preference';
 import type { PushProviderId } from '$types/push';
 import type {
   DefaultLaunchView,
@@ -61,32 +61,8 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (enabled: boolean) => settingsStore.setSyncOnReconnect(enabled),
     [],
   );
-  const setConfirmBeforeDeletion = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeletion(confirm),
-    [],
-  );
   const setConfirmBeforeMoveToRecentlyDeleted = useCallback(
     (confirm: boolean) => settingsStore.setConfirmBeforeMoveToRecentlyDeleted(confirm),
-    [],
-  );
-  const setConfirmBeforePermanentDelete = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforePermanentDelete(confirm),
-    [],
-  );
-  const setConfirmBeforeDeleteCalendar = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeleteCalendar(confirm),
-    [],
-  );
-  const setConfirmBeforeDeleteAccount = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeleteAccount(confirm),
-    [],
-  );
-  const setConfirmBeforeDeleteFilter = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeleteFilter(confirm),
-    [],
-  );
-  const setConfirmBeforeDeleteTag = useCallback(
-    (confirm: boolean) => settingsStore.setConfirmBeforeDeleteTag(confirm),
     [],
   );
   const setDeleteSubtasksWithParent = useCallback(
@@ -168,8 +144,16 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (offset: DefaultDateOffset) => settingsStore.setDefaultStartDate(offset),
     [],
   );
+  const setDefaultStartTime = useCallback(
+    (time: number | null) => settingsStore.setDefaultStartTime(time),
+    [],
+  );
   const setDefaultDueDate = useCallback(
     (offset: DefaultDateOffset) => settingsStore.setDefaultDueDate(offset),
+    [],
+  );
+  const setDefaultDueTime = useCallback(
+    (time: number | null) => settingsStore.setDefaultDueTime(time),
     [],
   );
   const setDefaultReminders = useCallback(
@@ -242,6 +226,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   );
   const setEnableSystemTray = useCallback(
     (enabled: boolean) => settingsStore.setEnableSystemTray(enabled),
+    [],
+  );
+  const setEnableSystemTrayExplicitlySet = useCallback(
+    (explicitlySet: boolean) => settingsStore.setEnableSystemTrayExplicitlySet(explicitlySet),
     [],
   );
   const setSystemTrayAppliedValue = useCallback(
@@ -346,6 +334,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (presets: QuickTimePresets) => settingsStore.setQuickTimePresets(presets),
     [],
   );
+  const setWorkingDays = useCallback(
+    (days: WorkingDay[]) => settingsStore.setWorkingDays(days),
+    [],
+  );
   const setConnectivityCheckEnabled = useCallback(
     (enabled: boolean) => settingsStore.setConnectivityCheckEnabled(enabled),
     [],
@@ -417,13 +409,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSyncInterval,
     setSyncOnStartup,
     setSyncOnReconnect,
-    setConfirmBeforeDeletion,
     setConfirmBeforeMoveToRecentlyDeleted,
-    setConfirmBeforePermanentDelete,
-    setConfirmBeforeDeleteCalendar,
-    setConfirmBeforeDeleteAccount,
-    setConfirmBeforeDeleteFilter,
-    setConfirmBeforeDeleteTag,
     setDeleteSubtasksWithParent,
     setAutoEmptyRecentlyDeleted,
     setRecentlyDeletedRetentionDays,
@@ -446,7 +432,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setDefaultPercentComplete,
     setDefaultTags,
     setDefaultStartDate,
+    setDefaultStartTime,
     setDefaultDueDate,
+    setDefaultDueTime,
     setDefaultReminders,
     setDefaultRrule,
     setDefaultRepeatFrom,
@@ -465,6 +453,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setSidebarSectionOrder,
     setDefaultLaunchView,
     setEnableSystemTray,
+    setEnableSystemTrayExplicitlySet,
     setSystemTrayAppliedValue,
     setHideDockIconWhenWindowClosed,
     setShowWindowOnNormalLaunch,
@@ -491,6 +480,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setTaskBadgeVisibility,
     setTaskBadgeOrder,
     setQuickTimePresets,
+    setWorkingDays,
     setConnectivityCheckEnabled,
     setConnectivityCheckUrl,
     setConnectivityCheckInterval,

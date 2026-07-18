@@ -94,6 +94,7 @@ const getSyncButtonClass = (
 };
 
 interface HeaderProps {
+  className?: string;
   isSyncing?: boolean;
   syncingCalendarId?: string | null;
   syncProgress?: { current: number; total: number } | null;
@@ -105,6 +106,7 @@ interface HeaderProps {
 }
 
 export const Header = ({
+  className = '',
   isSyncing = false,
   syncingCalendarId = null,
   syncProgress = null,
@@ -225,10 +227,10 @@ export const Header = ({
   if (selectedTasks.length > 0) {
     return (
       <header
-        data-tauri-drag-region
-        className="app-main-header flex h-13 items-center bg-white px-4 dark:bg-surface-900"
+        className={`app-main-header flex h-13 items-center bg-white px-4 dark:bg-surface-900 ${className}`}
       >
         <TaskBatchActionsBar
+          data-drag-region-pass-through
           selectedTasks={selectedTasks}
           onClearSelection={clearSelection}
           mode={activeView === 'recently-deleted' ? 'deleted' : 'active'}
@@ -239,11 +241,10 @@ export const Header = ({
 
   return (
     <header
-      data-tauri-drag-region
-      className="app-main-header flex h-13 items-center bg-white px-4 dark:bg-surface-900"
+      className={`app-main-header flex h-13 items-center bg-white px-4 dark:bg-surface-900 ${className}`}
     >
-      <div data-tauri-drag-region className="flex flex-1 items-center justify-between gap-4">
-        <div className="relative max-w-lg flex-1">
+      <div data-drag-region-pass-through className="flex flex-1 items-center justify-between gap-4">
+        <div data-drag-region-pass-through className="relative max-w-lg flex-1">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-surface-400" />
           <ComposedInput
             type="text"
@@ -255,7 +256,7 @@ export const Header = ({
           />
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div data-drag-region-pass-through className="flex shrink-0 items-center gap-1">
           {onSync && (
             <Tooltip
               content={getSyncTooltip(

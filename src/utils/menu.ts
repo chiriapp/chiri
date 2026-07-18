@@ -232,7 +232,7 @@ export const createMacMenu = async (options?: {
         id: 'select-all',
         text: 'Select All',
         accelerator: getAcceleratorOrDefault(shortcuts, 'select-all-tasks', 'CmdOrCtrl+A'),
-        enabled: isAppActionEnabled(),
+        enabled: true,
         action: () => {
           const active = document.activeElement as HTMLElement | null;
           if (
@@ -703,6 +703,7 @@ export const initAppMenu = async (options?: {
 export const updateDockMenu = async (options: {
   filters: DockMenuFilter[];
   syncEnabled: boolean;
+  isModalOpen?: boolean;
 }) => {
   if (!isMacPlatform()) return;
 

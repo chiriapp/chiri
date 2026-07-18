@@ -78,6 +78,8 @@ pub fn run() {
             #[cfg(target_os = "linux")]
             linux::desktop::is_kde_desktop,
             #[cfg(target_os = "linux")]
+            linux::desktop::is_tray_host_available,
+            #[cfg(target_os = "linux")]
             push::kunifiedpush::kunifiedpush_available,
             #[cfg(target_os = "linux")]
             push::kunifiedpush::kunifiedpush_register,

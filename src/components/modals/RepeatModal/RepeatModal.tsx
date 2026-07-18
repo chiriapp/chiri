@@ -10,6 +10,7 @@ import { RepeatRuleSummary } from '$components/modals/RepeatModal/RepeatRuleSumm
 import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import type { RecurrenceFrequency } from '$types/recurrence';
+import { WORKING_DAY_META } from '$utils/calendar';
 import { formatDate } from '$utils/date';
 import {
   classifyRRule,
@@ -47,19 +48,20 @@ interface RepeatUIState {
   until: string; // YYYY-MM-DD for <input type="date">
 }
 
-const WEEKDAY_OPTIONS = [
-  { value: 'MO', label: 'Monday' },
-  { value: 'TU', label: 'Tuesday' },
-  { value: 'WE', label: 'Wednesday' },
-  { value: 'TH', label: 'Thursday' },
-  { value: 'FR', label: 'Friday' },
-  { value: 'SA', label: 'Saturday' },
-  { value: 'SU', label: 'Sunday' },
-];
+const SORTED_WORKING_DAY_META = Object.values(WORKING_DAY_META).sort(
+  (a, b) => a.dayIndex - b.dayIndex,
+);
+
+const WEEKDAY_OPTIONS = [...SORTED_WORKING_DAY_META.slice(1), SORTED_WORKING_DAY_META[0]].map(
+  (meta) => ({
+    value: meta.rruleByday,
+    label: meta.longLabel,
+  }),
+);
 
 const getMonthlyDefaults = (dueDate?: Date) => {
   const date = dueDate ?? new Date();
-  const weekdays = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+  const weekdays = SORTED_WORKING_DAY_META.map((meta) => meta.rruleByday);
   const occurrence = Math.ceil(date.getDate() / 7);
   return {
     monthlyDay: date.getDate(),

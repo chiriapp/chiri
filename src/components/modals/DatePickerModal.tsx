@@ -12,6 +12,7 @@ import {
 } from 'date-fns';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Ban from 'lucide-react/icons/ban';
+import Briefcase from 'lucide-react/icons/briefcase';
 import CalendarDays from 'lucide-react/icons/calendar-days';
 import ChevronLeft from 'lucide-react/icons/chevron-left';
 import ChevronRight from 'lucide-react/icons/chevron-right';
@@ -34,6 +35,7 @@ import {
   createPaddedDaysArray,
   getDaysOfWeekLabels,
   getMonthStartPadding,
+  getNextWorkingDay,
   getWeekStartValue,
   setDateTime,
 } from '$utils/calendar';
@@ -110,10 +112,11 @@ const isTimeCustom = (
 /**
  * compute quick date selection state
  */
-const getQuickDateState = (localValue: Date | undefined, today: Date) => ({
+const getQuickDateState = (localValue: Date | undefined, today: Date, nextWorkingDay: Date) => ({
   isToday: localValue ? isSameDay(localValue, today) : false,
   isTomorrow: localValue ? isSameDay(localValue, addDays(today, 1)) : false,
   isNextWeek: localValue ? isSameDay(localValue, addDays(today, 7)) : false,
+  isNextWorkingDay: localValue ? isSameDay(localValue, nextWorkingDay) : false,
 });
 
 interface DatePickerModalProps {
@@ -177,8 +180,11 @@ export const DatePickerModal = ({
 
   if (!isOpen) return null;
 
-  const { startOfWeek: weekStartsSetting, quickTimePresets: storedPresets } =
-    settingsStore.getState();
+  const {
+    startOfWeek: weekStartsSetting,
+    quickTimePresets: storedPresets,
+    workingDays,
+  } = settingsStore.getState();
   const quickTimePresets =
     storedPresets && !Array.isArray(storedPresets) ? storedPresets : DEFAULT_QUICK_TIME_PRESETS;
   const weekStartsOn = getWeekStartValue(weekStartsSetting);
@@ -194,11 +200,13 @@ export const DatePickerModal = ({
   const isCustomTime = isTimeCustom(timeSelected, localNoTime, selectedMinutes, quickTimePresets);
 
   const today = new Date();
+  const nextWorkingDay = getNextWorkingDay(today, workingDays);
   const {
     isToday: isQuickToday,
     isTomorrow: isQuickTomorrow,
     isNextWeek: isQuickNextWeek,
-  } = getQuickDateState(localValue, today);
+    isNextWorkingDay: isQuickNextWorkingDay,
+  } = getQuickDateState(localValue, today, nextWorkingDay);
 
   const selectedDateLabel = localValue
     ? `${format(localValue, 'EEEE')}, ${formatDate(localValue, true)}`
@@ -385,6 +393,15 @@ export const DatePickerModal = ({
               >
                 <ArrowRight className="h-3 w-3" />
                 Tomorrow
+              </button>
+              <button
+                type="button"
+                data-vertical-list-item
+                onClick={() => handleQuickSelect(nextWorkingDay)}
+                className={btnClass(isQuickNextWorkingDay)}
+              >
+                <Briefcase className="h-3 w-3" />
+                Next working day
               </button>
               <button
                 type="button"

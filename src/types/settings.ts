@@ -7,18 +7,17 @@ import type {
   TaskStatus,
 } from '$types';
 import type { AccentColor, Theme } from '$types/color';
-import type { DateFormat, StartOfWeek, TimeFormat } from '$types/preference';
+import type { DateFormat, StartOfWeek, TimeFormat, WorkingDay } from '$types/preference';
 import type { PushProviderId } from '$types/push';
 
 export type SubtaskDeletionBehavior = 'delete' | 'keep';
 
-export type SettingsCategory = 'tasks' | 'app' | 'defaults' | 'accounts' | 'misc';
+export type SettingsCategory = 'app' | 'tasks' | 'accounts' | 'misc';
 export type SettingsSubtab =
   | 'appearance'
   | 'navigation'
   | 'safety'
-  | 'task-defaults'
-  | 'account-defaults'
+  | 'defaults'
   | 'scheduling'
   | 'list-layout'
   | 'editor'
@@ -110,13 +109,7 @@ export interface SettingsState {
   syncInterval: number;
   syncOnStartup: boolean;
   syncOnReconnect: boolean;
-  confirmBeforeDeletion: boolean;
   confirmBeforeMoveToRecentlyDeleted: boolean;
-  confirmBeforePermanentDelete: boolean;
-  confirmBeforeDeleteCalendar: boolean;
-  confirmBeforeDeleteAccount: boolean;
-  confirmBeforeDeleteFilter: boolean;
-  confirmBeforeDeleteTag: boolean;
   deleteSubtasksWithParent: SubtaskDeletionBehavior;
   autoEmptyRecentlyDeleted: boolean;
   recentlyDeletedRetentionDays: number;
@@ -139,7 +132,9 @@ export interface SettingsState {
   defaultPercentComplete: number;
   defaultTags: string[];
   defaultStartDate: DefaultDateOffset;
+  defaultStartTime: number | null;
   defaultDueDate: DefaultDateOffset;
+  defaultDueTime: number | null;
   defaultReminders: DefaultReminderOffset[];
   defaultRrule: string | undefined;
   defaultRepeatFrom: number;
@@ -163,6 +158,7 @@ export interface SettingsState {
   hideDockIconWhenWindowClosed: boolean;
   showWindowOnNormalLaunch: boolean;
   showWindowOnLoginLaunch: boolean;
+  enableSystemTrayExplicitlySet: boolean;
   restoreWindowState: boolean;
   windowDecorationStyle: WindowDecorationStyle;
   confirmBeforeQuit: boolean;
@@ -186,6 +182,7 @@ export interface SettingsState {
   taskBadgeVisibility: TaskBadgeVisibility;
   taskBadgeOrder: TaskBadgeKey[];
   quickTimePresets: QuickTimePresets;
+  workingDays: WorkingDay[];
   connectivityCheckEnabled: boolean;
   connectivityCheckUrl: string;
   connectivityCheckInterval: number;
@@ -212,13 +209,7 @@ interface SettingsActions {
   setSyncInterval: (interval: number) => void;
   setSyncOnStartup: (enabled: boolean) => void;
   setSyncOnReconnect: (enabled: boolean) => void;
-  setConfirmBeforeDeletion: (confirm: boolean) => void;
   setConfirmBeforeMoveToRecentlyDeleted: (confirm: boolean) => void;
-  setConfirmBeforePermanentDelete: (confirm: boolean) => void;
-  setConfirmBeforeDeleteCalendar: (confirm: boolean) => void;
-  setConfirmBeforeDeleteAccount: (confirm: boolean) => void;
-  setConfirmBeforeDeleteFilter: (confirm: boolean) => void;
-  setConfirmBeforeDeleteTag: (confirm: boolean) => void;
   setDeleteSubtasksWithParent: (behavior: SubtaskDeletionBehavior) => void;
   setAutoEmptyRecentlyDeleted: (enabled: boolean) => void;
   setRecentlyDeletedRetentionDays: (days: number) => void;
@@ -242,7 +233,9 @@ interface SettingsActions {
   setDefaultPercentComplete: (pct: number) => void;
   setDefaultTags: (tagIds: string[]) => void;
   setDefaultStartDate: (offset: DefaultDateOffset) => void;
+  setDefaultStartTime: (time: number | null) => void;
   setDefaultDueDate: (offset: DefaultDateOffset) => void;
+  setDefaultDueTime: (time: number | null) => void;
   setDefaultReminders: (reminders: DefaultReminderOffset[]) => void;
   setDefaultRrule: (rrule: string | undefined) => void;
   setDefaultRepeatFrom: (repeatFrom: number) => void;
@@ -262,6 +255,7 @@ interface SettingsActions {
   setSidebarSectionOrder: (order: SidebarSectionKey[]) => void;
   setDefaultLaunchView: (view: DefaultLaunchView) => void;
   setEnableSystemTray: (enabled: boolean) => void;
+  setEnableSystemTrayExplicitlySet: (explicitlySet: boolean) => void;
   setSystemTrayAppliedValue: (value: boolean) => void;
   setHideDockIconWhenWindowClosed: (enabled: boolean) => void;
   setShowWindowOnNormalLaunch: (show: boolean) => void;
@@ -289,6 +283,7 @@ interface SettingsActions {
   setTaskBadgeVisibility: (visibility: TaskBadgeVisibility) => void;
   setTaskBadgeOrder: (order: TaskBadgeKey[]) => void;
   setQuickTimePresets: (presets: QuickTimePresets) => void;
+  setWorkingDays: (days: WorkingDay[]) => void;
   setConnectivityCheckEnabled: (enabled: boolean) => void;
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;

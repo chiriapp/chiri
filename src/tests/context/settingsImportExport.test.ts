@@ -29,3 +29,39 @@ describe('mergeShortcuts', () => {
     expect(mergeShortcuts(existing, defaults)).toEqual(existing);
   });
 });
+
+describe('enableSystemTrayExplicitlySet round-trip', () => {
+  it('preserves the explicit tray flag through export and import', async () => {
+    const { exportSettings, importSettings } = await import('$context/settingsImportExport');
+    const { defaultState } = await import('$context/settingsDefaults');
+
+    const state = {
+      ...defaultState,
+      enableSystemTray: false,
+      enableSystemTrayExplicitlySet: true,
+    };
+
+    const exported = exportSettings(state);
+    const imported = importSettings(exported, defaultState);
+
+    expect(imported).not.toBeNull();
+    expect(imported?.enableSystemTray).toBe(false);
+    expect(imported?.enableSystemTrayExplicitlySet).toBe(true);
+  });
+
+  it('defaults the explicit tray flag to false when missing from imported data', async () => {
+    const { importSettings } = await import('$context/settingsImportExport');
+    const { defaultState } = await import('$context/settingsDefaults');
+
+    const exported = JSON.stringify({
+      version: 1,
+      enableSystemTray: true,
+    });
+
+    const imported = importSettings(exported, defaultState);
+
+    expect(imported).not.toBeNull();
+    expect(imported?.enableSystemTray).toBe(true);
+    expect(imported?.enableSystemTrayExplicitlySet).toBe(false);
+  });
+});

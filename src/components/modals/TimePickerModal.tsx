@@ -1,6 +1,7 @@
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronUp from 'lucide-react/icons/chevron-up';
 import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 
 interface TimePickerModalProps {
@@ -158,7 +159,21 @@ export const TimePickerModal = ({
   if (!isOpen) return null;
 
   return (
-    <ModalWrapper size="sm" onClose={onClose} title={title} description={description} zIndex="z-70">
+    <ModalWrapper
+      size="sm"
+      onClose={onClose}
+      title={title}
+      description={description}
+      zIndex="z-70"
+      footer={
+        <>
+          <ModalButton variant="ghost" onClick={onClose}>
+            Cancel
+          </ModalButton>
+          <ModalButton onClick={handleConfirm}>Confirm</ModalButton>
+        </>
+      }
+    >
       <div className="flex items-center justify-center gap-2">
         {/* Hour control */}
         <div className="flex flex-col items-center gap-1">
@@ -234,24 +249,6 @@ export const TimePickerModal = ({
             <ChevronDown className="h-5 w-5" />
           </button>
         </div>
-      </div>
-
-      {/* Footer actions */}
-      <div className="flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-lg px-4 py-2 font-medium text-sm text-surface-600 outline-hidden transition-colors hover:bg-surface-100 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={handleConfirm}
-          className="rounded-lg bg-primary-600 px-4 py-2 font-medium text-primary-contrast text-sm outline-hidden transition-colors hover:bg-primary-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
-        >
-          Confirm
-        </button>
       </div>
     </ModalWrapper>
   );
