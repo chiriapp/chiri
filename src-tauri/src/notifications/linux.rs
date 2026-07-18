@@ -65,7 +65,7 @@ fn apply_notification_identity(app: &AppHandle, notif: &mut notify_rust::Notific
     // display name. pin the desktop-entry hint so notification servers still
     // resolve the correct icon and launcher entry
     if std::env::var_os("APPIMAGE").is_some() {
-        notif.hint(notify_rust::Hint::DesktopEntry(bundle_id));
+        notif.hint(notify_rust::Hint::DesktopEntry(bundle_id.clone()));
     }
 
     // Flatpak uses the bundle ID as the icon name; other installs vary (AUR uses
