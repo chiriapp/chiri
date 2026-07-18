@@ -87,7 +87,7 @@ pub(super) fn setup_app(
         // hiding the window is safe before the frontend initializes the tray
         let app_handle = app.handle().clone();
         tauri::async_runtime::spawn(async move {
-            match crate::linux::desktop::tray_host_available().await {
+            match crate::linux::desktop::is_tray_host_available().await {
                 Ok(available) => {
                     if let Err(e) = app_handle
                         .state::<crate::tray::TrayState>()

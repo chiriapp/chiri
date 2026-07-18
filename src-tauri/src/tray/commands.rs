@@ -8,7 +8,7 @@ use super::{menu, AppRuntime, TrayState};
 /// tray toggle is enabled
 #[cfg(target_os = "linux")]
 async fn refresh_tray_host_availability(state: &TrayState) {
-    match crate::linux::desktop::tray_host_available().await {
+    match crate::linux::desktop::is_tray_host_available().await {
         Ok(available) => {
             if let Err(e) = state.set_host_available(available) {
                 log::warn!("[Tray] Failed to cache host availability: {e}");

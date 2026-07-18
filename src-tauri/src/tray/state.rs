@@ -54,7 +54,7 @@ impl TrayState {
     }
 
     #[cfg(target_os = "linux")]
-    pub(in crate::tray) fn set_host_available(&self, available: bool) -> Result<(), String> {
+    pub(crate) fn set_host_available(&self, available: bool) -> Result<(), String> {
         *self
             .host_available
             .lock()
