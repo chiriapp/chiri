@@ -118,6 +118,7 @@ pub fn run() {
             push::autopush::stop_all_mozilla_autopush_listeners,
             push::autopush::stop_mozilla_autopush_listener,
             tray::commands::get_tray_enabled,
+            tray::commands::get_tray_host_available,
             tray::commands::initialize_tray,
             tray::commands::set_tray_visible,
             tray::commands::update_tray_sync_enabled,

@@ -10,6 +10,10 @@ pub struct TrayState {
     menu_updater: Mutex<Option<MenuUpdater>>,
     sync_item: Mutex<Option<MenuItem<AppRuntime>>>,
     enabled: Mutex<bool>,
+    /// true if the current desktop session actually has a tray host available
+    /// (e.g., SNI/AppIndicator on Linux). on Linux this defaults to false and is
+    /// updated once we detect the host; on macOS/Windows it's always true
+    host_available: Mutex<bool>,
 }
 
 impl Default for TrayState {
@@ -18,6 +22,10 @@ impl Default for TrayState {
             menu_updater: Mutex::new(None),
             sync_item: Mutex::new(None),
             enabled: Mutex::new(true),
+            #[cfg(target_os = "linux")]
+            host_available: Mutex::new(false),
+            #[cfg(not(target_os = "linux"))]
+            host_available: Mutex::new(true),
         }
     }
 }
@@ -35,6 +43,22 @@ impl TrayState {
             .enabled
             .lock()
             .map_err(|e| format!("Failed to lock tray enabled state: {e}"))? = enabled;
+        Ok(())
+    }
+
+    pub fn is_host_available(&self) -> Result<bool, String> {
+        self.host_available
+            .lock()
+            .map(|available| *available)
+            .map_err(|e| format!("Failed to lock tray host availability state: {e}"))
+    }
+
+    #[cfg(target_os = "linux")]
+    pub(in crate::tray) fn set_host_available(&self, available: bool) -> Result<(), String> {
+        *self
+            .host_available
+            .lock()
+            .map_err(|e| format!("Failed to lock tray host availability state: {e}"))? = available;
         Ok(())
     }
 
@@ -79,5 +103,30 @@ impl TrayState {
             sync_item.set_enabled(enabled).map_err(|e| e.to_string())?;
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_host_availability_matches_platform() {
+        let state = TrayState::default();
+        if cfg!(target_os = "linux") {
+            assert!(!state.is_host_available().unwrap());
+        } else {
+            assert!(state.is_host_available().unwrap());
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn host_availability_can_be_updated() {
+        let state = TrayState::default();
+        state.set_host_available(true).unwrap();
+        assert!(state.is_host_available().unwrap());
+        state.set_host_available(false).unwrap();
+        assert!(!state.is_host_available().unwrap());
     }
 }

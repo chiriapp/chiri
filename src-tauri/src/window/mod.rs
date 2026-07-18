@@ -49,6 +49,20 @@ fn is_tray_enabled<R: tauri::Runtime>(window: &tauri::Window<R>) -> bool {
     }
 }
 
+fn is_tray_host_available<R: tauri::Runtime>(window: &tauri::Window<R>) -> bool {
+    match window
+        .app_handle()
+        .state::<crate::tray::TrayState>()
+        .is_host_available()
+    {
+        Ok(available) => available,
+        Err(e) => {
+            log::warn!("[Window] Failed to read tray host availability: {e}");
+            false
+        }
+    }
+}
+
 /// handle window focus event
 ///
 /// workaround for KDE/Wayland environments on Linux:
@@ -71,11 +85,13 @@ pub fn handle_focus_event<R: tauri::Runtime>(_window: &tauri::Window<R>) {}
 
 pub fn handle_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &WindowEvent) {
     match event {
-        WindowEvent::CloseRequested { api, .. } if is_tray_enabled(window) => {
+        WindowEvent::CloseRequested { api, .. }
+            if is_tray_enabled(window) && is_tray_host_available(window) =>
+        {
             // handle close request with tray integration
             // when the close button is clicked:
-            // - If tray is enabled: hide the window instead of closing
-            // - If tray is disabled: allow normal close behavior
+            // - if tray is enabled and a tray host is available: hide the window instead of closing
+            // - if tray is disabled or no tray host is available: allow normal close behavior
             api.prevent_close();
 
             let _ = window.hide();

@@ -106,6 +106,18 @@ export const isAppImageInstall = async () => {
 };
 
 /**
+ * returns the cached tray host availability from the backend
+ */
+export const getTrayHostAvailable = async () => {
+  try {
+    return await invoke<boolean>('get_tray_host_available');
+  } catch (error) {
+    log.error('Failed to read tray host availability:', error);
+    return false;
+  }
+};
+
+/**
  * returns true when the AppImage desktop integration prompt should be shown
  */
 export const isAppImageDesktopIntegrationNeeded = async () => {

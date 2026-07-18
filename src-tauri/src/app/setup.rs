@@ -81,6 +81,28 @@ pub(super) fn setup_app(
 
     notifications::initialize(app);
 
+    #[cfg(target_os = "linux")]
+    {
+        // probe for an SNI host early so the window close handler knows whether
+        // hiding the window is safe before the frontend initializes the tray
+        let app_handle = app.handle().clone();
+        tauri::async_runtime::spawn(async move {
+            match crate::linux::desktop::tray_host_available().await {
+                Ok(available) => {
+                    if let Err(e) = app_handle
+                        .state::<crate::tray::TrayState>()
+                        .set_host_available(available)
+                    {
+                        log::warn!("[Tray] Failed to cache initial host availability: {e}");
+                    } else {
+                        log::info!("[Tray] SNI host available: {available}");
+                    }
+                }
+                Err(e) => log::warn!("[Tray] Failed to detect SNI host availability: {e}"),
+            }
+        });
+    }
+
     // tray will be initialized from frontend after reading settings
     Ok(())
 }

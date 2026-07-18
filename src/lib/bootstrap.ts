@@ -11,7 +11,12 @@ import { dataStore } from '$lib/store';
 import { setAllTasksView, setRecentlyDeletedView } from '$lib/store/ui';
 import { restoreWindowState } from '$lib/window';
 import { initAppMenu } from '$utils/menu';
-import { isLinuxPlatform, isMacPlatform, isWindowsPlatform } from '$utils/platform';
+import {
+  getTrayHostAvailable,
+  isLinuxPlatform,
+  isMacPlatform,
+  isWindowsPlatform,
+} from '$utils/platform';
 
 const log = loggers.bootstrap;
 
@@ -200,10 +205,17 @@ export const shouldShowWindowOnStartup = async () => {
       });
 
   const enableSystemTray = settingsStore.getState().enableSystemTray;
+  const trayHostAvailable =
+    isLinuxPlatform() && enableSystemTray ? await getTrayHostAvailable() : true;
 
   if (!launchedAtLogin) {
     if (!enableSystemTray) {
       log.debug('Showing window for normal app launch because system tray is disabled');
+      return true;
+    }
+
+    if (!trayHostAvailable) {
+      log.info('Showing window for normal app launch because no tray host is available');
       return true;
     }
 
@@ -219,6 +231,11 @@ export const shouldShowWindowOnStartup = async () => {
 
   if (!enableSystemTray) {
     log.info('Showing window for login/autostart launch because system tray is disabled');
+    return true;
+  }
+
+  if (!trayHostAvailable) {
+    log.info('Showing window for login/autostart launch because no tray host is available');
     return true;
   }
 

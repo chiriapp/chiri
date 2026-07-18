@@ -4,9 +4,10 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { useEffect, useState } from 'react';
+import { TrayHostWarning } from '$components/TrayHostWarning';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAutostart } from '$hooks/system/useAutostart';
-import { usePlatform } from '$hooks/system/usePlatform';
+import { useTrayHostAvailability } from '$hooks/system/useTrayHostAvailability';
 import {
   installAppImageDesktopIntegration,
   isAppImageDesktopFileInstalled,
@@ -25,7 +26,6 @@ const formatRestartReasons = (reasons: string[]) => {
 };
 
 export const SystemSettings = () => {
-  const { isGNOME } = usePlatform();
   const autostart = useAutostart();
   const isLinux = isLinuxPlatform();
   const isMac = isMacPlatform();
@@ -68,8 +68,10 @@ export const SystemSettings = () => {
     autostart.pending && autostart.enabled === true
       ? 'text-primary-500 dark:text-primary-400'
       : 'text-surface-500 dark:text-surface-400';
-  const startQuietlyAtLoginDisabled = autostart.enabled !== true || !enableSystemTray;
-  const startHiddenOnNormalLaunchDisabled = !enableSystemTray;
+  const { isAvailable: isTrayHostAvailable } = useTrayHostAvailability();
+  const startHiddenOptionsDisabled = !enableSystemTray || isTrayHostAvailable === false;
+  const startQuietlyAtLoginDisabled = autostart.enabled !== true || startHiddenOptionsDisabled;
+  const startHiddenOnNormalLaunchDisabled = startHiddenOptionsDisabled;
 
   useEffect(() => {
     if (!isLinux) {
@@ -295,25 +297,7 @@ export const SystemSettings = () => {
           </div>
         )}
 
-        {isGNOME && (
-          <div className="px-4 pb-4">
-            <div className="flex gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 p-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-semantic-warning" />
-              <p className="text-semantic-warning text-xs">
-                <strong>GNOME detected:</strong> System tray requires the{' '}
-                <a
-                  href="https://extensions.gnome.org/extension/615/appindicator-support/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:opacity-80"
-                >
-                  AppIndicator and KStatusNotifierItem Support
-                </a>{' '}
-                extension. Without it, the tray icon will not appear.
-              </p>
-            </div>
-          </div>
-        )}
+        <TrayHostWarning />
       </div>
 
       {isMac && (

@@ -22,11 +22,12 @@ import { ActionCard } from '$components/modals/OnboardingModal/ActionCard';
 import { OnboardingAppearanceSettings } from '$components/modals/OnboardingModal/AppearanceSettings';
 import { RegionTimeSettings } from '$components/modals/OnboardingModal/RegionTimeSettings';
 import { ToggleRow } from '$components/modals/OnboardingModal/ToggleRow';
+import { TrayHostWarning } from '$components/TrayHostWarning';
 import { useNotificationContext } from '$context/notificationContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAutostart } from '$hooks/system/useAutostart';
-import { usePlatform } from '$hooks/system/usePlatform';
-import { isLinuxPlatform, isMacPlatform } from '$utils/platform';
+import { useTrayHostAvailability } from '$hooks/system/useTrayHostAvailability';
+import { isMacPlatform } from '$utils/platform';
 
 interface OnboardingModalProps {
   hasCalDAVAccount: boolean;
@@ -67,8 +68,9 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
     setShowWindowOnLoginLaunch,
   } = useSettingsStore();
   const { permissionStatus, isCheckingPermission, requestPermission } = useNotificationContext();
-  const { isGNOME } = usePlatform();
   const autostart = useAutostart();
+  const { isAvailable: isTrayHostAvailable } = useTrayHostAvailability();
+  const startHiddenOptionsDisabled = !enableSystemTray || isTrayHostAvailable === false;
 
   const isMac = isMacPlatform();
   const macPermissionPending =
@@ -381,7 +383,7 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
                   label="Start quietly in tray at login"
                   description="Hide the main window when Chiri starts automatically. Requires system tray."
                   checked={!showWindowOnLoginLaunch}
-                  disabled={autostart.enabled !== true || !enableSystemTray}
+                  disabled={autostart.enabled !== true || startHiddenOptionsDisabled}
                   onChange={(checked) => setShowWindowOnLoginLaunch(!checked)}
                 />
               </div>
@@ -390,7 +392,7 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
                 label="Start hidden on normal launch"
                 description="Hide the main window when Chiri starts manually. Requires system tray."
                 checked={!showWindowOnNormalLaunch}
-                disabled={!enableSystemTray}
+                disabled={startHiddenOptionsDisabled}
                 onChange={(checked) => setShowWindowOnNormalLaunch(!checked)}
               />
               <ToggleRow
@@ -409,24 +411,7 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
               </div>
             )}
 
-            {isLinuxPlatform() && isGNOME && (
-              <div className="flex gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 p-3">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-semantic-warning" />
-                <p className="text-semantic-warning text-xs">
-                  <strong>GNOME detected:</strong> GNOME does not show tray icons by default. The
-                  system tray works only with the{' '}
-                  <a
-                    href="https://extensions.gnome.org/extension/615/appindicator-support/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline hover:opacity-80"
-                  >
-                    AppIndicator and KStatusNotifierItem Support
-                  </a>{' '}
-                  extension installed.
-                </p>
-              </div>
-            )}
+            <TrayHostWarning />
           </div>
         )}
 
