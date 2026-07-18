@@ -17,7 +17,7 @@ import type {
   TaskStatus,
 } from '$types';
 import type { AccentColor, Theme } from '$types/color';
-import type { DateFormat, StartOfWeek, TimeFormat } from '$types/preference';
+import type { DateFormat, StartOfWeek, TimeFormat, WorkingDay } from '$types/preference';
 import type { PushProviderId } from '$types/push';
 import type {
   DefaultLaunchView,
@@ -53,6 +53,12 @@ const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
       const parsed = JSON.parse(stored);
       const {
         confirmBeforeDelete: _confirmBeforeDelete,
+        confirmBeforeDeletion: _confirmBeforeDeletion,
+        confirmBeforePermanentDelete: _confirmBeforePermanentDelete,
+        confirmBeforeDeleteCalendar: _confirmBeforeDeleteCalendar,
+        confirmBeforeDeleteAccount: _confirmBeforeDeleteAccount,
+        confirmBeforeDeleteFilter: _confirmBeforeDeleteFilter,
+        confirmBeforeDeleteTag: _confirmBeforeDeleteTag,
         defaultAccountsExpanded: _defaultAccountsExpanded,
         ...storedState
       } = parsed.state ?? {};
@@ -228,19 +234,8 @@ export const settingsStore = {
   setSyncInterval: (syncInterval: number) => setState({ syncInterval }),
   setSyncOnStartup: (syncOnStartup: boolean) => setState({ syncOnStartup }),
   setSyncOnReconnect: (syncOnReconnect: boolean) => setState({ syncOnReconnect }),
-  setConfirmBeforeDeletion: (confirmBeforeDeletion: boolean) => setState({ confirmBeforeDeletion }),
   setConfirmBeforeMoveToRecentlyDeleted: (confirmBeforeMoveToRecentlyDeleted: boolean) =>
     setState({ confirmBeforeMoveToRecentlyDeleted }),
-  setConfirmBeforePermanentDelete: (confirmBeforePermanentDelete: boolean) =>
-    setState({ confirmBeforePermanentDelete }),
-  setConfirmBeforeDeleteCalendar: (confirmBeforeDeleteCalendar: boolean) =>
-    setState({ confirmBeforeDeleteCalendar }),
-  setConfirmBeforeDeleteAccount: (confirmBeforeDeleteAccount: boolean) =>
-    setState({ confirmBeforeDeleteAccount }),
-  setConfirmBeforeDeleteFilter: (confirmBeforeDeleteFilter: boolean) =>
-    setState({ confirmBeforeDeleteFilter }),
-  setConfirmBeforeDeleteTag: (confirmBeforeDeleteTag: boolean) =>
-    setState({ confirmBeforeDeleteTag }),
   setDeleteSubtasksWithParent: (deleteSubtasksWithParent: SubtaskDeletionBehavior) =>
     setState({ deleteSubtasksWithParent }),
   setAutoEmptyRecentlyDeleted: (autoEmptyRecentlyDeleted: boolean) =>
@@ -299,7 +294,9 @@ export const settingsStore = {
     setState({ defaultPercentComplete }),
   setDefaultTags: (defaultTags: string[]) => setState({ defaultTags }),
   setDefaultStartDate: (defaultStartDate: DefaultDateOffset) => setState({ defaultStartDate }),
+  setDefaultStartTime: (defaultStartTime: number | null) => setState({ defaultStartTime }),
   setDefaultDueDate: (defaultDueDate: DefaultDateOffset) => setState({ defaultDueDate }),
+  setDefaultDueTime: (defaultDueTime: number | null) => setState({ defaultDueTime }),
   setDefaultReminders: (defaultReminders: DefaultReminderOffset[]) =>
     setState({ defaultReminders }),
   setDefaultRrule: (defaultRrule: string | undefined) => setState({ defaultRrule }),
@@ -340,6 +337,8 @@ export const settingsStore = {
     setState({ showWindowOnNormalLaunch }),
   setShowWindowOnLoginLaunch: (showWindowOnLoginLaunch: boolean) =>
     setState({ showWindowOnLoginLaunch }),
+  setEnableSystemTrayExplicitlySet: (enableSystemTrayExplicitlySet: boolean) =>
+    setState({ enableSystemTrayExplicitlySet }),
   setRestoreWindowState: (restoreWindowState: boolean) => setState({ restoreWindowState }),
   setWindowDecorationStyle: (windowDecorationStyle: WindowDecorationStyle) =>
     setState({ windowDecorationStyle }),
@@ -385,6 +384,7 @@ export const settingsStore = {
     setState({ taskBadgeVisibility }),
   setTaskBadgeOrder: (taskBadgeOrder: TaskBadgeKey[]) => setState({ taskBadgeOrder }),
   setQuickTimePresets: (quickTimePresets: QuickTimePresets) => setState({ quickTimePresets }),
+  setWorkingDays: (workingDays: WorkingDay[]) => setState({ workingDays }),
   setConnectivityCheckEnabled: (connectivityCheckEnabled: boolean) =>
     setState({ connectivityCheckEnabled }),
   setConnectivityCheckUrl: (connectivityCheckUrl: string) => setState({ connectivityCheckUrl }),

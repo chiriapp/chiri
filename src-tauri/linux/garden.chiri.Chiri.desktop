@@ -4,7 +4,6 @@ Type=Application
 Name=Chiri
 GenericName=Task manager
 Comment={{{comment}}}
-TryExec={{{exec}}}
 Exec={{{exec}}} %u
 Icon={{{icon}}}
 Terminal=false

@@ -175,6 +175,7 @@ export type DefaultDateOffset =
   | 'none'
   | 'today'
   | 'tomorrow'
+  | 'next-working-day'
   | '1week'
   | '2weeks'
   | 'due-date'

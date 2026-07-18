@@ -35,6 +35,8 @@ export const SystemSettings = () => {
   const {
     enableSystemTray,
     setEnableSystemTray,
+    enableSystemTrayExplicitlySet,
+    setEnableSystemTrayExplicitlySet,
     showWindowOnNormalLaunch,
     setShowWindowOnNormalLaunch,
     showWindowOnLoginLaunch,
@@ -102,6 +104,9 @@ export const SystemSettings = () => {
 
   const handleSystemTrayChange = (checked: boolean) => {
     setEnableSystemTray(checked);
+    if (!enableSystemTrayExplicitlySet) {
+      setEnableSystemTrayExplicitlySet(true);
+    }
   };
 
   const handleHideDockIconWhenWindowClosedChange = async (checked: boolean) => {
@@ -218,7 +223,7 @@ export const SystemSettings = () => {
               Start hidden on normal launch
             </p>
             <p className="text-surface-500 text-xs dark:text-surface-400">
-              Open quietly in the tray. Requires system tray to be enabled.
+              Hide the main window when Chiri starts manually. Requires system tray.
             </p>
           </div>
           <input

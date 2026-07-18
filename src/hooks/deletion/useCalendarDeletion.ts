@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { useConfirmDialog } from '$context/confirmDialogContext';
-import { useSettingsStore } from '$context/settingsContext';
 import { useSetAllTasksView } from '$hooks/queries/useUIState';
 import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
@@ -23,7 +22,6 @@ export const useCalendarDeletion = () => {
   const queryClient = useQueryClient();
   const setAllTasksViewMutation = useSetAllTasksView();
   const { confirm, setLoading, setError, close } = useConfirmDialog();
-  const { confirmBeforeDeletion, confirmBeforeDeleteCalendar } = useSettingsStore();
 
   const deleteCalendar = useCallback(
     async (
@@ -57,19 +55,17 @@ export const useCalendarDeletion = () => {
           }
         : undefined;
 
-      if (isVikunja || (confirmBeforeDeletion && confirmBeforeDeleteCalendar)) {
-        const confirmed = await confirm({
-          title: 'Delete calendar',
-          subtitle: calendar?.displayName,
-          message: isVikunja ? undefined : deleteMessage,
-          confirmLabel: 'Delete',
-          destructive: true,
-          notice: vikunjaNotice,
-          disableConfirm: isVikunja,
-          keepOpenOnConfirm: true,
-        });
-        if (!confirmed) return false;
-      }
+      const confirmed = await confirm({
+        title: 'Delete calendar',
+        subtitle: calendar?.displayName,
+        message: isVikunja ? undefined : deleteMessage,
+        confirmLabel: 'Delete',
+        destructive: true,
+        notice: vikunjaNotice,
+        disableConfirm: isVikunja,
+        keepOpenOnConfirm: true,
+      });
+      if (!confirmed) return false;
 
       setLoading(true);
 
@@ -100,16 +96,7 @@ export const useCalendarDeletion = () => {
       close();
       return true;
     },
-    [
-      close,
-      confirm,
-      confirmBeforeDeleteCalendar,
-      confirmBeforeDeletion,
-      queryClient,
-      setAllTasksViewMutation,
-      setError,
-      setLoading,
-    ],
+    [close, confirm, queryClient, setAllTasksViewMutation, setError, setLoading],
   );
 
   return { deleteCalendar };

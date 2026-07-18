@@ -1,10 +1,9 @@
-import CircleX from 'lucide-react/icons/circle-x';
 import Info from 'lucide-react/icons/info';
 import type { ReactNode, SubmitEvent } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import { ConnectionNoticeBanner } from '$components/ConnectionNoticeBanner';
 import { IconEmojiPicker } from '$components/IconEmojiPicker';
 import { AdvancedSection } from '$components/modals/AccountModal/AdvancedSection';
-import { ConnectionSuccessBanner } from '$components/modals/AccountModal/ConnectionSuccessBanner';
 import { Tooltip } from '$components/Tooltip';
 import { getPredefinedServerUrl } from '$constants/settings';
 import { useInitialFocusRef } from '$hooks/ui/useInitialFocusRef';
@@ -259,43 +258,13 @@ export const CredentialsForm = ({
         initialOpen={!!account?.caldav?.calendarHomeUrl || !!account?.caldav?.principalUrl}
       />
 
-      {error && (
-        <div
-          role="alert"
-          className="min-w-0 rounded-lg border border-semantic-error/30 bg-semantic-error/10 p-3 text-sm text-surface-700 dark:text-surface-300"
-        >
-          <div className="grid min-w-0 grid-cols-[1rem_minmax(0,1fr)] gap-x-2 gap-y-2">
-            <CircleX className="mt-0.5 size-4 shrink-0 text-semantic-error" />
-            <div className="min-w-0">
-              <p className="wrap-break-word font-medium text-semantic-error">{error.title}</p>
-            </div>
-            <p className="wrap-break-word col-span-2 min-w-0">{error.message}</p>
-
-            {error.hint && (
-              <p className="wrap-break-word col-span-2 min-w-0 text-surface-600 text-xs dark:text-surface-400">
-                {error.hint}
-              </p>
-            )}
-
-            {error.detail && error.detail !== error.message && (
-              <details className="col-span-2 min-w-0 text-surface-500 text-xs dark:text-surface-400">
-                <summary className="cursor-pointer select-none font-medium">
-                  Technical detail
-                </summary>
-                <p className="wrap-break-word mt-1 whitespace-pre-wrap font-mono">{error.detail}</p>
-              </details>
-            )}
-          </div>
-        </div>
-      )}
-
-      {testSuccess && (
-        <ConnectionSuccessBanner
-          calendarCount={testedCalendarCount}
-          pushSupportedCount={testedPushSupportedCount}
-          notice={setupNotice}
-        />
-      )}
+      <ConnectionNoticeBanner
+        success={testSuccess}
+        error={error}
+        notice={setupNotice}
+        calendarCount={testedCalendarCount}
+        pushSupported={testSuccess ? testedPushSupportedCount > 0 : undefined}
+      />
     </form>
   );
 };

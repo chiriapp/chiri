@@ -123,11 +123,13 @@ vi.mock('$utils/misc', () => ({ generateUUID: mocks.nextUuid }));
 
 import {
   disableAllPushSubscriptions,
+  disablePushForAccount,
   disablePushForCalendar,
   enablePushForCalendar,
   getWebDAVPushAccountDiagnostics,
   initializePushManager,
   restorePushListeners,
+  resubscribeAllPushCalendars,
 } from '$lib/push';
 
 const calendar: Calendar = {
@@ -448,5 +450,93 @@ describe('enablePushForCalendar', () => {
       lastError: null,
     });
     expect(diagnostics.lastRenewedAt).toEqual(stored.createdAt);
+  });
+
+  it('disables push for disconnected accounts instead of enabling', async () => {
+    const stored = subscription('stored');
+    mocks.setSubscriptions([stored]);
+    mocks.isConnected.mockReturnValue(false);
+
+    const result = await enablePushForCalendar('account-1', calendar);
+
+    expect(result).toBe(false);
+    expect(mocks.removeNtfyProviderSubscription).toHaveBeenCalledWith(stored);
+    expect(mocks.unregisterPushSubscription).not.toHaveBeenCalled();
+    expect(mocks.db.deletePushSubscription).toHaveBeenCalledWith(stored.id);
+    expect(mocks.registerPushSubscription).not.toHaveBeenCalled();
+    expect(mocks.getSubscriptions()).toEqual([]);
+  });
+});
+
+describe('disablePushForAccount', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.resetState();
+    mocks.isConnected.mockReturnValue(true);
+  });
+
+  it('disables push for every push-supported calendar on the account', async () => {
+    const stored = subscription('stored');
+    mocks.setSubscriptions([stored]);
+
+    await disablePushForAccount(account);
+
+    expect(mocks.stopNtfyProviderListening).toHaveBeenCalledWith(calendar.id);
+    expect(mocks.removeNtfyProviderSubscription).toHaveBeenCalledWith(stored);
+    expect(mocks.unregisterPushSubscription).toHaveBeenCalledWith(stored.registrationUrl, {
+      username: 'unit-tests',
+      password: 'unit-tests',
+    });
+    expect(mocks.db.deletePushSubscription).toHaveBeenCalledWith(stored.id);
+    expect(mocks.getSubscriptions()).toEqual([]);
+  });
+});
+
+describe('resubscribeAllPushCalendars', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.resetState();
+    mocks.isConnected.mockReturnValue(true);
+    mocks.registerPushSubscription.mockResolvedValue({
+      registrationUrl: 'http://localhost:4000/push_subscription/new',
+      expires: new Date(Date.now() + 72 * 60 * 60 * 1000),
+    });
+    mocks.restoreNtfyProviderSubscription.mockResolvedValue(true);
+    mocks.startNtfyProviderListening.mockReturnValue(true);
+    initializePushManager(vi.fn());
+  });
+
+  it('disables push for disconnected accounts and skips re-enabling', async () => {
+    const stored = subscription('stored');
+    mocks.setSubscriptions([stored]);
+    mocks.isConnected.mockReturnValue(false);
+
+    const result = await resubscribeAllPushCalendars([account]);
+
+    expect(result).toMatchObject({
+      attempted: 1,
+      succeeded: 0,
+      failed: 1,
+    });
+    expect(mocks.removeNtfyProviderSubscription).toHaveBeenCalledWith(stored);
+    expect(mocks.unregisterPushSubscription).not.toHaveBeenCalled();
+    expect(mocks.db.deletePushSubscription).toHaveBeenCalledWith(stored.id);
+    expect(mocks.registerPushSubscription).not.toHaveBeenCalled();
+    expect(mocks.startNtfyProviderListening).not.toHaveBeenCalled();
+    expect(mocks.getSubscriptions()).toEqual([]);
+  });
+
+  it('resubscribes connected accounts normally', async () => {
+    mocks.isConnected.mockReturnValue(true);
+
+    const result = await resubscribeAllPushCalendars([account]);
+
+    expect(result).toMatchObject({
+      attempted: 1,
+      succeeded: 1,
+      failed: 0,
+    });
+    expect(mocks.registerPushSubscription).toHaveBeenCalledTimes(1);
+    expect(mocks.startNtfyProviderListening).toHaveBeenCalledTimes(1);
   });
 });

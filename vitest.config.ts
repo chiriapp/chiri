@@ -38,6 +38,7 @@ export default defineConfig({
           environment: 'jsdom',
           include: [
             'src/tests/lib/tauri-http.test.ts',
+            'src/tests/components/GlobalDragRegion.test.tsx',
             'src/tests/components/TaskDefaultsSettings.test.tsx',
             'src/tests/components/RepeatModal.test.tsx',
             'src/tests/components/TaskEditorRepeat.test.tsx',

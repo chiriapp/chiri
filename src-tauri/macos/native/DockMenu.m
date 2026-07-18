@@ -3,9 +3,11 @@
 
 extern void chiri_macos_dock_menu_item_selected(const char *action);
 extern int chiri_macos_dock_sync_enabled(void);
+extern void chiri_macos_set_dock_menu_modal_open(int modalOpen);
 
 static NSArray<NSDictionary<NSString *, NSString *> *> *ChiriDockFilters;
 static BOOL ChiriDockSyncEnabled = NO;
+static BOOL ChiriDockModalOpen = NO;
 static NSMenuItem *ChiriDockSyncItem;
 
 @interface ChiriDockMenuTarget : NSObject <NSMenuItemValidation>
@@ -44,10 +46,10 @@ static NSMenuItem *ChiriDockSyncItem;
   }
 
   if ([action isEqualToString:@"sync"]) {
-    return chiri_macos_dock_sync_enabled() != 0;
+    return chiri_macos_dock_sync_enabled() != 0 && !ChiriDockModalOpen;
   }
 
-  return YES;
+  return !ChiriDockModalOpen;
 }
 
 @end
@@ -58,7 +60,7 @@ static NSMenuItem *ChiriDockMenuItem(NSString *title, NSString *action, BOOL ena
                                         keyEquivalent:@""];
   item.target = [ChiriDockMenuTarget shared];
   item.representedObject = action;
-  item.enabled = enabled;
+  item.enabled = enabled && !ChiriDockModalOpen;
   return item;
 }
 
@@ -150,6 +152,16 @@ void chiri_macos_set_dock_menu_items(
 
   ChiriDockFilters = [filters copy];
   ChiriDockSyncEnabled = syncEnabled != 0;
-  ChiriDockSyncItem.enabled = ChiriDockSyncEnabled;
-  [ChiriDockSyncItem.menu update];
+  if (ChiriDockSyncItem != nil) {
+    ChiriDockSyncItem.enabled = ChiriDockSyncEnabled && !ChiriDockModalOpen;
+    [ChiriDockSyncItem.menu update];
+  }
+}
+
+void chiri_macos_set_dock_menu_modal_open(int modalOpen) {
+  ChiriDockModalOpen = modalOpen != 0;
+  if (ChiriDockSyncItem != nil) {
+    ChiriDockSyncItem.enabled = ChiriDockSyncEnabled && !ChiriDockModalOpen;
+    [ChiriDockSyncItem.menu update];
+  }
 }

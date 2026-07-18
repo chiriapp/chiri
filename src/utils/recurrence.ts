@@ -7,9 +7,16 @@
 
 import { format } from 'date-fns';
 import { RRuleTemporal } from 'rrule-temporal';
-import type { DateFormat } from '$types/preference';
+import type { DateFormat, WorkingDay } from '$types/preference';
 import type { RecurrenceFrequency } from '$types/recurrence';
+import { WORKING_DAY_META } from '$utils/calendar';
 import { formatDate } from '$utils/date';
+
+const DEFAULT_WORKING_DAYS: WorkingDay[] = ['mo', 'tu', 'we', 'th', 'fr'];
+
+const BYDAY_LABEL: Record<string, string> = Object.fromEntries(
+  Object.values(WORKING_DAY_META).map((meta) => [meta.rruleByday, meta.shortLabel]),
+);
 
 /** format a JS Date as a UTC iCal datetime string (YYYYMMDDTHHMMSSZ) */
 const toICalUTC = (date: Date) => {
@@ -96,16 +103,6 @@ const FREQ_UNIT: Record<string, string> = {
   HOURLY: 'hours',
   MINUTELY: 'minutes',
   SECONDLY: 'seconds',
-};
-
-const BYDAY_LABEL: Record<string, string> = {
-  MO: 'Mon',
-  TU: 'Tue',
-  WE: 'Wed',
-  TH: 'Thu',
-  FR: 'Fri',
-  SA: 'Sat',
-  SU: 'Sun',
 };
 
 /**
@@ -327,9 +324,16 @@ const getOrdinal = (day: number) => {
 };
 
 /** common repeat choices, contextualized by the task's current due date */
-export const getRepeatPresets = (dueDate?: Date): RepeatPreset[] => [
+export const getRepeatPresets = (
+  dueDate?: Date,
+  workingDays: WorkingDay[] = DEFAULT_WORKING_DAYS,
+): RepeatPreset[] => [
   { id: 'daily', label: 'Daily', rrule: frequencyToRRule('daily') },
-  { id: 'weekdays', label: 'Weekdays', rrule: frequencyToRRule('weekdays') },
+  {
+    id: 'weekdays',
+    label: 'Weekdays',
+    rrule: frequencyToRRule('weekdays', undefined, workingDays),
+  },
   {
     id: 'weekly',
     label: dueDate ? `Weekly on ${format(dueDate, 'EEEE')}` : 'Weekly',
@@ -458,16 +462,21 @@ export const rruleToText = (rruleValue: string, repeatFrom?: number, dateFormat?
 export const frequencyToRRule = (
   freq: Exclude<RecurrenceFrequency, 'none' | 'custom'>,
   dueDateForMonthly?: Date,
+  workingDays: WorkingDay[] = DEFAULT_WORKING_DAYS,
 ) => {
   switch (freq) {
     case 'daily':
       return 'FREQ=DAILY';
-    case 'weekdays':
-      return 'FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR';
+    case 'weekdays': {
+      const byday = workingDays.map((d) => WORKING_DAY_META[d].rruleByday).join(',');
+      return byday ? `FREQ=WEEKLY;BYDAY=${byday}` : 'FREQ=WEEKLY';
+    }
     case 'weekly': {
       // default to the day of the week of the due date
       if (dueDateForMonthly) {
-        const days = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+        const days = Object.values(WORKING_DAY_META)
+          .sort((a, b) => a.dayIndex - b.dayIndex)
+          .map((meta) => meta.rruleByday);
         return `FREQ=WEEKLY;BYDAY=${days[dueDateForMonthly.getDay()]}`;
       }
       return 'FREQ=WEEKLY';

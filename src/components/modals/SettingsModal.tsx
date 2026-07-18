@@ -1,5 +1,6 @@
 import Bell from 'lucide-react/icons/bell';
 import CalendarClock from 'lucide-react/icons/calendar-clock';
+import ClipboardPlus from 'lucide-react/icons/clipboard-plus';
 import Database from 'lucide-react/icons/database';
 import Download from 'lucide-react/icons/download';
 import Globe from 'lucide-react/icons/globe';
@@ -15,15 +16,13 @@ import Palette from 'lucide-react/icons/palette';
 import RadioTower from 'lucide-react/icons/radio-tower';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Rocket from 'lucide-react/icons/rocket';
-import ShieldCheck from 'lucide-react/icons/shield-check';
-import Sliders from 'lucide-react/icons/sliders';
+import Shield from 'lucide-react/icons/shield';
 import SquarePen from 'lucide-react/icons/square-pen';
 import User from 'lucide-react/icons/user';
 import Wifi from 'lucide-react/icons/wifi';
 import { type ReactNode, useRef, useState } from 'react';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { AboutSettings } from '$components/settings/AboutSettings/AboutSettings';
-import { AccountsDefaultsSettings } from '$components/settings/AccountsDefaultsSettings';
 import { AppearanceSettings } from '$components/settings/AppearanceSettings';
 import { ConnectionsSettings } from '$components/settings/ConnectionSettings/ConnectionsSettings';
 import { DataSettings } from '$components/settings/DataSettings';
@@ -34,13 +33,12 @@ import { NotificationSettings } from '$components/settings/NotificationSettings'
 import { PushSettings } from '$components/settings/PushSettings/PushSettings';
 import { RegionAndTimeSettings } from '$components/settings/RegionAndTimeSettings';
 import { SafetySettings } from '$components/settings/SafetySettings';
+import { SchedulingSettings } from '$components/settings/SchedulingSettings';
 import { ShortcutsSettings } from '$components/settings/ShortcutsSettings/ShortcutsSettings';
 import { SyncSettings } from '$components/settings/SyncSettings';
 import { SystemSettings } from '$components/settings/SystemSettings';
 import { TaskDefaultsSettings } from '$components/settings/TaskDefaultsSettings/TaskDefaultsSettings';
 import { TaskListLayoutSettings } from '$components/settings/TaskListLayoutSettings/TaskListLayoutSettings';
-import { TaskSafetySettings } from '$components/settings/TaskSafetySettings';
-import { TaskSchedulingSettings } from '$components/settings/TaskSchedulingSettings';
 import { UpdateSettings } from '$components/settings/UpdateSettings';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import type { SettingsCategory, SettingsSubtab } from '$types/settings';
@@ -70,8 +68,7 @@ export const SettingsModal = ({
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>(initialCategory || 'app');
   const [activeSubtabs, setActiveSubtabs] = useState<Record<SettingsCategory, SettingsSubtab>>({
     app: initialCategory === 'app' && initialSubtab ? initialSubtab : 'appearance',
-    tasks: initialCategory === 'tasks' && initialSubtab ? initialSubtab : 'editor',
-    defaults: initialCategory === 'defaults' && initialSubtab ? initialSubtab : 'task-defaults',
+    tasks: initialCategory === 'tasks' && initialSubtab ? initialSubtab : 'defaults',
     accounts: initialCategory === 'accounts' && initialSubtab ? initialSubtab : 'connections',
     misc: initialCategory === 'misc' && initialSubtab ? initialSubtab : 'about',
   });
@@ -104,7 +101,6 @@ export const SettingsModal = ({
         { id: 'navigation', label: 'Navigation', icon: <Navigation className="h-4 w-4" /> },
         { id: 'notifications', label: 'Notifications', icon: <Bell className="h-4 w-4" /> },
         { id: 'region-and-time', label: 'Region & time', icon: <Globe className="h-4 w-4" /> },
-        { id: 'safety', label: 'Safety', icon: <ShieldCheck className="h-4 w-4" /> },
         {
           id: 'startup-window',
           label: 'Startup & window',
@@ -117,19 +113,11 @@ export const SettingsModal = ({
       label: 'Tasks',
       icon: <ListTodo className="h-4 w-4" />,
       subtabs: [
+        { id: 'defaults', label: 'Defaults', icon: <ClipboardPlus className="h-4 w-4" /> },
         { id: 'editor', label: 'Editor', icon: <SquarePen className="h-4 w-4" /> },
         { id: 'list-layout', label: 'List & layout', icon: <LayoutList className="h-4 w-4" /> },
-        { id: 'safety', label: 'Safety', icon: <ShieldCheck className="h-4 w-4" /> },
         { id: 'scheduling', label: 'Scheduling', icon: <CalendarClock className="h-4 w-4" /> },
-      ],
-    },
-    {
-      id: 'defaults',
-      label: 'Defaults',
-      icon: <Sliders className="h-4 w-4" />,
-      subtabs: [
-        { id: 'task-defaults', label: 'Tasks', icon: <ListTodo className="h-4 w-4" /> },
-        { id: 'account-defaults', label: 'Accounts', icon: <User className="h-4 w-4" /> },
+        { id: 'safety', label: 'Safety', icon: <Shield className="h-4 w-4" /> },
       ],
     },
     {
@@ -216,20 +204,18 @@ export const SettingsModal = ({
         </div>
 
         <div ref={contentRef} className="flex-1 overflow-y-auto overscroll-contain p-6">
-          {activeCategory === 'tasks' && currentSubtab === 'scheduling' && (
-            <TaskSchedulingSettings />
-          )}
+          {activeCategory === 'tasks' && currentSubtab === 'defaults' && <TaskDefaultsSettings />}
+          {activeCategory === 'tasks' && currentSubtab === 'scheduling' && <SchedulingSettings />}
           {activeCategory === 'tasks' && currentSubtab === 'list-layout' && (
             <TaskListLayoutSettings />
           )}
-          {activeCategory === 'tasks' && currentSubtab === 'safety' && <TaskSafetySettings />}
           {activeCategory === 'tasks' && currentSubtab === 'editor' && <EditorSettings />}
+          {activeCategory === 'tasks' && currentSubtab === 'safety' && <SafetySettings />}
 
           {activeCategory === 'app' && (
             <>
               {currentSubtab === 'appearance' && <AppearanceSettings />}
               {currentSubtab === 'navigation' && <NavigationSettings />}
-              {currentSubtab === 'safety' && <SafetySettings />}
               {currentSubtab === 'keyboard-shortcuts' && (
                 <ShortcutsSettings onEditingShortcutChange={setIsChildModalOpen} />
               )}
@@ -237,13 +223,6 @@ export const SettingsModal = ({
               {currentSubtab === 'region-and-time' && <RegionAndTimeSettings />}
               {currentSubtab === 'startup-window' && <SystemSettings />}
               {currentSubtab === 'data-diagnostics' && <DataSettings onClose={onClose} />}
-            </>
-          )}
-
-          {activeCategory === 'defaults' && (
-            <>
-              {currentSubtab === 'task-defaults' && <TaskDefaultsSettings />}
-              {currentSubtab === 'account-defaults' && <AccountsDefaultsSettings />}
             </>
           )}
 

@@ -33,11 +33,11 @@ export const TaskEditorRepeat = ({
   onClear,
   readOnly = false,
 }: TaskEditorRepeatProps) => {
-  const { dateFormat } = useSettingsStore();
+  const { dateFormat, workingDays } = useSettingsStore();
   const [showPresets, setShowPresets] = useState(false);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const dueDate = task.dueDate ? new Date(task.dueDate) : undefined;
-  const presets = getRepeatPresets(dueDate);
+  const presets = getRepeatPresets(dueDate, workingDays);
   const summary = task.rrule
     ? rruleToDisplaySummary(task.rrule, task.repeatFrom, dateFormat)
     : null;

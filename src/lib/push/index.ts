@@ -679,6 +679,14 @@ const enablePushForCalendarInner = async (
   enforceVapid = false,
   invalidate = true,
 ) => {
+  if (!isConnected(accountId)) {
+    log.warn(
+      `Cannot enable push for ${calendar.displayName}: account ${accountId} is not connected`,
+    );
+    await disablePushForCalendar(accountId, calendar.id, providerConfig, invalidate);
+    return false;
+  }
+
   const subscriptions = await getFreshCalendarSubscriptions(calendar.id);
   const validSubscription = subscriptions.find((sub) =>
     isRenewablyValidSubscription(sub, providerConfig),
@@ -813,6 +821,27 @@ export const disablePushForCalendar = async (
   await unsubscribeCalendarFromPush(accountId, calendarId, invalidate);
 };
 
+export const disablePushForAccount = async (
+  account: Account,
+  providerConfig: PushProviderConfig = DEFAULT_PUSH_PROVIDER_CONFIG,
+  invalidate = true,
+) => {
+  const pushCalendars = account.calendars.filter((calendar) => calendar.pushSupported);
+  if (pushCalendars.length === 0) return;
+
+  for (const calendar of pushCalendars) {
+    await disablePushForCalendar(account.id, calendar.id, providerConfig, false);
+  }
+
+  if (invalidate) {
+    invalidatePushCaches();
+  }
+
+  log.info(
+    `Disabled WebDAV Push for account ${account.name} (${pushCalendars.length} calendar(s))`,
+  );
+};
+
 export const disableAllPushSubscriptions = async () => {
   const subscriptions = await getFreshAllSubscriptions();
 
@@ -845,6 +874,11 @@ export const resubscribeAllPushCalendars = async (
   let succeeded = 0;
 
   for (const { accountId, calendar } of targets) {
+    if (!isConnected(accountId)) {
+      await disablePushForCalendar(accountId, calendar.id, providerConfig, false);
+      continue;
+    }
+
     try {
       await disablePushForCalendar(accountId, calendar.id, providerConfig, false);
       const enabled = await enablePushForCalendar(

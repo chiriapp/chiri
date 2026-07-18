@@ -11,6 +11,7 @@ import {
   subMonths,
 } from 'date-fns';
 import ArrowRight from 'lucide-react/icons/arrow-right';
+import Briefcase from 'lucide-react/icons/briefcase';
 import CalendarDays from 'lucide-react/icons/calendar-days';
 import ChevronLeft from 'lucide-react/icons/chevron-left';
 import ChevronRight from 'lucide-react/icons/chevron-right';
@@ -32,6 +33,7 @@ import {
   createPaddedDaysArray,
   getDaysOfWeekLabels,
   getMonthStartPadding,
+  getNextWorkingDay,
   getWeekStartValue,
   setDateTime,
 } from '$utils/calendar';
@@ -119,8 +121,11 @@ export const ReminderPickerModal = ({
 
   if (!isOpen) return null;
 
-  const { startOfWeek: weekStartsSetting, quickTimePresets: storedPresets } =
-    settingsStore.getState();
+  const {
+    startOfWeek: weekStartsSetting,
+    quickTimePresets: storedPresets,
+    workingDays,
+  } = settingsStore.getState();
   const quickTimePresets =
     storedPresets && !Array.isArray(storedPresets) ? storedPresets : DEFAULT_QUICK_TIME_PRESETS;
   const weekStartsOn = getWeekStartValue(weekStartsSetting);
@@ -143,8 +148,10 @@ export const ReminderPickerModal = ({
     timeSelected && !CATEGORY_PRESETS.some(({ id }) => quickTimePresets[id] === selectedMinutes);
 
   const today = new Date();
+  const nextWorkingDay = getNextWorkingDay(today, workingDays);
   const isQuickToday = localValue ? isSameDay(localValue, today) : false;
   const isQuickTomorrow = localValue ? isSameDay(localValue, addDays(today, 1)) : false;
+  const isQuickNextWorkingDay = localValue ? isSameDay(localValue, nextWorkingDay) : false;
   const isQuickNextWeek = localValue ? isSameDay(localValue, addDays(today, 7)) : false;
 
   const selectedDateLabel = localValue
@@ -302,6 +309,15 @@ export const ReminderPickerModal = ({
               >
                 <ArrowRight className="h-3 w-3" />
                 Tomorrow
+              </button>
+              <button
+                type="button"
+                data-vertical-list-item
+                onClick={() => handleQuickSelect(nextWorkingDay)}
+                className={btnClass(isQuickNextWorkingDay)}
+              >
+                <Briefcase className="h-3 w-3" />
+                Next working day
               </button>
               <button
                 type="button"

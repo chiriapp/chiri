@@ -1,136 +1,128 @@
-import CalendarDays from 'lucide-react/icons/calendar-days';
-import Cloud from 'lucide-react/icons/cloud';
-import Filter from 'lucide-react/icons/filter';
-import Tags from 'lucide-react/icons/tags';
 import type { ReactNode } from 'react';
+import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
-import type { SidebarSectionKey } from '$types/settings';
+import type { SubtaskDeletionBehavior } from '$types/settings';
+import { pluralize } from '$utils/misc';
 
-type DeletionConfirmationKey = 'filters' | 'calendars' | 'accounts' | 'tags';
+const RETENTION_OPTIONS = [7, 14, 30, 60, 90];
 
-const SIDEBAR_SECTION_TO_CONFIRMATION: Record<SidebarSectionKey, DeletionConfirmationKey> = {
-  filters: 'filters',
-  local: 'calendars',
-  accounts: 'accounts',
-  tags: 'tags',
-};
+const Section = ({ children, title }: { children: ReactNode; title: string }) => (
+  <div className="space-y-4">
+    <h4 className="font-semibold text-sm text-surface-700 dark:text-surface-300">{title}</h4>
+    {children}
+  </div>
+);
 
-const formatDeletionDescription = (labels: string[]) => {
-  if (labels.length <= 1) return labels[0] ?? '';
-  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
-  return `${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]}`;
-};
+const Card = ({ children }: { children: ReactNode }) => (
+  <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
+    {children}
+  </div>
+);
+
+const RowDivider = () => <div className="border-surface-200 border-t dark:border-surface-700" />;
+
+const Label = ({ children }: { children: ReactNode }) => (
+  <p className="text-sm text-surface-700 dark:text-surface-300">{children}</p>
+);
+
+const Hint = ({ children }: { children: ReactNode }) => (
+  <p className="text-surface-500 text-xs dark:text-surface-400">{children}</p>
+);
 
 export const SafetySettings = () => {
   const {
-    confirmBeforeDeletion,
-    setConfirmBeforeDeletion,
-    confirmBeforeDeleteCalendar,
-    setConfirmBeforeDeleteCalendar,
-    confirmBeforeDeleteAccount,
-    setConfirmBeforeDeleteAccount,
-    confirmBeforeDeleteFilter,
-    setConfirmBeforeDeleteFilter,
-    confirmBeforeDeleteTag,
-    setConfirmBeforeDeleteTag,
-    sidebarSectionOrder,
+    confirmBeforeMoveToRecentlyDeleted,
+    setConfirmBeforeMoveToRecentlyDeleted,
+    deleteSubtasksWithParent,
+    setDeleteSubtasksWithParent,
+    autoEmptyRecentlyDeleted,
+    setAutoEmptyRecentlyDeleted,
+    recentlyDeletedRetentionDays,
+    setRecentlyDeletedRetentionDays,
   } = useSettingsStore();
-  const deletionConfirmations: Record<
-    DeletionConfirmationKey,
-    {
-      label: string;
-      description: string;
-      icon: ReactNode;
-      checked: boolean;
-      onChange: (checked: boolean) => void;
-    }
-  > = {
-    filters: {
-      label: 'Filters',
-      description: 'Affects saved filters, leaves tasks untouched',
-      icon: <Filter className="h-4 w-4" />,
-      checked: confirmBeforeDeleteFilter,
-      onChange: setConfirmBeforeDeleteFilter,
-    },
-    calendars: {
-      label: 'Calendars',
-      description: 'Deletes local and CalDAV calendars, as well as their tasks',
-      icon: <CalendarDays className="h-4 w-4" />,
-      checked: confirmBeforeDeleteCalendar,
-      onChange: setConfirmBeforeDeleteCalendar,
-    },
-    accounts: {
-      label: 'Accounts',
-      description: 'Removes CalDAV accounts and server tasks from Chiri',
-      icon: <Cloud className="h-4 w-4" />,
-      checked: confirmBeforeDeleteAccount,
-      onChange: setConfirmBeforeDeleteAccount,
-    },
-    tags: {
-      label: 'Tags',
-      description: 'Affects tags, leaves tasks untouched',
-      icon: <Tags className="h-4 w-4" />,
-      checked: confirmBeforeDeleteTag,
-      onChange: setConfirmBeforeDeleteTag,
-    },
-  };
-  const orderedDeletionConfirmations = sidebarSectionOrder.map(
-    (section) => deletionConfirmations[SIDEBAR_SECTION_TO_CONFIRMATION[section]],
-  );
-  const deletionDescription = formatDeletionDescription(
-    orderedDeletionConfirmations.map((confirmation) => confirmation.label.toLowerCase()),
-  );
 
   return (
     <div className="space-y-4">
       <h3 className="font-semibold text-base text-surface-800 dark:text-surface-200">Safety</h3>
 
-      <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
-        <label className="flex items-center justify-between p-4">
-          <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">Deletion confirmations</p>
-            <p className="text-surface-500 text-xs dark:text-surface-400">
-              Ask before deleting {deletionDescription}
-            </p>
-          </div>
-          <input
-            type="checkbox"
-            checked={confirmBeforeDeletion}
-            onChange={(e) => setConfirmBeforeDeletion(e.target.checked)}
-            className="rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-          />
-        </label>
-
-        {confirmBeforeDeletion && (
-          <div className="px-4 pb-4">
-            <div className="space-y-3 border-surface-200 border-l-2 pl-4 dark:border-surface-600">
-              {orderedDeletionConfirmations.map((confirmation) => (
-                <label key={confirmation.label} className="flex items-center justify-between gap-4">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="shrink-0 text-surface-400 dark:text-surface-500">
-                      {confirmation.icon}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm text-surface-600 dark:text-surface-400">
-                        {confirmation.label}
-                      </p>
-                      <p className="text-surface-500 text-xs dark:text-surface-400">
-                        {confirmation.description}
-                      </p>
-                    </div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={confirmation.checked}
-                    onChange={(e) => confirmation.onChange(e.target.checked)}
-                    className="rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-                  />
-                </label>
-              ))}
+      <Section title="Task deletion">
+        <Card>
+          <label className="flex items-center justify-between gap-4 p-4">
+            <div className="min-w-0">
+              <Label>Confirm before moving tasks to Recently Deleted</Label>
+              <Hint>Ask before soft-deleting tasks</Hint>
             </div>
+            <input
+              type="checkbox"
+              checked={confirmBeforeMoveToRecentlyDeleted}
+              onChange={(event) => setConfirmBeforeMoveToRecentlyDeleted(event.target.checked)}
+              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            />
+          </label>
+
+          <RowDivider />
+
+          <div className="flex items-center justify-between gap-4 p-4">
+            <div className="min-w-0">
+              <Label>Tasks with subtasks</Label>
+              <Hint>Choose what happens to subtasks when their parent is deleted</Hint>
+            </div>
+            <Select
+              value={deleteSubtasksWithParent}
+              onChange={(event) =>
+                setDeleteSubtasksWithParent(event.target.value as SubtaskDeletionBehavior)
+              }
+              className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
+            >
+              <option value="delete">Delete subtasks</option>
+              <option value="keep">Keep subtasks</option>
+            </Select>
           </div>
-        )}
-      </div>
+        </Card>
+      </Section>
+
+      <Section title="Recently Deleted">
+        <Card>
+          <label className="flex items-center justify-between gap-4 p-4">
+            <div className="min-w-0">
+              <Label>Auto-empty Recently Deleted</Label>
+              <Hint>Permanently delete old deleted tasks</Hint>
+            </div>
+            <input
+              type="checkbox"
+              checked={autoEmptyRecentlyDeleted}
+              onChange={(event) => setAutoEmptyRecentlyDeleted(event.target.checked)}
+              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            />
+          </label>
+
+          {autoEmptyRecentlyDeleted && (
+            <div className="px-4 pb-4">
+              <div className="border-surface-200 border-l-2 pl-4 dark:border-surface-600">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <Label>Recently Deleted retention</Label>
+                    <Hint>Keep deleted tasks before permanent removal</Hint>
+                  </div>
+                  <Select
+                    value={recentlyDeletedRetentionDays.toString()}
+                    onChange={(event) =>
+                      setRecentlyDeletedRetentionDays(Number(event.target.value))
+                    }
+                    className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-500 focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
+                  >
+                    {RETENTION_OPTIONS.map((days) => (
+                      <option key={days} value={days}>
+                        {days} {pluralize(days, 'day')}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+        </Card>
+      </Section>
     </div>
   );
 };

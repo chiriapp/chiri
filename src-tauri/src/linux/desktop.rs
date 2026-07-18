@@ -2,6 +2,8 @@
 use log::debug;
 #[cfg(target_os = "linux")]
 use tauri::Theme;
+#[cfg(target_os = "linux")]
+use zbus::{fdo::DBusProxy, Connection};
 
 /// returns true when running inside a GNOME session
 /// checks XDG_CURRENT_DESKTOP first, then XDG_SESSION_DESKTOP
@@ -57,6 +59,32 @@ pub async fn is_gnome_desktop() -> Result<bool, String> {
 #[tauri::command]
 pub async fn is_kde_desktop() -> Result<bool, String> {
     Ok(is_kde())
+}
+
+const SNI_WATCHER_BUS_NAME: &str = "org.kde.StatusNotifierWatcher";
+
+/// returns true when a StatusNotifierItem/SNI host is present on the session bus
+/// (e.g., GNOME's AppIndicator extension, KDE Plasma, etc.)
+#[cfg(target_os = "linux")]
+async fn tray_host_available() -> Result<bool, String> {
+    let connection = Connection::session().await.map_err(|e| e.to_string())?;
+    let proxy = DBusProxy::new(&connection)
+        .await
+        .map_err(|e| e.to_string())?;
+    let watcher_name = zbus::names::BusName::try_from(SNI_WATCHER_BUS_NAME)
+        .map_err(|e| format!("Invalid SNI watcher bus name: {e}"))?;
+
+    proxy
+        .name_has_owner(watcher_name)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// returns true when a StatusNotifierItem/SNI host is present on the session bus
+#[tauri::command]
+#[cfg(target_os = "linux")]
+pub async fn is_tray_host_available() -> Result<bool, String> {
+    tray_host_available().await
 }
 
 /// returns the appropriate tray icon theme for the current Linux desktop

@@ -11,7 +11,7 @@ import { dataStore } from '$lib/store';
 import { setAllTasksView, setRecentlyDeletedView } from '$lib/store/ui';
 import { restoreWindowState } from '$lib/window';
 import { initAppMenu } from '$utils/menu';
-import { isMacPlatform, isWindowsPlatform } from '$utils/platform';
+import { isLinuxPlatform, isMacPlatform, isWindowsPlatform } from '$utils/platform';
 
 const log = loggers.bootstrap;
 
@@ -69,6 +69,42 @@ export const applyHiddenWindowDockIconState = async () => {
   await setMacDockIconVisible(false);
 };
 
+export const applyTrayDefaultForGNOME = async () => {
+  const { enableSystemTrayExplicitlySet, onboardingCompleted } = settingsStore.getState();
+
+  // only apply the GNOME default once during the initial onboarding session
+  // users who have already completed onboarding keep their existing choice
+  if (onboardingCompleted || enableSystemTrayExplicitlySet) {
+    return;
+  }
+
+  if (!isLinuxPlatform()) {
+    settingsStore.setEnableSystemTrayExplicitlySet(true);
+    return;
+  }
+
+  const isGNOME = await invoke<boolean>('is_gnome_desktop').catch((error) => {
+    log.warn('Failed to detect GNOME desktop for tray default:', error);
+    return false;
+  });
+
+  if (isGNOME) {
+    const trayHostAvailable = await invoke<boolean>('is_tray_host_available').catch((error) => {
+      log.warn('Failed to detect SNI tray host for GNOME default:', error);
+      return false;
+    });
+
+    if (!trayHostAvailable) {
+      log.info('GNOME detected without an SNI tray host; disabling system tray by default');
+      settingsStore.setEnableSystemTray(false);
+    } else {
+      log.info('GNOME detected with an SNI tray host; leaving system tray enabled by default');
+    }
+  }
+
+  settingsStore.setEnableSystemTrayExplicitlySet(true);
+};
+
 export const initializeApp = async () => {
   // initialize logger first so all subsequent logs are captured
   await initLogger();
@@ -90,6 +126,11 @@ export const initializeApp = async () => {
   );
 
   await applyMacDockIconPreference();
+
+  // On first run, default the system tray based on the desktop environment. On
+  // GNOME we only disable it if no SNI tray host (e.g., AppIndicator extension)
+  // is present on the session bus.
+  await applyTrayDefaultForGNOME();
 
   // initialize system tray based on settings
   const enableSystemTray = settingsStore.getState().enableSystemTray;
