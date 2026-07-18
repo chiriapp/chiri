@@ -218,7 +218,7 @@ export const SystemSettings = () => {
               Start hidden on normal launch
             </p>
             <p className="text-surface-500 text-xs dark:text-surface-400">
-              Open quietly in the tray. Requires system tray to be enabled.
+              Hide the main window when Chiri starts manually. Requires system tray.
             </p>
           </div>
           <input
