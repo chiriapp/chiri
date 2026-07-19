@@ -8,6 +8,7 @@ import Clock from 'lucide-react/icons/clock';
 import Cloud from 'lucide-react/icons/cloud';
 import EyeOff from 'lucide-react/icons/eye-off';
 import HardDrive from 'lucide-react/icons/hard-drive';
+import Hash from 'lucide-react/icons/hash';
 import Loader2 from 'lucide-react/icons/loader-2';
 import LogIn from 'lucide-react/icons/log-in';
 import PanelTop from 'lucide-react/icons/panel-top';
@@ -60,6 +61,8 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
     setNotifyReminders,
     notifyOverdue,
     setNotifyOverdue,
+    setShowAppIconBadge,
+    showAppIconBadge,
     enableSystemTray,
     setEnableSystemTray,
     showWindowOnNormalLaunch,
@@ -332,25 +335,46 @@ export const OnboardingModal = ({ hasCalDAVAccount, onAddAccount }: OnboardingMo
                 disabled={macPermissionPending}
                 onChange={handleNotificationsChange}
               />
+              {notifications && (
+                <div className="space-y-2 border-surface-200 border-l-2 pl-4 dark:border-surface-600">
+                  <ToggleRow
+                    icon={<BellOff className="h-4 w-4" />}
+                    label="Reminder alerts"
+                    description="Use reminder times saved on tasks."
+                    checked={notifyReminders}
+                    disabled={macPermissionPending}
+                    onChange={setNotifyReminders}
+                  />
+                  <ToggleRow
+                    icon={<Clock className="h-4 w-4" />}
+                    label="Overdue tasks"
+                    description="Notify when a task's due date has passed."
+                    checked={notifyOverdue}
+                    disabled={macPermissionPending}
+                    onChange={setNotifyOverdue}
+                  />
+                </div>
+              )}
+            </section>
+
+            <section className="space-y-2 rounded-lg border border-surface-200 p-3 dark:border-surface-700">
+              <div className="flex items-center gap-2">
+                <Hash className="h-4 w-4 text-primary-500" />
+                <h3 className="font-semibold text-sm text-surface-900 dark:text-surface-100">
+                  Badge
+                </h3>
+              </div>
               <ToggleRow
-                icon={<BellOff className="h-4 w-4" />}
-                label="Reminder alerts"
-                description="Use reminder times saved on tasks."
-                checked={notifyReminders}
-                disabled={!notifications || macPermissionPending}
-                onChange={setNotifyReminders}
-              />
-              <ToggleRow
-                icon={<Clock className="h-4 w-4" />}
-                label="Overdue tasks"
-                description="Notify when a task's due date has passed."
-                checked={notifyOverdue}
-                disabled={!notifications || macPermissionPending}
-                onChange={setNotifyOverdue}
+                icon={<Hash className="h-4 w-4" />}
+                label="App icon badge count"
+                description="Show the number of overdue tasks on the app icon."
+                checked={showAppIconBadge}
+                onChange={setShowAppIconBadge}
               />
             </section>
           </div>
         )}
+
         {currentStep === 5 && (
           <div className="flex flex-1 flex-col justify-between gap-5">
             <div>
