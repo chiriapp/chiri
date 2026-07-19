@@ -43,6 +43,8 @@ tar -czf "$OUTDIR/chiri-$VERSION-vendor.tar.gz" vendor
 echo "==> [3/3] Building frontend"
 PNPM_VERSION=$(node -p 'require("./package.json").packageManager.split("@")[1]')
 npm install -g "pnpm@$PNPM_VERSION"
+# npm's global bin dir (typically /usr/local/bin) is not on mock's default PATH
+export PATH="$(npm config get prefix)/bin:$PATH"
 pnpm install --frozen-lockfile
 pnpm build
 tar -czf "$OUTDIR/chiri-$VERSION-frontend.tar.gz" dist
