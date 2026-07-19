@@ -17,7 +17,14 @@ mkdir -p "$OUTDIR"
 export HOME="$PWD/.srpm-home"
 export CARGO_HOME="$HOME/cargo"
 export XDG_CACHE_HOME="$HOME/cache"
+export XDG_CONFIG_HOME="$HOME/config"
 mkdir -p "$HOME"
+
+# the checkout may be owned by a different uid than the build process
+# (copr bind-mounts it into the mock chroot). mark it safe for git
+# (the /* variant covers any nested submodule checkouts)
+git config --global --add safe.directory "$PWD"
+git config --global --add safe.directory "$PWD/*"
 
 VERSION=$(node -p 'require("./src-tauri/tauri.conf.json").version')
 echo "==> Assembling SRPM for chiri $VERSION"
