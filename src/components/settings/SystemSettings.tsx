@@ -297,9 +297,11 @@ export const SystemSettings = () => {
           </div>
         )}
 
-        <div className="px-4 pb-4">
-          <TrayHostWarning />
-        </div>
+        {isLinux && enableSystemTray && isTrayHostAvailable === false && (
+          <div className="px-4 pb-4">
+            <TrayHostWarning />
+          </div>
+        )}
       </div>
 
       {isMac && (
