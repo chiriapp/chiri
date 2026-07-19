@@ -118,7 +118,7 @@ vi.mock('$context/settingsContext', () => ({
   settingsStore: { getState: vi.fn(() => ({})) },
 }));
 
-vi.mock('$hooks/ui/useToast', () => ({
+vi.mock('$lib/toastManager', () => ({
   toastManager: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() },
 }));
 

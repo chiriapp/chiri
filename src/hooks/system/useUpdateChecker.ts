@@ -2,11 +2,10 @@ import { useIsMutating, useMutation, useQuery, useQueryClient } from '@tanstack/
 import { getVersion } from '@tauri-apps/api/app';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check } from '@tauri-apps/plugin-updater';
-import Info from 'lucide-react/icons/info';
-import { createElement, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { settingsStore } from '$context/settingsContext';
-import { toastManager } from '$hooks/ui/useToast';
 import { loggers } from '$lib/logger';
+import { toastManager } from '$lib/toastManager';
 import { fetchReleaseNotes } from '$utils/meta';
 import { getInstallType, getPackageManagerName, shouldDisableUpdates } from '$utils/platform';
 
@@ -166,20 +165,9 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
           const packageManagerName = getPackageManagerName(installType);
           toastManager.dismiss('update-check-checking');
           toastManager.info(
-            createElement(
-              'span',
-              { className: 'inline-flex items-center gap-2' },
-              createElement(Info, {
-                className: 'h-4 w-4 shrink-0 text-primary-500',
-                'aria-hidden': true,
-              }),
-              `Updates managed by ${packageManagerName}`,
-            ),
+            `Updates managed by ${packageManagerName}`,
             `This installation is managed by ${packageManagerName}. Update Chiri through your system's update mechanism.`,
-            'update-check-managed-install',
-            undefined,
-            false,
-            { icon: null },
+            { groupKey: 'update-check-managed-install' },
           );
         }
         return;
@@ -220,13 +208,9 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
       if (isMenuCheck) {
         toastManager.dismiss('update-check-checking');
-        toastManager.success(
-          "You're up to date!",
-          `Running version ${currentVersion}`,
-          'update-check-success',
-          undefined,
-          false,
-        );
+        toastManager.success("You're up to date!", `Running version ${currentVersion}`, {
+          groupKey: 'update-check-success',
+        });
       }
     },
   });
@@ -301,7 +285,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
       const isMenuCheck = trigger === 'menu-manual';
       if (isMenuCheck) {
-        toastManager.info('Checking for updates...', '', 'update-check-checking', undefined, false);
+        toastManager.info('Checking for updates...', null, { groupKey: 'update-check-checking' });
       }
 
       try {
@@ -323,13 +307,9 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
         if (isMenuCheck) {
           toastManager.dismiss('update-check-checking');
-          toastManager.error(
-            'Update check failed',
-            userMessage,
-            'update-check-error',
-            undefined,
-            false,
-          );
+          toastManager.error('Update check failed', userMessage, {
+            groupKey: 'update-check-error',
+          });
         }
       } finally {
         isCheckInProgress = false;

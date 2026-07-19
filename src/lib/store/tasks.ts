@@ -1,10 +1,10 @@
 import { addDays, format, setHours, startOfDay, subDays, subHours, subMinutes } from 'date-fns';
 import { settingsStore } from '$context/settingsContext';
-import { toastManager } from '$hooks/ui/useToast';
 import { db } from '$lib/database';
 import { toAppleEpoch } from '$lib/ical/vtodo';
 import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
+import { toastManager } from '$lib/toastManager';
 import type { DefaultDateOffset, DefaultReminderOffset, Reminder, Task } from '$types';
 import type { WorkingDay } from '$types/preference';
 import { getNextWorkingDay } from '$utils/calendar';

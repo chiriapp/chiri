@@ -2,15 +2,14 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import type { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { getAllWebviewWindows } from '@tauri-apps/api/webviewWindow';
-import Info from 'lucide-react/icons/info';
-import { createElement, type RefObject, useEffect, useRef } from 'react';
-import { toast } from 'sonner';
+import { type RefObject, useEffect, useRef } from 'react';
 import { useSettingsStore } from '$context/settingsContext';
 import {
   checkNotificationPermission,
   requestNotificationPermission,
   sendSimpleNotification,
 } from '$lib/notifications';
+import { toastManager } from '$lib/toastManager';
 import { isMacPlatform } from '$utils/platform';
 
 type NotificationPermission = 'granted' | 'denied' | 'unknown';
@@ -77,38 +76,27 @@ const trySendNativeNotification = async (permissionRef: RefObject<NotificationPe
   }
 };
 
+const QUIT_TOAST_KEY = 'quit-confirm';
+
 /**
  * show a toast notification for quit confirmation
  */
 const showQuitToast = () =>
-  toast.info(
-    createElement(
-      'span',
-      { className: 'inline-flex items-center gap-2' },
-      createElement(Info, {
-        className: 'h-4 w-4 shrink-0 text-primary-500',
-        'aria-hidden': true,
-      }),
-      QUIT_MESSAGE.title,
-    ),
-    {
-      description: QUIT_MESSAGE.description,
-      duration: 2000,
-      closeButton: false,
-      icon: null,
-    },
-  );
+  toastManager.info(QUIT_MESSAGE.title, QUIT_MESSAGE.description, {
+    groupKey: QUIT_TOAST_KEY,
+    duration: 2000,
+  });
 
 /**
  * show window and display quit confirmation toast as fallback
  */
 const showWindowWithToast = async (windows: WebviewWindow[]) => {
-  if (windows.length === 0) return undefined;
+  if (windows.length === 0) return;
 
   const mainWindow = windows[0];
   await mainWindow.show();
   await mainWindow.setFocus();
-  return showQuitToast();
+  showQuitToast();
 };
 
 /**
@@ -128,7 +116,6 @@ export const useConfirmQuit = () => {
   const confirmBeforeQuitRef = useRef(confirmBeforeQuit);
   const pendingQuit = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const toastIdRef = useRef<string | number | undefined>(undefined);
   const notificationPermissionRef = useRef<NotificationPermission>('unknown');
 
   // keep ref in sync so the listener always reads the latest value without re-registering
@@ -147,8 +134,11 @@ export const useConfirmQuit = () => {
 
       if (pendingQuit.current) {
         // second quit request - confirm quit
-        if (timerRef.current) clearTimeout(timerRef.current);
-        if (toastIdRef.current !== undefined) toast.dismiss(toastIdRef.current);
+        if (timerRef.current) {
+          clearTimeout(timerRef.current);
+          timerRef.current = null;
+        }
+        toastManager.dismiss(QUIT_TOAST_KEY);
         pendingQuit.current = false;
         invoke('force_quit');
         return;
@@ -159,17 +149,16 @@ export const useConfirmQuit = () => {
       const { hasVisible, windows } = await checkWindowVisibility();
 
       if (hasVisible) {
-        toastIdRef.current = showQuitToast();
+        showQuitToast();
       } else {
         const notificationShown = await trySendNativeNotification(notificationPermissionRef);
         if (!notificationShown) {
-          toastIdRef.current = await showWindowWithToast(windows);
+          await showWindowWithToast(windows);
         }
       }
 
       timerRef.current = setTimeout(() => {
         pendingQuit.current = false;
-        toastIdRef.current = undefined;
       }, 2000);
     };
 
@@ -193,7 +182,10 @@ export const useConfirmQuit = () => {
       // preventing the stale first-mount handler from lingering
       unlisten.then((fn) => fn());
       window.removeEventListener('beforeunload', onBeforeUnload);
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
       pendingQuit.current = false;
     };
   }, [isMac]);

@@ -1,10 +1,9 @@
-import Info from 'lucide-react/icons/info';
-import { createElement, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useConfirmDialog } from '$context/confirmDialogContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useDeleteTask, usePermanentDeleteTask, useTasks } from '$hooks/queries/useTasks';
 import { useSetRecentlyDeletedView } from '$hooks/queries/useUIState';
-import { toastManager } from '$hooks/ui/useToast';
+import { toastManager } from '$lib/toastManager';
 import type { Task } from '$types';
 import { pluralize } from '$utils/misc';
 import { isDiscardableUntitledLocalDraft } from '$utils/taskDeletion';
@@ -106,23 +105,15 @@ export const useTaskDeletion = () => {
       if (normalTasks.length > 0 && !hasSeenRecentlyDeletedToast) {
         setHasSeenRecentlyDeletedToast(true);
         toastManager.info(
-          createElement(
-            'span',
-            { className: 'inline-flex items-center gap-2' },
-            createElement(Info, {
-              className: 'h-4 w-4 shrink-0 text-primary-500',
-              'aria-hidden': true,
-            }),
-            'Moved to Recently Deleted',
-          ),
+          'Moved to Recently Deleted',
           'Deleted tasks live in Recently Deleted until you restore or permanently delete them.',
-          'recently-deleted-intro',
           {
-            label: 'View',
-            onClick: () => setRecentlyDeletedViewMutation.mutate(),
+            groupKey: 'recently-deleted-intro',
+            action: {
+              label: 'View',
+              onClick: () => setRecentlyDeletedViewMutation.mutate(),
+            },
           },
-          false,
-          { icon: null },
         );
       }
       return true;

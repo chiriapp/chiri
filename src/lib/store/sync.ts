@@ -2,7 +2,6 @@ import type { QueryClient } from '@tanstack/react-query';
 import { emit } from '@tauri-apps/api/event';
 import { MENU_EVENTS } from '$constants/menu';
 import { settingsStore } from '$context/settingsContext';
-import { toastManager } from '$hooks/ui/useToast';
 import { CalDAVClient } from '$lib/caldav';
 import { db } from '$lib/database';
 import { getErrorMessage } from '$lib/http';
@@ -16,6 +15,7 @@ import { addCalendar, deleteCalendar, updateCalendar } from '$lib/store/calendar
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
 import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$lib/store/tasks';
 import { getUIState, setAllTasksView } from '$lib/store/ui';
+import { toastManager } from '$lib/toastManager';
 import type { Account, CalDAVTaskObject, Calendar, Task, TaskWithCalDAVObject } from '$types';
 import { getColorSchemeColorPresets } from '$utils/color/scheme';
 import { generateTagColor } from '$utils/color/tag';
@@ -344,17 +344,15 @@ export const reconnectAccounts = async () => {
         const errorMessage = getErrorMessage(error);
         syncLog.error(`Failed to reconnect account ${account.name}:`, error);
         failedAccountIds.add(account.id);
-        toastManager.error(
-          `Account sync failed: ${account.name}`,
-          errorMessage,
-          `sync-error-account-${account.id}`,
-          {
+        toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
+          groupKey: `sync-error-account-${account.id}`,
+          action: {
             label: 'Edit Account',
             onClick: () => {
               emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
             },
           },
-        );
+        });
       }
     }
   }
@@ -552,11 +550,9 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
   } catch (error) {
     syncLog.error(`Failed to fetch calendars for ${account.name}:`, error);
     const errorMessage = getErrorMessage(error);
-    toastManager.error(
-      'Calendar Sync Error',
-      `${account.name}: ${errorMessage}`,
-      'calendar-fetch-error',
-    );
+    toastManager.error('Calendar Sync Error', `${account.name}: ${errorMessage}`, {
+      groupKey: 'calendar-fetch-error',
+    });
     return; // skip calendar sync to avoid deleting calendars based on failed fetch
   }
 
@@ -761,17 +757,15 @@ export const performFullSync = async (
       const errorMessage = getErrorMessage(error);
       syncLog.error(`Failed to sync calendars for ${account.name}:`, error);
       failedAccountIds.add(account.id);
-      toastManager.error(
-        `Account sync failed: ${account.name}`,
-        errorMessage,
-        `sync-error-account-${account.id}`,
-        {
+      toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
+        groupKey: `sync-error-account-${account.id}`,
+        action: {
           label: 'Edit Account',
           onClick: () => {
             emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
           },
         },
-      );
+      });
     }
   }
 
@@ -799,17 +793,15 @@ export const performFullSync = async (
         syncedAccountIds.delete(account.id);
         const errorMessage = getErrorMessage(error);
         syncLog.error(`Failed to sync calendar ${calendar.displayName}:`, error);
-        toastManager.error(
-          `Calendar sync failed: ${calendar.displayName}`,
-          errorMessage,
-          `sync-error-calendar-${calendar.id}`,
-          {
+        toastManager.error(`Calendar sync failed: ${calendar.displayName}`, errorMessage, {
+          groupKey: `sync-error-calendar-${calendar.id}`,
+          action: {
             label: 'Edit Account',
             onClick: () => {
               emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
             },
           },
-        );
+        });
       }
     }
   }

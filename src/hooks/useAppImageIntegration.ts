@@ -1,6 +1,5 @@
-import Check from 'lucide-react/icons/check';
-import { createElement, useEffect, useState } from 'react';
-import { toastManager } from '$hooks/ui/useToast';
+import { useEffect, useState } from 'react';
+import { toastManager } from '$lib/toastManager';
 import {
   installAppImageDesktopIntegration,
   isAppImageDesktopIntegrationNeeded,
@@ -33,20 +32,9 @@ export const useAppImageIntegration = () => {
       setShowPrompt(false);
       setError(null);
       toastManager.success(
-        createElement(
-          'span',
-          { className: 'inline-flex items-center gap-2' },
-          createElement(Check, {
-            className: 'h-4 w-4 shrink-0 text-primary-500',
-            'aria-hidden': true,
-          }),
-          'Chiri added to your app menu',
-        ),
+        'Chiri added to your app menu',
         'You can launch it from there next time you want to use the app.',
-        'appimage-integration-success',
-        undefined,
-        false,
-        { icon: null },
+        { groupKey: 'appimage-integration-success' },
       );
     } else {
       setError('Could not install desktop integration. You can try again from Settings later.');
@@ -58,20 +46,9 @@ export const useAppImageIntegration = () => {
     setShowPrompt(false);
     setError(null);
     toastManager.info(
-      createElement(
-        'span',
-        { className: 'inline-flex items-center gap-2' },
-        createElement(Check, {
-          className: 'h-4 w-4 shrink-0 text-primary-500',
-          'aria-hidden': true,
-        }),
-        'You can add Chiri to your app menu later',
-      ),
+      'You can add Chiri to your app menu later',
       'Go to Settings → Startup & window whenever you’re ready.',
-      'appimage-integration-skip',
-      undefined,
-      false,
-      { icon: null },
+      { groupKey: 'appimage-integration-skip' },
     );
   };
 

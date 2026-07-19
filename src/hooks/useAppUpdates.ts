@@ -1,8 +1,8 @@
 import { getVersion } from '@tauri-apps/api/app';
 import { useCallback, useState } from 'react';
 import { useUpdateChecker } from '$hooks/system/useUpdateChecker';
-import { toastManager } from '$hooks/ui/useToast';
 import { useChangelog } from '$hooks/useChangelog';
+import { toastManager } from '$lib/toastManager';
 
 export const useAppUpdates = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -22,7 +22,7 @@ export const useAppUpdates = () => {
   }, [checkForUpdates]);
 
   const showChangelogFromMenu = useCallback(async () => {
-    toastManager.info('Loading release notes...', '', 'changelog-loading', undefined, false);
+    toastManager.info('Loading release notes...', null, { groupKey: 'changelog-loading' });
     if (updateAvailable?.body) {
       await openChangelog(updateAvailable.version, updateAvailable.body, updateAvailable.date);
       toastManager.dismiss('changelog-loading');

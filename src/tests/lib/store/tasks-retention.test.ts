@@ -22,7 +22,7 @@ vi.mock('$context/settingsContext', () => ({
   },
 }));
 
-vi.mock('$hooks/ui/useToast', () => ({
+vi.mock('$lib/toastManager', () => ({
   toastManager: { success: vi.fn(), error: vi.fn() },
 }));
 

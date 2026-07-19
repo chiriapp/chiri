@@ -9,7 +9,6 @@ export const ToastProvider = () => {
     <Toaster
       position="bottom-right"
       expand={false}
-      closeButton
       style={{ zIndex: onboardingCompleted ? 40 : 70 }}
       toastOptions={{
         classNames: {

@@ -1,7 +1,6 @@
-import CircleX from 'lucide-react/icons/circle-x';
-import { createElement, useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { type FileDropResult, useFileDrop } from '$hooks/system/useFileDrop';
-import { toastManager } from '$hooks/ui/useToast';
+import { toastManager } from '$lib/toastManager';
 import type { OpenAccountOptions } from '$types/controller';
 import type {
   MobileConfigCalDAVSettings,
@@ -87,7 +86,9 @@ export const useAppFileDrop = ({
     (message: string) => {
       if (!canHandleGlobalFileDrop) return;
 
-      toastManager.error('Could not import configuration profile', message, 'config-profile-drop');
+      toastManager.error('Could not import configuration profile', message, {
+        groupKey: 'config-profile-drop',
+      });
     },
     [canHandleGlobalFileDrop],
   );
@@ -97,20 +98,9 @@ export const useAppFileDrop = ({
       if (!canHandleGlobalFileDrop) return;
 
       toastManager.error(
-        createElement(
-          'span',
-          { className: 'inline-flex items-center gap-2' },
-          createElement(CircleX, {
-            className: 'h-4 w-4 shrink-0 text-semantic-error',
-            'aria-hidden': true,
-          }),
-          'Cannot import file',
-        ),
+        'Cannot import file',
         `'${fileName}' isn't a supported file type. Chiri supports .ics, .json, and .mobileconfig files.`,
-        'unsupported-file-drop',
-        undefined,
-        false,
-        { icon: null },
+        { groupKey: 'unsupported-file-drop' },
       );
     },
     [canHandleGlobalFileDrop],

@@ -8,7 +8,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import { settingsStore, useSettingsStore } from '$context/settingsContext';
 import { useSyncStore } from '$context/syncContext';
 import { useOffline } from '$hooks/system/useOffline';
-import { toastManager } from '$hooks/ui/useToast';
 import { loggers } from '$lib/logger';
 import { getAllAccounts } from '$lib/store/accounts';
 import {
@@ -17,6 +16,7 @@ import {
   removeTaskFromServer,
   syncCalendarTasks,
 } from '$lib/store/sync';
+import { toastManager } from '$lib/toastManager';
 import type { Task } from '$types';
 
 const log = loggers.sync;
@@ -161,7 +161,7 @@ export const useSyncQuery = () => {
         const message = error instanceof Error ? error.message : 'Sync failed';
         setLastSyncError(message);
         log.error('Sync error:', error);
-        toastManager.error('Sync Failed', message, 'sync-error');
+        toastManager.error('Sync failed', message, { groupKey: 'sync-error' });
       } finally {
         log.info('Sync finished', { runId });
         syncRunInProgress = false;

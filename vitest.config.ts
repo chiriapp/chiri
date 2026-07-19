@@ -40,6 +40,7 @@ export default defineConfig({
           include: [
             'src/tests/lib/tauri-http.test.ts',
             'src/tests/components/GlobalDragRegion.test.tsx',
+            'src/tests/components/ToastTitle.test.tsx',
             'src/tests/components/TaskDefaultsSettings.test.tsx',
             'src/tests/components/RepeatModal.test.tsx',
             'src/tests/components/TaskEditorRepeat.test.tsx',
@@ -47,6 +48,7 @@ export default defineConfig({
             'src/tests/hooks/system/useNotifications.test.ts',
             'src/tests/hooks/system/useFileDrop.test.ts',
             'src/tests/hooks/ui/useContextMenu.test.ts',
+            'src/tests/lib/toastManager.test.tsx',
             'src/tests/hooks/ui/useInitialFocusRef.test.ts',
             'src/tests/hooks/ui/usePreserveScrollOnWindowFocus.test.ts',
             'src/tests/utils/color.test.ts',
