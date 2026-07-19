@@ -140,7 +140,9 @@ export const TaskEditorTitle = ({
         {readOnly ? (
           <div className="selectable flex-1 cursor-not-allowed whitespace-pre-wrap font-medium text-sm text-surface-700 dark:text-surface-300">
             {pendingTitle || (
-              <span className="text-surface-400 dark:text-surface-500">Untitled task</span>
+              <span className="text-surface-400 dark:text-surface-500">
+                {task.parentUid ? 'Untitled subtask' : 'Untitled task'}
+              </span>
             )}
           </div>
         ) : (
