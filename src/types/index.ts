@@ -187,6 +187,7 @@ export type InstallType =
   | 'appimage'
   | 'nix'
   | 'aur'
+  | 'copr'
   | 'flatpak'
   | 'homebrew'
   | 'scoop'

@@ -8,6 +8,8 @@ pub enum InstallType {
     AppImage,
     /// installed from AUR (Arch User Repository)
     Aur,
+    /// installed from Fedora Copr
+    Copr,
     /// installed via Flatpak
     Flatpak,
     /// installed via Homebrew Cask
@@ -26,6 +28,7 @@ impl InstallType {
         matches!(
             self,
             InstallType::Aur
+                | InstallType::Copr
                 | InstallType::Flatpak
                 | InstallType::Homebrew
                 | InstallType::Nix
@@ -45,6 +48,12 @@ pub fn detect_install_type() -> InstallType {
     // AUR package creates a marker file during installation
     if Path::new("/usr/share/chiri/.aur-install").exists() {
         return InstallType::Aur;
+    }
+
+    // check for Copr installation marker
+    // the Copr package creates a marker file during installation
+    if Path::new("/usr/share/chiri/.copr-install").exists() {
+        return InstallType::Copr;
     }
 
     // check for Flatpak (FLATPAK_ID environment variable is set by Flatpak runtime)
@@ -89,6 +98,7 @@ pub fn get_install_type() -> String {
     match install_type {
         InstallType::AppImage => "appimage".to_string(),
         InstallType::Aur => "aur".to_string(),
+        InstallType::Copr => "copr".to_string(),
         InstallType::Flatpak => "flatpak".to_string(),
         InstallType::Homebrew => "homebrew".to_string(),
         InstallType::Nix => "nix".to_string(),

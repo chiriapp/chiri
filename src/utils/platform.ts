@@ -69,6 +69,8 @@ export const getPackageManagerName = (installType: InstallType | null | undefine
       return 'Nix';
     case 'aur':
       return 'AUR (Arch User Repository)';
+    case 'copr':
+      return 'Fedora Copr';
     case 'flatpak':
       return 'Flatpak';
     case 'homebrew':
