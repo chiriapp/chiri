@@ -57,37 +57,40 @@ cargo build --release --locked --features custom-protocol \
     --config 'profile.release.codegen-units=16'
 
 %install
-install -Dm0755 src-tauri/target/release/Chiri %{buildroot}%{_bindir}/chiri
+install -Dm0755 src-tauri/target/release/Chiri %{buildroot}%{_bindir}/Chiri
 
+# binary name, desktop file name and icon name must all match: on Wayland the
+# compositor resolves the window icon by matching the app_id (derived from the
+# binary name) to <app_id>.desktop and its Icon= entry
 sed -e 's|{{{comment}}}|Sync and manage tasks across CalDAV servers|' \
-    -e 's|{{{exec}}}|chiri|' \
-    -e 's|{{{icon}}}|garden.chiri.Chiri|' \
-    -e 's|{{{categories}}}|Utility;|' \
-    src-tauri/linux/garden.chiri.Chiri.desktop > garden.chiri.Chiri.desktop
-install -Dm0644 garden.chiri.Chiri.desktop %{buildroot}%{_datadir}/applications/garden.chiri.Chiri.desktop
+    -e 's|{{{exec}}}|Chiri|' \
+    -e 's|{{{icon}}}|Chiri|' \
+    -e 's|{{{categories}}}|Office;|' \
+    src-tauri/linux/garden.chiri.Chiri.desktop > Chiri.desktop
+install -Dm0644 Chiri.desktop %{buildroot}%{_datadir}/applications/Chiri.desktop
 
 for size in 32 64 128; do
     install -Dm0644 src-tauri/icons/${size}x${size}.png \
-        %{buildroot}%{_datadir}/icons/hicolor/${size}x${size}/apps/garden.chiri.Chiri.png
+        %{buildroot}%{_datadir}/icons/hicolor/${size}x${size}/apps/Chiri.png
 done
 install -Dm0644 src-tauri/icons/128x128@2x.png \
-    %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/garden.chiri.Chiri.png
+    %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/Chiri.png
 install -Dm0644 src-tauri/icons/icon.png \
-    %{buildroot}%{_datadir}/icons/hicolor/512x512/apps/garden.chiri.Chiri.png
+    %{buildroot}%{_datadir}/icons/hicolor/512x512/apps/Chiri.png
 
 # marker so the app knows updates are managed by the package manager
 install -dm0755 %{buildroot}%{_datadir}/chiri
 touch %{buildroot}%{_datadir}/chiri/.copr-install
 
 %check
-desktop-file-validate %{buildroot}%{_datadir}/applications/garden.chiri.Chiri.desktop
+desktop-file-validate %{buildroot}%{_datadir}/applications/Chiri.desktop
 
 %files
 %license LICENSE
 %doc README.md
-%{_bindir}/chiri
-%{_datadir}/applications/garden.chiri.Chiri.desktop
-%{_datadir}/icons/hicolor/*/apps/garden.chiri.Chiri.png
+%{_bindir}/Chiri
+%{_datadir}/applications/Chiri.desktop
+%{_datadir}/icons/hicolor/*/apps/Chiri.png
 %{_datadir}/chiri/
 
 %changelog
