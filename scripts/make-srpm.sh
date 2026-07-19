@@ -19,7 +19,7 @@ export CARGO_HOME="$HOME/cargo"
 export XDG_CACHE_HOME="$HOME/cache"
 mkdir -p "$HOME"
 
-VERSION=$(python3 -c 'import json; print(json.load(open("src-tauri/tauri.conf.json"))["version"])')
+VERSION=$(node -p 'require("./src-tauri/tauri.conf.json").version')
 echo "==> Assembling SRPM for chiri $VERSION"
 
 # keep the spec in sync with the ref being built
