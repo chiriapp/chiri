@@ -50,8 +50,30 @@ export const TaskEditorCalendar = ({
           Calendar
         </div>
         {accountLabel || calendarLabel ? (
-          <div className="w-full cursor-not-allowed rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-700 dark:bg-surface-800 dark:text-surface-300">
-            {[accountLabel, calendarLabel].filter(Boolean).join(' / ')}
+          <div className="flex w-full cursor-not-allowed items-center gap-3 rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-left text-sm dark:bg-surface-800">
+            {currentCalendar?.emoji ? (
+              <span
+                className="shrink-0 text-lg leading-none opacity-60"
+                style={{ color: currentCalendarColor }}
+              >
+                {currentCalendar.emoji}
+              </span>
+            ) : (
+              <CurrentCalendarIcon
+                className="h-5 w-5 shrink-0 opacity-60"
+                style={{ color: currentCalendarColor }}
+              />
+            )}
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-surface-700 dark:text-surface-300">
+                {calendarLabel || accountLabel}
+              </span>
+              {calendarLabel && accountLabel && (
+                <span className="block truncate text-surface-500 text-xs dark:text-surface-400">
+                  {accountLabel}
+                </span>
+              )}
+            </span>
           </div>
         ) : (
           <TaskEditorEmptyState icon={<CalendarOff className="h-4 w-4 shrink-0" />}>
