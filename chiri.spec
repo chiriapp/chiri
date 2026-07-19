@@ -49,8 +49,12 @@ directory = "%{_builddir}/chiri-%{version}/vendor"
 EOF
 
 %build
+# thin LTO + parallel codegen for Copr builds; the fat-LTO reference
+# binaries come from tauri CI (see [profile.release] in src-tauri/Cargo.toml)
 cd src-tauri
-cargo build --release --locked --features custom-protocol
+cargo build --release --locked --features custom-protocol \
+    --config 'profile.release.lto="thin"' \
+    --config 'profile.release.codegen-units=16'
 
 %install
 install -Dm0755 src-tauri/target/release/Chiri %{buildroot}%{_bindir}/chiri
