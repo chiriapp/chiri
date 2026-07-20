@@ -43,7 +43,7 @@
     "lucide-react": "^1.23.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "rrule-temporal": "^1.6.0",
+    "rrule-temporal": "^2.0.0",
     "sonner": "^2.0.7"
   },
   "devDependencies": {
