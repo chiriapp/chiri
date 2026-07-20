@@ -339,10 +339,22 @@ jobs:
           tagName: app-v${{ needs.prepare-release.outputs.version }}
           args: ${{ matrix.args }}
 
+      - name: Download release assets for attestation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: app-v${{ needs.prepare-release.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p attestation-subjects
+          gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir attestation-subjects \
+            --clobber
+
       - name: Attest build provenance
         uses: actions/attest@v4
         with:
-          subject-path: 'src-tauri/target/**/release/bundle/**/*.{dmg,deb,rpm,exe,msi,zip,tar.gz,sig}'
+          subject-path: 'attestation-subjects/*'
 
   publish-windows:
     name: ${{ matrix.label }}
@@ -462,11 +474,16 @@ jobs:
         shell: pwsh
         env:
           SIGNPATH_EXPECTED_SIGNER_SUBJECT: ${{ vars.SIGNPATH_EXPECTED_SIGNER_SUBJECT }}
+          SIGNPATH_SIGNING_POLICY_SLUG: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
         run: |
           $ErrorActionPreference = "Stop"
           $expectedSigner = $env:SIGNPATH_EXPECTED_SIGNER_SUBJECT
           if ([string]::IsNullOrEmpty($expectedSigner)) {
-            $expectedSigner = "SignPath Foundation"
+            if ($env:SIGNPATH_SIGNING_POLICY_SLUG -eq "test-signing") {
+              $expectedSigner = "Test certificate for 'Chiri [OSS]'"
+            } else {
+              $expectedSigner = "SignPath Foundation"
+            }
           }
 
           $signedInstallers = Get-ChildItem signed -Recurse -File |
@@ -587,10 +604,23 @@ jobs:
           tagName: app-v${{ needs.prepare-release.outputs.version }}
           args: --bundles appimage --config src-tauri/tauri.appimage.conf.json
 
+      - name: Download AppImage release assets for attestation
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: app-v${{ needs.prepare-release.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p attestation-subjects
+          gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern '*.AppImage*' \
+            --dir attestation-subjects \
+            --clobber
+
       - name: Attest build provenance
         uses: actions/attest@v4
         with:
-          subject-path: 'src-tauri/target/**/release/bundle/**/*.AppImage*'
+          subject-path: 'attestation-subjects/*'
 
   refresh-updater-metadata:
     name: Refresh updater metadata
