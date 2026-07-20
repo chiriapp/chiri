@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <!--
+    Chiri Windows release artifacts.
+
+    GitHub Actions uploads artifacts as ZIP archives, so the top-level
+    container is a zip-file. Each release submits one x64 artifact and one
+    ARM64 artifact containing the NSIS and MSI installers for that arch.
+
+    - NSIS (.exe): SignPath signs the installer itself. NSIS is a PE file,
+      not a container, so the bundled Chiri.exe cannot be deep-signed here.
+    - MSI (.msi): deep-signed. The bundled Chiri.exe is signed first, then
+      the MSI container is signed.
+  -->
+  <zip-file>
+    <pe-file path="Chiri_*_*-setup.exe" max-matches="unbounded" min-matches="1">
+      <authenticode-sign hash-algorithm="sha256" />
+    </pe-file>
+
+    <msi-file path="Chiri_*_*_en-US.msi" max-matches="unbounded" min-matches="1">
+      <pe-file path="**/Chiri.exe" max-matches="unbounded" min-matches="1">
+        <authenticode-sign hash-algorithm="sha256" />
+      </pe-file>
+      <authenticode-sign hash-algorithm="sha256" />
+    </msi-file>
+  </zip-file>
+</artifact-configuration>

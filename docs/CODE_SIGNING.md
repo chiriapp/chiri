@@ -19,8 +19,10 @@ If additional maintainers join the project, this document will be updated to ref
 See [PRIVACY.md](./PRIVACY.md) for more details on what data Chiri processes and how.
 
 ## Signing process
-- Signing happens automatically in Chiri's GitHub Actions release workflow whenever a new release is tagged.
+- Signing happens in Chiri's GitHub Actions publish workflow when the `release` branch creates or updates a draft release.
 - Source builds are produced from the `chiriapp/chiri` repository on GitHub. Signed binaries are never uploaded from a developer machine.
+- Windows MSI and NSIS installers are built unsigned, submitted to SignPath, verified for the expected Authenticode certificate, and then uploaded to the GitHub release.
+- Tauri updater signatures for Windows are generated only after Authenticode signing, so the updater metadata points at the exact signed installers users download.
 - Each signed binary has its product name and version metadata set, in line with SignPath Foundation requirements.
 - Build scripts and CI workflows are kept in the public repository and are auditable.
 

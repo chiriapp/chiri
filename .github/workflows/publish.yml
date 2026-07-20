@@ -234,12 +234,6 @@ jobs:
           - platform: 'ubuntu-22.04-arm'
             label: 'Ubuntu (ARM)'
             args: '--bundles deb,rpm'
-          - platform: 'windows-latest'
-            label: 'Windows'
-            args: ''
-          - platform: 'windows-11-arm'
-            label: 'Windows (ARM)'
-            args: ''
 
     runs-on: ${{ matrix.platform }}
     steps:
@@ -350,6 +344,198 @@ jobs:
         with:
           subject-path: 'src-tauri/target/**/release/bundle/**/*.{dmg,deb,rpm,exe,msi,zip,tar.gz,sig}'
 
+  publish-windows:
+    name: ${{ matrix.label }}
+    needs: prepare-release
+    runs-on: ${{ matrix.platform }}
+    permissions:
+      contents: write
+      actions: read
+      id-token: write
+      attestations: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'windows-latest'
+            label: 'Windows'
+            arch: 'x64'
+          - platform: 'windows-11-arm'
+            label: 'Windows (ARM)'
+            arch: 'arm64'
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Setup Tauri build
+        uses: ./.github/actions/setup-tauri-build
+        with:
+          platform: ${{ matrix.platform }}
+
+      - name: Load Tauri signing secrets from 1Password
+        if: matrix.platform != 'windows-11-arm'
+        uses: 1password/load-secrets-action@3a12b0ab99d9cd590a3e9b5a90ea017210ed9556 # v4
+        with:
+          export-env: true
+          version: 2.33.1
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: op://GitHub Actions/Tauri Secrets/signing-key
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: op://GitHub Actions/Tauri Secrets/signing-key-password
+
+      - name: Load Tauri signing secrets from 1Password [Windows ARM]
+        if: matrix.platform == 'windows-11-arm'
+        shell: pwsh
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+        run: |
+          # Install 1Password CLI manually for Windows ARM (not officially supported)
+          $opUrl = "https://cache.agilebits.com/dist/1P/op2/pkg/v2.33.1/op_windows_amd64_v2.33.1.zip"
+          Invoke-WebRequest -Uri $opUrl -OutFile "$env:RUNNER_TEMP\op.zip"
+          Expand-Archive -Path "$env:RUNNER_TEMP\op.zip" -DestinationPath "$env:RUNNER_TEMP\op"
+          $env:PATH = "$env:RUNNER_TEMP\op;$env:PATH"
+
+          # Load secrets
+          $signingKey = op read "op://GitHub Actions/Tauri Secrets/signing-key"
+          $signingKeyPassword = op read "op://GitHub Actions/Tauri Secrets/signing-key-password"
+
+          # Export to GitHub environment
+          "TAURI_SIGNING_PRIVATE_KEY=$signingKey" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "TAURI_SIGNING_PRIVATE_KEY_PASSWORD=$signingKeyPassword" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Build unsigned Windows installers
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Set-Content -Path tauri-build-config.json -Value '{"bundle":{"createUpdaterArtifacts":false}}' -NoNewline
+          pnpm tauri build --ci --config tauri-build-config.json
+
+      - name: Stage unsigned Windows installers
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path unsigned | Out-Null
+
+          $bundleRoot = "src-tauri/target"
+          $installers = @()
+          $installers += Get-ChildItem -Path $bundleRoot -Recurse -File -Filter "*-setup.exe" |
+            Where-Object { $_.FullName -match "\\bundle\\nsis\\" }
+          $installers += Get-ChildItem -Path $bundleRoot -Recurse -File -Filter "*.msi" |
+            Where-Object { $_.FullName -match "\\bundle\\msi\\" }
+
+          if ($installers.Count -eq 0) {
+            throw "No Windows MSI or NSIS installers were produced."
+          }
+
+          foreach ($installer in $installers) {
+            Copy-Item $installer.FullName -Destination unsigned -Force
+          }
+
+          Get-ChildItem unsigned -File | Sort-Object Name | Format-Table Name, Length
+
+      - name: Upload unsigned Windows installers for SignPath
+        id: upload-unsigned-windows
+        uses: actions/upload-artifact@v7
+        with:
+          name: chiri-windows-${{ matrix.arch }}-unsigned
+          path: unsigned/*
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
+
+      - name: Submit Windows installers to SignPath
+        id: signpath
+        uses: signpath/github-action-submit-signing-request@v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned-windows.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed
+
+      - name: Verify Authenticode signatures
+        shell: pwsh
+        env:
+          SIGNPATH_EXPECTED_SIGNER_SUBJECT: ${{ vars.SIGNPATH_EXPECTED_SIGNER_SUBJECT }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $expectedSigner = $env:SIGNPATH_EXPECTED_SIGNER_SUBJECT
+          if ([string]::IsNullOrEmpty($expectedSigner)) {
+            $expectedSigner = "SignPath Foundation"
+          }
+
+          $signedInstallers = Get-ChildItem signed -Recurse -File |
+            Where-Object { $_.Extension -in ".exe", ".msi" }
+
+          if ($signedInstallers.Count -eq 0) {
+            throw "SignPath did not return signed Windows installers."
+          }
+
+          foreach ($installer in $signedInstallers) {
+            $signature = Get-AuthenticodeSignature -FilePath $installer.FullName
+            if (-not $signature.SignerCertificate) {
+              throw "Missing Authenticode certificate: $($installer.Name)"
+            }
+
+            if (-not $signature.SignerCertificate.Subject.Contains($expectedSigner)) {
+              throw "Unexpected signer for $($installer.Name): $($signature.SignerCertificate.Subject) (expected '$expectedSigner')"
+            }
+
+            Write-Host "Verified $($installer.Name): $($signature.SignerCertificate.Subject)"
+          }
+
+      - name: Generate Tauri updater signatures
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+
+          $signedInstallers = Get-ChildItem signed -Recurse -File |
+            Where-Object { $_.Extension -in ".exe", ".msi" }
+          foreach ($installer in $signedInstallers) {
+            $destination = Join-Path "release-assets" $installer.Name
+            Copy-Item $installer.FullName -Destination $destination -Force
+            pnpm tauri signer sign $destination
+          }
+
+          Get-ChildItem release-assets -File | Sort-Object Name | Format-Table Name, Length
+
+      - name: Upload signed Windows assets to release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: app-v${{ needs.prepare-release.outputs.version }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          $assets = Get-ChildItem release-assets -File
+
+          if ($assets.Count -eq 0) {
+            throw "No signed Windows assets were prepared."
+          }
+
+          foreach ($asset in $assets) {
+            gh release upload $env:TAG $asset.FullName --repo $env:GITHUB_REPOSITORY --clobber
+          }
+
+      - name: Attest signed Windows provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: 'release-assets/*'
+
+      - name: Write Windows signing summary
+        if: always()
+        shell: pwsh
+        run: |
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## ${{ matrix.label }}"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- SignPath request: ${{ steps.signpath.outputs.signing-request-web-url }}"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Signed artifact: ${{ steps.signpath.outputs.signed-artifact-download-url }}"
+
   publish-appimage:
     name: ${{ matrix.label }}
     needs: prepare-release
@@ -406,12 +592,82 @@ jobs:
         with:
           subject-path: 'src-tauri/target/**/release/bundle/**/*.AppImage*'
 
+  refresh-updater-metadata:
+    name: Refresh updater metadata
+    needs:
+      - prepare-release
+      - publish-tauri
+      - publish-appimage
+      - publish-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Refresh latest.json Windows entries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: app-v${{ needs.prepare-release.outputs.version }}
+          VERSION: ${{ needs.prepare-release.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p release-assets
+          gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern latest.json \
+            --pattern "Chiri_${VERSION}_x64-setup.exe.sig" \
+            --pattern "Chiri_${VERSION}_x64_en-US.msi.sig" \
+            --pattern "Chiri_${VERSION}_arm64-setup.exe.sig" \
+            --pattern "Chiri_${VERSION}_arm64_en-US.msi.sig" \
+            --dir release-assets \
+            --clobber
+
+          BASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}"
+
+          jq \
+            --arg base "$BASE_URL" \
+            --arg version "$VERSION" \
+            --rawfile win_x64_msi_sig "release-assets/Chiri_${VERSION}_x64_en-US.msi.sig" \
+            --rawfile win_x64_nsis_sig "release-assets/Chiri_${VERSION}_x64-setup.exe.sig" \
+            --rawfile win_arm64_msi_sig "release-assets/Chiri_${VERSION}_arm64_en-US.msi.sig" \
+            --rawfile win_arm64_nsis_sig "release-assets/Chiri_${VERSION}_arm64-setup.exe.sig" \
+            '
+            .platforms["windows-x86_64"] = {
+              signature: $win_x64_msi_sig,
+              url: ($base + "/Chiri_" + $version + "_x64_en-US.msi")
+            }
+            | .platforms["windows-x86_64-msi"] = .platforms["windows-x86_64"]
+            | .platforms["windows-x86_64-nsis"] = {
+              signature: $win_x64_nsis_sig,
+              url: ($base + "/Chiri_" + $version + "_x64-setup.exe")
+            }
+            | .platforms["windows-aarch64"] = {
+              signature: $win_arm64_msi_sig,
+              url: ($base + "/Chiri_" + $version + "_arm64_en-US.msi")
+            }
+            | .platforms["windows-aarch64-msi"] = .platforms["windows-aarch64"]
+            | .platforms["windows-aarch64-nsis"] = {
+              signature: $win_arm64_nsis_sig,
+              url: ($base + "/Chiri_" + $version + "_arm64-setup.exe")
+            }
+            ' release-assets/latest.json > release-assets/latest.updated.json
+
+          mv release-assets/latest.updated.json release-assets/latest.json
+          jq -e '.platforms["windows-x86_64"].signature | length > 0' release-assets/latest.json
+          jq -e '.platforms["windows-aarch64"].signature | length > 0' release-assets/latest.json
+
+          gh release upload "$TAG" release-assets/latest.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+
   publish-summary:
     name: Publish summary
     needs:
       - prepare-release
       - publish-tauri
       - publish-appimage
+      - publish-windows
+      - refresh-updater-metadata
     if: always() && needs.prepare-release.result == 'success'
     runs-on: ubuntu-latest
     permissions:
@@ -425,6 +681,8 @@ jobs:
           RELEASE_URL: ${{ needs.prepare-release.outputs.release_url }}
           BUILD_RESULT: ${{ needs.publish-tauri.result }}
           APPIMAGE_BUILD_RESULT: ${{ needs.publish-appimage.result }}
+          WINDOWS_RESULT: ${{ needs.publish-windows.result }}
+          UPDATER_RESULT: ${{ needs.refresh-updater-metadata.result }}
         run: |
           set -euo pipefail
 
@@ -456,6 +714,8 @@ jobs:
             echo "| Release | [$TAG]($RELEASE_URL) |"
             echo "| Build result | $BUILD_RESULT |"
             echo "| AppImage result | $APPIMAGE_BUILD_RESULT |"
+            echo "| Windows signing result | $WINDOWS_RESULT |"
+            echo "| Updater metadata refresh | $UPDATER_RESULT |"
             echo "| Asset count | $ASSET_COUNT |"
             echo "| Updater platform count | $UPDATER_PLATFORM_COUNT |"
             echo "| Hash update status | Pending post-release |"
