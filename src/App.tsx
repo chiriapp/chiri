@@ -59,6 +59,7 @@ const App = () => {
   // derived app state used by the shell and global integrations
   const isSyncInProgress = isSyncing || syncingCalendarId !== null;
   const hasCalDAVAccounts = accounts.some((account) => account.caldav);
+  const calDAVAccountCount = accounts.filter((account) => account.caldav).length;
   const visibleTask = useVisibleEditorTask(tasks);
 
   const { modals, modalActions, commands } = useAppController(
@@ -129,7 +130,7 @@ const App = () => {
         fileDrop={fileDrop}
         modals={modals}
         modalActions={modalActions}
-        onboarding={{ show: showOnboarding, hasCalDAVAccounts }}
+        onboarding={{ show: showOnboarding, hasCalDAVAccounts, calDAVAccountCount }}
         appImageIntegration={{
           show: appImageIntegration.showPrompt && !showOnboarding,
           isIntegrating: appImageIntegration.isIntegrating,

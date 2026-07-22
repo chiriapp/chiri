@@ -22,6 +22,7 @@ import type {
 interface AppModalsOnboarding {
   show: boolean;
   hasCalDAVAccounts: boolean;
+  calDAVAccountCount: number;
 }
 
 interface AppModalsAppImageIntegration {
@@ -217,6 +218,7 @@ export const AppModals = ({
       {onboarding.show && (
         <OnboardingModal
           hasCalDAVAccount={onboarding.hasCalDAVAccounts}
+          calDAVAccountCount={onboarding.calDAVAccountCount}
           onAddAccount={() => openAccountAboveModal()}
         />
       )}
