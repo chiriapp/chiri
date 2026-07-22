@@ -1,15 +1,19 @@
 import Download from 'lucide-react/icons/download';
 import KeyRound from 'lucide-react/icons/key-round';
+import Share2 from 'lucide-react/icons/share-2';
 import Smartphone from 'lucide-react/icons/smartphone';
 import TriangleAlert from 'lucide-react/icons/triangle-alert';
 import Wifi from 'lucide-react/icons/wifi';
 import { useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
+import { getErrorMessage } from '$lib/http';
 import {
   getMobileConfigCredentialWarnings,
   getMobileConfigExportEligibility,
 } from '$lib/mobileconfig/generate';
+import { shareMobileConfig } from '$lib/mobileconfig/share';
+import { toastManager } from '$lib/toastManager';
 import type { Account } from '$types';
 import { isMacPlatform } from '$utils/platform';
 
@@ -25,9 +29,37 @@ export const MobileConfigExportModal = ({
   onClose,
 }: MobileConfigExportModalProps) => {
   const [includePassword, setIncludePassword] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const credentialWarnings = getMobileConfigCredentialWarnings(account, includePassword);
   const eligibility = getMobileConfigExportEligibility(account);
   const hasOAuthTokenWarning = credentialWarnings.includes('oauth-token-may-expire');
+
+  const handleShare = async () => {
+    setIsSharing(true);
+    try {
+      const result = await shareMobileConfig(account, { includePassword });
+      if (result === 'shared') {
+        toastManager.success('Profile shared', 'Open it on the target device to install.');
+      } else if (result === 'copied') {
+        toastManager.success(
+          'Profile copied',
+          'The .mobileconfig content has been copied to your clipboard.',
+        );
+      } else {
+        toastManager.error(
+          'Sharing unavailable',
+          'Your system does not support sharing this file.',
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        return;
+      }
+      toastManager.error('Could not share profile', getErrorMessage(error));
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   return (
     <ModalWrapper
@@ -37,6 +69,16 @@ export const MobileConfigExportModal = ({
       size="md"
       zIndex="z-70"
       initialFocus="dialog"
+      footerLeft={
+        <ModalButton
+          variant="secondary"
+          onClick={handleShare}
+          disabled={!eligibility.eligible || isSharing}
+        >
+          <Share2 className="h-4 w-4" />
+          Share
+        </ModalButton>
+      }
       footer={
         <>
           <ModalButton variant="secondary" onClick={onClose}>
@@ -50,7 +92,6 @@ export const MobileConfigExportModal = ({
       }
     >
       <div className="space-y-4">
-        {/* Mini infographic */}
         <div className="grid grid-cols-3 gap-2">
           <div className="flex flex-col items-center gap-2 rounded-lg border border-surface-200 bg-surface-50 px-2 py-3 text-center dark:border-surface-700 dark:bg-surface-900/50">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-500/10 text-primary-500">
