@@ -18,12 +18,14 @@ import {
   DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL,
 } from '$lib/push/providers/mozillaAutopush';
 import { DEFAULT_NTFY_SERVER_URL } from '$lib/push/providers/ntfy';
+import type { DateFormat, TimeFormat } from '$types/preference';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,
   MOZILLA_AUTOPUSH_PROVIDER_ID,
   NTFY_DIRECT_PROVIDER_ID,
   type PushProviderId,
 } from '$types/push';
+import { formatDate, formatTime } from '$utils/date';
 
 const NTFY_SERVER_URL_DEBOUNCE_MS = 500;
 const WEBDAV_PUSH_DOCS_URL = 'https://github.com/chiriapp/chiri/blob/master/docs/WEBDAV_PUSH.md';
@@ -79,11 +81,14 @@ const useDebouncedDraftSetting = (
   return [draftValue, setDraftValue, commitDraftValue] as const;
 };
 
-const formatProviderCheckedAt = (checkedAt: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(checkedAt));
+const formatProviderCheckedAt = (
+  checkedAt: string,
+  dateFormat: DateFormat,
+  timeFormat: TimeFormat,
+) => {
+  const date = new Date(checkedAt);
+  return `${formatDate(date, true, dateFormat)} ${formatTime(date, timeFormat)}`;
+};
 
 export const PushSettings = () => {
   const {
@@ -99,6 +104,8 @@ export const PushSettings = () => {
     setMozillaAutopushWebsocketUrl,
     mozillaAutopushEndpointUrl,
     setMozillaAutopushEndpointUrl,
+    dateFormat,
+    timeFormat,
   } = useSettingsStore();
   const [draftNtfyServerUrl, setDraftNtfyServerUrl, commitDraftNtfyServerUrl] =
     useDebouncedDraftSetting(ntfyServerUrl, setNtfyServerUrl, NTFY_SERVER_URL_DEBOUNCE_MS);
@@ -342,9 +349,11 @@ export const PushSettings = () => {
                   </p>
                   <p className="text-surface-500 dark:text-surface-400">
                     {providerAvailabilityMetadata
-                      ? `${formatProviderCheckedAt(providerAvailabilityMetadata.checkedAt)} · ${
-                          providerAvailabilityMetadata.durationMs
-                        }ms · ${providerDescription}`
+                      ? `${formatProviderCheckedAt(
+                          providerAvailabilityMetadata.checkedAt,
+                          dateFormat,
+                          timeFormat,
+                        )} · ${providerAvailabilityMetadata.durationMs}ms · ${providerDescription}`
                       : providerDescription}
                   </p>
                   {providerAvailability.error && (

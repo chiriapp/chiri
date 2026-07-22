@@ -9,6 +9,8 @@ import { useSettingsStore } from '$context/settingsContext';
 import { useSyncStore } from '$context/syncContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useTasks } from '$hooks/queries/useTasks';
+import type { DateFormat, TimeFormat } from '$types/preference';
+import { formatDate, formatTime } from '$utils/date';
 
 const SYNC_SOURCE_LABELS: Record<string, string> = {
   'header-sync-button': 'manually',
@@ -22,11 +24,8 @@ const SYNC_SOURCE_LABELS: Record<string, string> = {
   'webdav-push': 'from WebDAV Push',
 };
 
-const formatSyncDate = (date: Date) =>
-  new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date);
+const formatSyncDate = (date: Date, dateFormat: DateFormat, timeFormat: TimeFormat) =>
+  `${formatDate(date, true, dateFormat)} ${formatTime(date, timeFormat)}`;
 
 const pluralize = (count: number, singular: string, plural = `${singular}s`) =>
   `${count} ${count === 1 ? singular : plural}`;
@@ -65,6 +64,8 @@ export const SyncSettings = () => {
     setSyncOnStartup,
     syncOnReconnect,
     setSyncOnReconnect,
+    dateFormat,
+    timeFormat,
   } = useSettingsStore();
   const {
     isSyncing,
@@ -157,7 +158,7 @@ export const SyncSettings = () => {
                     Last synced{lastSyncSourceLabel ? ` ${lastSyncSourceLabel}` : ''}
                   </p>
                   <p className="text-surface-500 dark:text-surface-400">
-                    {formatSyncDate(lastSyncTime)}
+                    {formatSyncDate(lastSyncTime, dateFormat, timeFormat)}
                   </p>
                 </div>
               </div>

@@ -20,13 +20,14 @@ import {
   subscribeConnectivityCheckResult,
   subscribeConnectivityCheckStatus,
 } from '$lib/network/connectivity';
+import type { DateFormat, TimeFormat } from '$types/preference';
 import type { NetworkProxyMode } from '$types/settings';
+import { formatDate, formatTime } from '$utils/date';
 
-const formatCheckedAt = (checkedAt: string) =>
-  new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(checkedAt));
+const formatCheckedAt = (checkedAt: string, dateFormat: DateFormat, timeFormat: TimeFormat) => {
+  const date = new Date(checkedAt);
+  return `${formatDate(date, true, dateFormat)} ${formatTime(date, timeFormat)}`;
+};
 
 const getExternalFallbackLabel = (fallbackType: 'default' | 'custom' | null) => {
   if (fallbackType === 'default') return 'default external fallback used';
@@ -58,6 +59,8 @@ export const NetworkSettings = () => {
     setNetworkProxyHost,
     networkProxyPort,
     setNetworkProxyPort,
+    dateFormat,
+    timeFormat,
   } = useSettingsStore();
   const lastResult = useSyncExternalStore(
     subscribeConnectivityCheckResult,
@@ -229,7 +232,8 @@ export const NetworkSettings = () => {
                     {lastResult.online ? 'Online' : 'Offline'} · {lastResult.message}
                   </p>
                   <p className="text-surface-500 dark:text-surface-400">
-                    {formatCheckedAt(lastResult.checkedAt)} · {lastResult.durationMs}ms
+                    {formatCheckedAt(lastResult.checkedAt, dateFormat, timeFormat)} ·{' '}
+                    {lastResult.durationMs}ms
                     {lastResult.accountsChecked > 0
                       ? ` · ${lastResult.accountsChecked} CalDAV probe${lastResult.accountsChecked === 1 ? '' : 's'}`
                       : ''}
