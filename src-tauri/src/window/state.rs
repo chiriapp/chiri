@@ -147,6 +147,9 @@ impl WindowStateManager {
         }
 
         if on_screen {
+            // wayland compositors generally ignore client-set position for
+            // toplevel windows, so this is best-effort; the window may be
+            // centered or placed according to the compositor's policy
             if let Err(e) = window.set_position(position) {
                 log::warn!("[WindowState] Failed to restore window position: {e}");
             }
