@@ -15,7 +15,7 @@ import type {
 
 let nativeDefaultsApplied = false;
 
-export const RegionTimeSettings = () => {
+export const RegionTimeStep = () => {
   const { dateFormat, setDateFormat, timeFormat, setTimeFormat, startOfWeek, setStartOfWeek } =
     useSettingsStore();
   const [systemPreferences, setSystemPreferences] = useState<SystemRegionPreferences | null>(null);

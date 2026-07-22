@@ -11,7 +11,7 @@ import {
   THEME_OPTIONS,
 } from '$utils/color/scheme';
 
-export const OnboardingAppearanceSettings = () => {
+export const ThemeStep = () => {
   const {
     theme,
     setTheme,
