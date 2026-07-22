@@ -1,3 +1,7 @@
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::thread;
+use std::time::Duration;
+
 use std::collections::HashMap;
 
 use parking_lot::Mutex;
@@ -49,6 +53,7 @@ impl WindowStateManager {
         let path = app_dir.join(STATE_FILENAME);
         let content = std::fs::read_to_string(&path)?;
         let states: HashMap<String, WindowState> = serde_json::from_str(&content)?;
+        log::info!("[WindowState] Loaded state from {}", path.display());
         Ok(states)
     }
 
@@ -72,6 +77,8 @@ impl WindowStateManager {
             Ok(content) => {
                 if let Err(e) = std::fs::write(&path, content) {
                     log::warn!("[WindowState] Failed to write window state: {e}");
+                } else {
+                    log::info!("[WindowState] Saved state to {}", path.display());
                 }
             }
             Err(e) => log::warn!("[WindowState] Failed to serialize window state: {e}"),
@@ -150,6 +157,15 @@ impl WindowStateManager {
         if state.maximized {
             let _ = window.maximize();
         }
+
+        log::info!(
+            "[WindowState] Restored main window to {}x{} at ({}, {}), maximized={}",
+            state.width,
+            state.height,
+            state.x,
+            state.y,
+            state.maximized
+        );
     }
 }
 
@@ -166,7 +182,21 @@ pub fn handle_event<R: Runtime>(window: &tauri::Window<R>, event: &WindowEvent) 
                 .app_handle()
                 .state::<WindowStateManager>()
                 .update(window);
+            schedule_save(window.app_handle());
         }
         _ => {}
     }
+}
+
+static SAVE_PENDING: AtomicBool = AtomicBool::new(false);
+
+fn schedule_save<R: Runtime>(app_handle: &tauri::AppHandle<R>) {
+    SAVE_PENDING.store(true, Ordering::SeqCst);
+    let app_handle = app_handle.clone();
+    thread::spawn(move || {
+        thread::sleep(Duration::from_millis(250));
+        if SAVE_PENDING.swap(false, Ordering::SeqCst) {
+            manager(&app_handle).save(&app_handle);
+        }
+    });
 }
