@@ -70,7 +70,6 @@ export const defaultState: SettingsState = {
   showWindowOnNormalLaunch: true,
   showWindowOnLoginLaunch: false,
   enableSystemTrayExplicitlySet: false,
-  restoreWindowState: true,
   windowDecorationStyle: 'integrated',
   checkForUpdatesAutomatically: true,
   confirmBeforeQuit: true,

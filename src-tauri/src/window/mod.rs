@@ -2,6 +2,8 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::{Manager, WindowEvent};
 
+pub mod state;
+
 #[cfg(target_os = "macos")]
 static HIDE_DOCK_ICON_WHEN_WINDOW_CLOSED: AtomicBool = AtomicBool::new(true);
 
@@ -83,7 +85,13 @@ pub fn handle_focus_event<R: tauri::Runtime>(window: &tauri::Window<R>) {
 #[cfg(not(target_os = "linux"))]
 pub fn handle_focus_event<R: tauri::Runtime>(_window: &tauri::Window<R>) {}
 
+pub fn restore_state<R: tauri::Runtime>(window: &tauri::WebviewWindow<R>) {
+    state::manager(window.app_handle()).restore(&window.as_ref().window());
+}
+
 pub fn handle_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: &WindowEvent) {
+    state::handle_event(window, event);
+
     match event {
         WindowEvent::CloseRequested { api, .. }
             if is_tray_enabled(window) && is_tray_host_available(window) =>
@@ -96,8 +104,11 @@ pub fn handle_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: 
 
             let _ = window.hide();
             hide_dock_icon_if_configured(window.app_handle());
+            state::manager(window.app_handle()).save(window.app_handle());
         }
-        WindowEvent::CloseRequested { .. } => {}
+        WindowEvent::CloseRequested { .. } => {
+            state::manager(window.app_handle()).save(window.app_handle());
+        }
         #[cfg(target_os = "macos")]
         WindowEvent::Resized(_) | WindowEvent::ScaleFactorChanged { .. } => {
             if let Some(webview_window) = window.app_handle().get_webview_window(window.label()) {

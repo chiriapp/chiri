@@ -41,8 +41,6 @@ export const SystemSettings = () => {
     setShowWindowOnNormalLaunch,
     showWindowOnLoginLaunch,
     setShowWindowOnLoginLaunch,
-    restoreWindowState,
-    setRestoreWindowState,
     hideDockIconWhenWindowClosed,
     setHideDockIconWhenWindowClosed,
     confirmBeforeQuit,
@@ -239,25 +237,6 @@ export const SystemSettings = () => {
 
         <div className="border-surface-200 border-t dark:border-surface-700" />
 
-        <label className="flex items-center justify-between p-4">
-          <div>
-            <p className="text-sm text-surface-700 dark:text-surface-300">
-              Restore window size and position
-            </p>
-            <p className="text-surface-500 text-xs dark:text-surface-400">
-              Reopen Chiri where you left it
-            </p>
-          </div>
-          <input
-            type="checkbox"
-            checked={restoreWindowState}
-            onChange={(e) => setRestoreWindowState(e.target.checked)}
-            className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-          />
-        </label>
-      </div>
-
-      <div className="overflow-hidden rounded-lg border border-surface-200 bg-white dark:border-surface-700 dark:bg-surface-800">
         <label className="flex items-center justify-between p-4">
           <div>
             <p className="text-sm text-surface-700 dark:text-surface-300">Enable system tray</p>

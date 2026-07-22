@@ -9,7 +9,6 @@ import { db } from '$lib/database';
 import { initLogger, loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import { setAllTasksView, setRecentlyDeletedView } from '$lib/store/ui';
-import { restoreWindowState } from '$lib/window';
 import { initAppMenu } from '$utils/menu';
 import {
   getTrayHostAvailable,
@@ -182,7 +181,6 @@ export const showWindow = async (delay: number = 200): Promise<void> => {
   return new Promise((resolve) => {
     setTimeout(async () => {
       const window = getCurrentWindow();
-      await restoreWindowState();
       await setMacDockIconVisible(true);
       await window.show();
       await window.setFocus();

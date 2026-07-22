@@ -248,10 +248,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (show: boolean) => settingsStore.setShowWindowOnLoginLaunch(show),
     [],
   );
-  const setRestoreWindowState = useCallback(
-    (restore: boolean) => settingsStore.setRestoreWindowState(restore),
-    [],
-  );
   const setWindowDecorationStyle = useCallback(
     (style: WindowDecorationStyle) => settingsStore.setWindowDecorationStyle(style),
     [],
@@ -458,7 +454,6 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setHideDockIconWhenWindowClosed,
     setShowWindowOnNormalLaunch,
     setShowWindowOnLoginLaunch,
-    setRestoreWindowState,
     setWindowDecorationStyle,
     setCheckForUpdatesAutomatically,
     setConfirmBeforeQuit,

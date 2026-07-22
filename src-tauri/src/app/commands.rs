@@ -1,8 +1,13 @@
+use tauri::Manager;
+
+use crate::window::state::WindowStateManager;
+
 /// exits the process directly via the OS, bypassing Tauri's RunEvent::ExitRequested
 /// must be used instead of tauri-plugin-process's exit(), which calls AppHandle::exit()
 /// and re-triggers ExitRequested, causing an infinite prevent/exit loop
 #[tauri::command]
-pub fn force_quit() {
+pub fn force_quit(app: tauri::AppHandle) {
+    app.state::<WindowStateManager>().save(&app);
     std::process::exit(0);
 }
 

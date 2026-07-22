@@ -339,7 +339,6 @@ export const settingsStore = {
     setState({ showWindowOnLoginLaunch }),
   setEnableSystemTrayExplicitlySet: (enableSystemTrayExplicitlySet: boolean) =>
     setState({ enableSystemTrayExplicitlySet }),
-  setRestoreWindowState: (restoreWindowState: boolean) => setState({ restoreWindowState }),
   setWindowDecorationStyle: (windowDecorationStyle: WindowDecorationStyle) =>
     setState({ windowDecorationStyle }),
   setCheckForUpdatesAutomatically: (checkForUpdatesAutomatically: boolean) =>

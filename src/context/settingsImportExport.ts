@@ -115,7 +115,6 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'hideDockIconWhenWindowClosed',
       'showWindowOnNormalLaunch',
       'showWindowOnLoginLaunch',
-      'restoreWindowState',
       'windowDecorationStyle',
       'checkForUpdatesAutomatically',
       'confirmBeforeQuit',

@@ -22,6 +22,7 @@ dependencies = [
  "objc2",
  "objc2-foundation",
  "objc2-user-notifications",
+ "parking_lot",
  "plist",
  "pulldown-cmark",
  "reqwest 0.12.28",
