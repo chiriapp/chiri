@@ -123,6 +123,102 @@ const SERVER_HINTS: Partial<Record<ServerType, { text: ReactNode; href: string }
     ),
     href: 'https://purelymail.com/manage/users',
   },
+  migadu: {
+    text: (
+      <>
+        For better isolation in Migadu, you can{' '}
+        <a
+          href="https://migadu.com/guides/identities/"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium underline underline-offset-2 hover:opacity-80"
+        >
+          create a mailbox identity
+        </a>{' '}
+        with a custom password, and use it here to separate your CalDAV access from your main
+        mailbox identity.
+      </>
+    ),
+    href: 'https://migadu.com/guides/identities/',
+  },
+  mailbox: {
+    text: (
+      <>
+        If two-factor authentication (2FA) is enabled, you will need to{' '}
+        <a
+          href="https://kb.mailbox.org/en/private/security-and-privacy/application-passwords-for-external-programs/"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium underline underline-offset-2 hover:opacity-80"
+        >
+          create an app password
+        </a>{' '}
+        with access to CalDAV/CardDAV and use it here instead.
+      </>
+    ),
+    href: 'https://kb.mailbox.org/en/private/security-and-privacy/application-passwords-for-external-programs/',
+  },
+  rustical: {
+    text: (
+      <>
+        To use Chiri with RustiCal, an app token is required. You can generate it your dashboard.{' '}
+        <a
+          href="https://lennart-k.github.io/rustical/installation/#password-vs-app-tokens:~:text=respective%20principal%20URLs.-,Password%20vs%20app%20tokens,-The%20password%20is"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium underline underline-offset-2 hover:opacity-80"
+        >
+          Learn more about app tokens in RustiCal
+        </a>
+        .
+      </>
+    ),
+    href: 'https://lennart-k.github.io/rustical/installation/#password-vs-app-tokens:~:text=respective%20principal%20URLs.-,Password%20vs%20app%20tokens,-The%20password%20is',
+  },
+};
+
+const USERNAME_LABELS: Partial<Record<ServerType, string>> = {
+  fastmail: 'Email address',
+  mailbox: 'Email address',
+  migadu: 'Email address',
+  purelymail: 'Email address',
+  runbox: 'Username or email address',
+  fruux: 'Email address or device username',
+  disrootCloud: 'Username or email address',
+  nextcloud: 'Username or email address',
+};
+
+const USERNAME_PLACEHOLDERS: Partial<Record<ServerType, string>> = {
+  fastmail: 'email@example.com',
+  mailbox: 'email@example.com',
+  migadu: 'email@example.com',
+  purelymail: 'email@example.com',
+  runbox: 'username or email@example.com',
+  fruux: 'email@example.com or b1234567890',
+  disrootCloud: 'username or email@example.com',
+  nextcloud: 'username or email@example.com',
+};
+
+const PASSWORD_LABELS: Partial<Record<ServerType, string>> = {
+  fastmail: 'App Password',
+  mailbox: 'Password or app password',
+  disrootCloud: 'Password or app password',
+  fruux: 'Password or app password',
+  purelymail: 'Password or app password',
+  runbox: 'Password or app password',
+  nextcloud: 'Password or app password',
+  rustical: 'App token',
+};
+
+const PASSWORD_PLACEHOLDERS: Partial<Record<ServerType, string>> = {
+  fastmail: 'Enter app password',
+  mailbox: 'Enter password or app password',
+  disrootCloud: 'Enter password or app password',
+  fruux: 'Enter password or app password',
+  purelymail: 'Enter password or app password',
+  runbox: 'Enter password or app password',
+  nextcloud: 'Enter password or app password',
+  rustical: 'Enter app token',
 };
 
 export const CredentialsForm = ({
@@ -223,14 +319,14 @@ export const CredentialsForm = ({
           htmlFor="username"
           className="mb-1 block font-medium text-sm text-surface-700 dark:text-surface-300"
         >
-          Username
+          {USERNAME_LABELS[serverType] ?? 'Username'}
         </label>
         <ComposedInput
           id="username"
           type="text"
           value={username}
           onChange={onUsernameChange}
-          placeholder="user@example.com"
+          placeholder={USERNAME_PLACEHOLDERS[serverType] ?? 'username'}
           required
           className="w-full rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-800 transition-colors focus:border-primary-500 focus:bg-white focus:outline-hidden dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
         />
@@ -241,7 +337,7 @@ export const CredentialsForm = ({
           htmlFor="password"
           className="mb-1 block font-medium text-sm text-surface-700 dark:text-surface-300"
         >
-          {serverType === 'fastmail' ? 'App Password' : 'Password'}
+          {PASSWORD_LABELS[serverType] ?? 'Password'}
         </label>
         <ComposedInput
           id="password"
@@ -249,11 +345,7 @@ export const CredentialsForm = ({
           value={password}
           onChange={onPasswordChange}
           placeholder={
-            account
-              ? '(unchanged)'
-              : serverType === 'fastmail'
-                ? 'Enter app password'
-                : 'Enter password'
+            account ? '(unchanged)' : (PASSWORD_PLACEHOLDERS[serverType] ?? 'Enter password')
           }
           required={!account}
           className="w-full rounded-lg border border-transparent bg-surface-100 px-3 py-2 text-sm text-surface-800 transition-colors focus:border-primary-500 focus:bg-white focus:outline-hidden dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
