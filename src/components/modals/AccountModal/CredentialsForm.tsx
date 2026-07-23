@@ -180,7 +180,7 @@ const SERVER_HINTS: Partial<Record<ServerType, { text: ReactNode; href: string }
       <>
         If two-factor authentication (2FA) is enabled, you will need to{' '}
         <a
-          href="https://stalw.art/docs/auth/app-passwords"
+          href="https://stalw.art/docs/auth/authentication/app-password/"
           target="_blank"
           rel="noreferrer"
           className="font-medium underline underline-offset-2 hover:opacity-80"
@@ -190,7 +190,7 @@ const SERVER_HINTS: Partial<Record<ServerType, { text: ReactNode; href: string }
         and use it here instead.
       </>
     ),
-    href: 'https://stalw.art/docs/auth/app-passwords',
+    href: 'https://stalw.art/docs/auth/authentication/app-password/',
   },
 };
 
