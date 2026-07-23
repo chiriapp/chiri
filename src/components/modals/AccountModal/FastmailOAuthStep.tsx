@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { useEffect, useState } from 'react';
+import { ConnectionNoticeBanner } from '$components/ConnectionNoticeBanner';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
@@ -11,6 +12,7 @@ import {
   usernameFromPrincipalUrl,
 } from '$lib/auth/fastmail';
 import { CalDAVClient } from '$lib/caldav';
+import { type CalDAVSetupError, toCalDAVSetupError } from '$lib/caldav/setup';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
@@ -29,7 +31,7 @@ export const FastmailOAuthStep = ({
   onSetupInProgressChange,
 }: FastmailOAuthStepProps) => {
   const [phase, setPhase] = useState<Phase>('idle');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<CalDAVSetupError | null>(null);
   const queryClient = useQueryClient();
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
@@ -37,14 +39,21 @@ export const FastmailOAuthStep = ({
   const { enforceVapid } = useSettingsStore();
 
   const handleConnect = async () => {
-    setError('');
+    setError(null);
     setPhase('browser');
 
     let tokens: FastmailTokens;
     try {
       tokens = await startFastmailOAuth();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Authorization failed');
+      log.error('[FastmailOAuth] OAuth flow failed:', e);
+      setError(
+        toCalDAVSetupError(
+          'Fastmail OAuth failed',
+          e,
+          'Verify that you approved access in your browser and that Fastmail is reachable.',
+        ),
+      );
       setPhase('idle');
       return;
     }
@@ -137,13 +146,26 @@ export const FastmailOAuthStep = ({
             }
           },
           onError: (e) => {
-            setError(e instanceof Error ? e.message : 'Failed to create account');
+            setError(
+              toCalDAVSetupError(
+                'Failed to create account',
+                e,
+                'The account could not be saved. Try again or check the logs for details.',
+              ),
+            );
             setPhase('idle');
           },
         },
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to connect to Fastmail');
+      log.error('[FastmailOAuth] Failed to connect to Fastmail:', e);
+      setError(
+        toCalDAVSetupError(
+          'Could not connect to Fastmail',
+          e,
+          'Verify that Fastmail is reachable and that you authorized the correct account.',
+        ),
+      );
       setPhase('idle');
     }
   };
@@ -172,9 +194,13 @@ export const FastmailOAuthStep = ({
       </div>
 
       {error && (
-        <div className="rounded-lg border border-semantic-error/20 bg-semantic-error/10 px-3 py-2 text-semantic-error text-sm">
-          {error}
-        </div>
+        <ConnectionNoticeBanner
+          success={false}
+          error={error}
+          notice={null}
+          calendarCount={0}
+          onDismiss={() => setError(null)}
+        />
       )}
 
       <button

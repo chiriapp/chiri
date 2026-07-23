@@ -54,7 +54,10 @@ interface ClientRegistrationResponse {
 
 const normalizeServerUrl = (serverUrl: string): string => serverUrl.trim().replace(/\/$/, '');
 
-export const discoverStalwartOAuthEndpoints = async (serverUrl: string): Promise<OAuthMetadata> => {
+export const discoverStalwartOAuthEndpoints = async (
+  serverUrl: string,
+  acceptInvalidCerts = false,
+): Promise<OAuthMetadata> => {
   const base = normalizeServerUrl(serverUrl);
   const metadataUrl = `${base}/.well-known/openid-configuration`;
 
@@ -63,7 +66,7 @@ export const discoverStalwartOAuthEndpoints = async (serverUrl: string): Promise
     method: 'GET',
     headers: { Accept: 'application/json' },
     body: undefined,
-    acceptInvalidCerts: false,
+    acceptInvalidCerts,
   });
 
   if (res.status < 200 || res.status >= 300) {
@@ -80,6 +83,7 @@ export const discoverStalwartOAuthEndpoints = async (serverUrl: string): Promise
 
 export const registerStalwartOAuthClient = async (
   registrationEndpoint: string,
+  acceptInvalidCerts = false,
 ): Promise<string> => {
   const res = await invoke<HttpResponse>('http_request', {
     url: registrationEndpoint,
@@ -93,7 +97,7 @@ export const registerStalwartOAuthClient = async (
       token_endpoint_auth_method: 'none',
       scope: STALWART_SCOPE,
     }),
-    acceptInvalidCerts: false,
+    acceptInvalidCerts,
   });
 
   if (res.status < 200 || res.status >= 300) {
@@ -112,10 +116,10 @@ export const startStalwartOAuth = async (
   serverUrl: string,
   { acceptInvalidCerts = false }: { acceptInvalidCerts?: boolean } = {},
 ): Promise<StalwartTokens> => {
-  const metadata = await discoverStalwartOAuthEndpoints(serverUrl);
+  const metadata = await discoverStalwartOAuthEndpoints(serverUrl, acceptInvalidCerts);
   const registrationEndpoint =
     metadata.registration_endpoint ?? `${normalizeServerUrl(serverUrl)}/auth/register`;
-  const clientId = await registerStalwartOAuthClient(registrationEndpoint);
+  const clientId = await registerStalwartOAuthClient(registrationEndpoint, acceptInvalidCerts);
 
   const verifier = generateVerifier();
   const challenge = await generateChallenge(verifier);
@@ -222,7 +226,7 @@ export const refreshStalwartToken = async (
   clientId: string,
   { acceptInvalidCerts = false }: { acceptInvalidCerts?: boolean } = {},
 ): Promise<OAuthTokens> => {
-  const metadata = await discoverStalwartOAuthEndpoints(serverUrl);
+  const metadata = await discoverStalwartOAuthEndpoints(serverUrl, acceptInvalidCerts);
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
     client_id: clientId,

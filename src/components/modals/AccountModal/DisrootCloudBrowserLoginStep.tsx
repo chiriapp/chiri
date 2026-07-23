@@ -1,11 +1,13 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { useEffect, useState } from 'react';
+import { ConnectionNoticeBanner } from '$components/ConnectionNoticeBanner';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
 import { cancelNextcloudLogin, initiateNextcloudLogin } from '$lib/auth/nextcloud';
 import { CalDAVClient } from '$lib/caldav';
+import { type CalDAVSetupError, toCalDAVSetupError } from '$lib/caldav/setup';
 import { loggers } from '$lib/logger';
 import { generateUUID } from '$utils/misc';
 
@@ -25,7 +27,7 @@ export const DisrootCloudBrowserLoginStep = ({
   onSetupInProgressChange,
 }: DisrootCloudBrowserLoginStepProps) => {
   const [phase, setPhase] = useState<Phase>('idle');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<CalDAVSetupError | null>(null);
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
   const { syncAll } = useSyncQuery();
@@ -38,7 +40,7 @@ export const DisrootCloudBrowserLoginStep = ({
   }, []);
 
   const handleConnect = async () => {
-    setError('');
+    setError(null);
     setPhase('browser');
 
     try {
@@ -103,9 +105,14 @@ export const DisrootCloudBrowserLoginStep = ({
 
       onSuccess();
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Failed to connect to Disroot Cloud';
       log.error('[DisrootCloudBrowserLogin] Login failed', { error: e });
-      setError(message);
+      setError(
+        toCalDAVSetupError(
+          'Could not connect to Disroot Cloud',
+          e,
+          'Verify that Disroot Cloud is reachable and that you approved access in your browser.',
+        ),
+      );
       setPhase('idle');
     }
   };
@@ -134,9 +141,13 @@ export const DisrootCloudBrowserLoginStep = ({
       </div>
 
       {error && (
-        <div className="rounded-lg border border-semantic-error/20 bg-semantic-error/10 px-3 py-2 text-semantic-error text-sm">
-          {error}
-        </div>
+        <ConnectionNoticeBanner
+          success={false}
+          error={error}
+          notice={null}
+          calendarCount={0}
+          onDismiss={() => setError(null)}
+        />
       )}
 
       <button

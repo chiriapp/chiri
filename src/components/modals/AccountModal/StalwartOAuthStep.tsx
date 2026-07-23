@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import { ConnectionNoticeBanner } from '$components/ConnectionNoticeBanner';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
@@ -12,6 +13,7 @@ import {
   usernameFromPrincipalUrl,
 } from '$lib/auth/stalwart';
 import { CalDAVClient } from '$lib/caldav';
+import { type CalDAVSetupError, toCalDAVSetupError } from '$lib/caldav/setup';
 import { hasHttpUrlScheme } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
@@ -49,7 +51,7 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
     ref,
   ) => {
     const [phase, setPhase] = useState<Phase>('idle');
-    const [error, setError] = useState('');
+    const [error, setError] = useState<CalDAVSetupError | null>(null);
     const queryClient = useQueryClient();
     const createAccountMutation = useCreateAccount();
     const addCalendarMutation = useAddCalendar();
@@ -72,18 +74,30 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
 
     const handleConnect = async () => {
       if (!hasHttpUrlScheme(serverUrl)) {
-        setError('Server URL must start with http:// or https://.');
+        setError(
+          toCalDAVSetupError(
+            'Invalid server URL',
+            'The server URL must start with http:// or https://.',
+          ),
+        );
         return;
       }
 
-      setError('');
+      setError(null);
       setPhase('browser');
 
       let tokens: StalwartTokens;
       try {
         tokens = await startStalwartOAuth(serverUrl, { acceptInvalidCerts });
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Authorization failed');
+        log.error('[StalwartOAuth] OAuth flow failed:', e);
+        setError(
+          toCalDAVSetupError(
+            'Stalwart OAuth failed',
+            e,
+            'Verify the server URL, port, and that the server is running. If the server uses a self-signed certificate, you may need to trust it.',
+          ),
+        );
         setPhase('idle');
         return;
       }
@@ -179,13 +193,26 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
               }
             },
             onError: (e) => {
-              setError(e instanceof Error ? e.message : 'Failed to create account');
+              setError(
+                toCalDAVSetupError(
+                  'Failed to create account',
+                  e,
+                  'The account could not be saved. Try again or check the logs for details.',
+                ),
+              );
               setPhase('idle');
             },
           },
         );
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to connect to Stalwart');
+        log.error('[StalwartOAuth] Failed to connect to Stalwart:', e);
+        setError(
+          toCalDAVSetupError(
+            'Could not connect to Stalwart',
+            e,
+            'The account could not be set up after authorization.',
+          ),
+        );
         setPhase('idle');
       }
     };
@@ -246,9 +273,13 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
         </div>
 
         {error && (
-          <div className="rounded-lg border border-semantic-error/30 bg-semantic-error/10 p-3 text-semantic-error text-sm">
-            {error}
-          </div>
+          <ConnectionNoticeBanner
+            success={false}
+            error={error}
+            notice={null}
+            calendarCount={0}
+            onDismiss={() => setError(null)}
+          />
         )}
       </div>
     );

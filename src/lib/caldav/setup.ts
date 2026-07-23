@@ -238,3 +238,16 @@ export const probeSetupVtodoCreationIfNeeded = async (
     );
   }
 };
+
+export const toCalDAVSetupError = (
+  title: string,
+  error: unknown,
+  hint?: string,
+): CalDAVSetupError => ({
+  title,
+  message:
+    error instanceof Error
+      ? error.message
+      : String(error) || 'An unexpected error occurred. Please try again.',
+  hint,
+});

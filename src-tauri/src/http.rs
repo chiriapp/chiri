@@ -201,5 +201,50 @@ fn validate_body_size(body: Option<&str>) -> Result<(), String> {
 }
 
 fn sanitize_reqwest_error(error: reqwest::Error) -> String {
-    error.without_url().to_string()
+    let host = error
+        .url()
+        .and_then(|url| url.host_str())
+        .map(|host| host.to_string());
+    let host = host.as_deref().unwrap_or("the server");
+    let is_timeout = error.is_timeout();
+    let is_connect = error.is_connect();
+    let status = error.status();
+    let inner = error.without_url().to_string();
+
+    if is_timeout {
+        return format!(
+            "Request to {host} timed out. Check that the server is reachable and not behind a slow proxy."
+        );
+    }
+
+    if is_connect {
+        return format!(
+            "Could not connect to {host}: {inner}. Verify the URL, port, and that the server is running."
+        );
+    }
+
+    if let Some(status) = status {
+        return format!("{host} returned HTTP {status}: {inner}");
+    }
+
+    let inner_lower = inner.to_lowercase();
+    if inner_lower.contains("dns error") || inner_lower.contains("failed to resolve") {
+        return format!(
+            "Could not resolve {host}: {inner}. Check the server URL and your network/DNS settings."
+        );
+    }
+
+    if inner_lower.contains("tls") || inner_lower.contains("certificate") {
+        return format!(
+            "TLS/SSL error connecting to {host}: {inner}. If this is your own server with a self-signed or private certificate, choose to trust it when prompted."
+        );
+    }
+
+    if inner_lower.contains("proxy") {
+        return format!(
+            "Proxy error while connecting to {host}: {inner}. Check your proxy settings."
+        );
+    }
+
+    format!("Request to {host} failed: {inner}")
 }

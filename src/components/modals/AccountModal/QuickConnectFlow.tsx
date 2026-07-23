@@ -2,6 +2,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import Loader2 from 'lucide-react/icons/loader-2';
 import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import { ConnectionNoticeBanner } from '$components/ConnectionNoticeBanner';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
@@ -14,6 +15,7 @@ import {
 } from '$lib/auth/nextcloud';
 import { normalizeRusticalUrl, validateRusticalServer } from '$lib/auth/rustical';
 import { CalDAVClient } from '$lib/caldav';
+import { type CalDAVSetupError, toCalDAVSetupError } from '$lib/caldav/setup';
 import { hasHttpUrlScheme } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
 import { generateUUID } from '$utils/misc';
@@ -64,7 +66,7 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
     const [isValidating, setIsValidating] = useState(false);
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError] = useState<CalDAVSetupError | null>(null);
     const [loginStep, setLoginStep] = useState<QuickConnectLoginStep>('input');
 
     const createAccountMutation = useCreateAccount();
@@ -93,37 +95,58 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
 
     const showLoginError = (err: unknown) => {
       if (!(err instanceof Error)) {
-        setError('An unexpected error occurred. Please try again.');
+        setError(
+          toCalDAVSetupError('Login failed', 'An unexpected error occurred. Please try again.'),
+        );
         return;
       }
 
       if (err.message.includes('timed out')) {
         setError(
-          'Login timed out. Please try again and complete the authentication within 20 minutes.',
+          toCalDAVSetupError(
+            'Login timed out',
+            'Please try again and complete the authentication within 20 minutes.',
+          ),
         );
         return;
       }
 
       if (err.message.includes('cancelled')) {
-        setError('Login was cancelled.');
+        setError(toCalDAVSetupError('Login cancelled', 'The login was cancelled.'));
         return;
       }
 
-      setError(err.message || 'Login failed. Please try again.');
+      setError(
+        toCalDAVSetupError(
+          'Login failed',
+          err,
+          'Verify the server URL and that the server is reachable.',
+        ),
+      );
     };
 
     const handleConnect = async () => {
       if (!serverUrl.trim()) {
-        setError(`Please enter your ${config.label} server URL`);
+        setError(
+          toCalDAVSetupError(
+            'Server URL required',
+            `Please enter your ${config.label} server URL.`,
+          ),
+        );
         return;
       }
 
       if (!hasHttpUrlScheme(serverUrl)) {
-        setError('Server URL must start with http:// or https://.');
+        setError(
+          toCalDAVSetupError(
+            'Invalid server URL',
+            'Server URL must start with http:// or https://.',
+          ),
+        );
         return;
       }
 
-      setError('');
+      setError(null);
       setIsValidating(true);
 
       try {
@@ -133,7 +156,10 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
         const isValid = await config.validate(normalizedUrl);
         if (!isValid) {
           setError(
-            `Could not connect to ${config.label} server. Please check the URL and try again.`,
+            toCalDAVSetupError(
+              `Could not connect to ${config.label}`,
+              `Chiri could not reach the ${config.label} server. Please check the URL and try again.`,
+            ),
           );
           setIsValidating(false);
           return;
@@ -267,9 +293,13 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
         </div>
 
         {error && (
-          <div className="rounded-lg border border-semantic-error/30 bg-semantic-error/10 p-3 text-semantic-error text-sm">
-            {error}
-          </div>
+          <ConnectionNoticeBanner
+            success={false}
+            error={error}
+            notice={null}
+            calendarCount={0}
+            onDismiss={() => setError(null)}
+          />
         )}
       </div>
     );
