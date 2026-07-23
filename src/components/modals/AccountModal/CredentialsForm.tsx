@@ -38,6 +38,23 @@ interface CredentialsFormProps {
 }
 
 const SERVER_HINTS: Partial<Record<ServerType, { text: ReactNode; href: string }>> = {
+  disrootCloud: {
+    text: (
+      <>
+        If two-factor authentication (2FA) is enabled, you will need to{' '}
+        <a
+          href="https://cloud.disroot.org/settings/user/security#security:~:text=Devices%20%26%20sessions"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium underline underline-offset-2 hover:opacity-80"
+        >
+          create an app password
+        </a>{' '}
+        in your Disroot Cloud account and use it here instead.
+      </>
+    ),
+    href: 'https://cloud.disroot.org/settings/user/security#security:~:text=Devices%20%26%20sessions',
+  },
   fastmail: {
     text: (
       <>

@@ -25,6 +25,7 @@ const CATEGORIES: ServerTypeCategory[] = [
     icon: <Cloud className="size-5" />,
     iconBg: 'bg-semantic-info/15 text-semantic-info',
     servers: [
+      { value: 'disrootCloud', label: 'Disroot Cloud' },
       { value: 'fastmail', label: 'Fastmail' },
       { value: 'fruux', label: 'fruux' },
       { value: 'mailbox', label: 'Mailbox.org' },

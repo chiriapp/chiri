@@ -114,6 +114,7 @@ export type ServerType =
   | 'migadu'
   | 'purelymail'
   | 'runbox'
+  | 'disrootCloud'
   | 'baikal'
   | 'nextcloud'
   | 'radicale'

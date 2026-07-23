@@ -7,6 +7,7 @@ import { type SyntheticEvent, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { CredentialsForm } from '$components/modals/AccountModal/CredentialsForm';
+import { DisrootCloudBrowserLoginStep } from '$components/modals/AccountModal/DisrootCloudBrowserLoginStep';
 import { FastmailOAuthStep } from '$components/modals/AccountModal/FastmailOAuthStep';
 import type {
   QuickConnectFlowHandle,
@@ -39,15 +40,30 @@ import { generateUUID } from '$utils/misc';
 
 const log = loggers.account;
 
-type Step = 'pick-type' | 'connect-method' | 'quick-connect' | 'credentials' | 'fastmail-oauth';
+type Step =
+  | 'pick-type'
+  | 'connect-method'
+  | 'quick-connect'
+  | 'credentials'
+  | 'fastmail-oauth'
+  | 'disrootCloud-browser';
 
-const QUICK_CONNECT_SERVER_TYPES = new Set<ServerType>(['nextcloud', 'rustical']);
-const OAUTH_SERVER_TYPES = new Set<ServerType>(['fastmail']);
+const QUICK_CONNECT_SERVER_TYPES: Partial<Record<ServerType, true>> = {
+  nextcloud: true,
+  rustical: true,
+};
+const OAUTH_SERVER_TYPES: Partial<Record<ServerType, true>> = {
+  fastmail: true,
+};
+const BROWSER_LOGIN_SERVER_TYPES: Partial<Record<ServerType, true>> = {
+  disrootCloud: true,
+};
 /** all server types that go through the connect-method chooser step */
-const CONNECT_METHOD_SERVER_TYPES = new Set<ServerType>([
+const CONNECT_METHOD_SERVER_TYPES: Partial<Record<ServerType, true>> = {
   ...QUICK_CONNECT_SERVER_TYPES,
   ...OAUTH_SERVER_TYPES,
-]);
+  ...BROWSER_LOGIN_SERVER_TYPES,
+};
 
 interface AccountModalProps {
   account: Account | null;
@@ -104,6 +120,8 @@ export function AccountModal({
   const [quickConnectLoginStep, setQuickConnectLoginStep] =
     useState<QuickConnectLoginStep>('input');
   const [fastmailOAuthSetupInProgress, setFastmailOAuthSetupInProgress] = useState(false);
+  const [disrootCloudBrowserSetupInProgress, setDisrootCloudBrowserSetupInProgress] =
+    useState(false);
   const [navDirection, setNavDirection] = useState<'forward' | 'back' | null>(null);
   const { enforceVapid } = useSettingsStore();
   const [quickConnectButtonState, setQuickConnectButtonState] = useState({
@@ -155,7 +173,7 @@ export function AccountModal({
     setTestedCalendars([]);
     setAcceptInvalidCerts(false);
     setNavDirection('forward');
-    setStep(CONNECT_METHOD_SERVER_TYPES.has(type) ? 'connect-method' : 'credentials');
+    setStep(CONNECT_METHOD_SERVER_TYPES[type] ? 'connect-method' : 'credentials');
   };
 
   const handleBack = () => {
@@ -166,11 +184,17 @@ export function AccountModal({
     setTestedCalendars([]);
     setNavDirection('back');
     // credentials back-destination: connect-method for types that go through it, otherwise pick-type
-    setStep(CONNECT_METHOD_SERVER_TYPES.has(serverType) ? 'connect-method' : 'pick-type');
+    setStep(CONNECT_METHOD_SERVER_TYPES[serverType] ? 'connect-method' : 'pick-type');
   };
 
   const handleBackFromOAuth = () => {
     setFastmailOAuthSetupInProgress(false);
+    setNavDirection('back');
+    setStep('connect-method');
+  };
+
+  const handleBackFromDisrootCloudBrowser = () => {
+    setDisrootCloudBrowserSetupInProgress(false);
     setNavDirection('back');
     setStep('connect-method');
   };
@@ -609,7 +633,8 @@ export function AccountModal({
     step === 'pick-type' ? 'Choose your server type to get started.' : undefined;
 
   const isQuickConnectInProgress = step === 'quick-connect' && quickConnectLoginStep !== 'input';
-  const preventClose = isQuickConnectInProgress || fastmailOAuthSetupInProgress;
+  const preventClose =
+    isQuickConnectInProgress || fastmailOAuthSetupInProgress || disrootCloudBrowserSetupInProgress;
   const stepAnimationClass =
     navDirection === 'forward'
       ? 'motion-safe:animate-step-forward'
@@ -630,7 +655,9 @@ export function AccountModal({
                 ? handleBackFromQuickConnect
                 : step === 'fastmail-oauth'
                   ? handleBackFromOAuth
-                  : handleBackToTypePicker // connect-method goes back to pick-type
+                  : step === 'disrootCloud-browser'
+                    ? handleBackFromDisrootCloudBrowser
+                    : handleBackToTypePicker // connect-method goes back to pick-type
         }
       >
         <ArrowLeft className="h-4 w-4" />
@@ -702,7 +729,13 @@ export function AccountModal({
               type="button"
               onClick={() => {
                 setNavDirection('forward');
-                setStep(OAUTH_SERVER_TYPES.has(serverType) ? 'fastmail-oauth' : 'quick-connect');
+                if (OAUTH_SERVER_TYPES[serverType]) {
+                  setStep('fastmail-oauth');
+                } else if (BROWSER_LOGIN_SERVER_TYPES[serverType]) {
+                  setStep('disrootCloud-browser');
+                } else {
+                  setStep('quick-connect');
+                }
               }}
               className="group flex w-full items-center gap-4 rounded-xl border border-surface-200 bg-surface-50 px-4 py-4 text-left outline-none transition-colors hover:border-surface-300 hover:bg-surface-100 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:border-surface-600 dark:bg-surface-700/50 dark:hover:border-surface-500 dark:hover:bg-surface-700"
             >
@@ -711,7 +744,7 @@ export function AccountModal({
               </div>
               <div className="min-w-0">
                 <div className="font-semibold text-sm text-surface-800 dark:text-surface-200">
-                  {OAUTH_SERVER_TYPES.has(serverType)
+                  {OAUTH_SERVER_TYPES[serverType] || BROWSER_LOGIN_SERVER_TYPES[serverType]
                     ? 'Log in with OAuth'
                     : 'Login via server URL'}
                 </div>
@@ -737,7 +770,7 @@ export function AccountModal({
                   Manually add credentials
                 </div>
                 <div className="mt-0.5 text-surface-500 text-xs dark:text-surface-400">
-                  {OAUTH_SERVER_TYPES.has(serverType)
+                  {OAUTH_SERVER_TYPES[serverType] || BROWSER_LOGIN_SERVER_TYPES[serverType]
                     ? 'Enter your username and app password'
                     : 'Enter your username and password'}
                 </div>
@@ -760,6 +793,13 @@ export function AccountModal({
           <FastmailOAuthStep
             onSuccess={onClose}
             onSetupInProgressChange={setFastmailOAuthSetupInProgress}
+          />
+        )}
+
+        {step === 'disrootCloud-browser' && (
+          <DisrootCloudBrowserLoginStep
+            onSuccess={onClose}
+            onSetupInProgressChange={setDisrootCloudBrowserSetupInProgress}
           />
         )}
 

@@ -269,6 +269,7 @@ export const connect = async (
             : principalUrl;
           break;
         }
+        case 'disrootCloud':
         case 'fastmail':
         case 'mailbox':
         case 'migadu':

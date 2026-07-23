@@ -81,7 +81,10 @@ export const deleteAccount = (id: string) => {
   const deletedAccount = data.accounts.find((acc) => acc.id === id);
   const deletedCalendarIds = deletedAccount?.calendars.map((c) => c.id) ?? [];
 
-  if (deletedAccount?.caldav?.serverType === 'nextcloud') {
+  if (
+    deletedAccount?.caldav?.serverType === 'nextcloud' ||
+    deletedAccount?.caldav?.serverType === 'disrootCloud'
+  ) {
     deleteNextcloudAppPassword(
       deletedAccount.caldav.serverUrl,
       deletedAccount.caldav.username,

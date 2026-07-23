@@ -89,6 +89,10 @@ export const SERVER_TYPE_GROUPS: ServerTypeGroup[] = [
         value: 'runbox',
         label: 'Runbox',
       },
+      {
+        value: 'disrootCloud',
+        label: 'Disroot Cloud',
+      },
     ],
   },
   {
@@ -131,6 +135,7 @@ export const SERVER_TYPE_OPTIONS: ServerTypeOption[] = SERVER_TYPE_GROUPS.flatMa
  * predefined server URLs for known server types
  */
 export const PREDEFINED_SERVER_URLS: Partial<Record<ServerType, string>> = {
+  disrootCloud: 'https://cloud.disroot.org',
   fastmail: 'https://caldav.fastmail.com',
   fruux: 'https://dav.fruux.com',
   mailbox: 'https://dav.mailbox.org',
