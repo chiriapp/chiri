@@ -7,6 +7,7 @@ let
     caldav-baikal = import ./baikal.nix { inherit pkgs; };
     caldav-nextcloud = import ./nextcloud.nix { inherit pkgs; };
     caldav-rustical = import ./rustical.nix { inherit pkgs; };
+    caldav-stalwart = import ./stalwart.nix { inherit pkgs; };
   };
 in
 {

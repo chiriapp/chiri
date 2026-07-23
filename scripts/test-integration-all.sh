@@ -81,6 +81,7 @@ SERVER_PACKAGES=(
   caldav-baikal
   caldav-nextcloud
   caldav-rustical
+  caldav-stalwart
 )
 SERVER_BINARIES=()
 
@@ -343,6 +344,16 @@ CHIRI_TEST_CALDAV_TYPE=rustical
 EOF
 )" \
   "http://localhost:4000/caldav/principal/unit-tests/" "unit-tests:unit-tests" || FAIL=1
+
+run_server "stalwart" "caldav-stalwart" \
+  "$(cat <<EOF
+CHIRI_TEST_CALDAV_URL=http://localhost:8082
+CHIRI_TEST_CALDAV_USERNAME=unit-tests
+CHIRI_TEST_CALDAV_PASSWORD=unit-tests
+CHIRI_TEST_CALDAV_TYPE=stalwart
+EOF
+)" \
+  "http://localhost:8082/dav/pal/unit-tests@example.test/" "unit-tests:unit-tests" || FAIL=1
 
 print_summary
 

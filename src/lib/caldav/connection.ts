@@ -275,6 +275,7 @@ export const connect = async (
         case 'migadu':
         case 'purelymail':
         case 'runbox':
+        case 'stalwart':
         case 'generic': {
           ({ principalUrl, calendarHome } = await discoverGenericUrls(baseUrl, credentials));
           break;

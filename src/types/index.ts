@@ -119,6 +119,7 @@ export type ServerType =
   | 'nextcloud'
   | 'radicale'
   | 'rustical'
+  | 'stalwart'
   | 'vikunja'
   | 'xandikos';
 

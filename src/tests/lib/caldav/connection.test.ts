@@ -335,4 +335,17 @@ describe('connect: generic server URL path stripping', () => {
       expect.objectContaining({ serverUrl: 'https://x.com/dav.php' }),
     );
   });
+
+  it('discovers Stalwart URLs via well-known like generic', async () => {
+    const result = await connect('a1', 'https://stalwart.x.com', 'alice', 'pw', 'stalwart');
+
+    expect(http.propfind).toHaveBeenCalledWith(
+      'https://stalwart.x.com/.well-known/caldav',
+      expect.anything(),
+      expect.anything(),
+      '0',
+    );
+    expect(result.principalUrl).toBe('https://stalwart.x.com/principals/alice/');
+    expect(result.calendarHome).toBe('https://stalwart.x.com/calendars/alice/');
+  });
 });

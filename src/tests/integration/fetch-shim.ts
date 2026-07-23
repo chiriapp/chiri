@@ -14,10 +14,36 @@
 import { DOMParser, type Element, type Node } from '@xmldom/xmldom';
 import type { CalDAVCredentials, HttpResponse, MultiStatusResponse } from '$lib/http';
 
+const MAX_REDIRECTS = 5;
+const REDIRECT_STATUS_CODES = new Set([301, 302, 307, 308]);
+
 const authHeader = (credentials: CalDAVCredentials) =>
   credentials.bearerToken
     ? `Bearer ${credentials.bearerToken}`
     : `Basic ${Buffer.from(`${credentials.username}:${credentials.password}`).toString('base64')}`;
+
+const getRedirectUrl = (response: HttpResponse, url: string): string | undefined => {
+  if (!REDIRECT_STATUS_CODES.has(response.status)) return undefined;
+  const location = response.headers.location;
+  if (!location) return undefined;
+
+  const originalUrl = new URL(url);
+  const redirectUrl = new URL(location, url);
+  if (!['http:', 'https:'].includes(redirectUrl.protocol)) {
+    throw new Error(`Refusing redirect to unsupported ${redirectUrl.protocol} URL`);
+  }
+  if (
+    originalUrl.protocol === 'https:' &&
+    redirectUrl.protocol === 'http:' &&
+    redirectUrl.hostname === originalUrl.hostname
+  ) {
+    redirectUrl.protocol = 'https:';
+  }
+  return redirectUrl.toString();
+};
+
+const hasSameOrigin = (left: string, right: string) =>
+  new URL(left).origin === new URL(right).origin;
 
 export const tauriRequest = async (
   url: string,
@@ -25,6 +51,9 @@ export const tauriRequest = async (
   credentials: CalDAVCredentials,
   body?: string,
   headers?: Record<string, string>,
+  _retried = false,
+  _redirects = 0,
+  _allowAuth = true,
 ): Promise<HttpResponse> => {
   const response = await fetch(url, {
     method,
@@ -32,7 +61,7 @@ export const tauriRequest = async (
       'User-Agent': 'Chiri-integration-tests',
       'Content-Type': 'application/xml; charset=utf-8',
       ...headers,
-      Authorization: authHeader(credentials),
+      ...(_allowAuth ? { Authorization: authHeader(credentials) } : {}),
     },
     body,
     redirect: 'manual',
@@ -42,7 +71,26 @@ export const tauriRequest = async (
   response.headers.forEach((v, k) => {
     responseHeaders[k.toLowerCase()] = v;
   });
-  return { status: response.status, headers: responseHeaders, body: responseBody };
+  const result = { status: response.status, headers: responseHeaders, body: responseBody };
+
+  const redirectUrl = getRedirectUrl(result, url);
+  if (redirectUrl) {
+    if (_redirects >= MAX_REDIRECTS) {
+      throw new Error(`Too many HTTP redirects (maximum ${MAX_REDIRECTS})`);
+    }
+    return tauriRequest(
+      redirectUrl,
+      method,
+      credentials,
+      body,
+      headers,
+      false,
+      _redirects + 1,
+      _allowAuth && hasSameOrigin(url, redirectUrl),
+    );
+  }
+
+  return result;
 };
 
 export const propfind = async (

@@ -115,6 +115,10 @@ export const SERVER_TYPE_GROUPS: ServerTypeGroup[] = [
         label: 'RustiCal',
       },
       {
+        value: 'stalwart',
+        label: 'Stalwart',
+      },
+      {
         value: 'vikunja',
         label: 'Vikunja',
       },

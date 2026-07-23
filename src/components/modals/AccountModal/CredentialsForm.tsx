@@ -175,6 +175,23 @@ const SERVER_HINTS: Partial<Record<ServerType, { text: ReactNode; href: string }
     ),
     href: 'https://lennart-k.github.io/rustical/installation/#password-vs-app-tokens:~:text=respective%20principal%20URLs.-,Password%20vs%20app%20tokens,-The%20password%20is',
   },
+  stalwart: {
+    text: (
+      <>
+        If two-factor authentication (2FA) is enabled, you will need to{' '}
+        <a
+          href="https://stalw.art/docs/auth/app-passwords"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium underline underline-offset-2 hover:opacity-80"
+        >
+          create an app password
+        </a>{' '}
+        and use it here instead.
+      </>
+    ),
+    href: 'https://stalw.art/docs/auth/app-passwords',
+  },
 };
 
 const USERNAME_LABELS: Partial<Record<ServerType, string>> = {
@@ -186,6 +203,7 @@ const USERNAME_LABELS: Partial<Record<ServerType, string>> = {
   fruux: 'Email address or device username',
   disrootCloud: 'Username or email address',
   nextcloud: 'Username or email address',
+  stalwart: 'Username or email address',
 };
 
 const USERNAME_PLACEHOLDERS: Partial<Record<ServerType, string>> = {
@@ -197,6 +215,7 @@ const USERNAME_PLACEHOLDERS: Partial<Record<ServerType, string>> = {
   fruux: 'email@example.com or b1234567890',
   disrootCloud: 'username or email@example.com',
   nextcloud: 'username or email@example.com',
+  stalwart: 'username or email@example.com',
 };
 
 const PASSWORD_LABELS: Partial<Record<ServerType, string>> = {
@@ -208,6 +227,7 @@ const PASSWORD_LABELS: Partial<Record<ServerType, string>> = {
   runbox: 'Password or app password',
   nextcloud: 'Password or app password',
   rustical: 'App token',
+  stalwart: 'Password or app password',
 };
 
 const PASSWORD_PLACEHOLDERS: Partial<Record<ServerType, string>> = {
@@ -219,6 +239,7 @@ const PASSWORD_PLACEHOLDERS: Partial<Record<ServerType, string>> = {
   runbox: 'Enter password or app password',
   nextcloud: 'Enter password or app password',
   rustical: 'Enter app token',
+  stalwart: 'Enter password or app password',
 };
 
 export const CredentialsForm = ({

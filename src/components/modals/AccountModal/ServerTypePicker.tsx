@@ -44,6 +44,7 @@ const CATEGORIES: ServerTypeCategory[] = [
       { value: 'nextcloud', label: 'Nextcloud' },
       { value: 'radicale', label: 'Radicale' },
       { value: 'rustical', label: 'RustiCal' },
+      { value: 'stalwart', label: 'Stalwart' },
       { value: 'vikunja', label: 'Vikunja' },
       { value: 'xandikos', label: 'Xandikos' },
     ],
