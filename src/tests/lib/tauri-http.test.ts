@@ -56,6 +56,23 @@ describe('tauriRequest redirects', () => {
     expect(redirectedHeaders.Cookie).toBeUndefined();
   });
 
+  it('upgrades HTTPS-to-HTTP same-host redirects and keeps authorization', async () => {
+    vi.mocked(tauriFetch)
+      .mockResolvedValueOnce(response(301, { Location: 'http://calendar.example/dav/' }))
+      .mockResolvedValueOnce(response(207));
+
+    await tauriRequest('https://calendar.example/.well-known/caldav', 'PROPFIND', credentials);
+
+    const redirectedUrl = vi.mocked(tauriFetch).mock.calls[1][0];
+    expect(redirectedUrl).toBe('https://calendar.example/dav/');
+
+    const redirectedHeaders = vi.mocked(tauriFetch).mock.calls[1][1]?.headers as Record<
+      string,
+      string
+    >;
+    expect(redirectedHeaders.Authorization).toMatch(/^Basic /);
+  });
+
   it('rejects redirects to non-HTTP URLs', async () => {
     vi.mocked(tauriFetch).mockResolvedValueOnce(response(302, { Location: 'file:///etc/passwd' }));
 

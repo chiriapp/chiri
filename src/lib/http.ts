@@ -165,10 +165,24 @@ const getRedirectUrl = (response: HttpResponse, url: string) => {
   const location = response.headers.location ?? response.headers.Location;
   if (!location) return undefined;
 
+  const originalUrl = new URL(url);
   const redirectUrl = new URL(location, url);
   if (!['http:', 'https:'].includes(redirectUrl.protocol)) {
     throw new Error(`Refusing redirect to unsupported ${redirectUrl.protocol} URL`);
   }
+
+  // some CalDAV servers (e.g. Runbox) misconfigure .well-known redirects so an
+  // HTTPS request is answered with a redirect to HTTP on the same host. never
+  // send credentials over plain HTTP; keep the request on the same origin by
+  // upgrading the redirect back to HTTPS
+  if (
+    originalUrl.protocol === 'https:' &&
+    redirectUrl.protocol === 'http:' &&
+    redirectUrl.hostname === originalUrl.hostname
+  ) {
+    redirectUrl.protocol = 'https:';
+  }
+
   return redirectUrl.toString();
 };
 
