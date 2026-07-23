@@ -8,7 +8,7 @@ use parking_lot::Mutex;
 use serde::{Deserialize, Serialize};
 use tauri::{Manager, PhysicalPosition, PhysicalSize, Runtime, WindowEvent};
 
-const STATE_FILENAME: &str = "window-state.json";
+const STATE_FILENAME: &str = ".window-state.json";
 const MIN_WIDTH: u32 = 320;
 const MIN_HEIGHT: u32 = 240;
 
@@ -34,13 +34,7 @@ pub struct WindowStateManager {
 
 impl WindowStateManager {
     pub fn load<R: Runtime>(app_handle: &tauri::AppHandle<R>) -> Self {
-        let states = match Self::read_file(app_handle) {
-            Ok(states) => states,
-            Err(e) => {
-                log::debug!("[WindowState] Failed to load window state: {e}");
-                HashMap::new()
-            }
-        };
+        let states = Self::read_file(app_handle).unwrap_or_default();
         Self {
             states: Mutex::new(states),
         }
@@ -53,7 +47,6 @@ impl WindowStateManager {
         let path = app_dir.join(STATE_FILENAME);
         let content = std::fs::read_to_string(&path)?;
         let states: HashMap<String, WindowState> = serde_json::from_str(&content)?;
-        log::info!("[WindowState] Loaded state from {}", path.display());
         Ok(states)
     }
 
@@ -77,8 +70,6 @@ impl WindowStateManager {
             Ok(content) => {
                 if let Err(e) = std::fs::write(&path, content) {
                     log::warn!("[WindowState] Failed to write window state: {e}");
-                } else {
-                    log::info!("[WindowState] Saved state to {}", path.display());
                 }
             }
             Err(e) => log::warn!("[WindowState] Failed to serialize window state: {e}"),
@@ -113,7 +104,6 @@ impl WindowStateManager {
             return;
         };
         if !state.is_valid() {
-            log::debug!("[WindowState] Ignoring invalid saved window state");
             return;
         }
 
@@ -153,22 +143,11 @@ impl WindowStateManager {
             if let Err(e) = window.set_position(position) {
                 log::warn!("[WindowState] Failed to restore window position: {e}");
             }
-        } else {
-            log::info!("[WindowState] Saved position is off-screen, using default position");
         }
 
         if state.maximized {
             let _ = window.maximize();
         }
-
-        log::info!(
-            "[WindowState] Restored main window to {}x{} at ({}, {}), maximized={}",
-            state.width,
-            state.height,
-            state.x,
-            state.y,
-            state.maximized
-        );
     }
 }
 
