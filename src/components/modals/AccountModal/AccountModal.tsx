@@ -7,8 +7,14 @@ import { type SyntheticEvent, useRef, useState } from 'react';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { CredentialsForm } from '$components/modals/AccountModal/CredentialsForm';
-import { DisrootCloudBrowserLoginStep } from '$components/modals/AccountModal/DisrootCloudBrowserLoginStep';
-import { FastmailOAuthStep } from '$components/modals/AccountModal/FastmailOAuthStep';
+import {
+  DisrootCloudBrowserLoginStep,
+  type DisrootCloudBrowserLoginStepHandle,
+} from '$components/modals/AccountModal/DisrootCloudBrowserLoginStep';
+import {
+  FastmailOAuthStep,
+  type FastmailOAuthStepHandle,
+} from '$components/modals/AccountModal/FastmailOAuthStep';
 import type {
   QuickConnectFlowHandle,
   QuickConnectLoginStep,
@@ -142,7 +148,9 @@ export function AccountModal({
     loading: false,
   });
   const quickConnectRef = useRef<QuickConnectFlowHandle>(null);
+  const fastmailRef = useRef<FastmailOAuthStepHandle>(null);
   const stalwartOAuthRef = useRef<StalwartOAuthStepHandle>(null);
+  const disrootRef = useRef<DisrootCloudBrowserLoginStepHandle>(null);
 
   const [acceptInvalidCerts, setAcceptInvalidCerts] = useState(
     () => account?.caldav?.acceptInvalidCerts ?? false,
@@ -202,13 +210,19 @@ export function AccountModal({
   };
 
   const handleBackFromOAuth = () => {
-    setFastmailOAuthSetupInProgress(false);
-    setStalwartOAuthLoginStep('input');
+    if (step === 'fastmail-oauth') {
+      fastmailRef.current?.cancel();
+      setFastmailOAuthSetupInProgress(false);
+    } else {
+      stalwartOAuthRef.current?.cancel();
+      setStalwartOAuthLoginStep('input');
+    }
     setNavDirection('back');
     setStep('connect-method');
   };
 
   const handleBackFromDisrootCloudBrowser = () => {
+    disrootRef.current?.cancel();
     setDisrootCloudBrowserSetupInProgress(false);
     setNavDirection('back');
     setStep('connect-method');
@@ -222,6 +236,7 @@ export function AccountModal({
   };
 
   const handleBackFromQuickConnect = () => {
+    quickConnectRef.current?.cancel();
     setQuickConnectLoginStep('input');
     setNavDirection('back');
     setStep('connect-method');
@@ -647,11 +662,10 @@ export function AccountModal({
   const modalDescription =
     step === 'pick-type' ? 'Choose your server type to get started.' : undefined;
 
-  const isQuickConnectInProgress = step === 'quick-connect' && quickConnectLoginStep !== 'input';
-  const preventClose =
-    isQuickConnectInProgress ||
+  const isProcessing =
+    (step === 'quick-connect' && quickConnectLoginStep === 'processing') ||
     fastmailOAuthSetupInProgress ||
-    stalwartOAuthLoginStep !== 'input' ||
+    stalwartOAuthLoginStep === 'processing' ||
     disrootCloudBrowserSetupInProgress;
   const stepAnimationClass =
     navDirection === 'forward'
@@ -660,8 +674,16 @@ export function AccountModal({
         ? 'motion-safe:animate-step-back'
         : '';
 
+  const handleClose = () => {
+    quickConnectRef.current?.cancel();
+    fastmailRef.current?.cancel();
+    stalwartOAuthRef.current?.cancel();
+    disrootRef.current?.cancel();
+    onClose();
+  };
+
   const backButton =
-    !account && step !== 'pick-type' && !preventClose ? (
+    !account && step !== 'pick-type' && !isProcessing ? (
       <ModalButton
         variant="secondary"
         onClick={
@@ -685,14 +707,14 @@ export function AccountModal({
 
   return (
     <ModalWrapper
-      onClose={onClose}
+      onClose={handleClose}
       title={modalTitle}
       description={modalDescription}
       size={step === 'pick-type' ? 'xl' : 'md'}
       zIndex={zIndex}
       contentPadding={false}
       contentOverflow="auto"
-      preventClose={preventClose}
+      preventClose={false}
       footerLeft={backButton}
       footer={
         step === 'quick-connect' && quickConnectLoginStep === 'input' ? (
@@ -823,6 +845,7 @@ export function AccountModal({
 
         {step === 'fastmail-oauth' && (
           <FastmailOAuthStep
+            ref={fastmailRef}
             onSuccess={onClose}
             onSetupInProgressChange={setFastmailOAuthSetupInProgress}
           />
@@ -842,6 +865,7 @@ export function AccountModal({
 
         {step === 'disrootCloud-browser' && (
           <DisrootCloudBrowserLoginStep
+            ref={disrootRef}
             onSuccess={onClose}
             onSetupInProgressChange={setDisrootCloudBrowserSetupInProgress}
           />

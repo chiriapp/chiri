@@ -112,80 +112,97 @@ export const registerStalwartOAuthClient = async (
   return data.client_id;
 };
 
-export const startStalwartOAuth = async (
+export const startStalwartOAuth = (
   serverUrl: string,
   { acceptInvalidCerts = false }: { acceptInvalidCerts?: boolean } = {},
-): Promise<StalwartTokens> => {
-  const metadata = await discoverStalwartOAuthEndpoints(serverUrl, acceptInvalidCerts);
-  const registrationEndpoint =
-    metadata.registration_endpoint ?? `${normalizeServerUrl(serverUrl)}/auth/register`;
-  const clientId = await registerStalwartOAuthClient(registrationEndpoint, acceptInvalidCerts);
-
-  const verifier = generateVerifier();
-  const challenge = await generateChallenge(verifier);
-  const state = generateState();
-
-  const params = new URLSearchParams({
-    response_type: 'code',
-    client_id: clientId,
-    redirect_uri: STALWART_REDIRECT_URI,
-    scope: STALWART_SCOPE,
-    code_challenge: challenge,
-    code_challenge_method: 'S256',
-    state,
-  });
-
-  const authUrl = `${metadata.authorization_endpoint}?${params}`;
-  log.info('[StalwartOAuth] Opening browser for authorization', { serverUrl });
-
+): { promise: Promise<StalwartTokens>; cancel: () => void } => {
   const { promise, resolve, reject } = Promise.withResolvers<StalwartTokens>();
+  let cancelled = false;
 
-  const handler = async (url: URL) => {
+  const cancel = () => {
+    if (cancelled) return;
+    cancelled = true;
     unregisterDeepLinkHandler(STALWART_OAUTH_PATH);
+    reject(new Error('Stalwart OAuth flow was cancelled'));
+  };
 
-    const returnedState = url.searchParams.get('state');
-    const code = url.searchParams.get('code');
-    const error = url.searchParams.get('error');
-    const errorDescription = url.searchParams.get('error_description');
-
-    if (error) {
-      reject(new Error(errorDescription ? `${error}: ${errorDescription}` : error));
-      return;
-    }
-
-    if (returnedState !== state) {
-      reject(new Error('OAuth state mismatch (possible CSRF)'));
-      return;
-    }
-
-    if (!code) {
-      reject(new Error('No authorization code received'));
-      return;
-    }
-
+  (async () => {
     try {
-      log.info('[StalwartOAuth] Exchanging code for tokens');
-      const tokens = await exchangeStalwartCode(
-        metadata.token_endpoint,
-        clientId,
-        code,
-        verifier,
-        acceptInvalidCerts,
-      );
-      resolve({ ...tokens, clientId });
+      const metadata = await discoverStalwartOAuthEndpoints(serverUrl, acceptInvalidCerts);
+      if (cancelled) return;
+
+      const registrationEndpoint =
+        metadata.registration_endpoint ?? `${normalizeServerUrl(serverUrl)}/auth/register`;
+      const clientId = await registerStalwartOAuthClient(registrationEndpoint, acceptInvalidCerts);
+      if (cancelled) return;
+
+      const verifier = generateVerifier();
+      const challenge = await generateChallenge(verifier);
+      const state = generateState();
+
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: clientId,
+        redirect_uri: STALWART_REDIRECT_URI,
+        scope: STALWART_SCOPE,
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+        state,
+      });
+
+      const authUrl = `${metadata.authorization_endpoint}?${params}`;
+      log.info('[StalwartOAuth] Opening browser for authorization', { serverUrl });
+
+      const handler = async (url: URL) => {
+        unregisterDeepLinkHandler(STALWART_OAUTH_PATH);
+
+        const returnedState = url.searchParams.get('state');
+        const code = url.searchParams.get('code');
+        const error = url.searchParams.get('error');
+        const errorDescription = url.searchParams.get('error_description');
+
+        if (error) {
+          reject(new Error(errorDescription ? `${error}: ${errorDescription}` : error));
+          return;
+        }
+
+        if (returnedState !== state) {
+          reject(new Error('OAuth state mismatch (possible CSRF)'));
+          return;
+        }
+
+        if (!code) {
+          reject(new Error('No authorization code received'));
+          return;
+        }
+
+        try {
+          log.info('[StalwartOAuth] Exchanging code for tokens');
+          const tokens = await exchangeStalwartCode(
+            metadata.token_endpoint,
+            clientId,
+            code,
+            verifier,
+            acceptInvalidCerts,
+          );
+          resolve({ ...tokens, clientId });
+        } catch (e) {
+          reject(e);
+        }
+      };
+
+      registerDeepLinkHandler(STALWART_OAUTH_PATH, handler);
+
+      openUrl(authUrl).catch((e: unknown) => {
+        cancel();
+        reject(new Error(`Failed to open browser: ${e}`));
+      });
     } catch (e) {
       reject(e);
     }
-  };
+  })();
 
-  registerDeepLinkHandler(STALWART_OAUTH_PATH, handler);
-
-  openUrl(authUrl).catch((e: unknown) => {
-    unregisterDeepLinkHandler(STALWART_OAUTH_PATH);
-    reject(new Error(`Failed to open browser: ${e}`));
-  });
-
-  return promise;
+  return { promise, cancel };
 };
 
 const exchangeStalwartCode = async (

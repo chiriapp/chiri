@@ -174,7 +174,7 @@ describe('startStalwartOAuth', () => {
         }),
       });
 
-    const promise = startStalwartOAuth('http://localhost:8083');
+    const { promise } = startStalwartOAuth('http://localhost:8083');
 
     await vi.waitFor(() => expect(mocks.openUrl).toHaveBeenCalledTimes(1));
 

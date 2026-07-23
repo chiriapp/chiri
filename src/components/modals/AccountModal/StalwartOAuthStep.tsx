@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import Loader2 from 'lucide-react/icons/loader-2';
-import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { ComposedInput } from '$components/ComposedInput';
 import { ConnectionNoticeBanner } from '$components/ConnectionNoticeBanner';
 import { useSettingsStore } from '$context/settingsContext';
@@ -25,6 +25,7 @@ export type StalwartOAuthLoginStep = 'input' | 'browser' | 'processing';
 
 export interface StalwartOAuthStepHandle {
   connect: () => void;
+  cancel: () => void;
 }
 
 interface StalwartOAuthStepProps {
@@ -58,6 +59,7 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
     const { syncAll } = useSyncQuery();
     const { enforceVapid } = useSettingsStore();
     const serverUrlInputRef = useInitialFocusRef<HTMLInputElement>();
+    const activeFlowRef = useRef<{ cancel: () => void } | null>(null);
 
     const isLoading = phase === 'browser' || phase === 'connecting';
 
@@ -88,7 +90,9 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
 
       let tokens: StalwartTokens;
       try {
-        tokens = await startStalwartOAuth(serverUrl, { acceptInvalidCerts });
+        const flow = startStalwartOAuth(serverUrl, { acceptInvalidCerts });
+        activeFlowRef.current = flow;
+        tokens = await flow.promise;
       } catch (e) {
         log.error('[StalwartOAuth] OAuth flow failed:', e);
         setError(
@@ -100,6 +104,8 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
         );
         setPhase('idle');
         return;
+      } finally {
+        activeFlowRef.current = null;
       }
 
       setPhase('connecting');
@@ -217,7 +223,13 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
       }
     };
 
-    useImperativeHandle(ref, () => ({ connect: handleConnect }));
+    useImperativeHandle(ref, () => ({
+      connect: handleConnect,
+      cancel: () => {
+        activeFlowRef.current?.cancel();
+        activeFlowRef.current = null;
+      },
+    }));
 
     if (phase === 'browser') {
       return (

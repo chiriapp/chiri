@@ -26,6 +26,7 @@ export type QuickConnectLoginStep = 'input' | 'authenticating' | 'processing';
 
 export interface QuickConnectFlowHandle {
   connect: () => void;
+  cancel: () => void;
 }
 
 interface QuickConnectFlowProps {
@@ -233,7 +234,16 @@ export const QuickConnectFlow = forwardRef<QuickConnectFlowHandle, QuickConnectF
       }
     };
 
-    useImperativeHandle(ref, () => ({ connect: handleConnect }));
+    useImperativeHandle(ref, () => ({
+      connect: handleConnect,
+      cancel: () => {
+        cancelNextcloudLogin();
+        setIsValidating(false);
+        setIsLoggingIn(false);
+        setIsProcessing(false);
+        updateStep('input');
+      },
+    }));
 
     if (loginStep === 'authenticating') {
       return (

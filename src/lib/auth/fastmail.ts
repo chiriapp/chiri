@@ -40,67 +40,83 @@ export type FastmailTokens = OAuthTokens;
 
 // main oauth flow: returns a Promise that resolves when the callback fires
 
-export const startFastmailOAuth = async (): Promise<FastmailTokens> => {
+export const startFastmailOAuth = (): { promise: Promise<FastmailTokens>; cancel: () => void } => {
   const verifier = generateVerifier();
-  const challenge = await generateChallenge(verifier);
-  const state = generateState(); // random nonce to prevent CSRF
-
-  const params = new URLSearchParams({
-    response_type: 'code',
-    client_id: FASTMAIL_CLIENT_ID,
-    redirect_uri: FASTMAIL_REDIRECT_URI,
-    scope: FASTMAIL_SCOPE,
-    code_challenge: challenge,
-    code_challenge_method: 'S256',
-    state,
-  });
-
-  const authUrl = `${AUTH_URL}?${params}`;
-  log.info('[FastmailOAuth] Opening browser for authorization');
+  const state = generateState();
 
   const { promise, resolve, reject } = Promise.withResolvers<FastmailTokens>();
+  let cancelled = false;
 
-  const handler = async (url: URL) => {
-    // clean up before doing anything async so a second stray callback can't fire
+  const cancel = () => {
+    if (cancelled) return;
+    cancelled = true;
     unregisterDeepLinkHandler(OAUTH_PATH);
+    reject(new Error('Fastmail OAuth flow was cancelled'));
+  };
 
-    const returnedState = url.searchParams.get('state');
-    const code = url.searchParams.get('code');
-    const error = url.searchParams.get('error');
-    const errorDescription = url.searchParams.get('error_description');
-
-    if (error) {
-      reject(new Error(errorDescription ? `${error}: ${errorDescription}` : error));
-      return;
-    }
-
-    if (returnedState !== state) {
-      reject(new Error('OAuth state mismatch (possible CSRF)'));
-      return;
-    }
-
-    if (!code) {
-      reject(new Error('No authorization code received'));
-      return;
-    }
-
+  (async () => {
     try {
-      log.info('[FastmailOAuth] Exchanging code for tokens');
-      const tokens = await exchangeCodeForTokens(code, verifier);
-      resolve(tokens);
+      const challenge = await generateChallenge(verifier);
+      if (cancelled) return;
+
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: FASTMAIL_CLIENT_ID,
+        redirect_uri: FASTMAIL_REDIRECT_URI,
+        scope: FASTMAIL_SCOPE,
+        code_challenge: challenge,
+        code_challenge_method: 'S256',
+        state,
+      });
+
+      const authUrl = `${AUTH_URL}?${params}`;
+      log.info('[FastmailOAuth] Opening browser for authorization');
+
+      const handler = async (url: URL) => {
+        // clean up before doing anything async so a second stray callback can't fire
+        unregisterDeepLinkHandler(OAUTH_PATH);
+
+        const returnedState = url.searchParams.get('state');
+        const code = url.searchParams.get('code');
+        const error = url.searchParams.get('error');
+        const errorDescription = url.searchParams.get('error_description');
+
+        if (error) {
+          reject(new Error(errorDescription ? `${error}: ${errorDescription}` : error));
+          return;
+        }
+
+        if (returnedState !== state) {
+          reject(new Error('OAuth state mismatch (possible CSRF)'));
+          return;
+        }
+
+        if (!code) {
+          reject(new Error('No authorization code received'));
+          return;
+        }
+
+        try {
+          log.info('[FastmailOAuth] Exchanging code for tokens');
+          const tokens = await exchangeCodeForTokens(code, verifier);
+          resolve(tokens);
+        } catch (e) {
+          reject(e);
+        }
+      };
+
+      registerDeepLinkHandler(OAUTH_PATH, handler);
+
+      openUrl(authUrl).catch((e: unknown) => {
+        cancel();
+        reject(new Error(`Failed to open browser: ${e}`));
+      });
     } catch (e) {
       reject(e);
     }
-  };
+  })();
 
-  registerDeepLinkHandler(OAUTH_PATH, handler);
-
-  openUrl(authUrl).catch((e: unknown) => {
-    unregisterDeepLinkHandler(OAUTH_PATH);
-    reject(new Error(`Failed to open browser: ${e}`));
-  });
-
-  return promise;
+  return { promise, cancel };
 };
 
 // token exchange

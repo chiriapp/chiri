@@ -1,6 +1,6 @@
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import Loader2 from 'lucide-react/icons/loader-2';
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 import { ConnectionNoticeBanner } from '$components/ConnectionNoticeBanner';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
@@ -15,6 +15,10 @@ const log = loggers.account;
 
 const DISROOT_CLOUD_URL = 'https://cloud.disroot.org';
 
+export interface DisrootCloudBrowserLoginStepHandle {
+  cancel: () => void;
+}
+
 interface DisrootCloudBrowserLoginStepProps {
   onSuccess: () => void;
   onSetupInProgressChange: (inProgress: boolean) => void;
@@ -22,16 +26,24 @@ interface DisrootCloudBrowserLoginStepProps {
 
 type Phase = 'idle' | 'browser' | 'connecting' | 'done';
 
-export const DisrootCloudBrowserLoginStep = ({
-  onSuccess,
-  onSetupInProgressChange,
-}: DisrootCloudBrowserLoginStepProps) => {
+export const DisrootCloudBrowserLoginStep = forwardRef<
+  DisrootCloudBrowserLoginStepHandle,
+  DisrootCloudBrowserLoginStepProps
+>(({ onSuccess, onSetupInProgressChange }, ref) => {
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<CalDAVSetupError | null>(null);
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
   const { syncAll } = useSyncQuery();
   const { enforceVapid } = useSettingsStore();
+
+  useImperativeHandle(ref, () => ({
+    cancel: () => {
+      cancelNextcloudLogin();
+      setPhase('idle');
+      setError(null);
+    },
+  }));
 
   useEffect(() => {
     return () => {
@@ -173,4 +185,5 @@ export const DisrootCloudBrowserLoginStep = ({
       )}
     </div>
   );
-};
+});
+DisrootCloudBrowserLoginStep.displayName = 'DisrootCloudBrowserLoginStep';
