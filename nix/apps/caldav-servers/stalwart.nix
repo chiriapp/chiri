@@ -30,6 +30,7 @@ let
       PORT="''${CALDAV_PORT:-8082}"
       USERNAME="''${CALDAV_USERNAME:-unit-tests}"
       PASSWORD="''${CALDAV_PASSWORD:-unit-tests}"
+      export STALWART_PUBLIC_URL="''${STALWART_PUBLIC_URL:-http://localhost:$PORT}"
       RECOVERY_PORT=$((PORT + 10000))
 
       if [ "$RECOVERY_PORT" -gt 65535 ]; then

@@ -1,7 +1,10 @@
 import { connectionStore } from '$context/connectionContext';
+import { refreshFastmailToken } from '$lib/auth/fastmail';
+import { refreshStalwartToken } from '$lib/auth/stalwart';
 import { hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
 import type { CalDAVCredentials } from '$lib/http';
 import { parseMultiStatus, propfind, tauriRequest } from '$lib/http';
+import { updateAccount } from '$lib/store/accounts';
 import type { Account, ServerType } from '$types';
 
 interface ServerConfig {
@@ -369,10 +372,25 @@ export const reconnect = async (account: Account) => {
       const bufferMs = 60 * 1000;
 
       if (now >= expiresAt - bufferMs && caldav.refreshToken) {
-        const { refreshFastmailToken } = await import('$lib/auth/fastmail');
-        const { updateAccount } = await import('$lib/store/accounts');
         try {
-          const fresh = await refreshFastmailToken(caldav.refreshToken);
+          let fresh: { accessToken: string; refreshToken: string; tokenExpiry: string };
+          if (caldav.serverType === 'fastmail') {
+            fresh = await refreshFastmailToken(caldav.refreshToken);
+          } else if (caldav.serverType === 'stalwart') {
+            if (!caldav.oauthClientId) {
+              throw new Error(
+                'Missing Stalwart OAuth client id; re-add the account to refresh the token.',
+              );
+            }
+            fresh = await refreshStalwartToken(
+              caldav.serverUrl,
+              caldav.refreshToken,
+              caldav.oauthClientId,
+              { acceptInvalidCerts: caldav.acceptInvalidCerts },
+            );
+          } else {
+            throw new Error(`OAuth refresh not implemented for ${caldav.serverType}`);
+          }
           accessToken = fresh.accessToken;
           updateAccount(account.id, {
             caldav: {

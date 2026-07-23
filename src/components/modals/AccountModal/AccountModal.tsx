@@ -15,6 +15,11 @@ import type {
 } from '$components/modals/AccountModal/QuickConnectFlow';
 import { QuickConnectFlow } from '$components/modals/AccountModal/QuickConnectFlow';
 import { ServerTypePicker } from '$components/modals/AccountModal/ServerTypePicker';
+import {
+  type StalwartOAuthLoginStep,
+  StalwartOAuthStep,
+  type StalwartOAuthStepHandle,
+} from '$components/modals/AccountModal/StalwartOAuthStep';
 import { MobileConfigSignatureWarning } from '$components/modals/MobileConfigSignatureWarning';
 import { getPredefinedServerUrl, SERVER_TYPE_OPTIONS } from '$constants/settings';
 import { useConfirmDialog } from '$context/confirmDialogContext';
@@ -46,6 +51,7 @@ type Step =
   | 'quick-connect'
   | 'credentials'
   | 'fastmail-oauth'
+  | 'stalwart-oauth'
   | 'disrootCloud-browser';
 
 const QUICK_CONNECT_SERVER_TYPES: Partial<Record<ServerType, true>> = {
@@ -54,6 +60,7 @@ const QUICK_CONNECT_SERVER_TYPES: Partial<Record<ServerType, true>> = {
 };
 const OAUTH_SERVER_TYPES: Partial<Record<ServerType, true>> = {
   fastmail: true,
+  stalwart: true,
 };
 const BROWSER_LOGIN_SERVER_TYPES: Partial<Record<ServerType, true>> = {
   disrootCloud: true,
@@ -119,6 +126,8 @@ export function AccountModal({
   const [setupNotice, setSetupNotice] = useState<CalDAVSetupNotice | null>(null);
   const [quickConnectLoginStep, setQuickConnectLoginStep] =
     useState<QuickConnectLoginStep>('input');
+  const [stalwartOAuthLoginStep, setStalwartOAuthLoginStep] =
+    useState<StalwartOAuthLoginStep>('input');
   const [fastmailOAuthSetupInProgress, setFastmailOAuthSetupInProgress] = useState(false);
   const [disrootCloudBrowserSetupInProgress, setDisrootCloudBrowserSetupInProgress] =
     useState(false);
@@ -128,7 +137,12 @@ export function AccountModal({
     disabled: true,
     loading: false,
   });
+  const [stalwartOAuthButtonState, setStalwartOAuthButtonState] = useState({
+    disabled: true,
+    loading: false,
+  });
   const quickConnectRef = useRef<QuickConnectFlowHandle>(null);
+  const stalwartOAuthRef = useRef<StalwartOAuthStepHandle>(null);
 
   const [acceptInvalidCerts, setAcceptInvalidCerts] = useState(
     () => account?.caldav?.acceptInvalidCerts ?? false,
@@ -189,6 +203,7 @@ export function AccountModal({
 
   const handleBackFromOAuth = () => {
     setFastmailOAuthSetupInProgress(false);
+    setStalwartOAuthLoginStep('input');
     setNavDirection('back');
     setStep('connect-method');
   };
@@ -634,7 +649,10 @@ export function AccountModal({
 
   const isQuickConnectInProgress = step === 'quick-connect' && quickConnectLoginStep !== 'input';
   const preventClose =
-    isQuickConnectInProgress || fastmailOAuthSetupInProgress || disrootCloudBrowserSetupInProgress;
+    isQuickConnectInProgress ||
+    fastmailOAuthSetupInProgress ||
+    stalwartOAuthLoginStep !== 'input' ||
+    disrootCloudBrowserSetupInProgress;
   const stepAnimationClass =
     navDirection === 'forward'
       ? 'motion-safe:animate-step-forward'
@@ -653,7 +671,7 @@ export function AccountModal({
               ? handleBack
               : step === 'quick-connect'
                 ? handleBackFromQuickConnect
-                : step === 'fastmail-oauth'
+                : step === 'fastmail-oauth' || step === 'stalwart-oauth'
                   ? handleBackFromOAuth
                   : step === 'disrootCloud-browser'
                     ? handleBackFromDisrootCloudBrowser
@@ -682,6 +700,14 @@ export function AccountModal({
             onClick={() => quickConnectRef.current?.connect()}
             disabled={quickConnectButtonState.disabled}
             loading={quickConnectButtonState.loading}
+          >
+            Connect
+          </ModalButton>
+        ) : step === 'stalwart-oauth' && stalwartOAuthLoginStep === 'input' ? (
+          <ModalButton
+            onClick={() => stalwartOAuthRef.current?.connect()}
+            disabled={stalwartOAuthButtonState.disabled}
+            loading={stalwartOAuthButtonState.loading}
           >
             Connect
           </ModalButton>
@@ -729,8 +755,10 @@ export function AccountModal({
               type="button"
               onClick={() => {
                 setNavDirection('forward');
-                if (OAUTH_SERVER_TYPES[serverType]) {
+                if (serverType === 'fastmail') {
                   setStep('fastmail-oauth');
+                } else if (serverType === 'stalwart') {
+                  setStep('stalwart-oauth');
                 } else if (BROWSER_LOGIN_SERVER_TYPES[serverType]) {
                   setStep('disrootCloud-browser');
                 } else {
@@ -744,9 +772,11 @@ export function AccountModal({
               </div>
               <div className="min-w-0">
                 <div className="font-semibold text-sm text-surface-800 dark:text-surface-200">
-                  {OAUTH_SERVER_TYPES[serverType] || BROWSER_LOGIN_SERVER_TYPES[serverType]
-                    ? 'Log in with OAuth'
-                    : 'Login via server URL'}
+                  {serverType === 'stalwart'
+                    ? 'Login via server URL'
+                    : OAUTH_SERVER_TYPES[serverType] || BROWSER_LOGIN_SERVER_TYPES[serverType]
+                      ? 'Log in with OAuth'
+                      : 'Login via server URL'}
                 </div>
                 <div className="mt-0.5 text-surface-500 text-xs dark:text-surface-400">
                   Authenticate through your browser
@@ -770,9 +800,11 @@ export function AccountModal({
                   Manually add credentials
                 </div>
                 <div className="mt-0.5 text-surface-500 text-xs dark:text-surface-400">
-                  {OAUTH_SERVER_TYPES[serverType] || BROWSER_LOGIN_SERVER_TYPES[serverType]
+                  {serverType === 'stalwart'
                     ? 'Enter your username and app password'
-                    : 'Enter your username and password'}
+                    : OAUTH_SERVER_TYPES[serverType] || BROWSER_LOGIN_SERVER_TYPES[serverType]
+                      ? 'Enter your username and app password'
+                      : 'Enter your username and password'}
                 </div>
               </div>
             </button>
@@ -793,6 +825,18 @@ export function AccountModal({
           <FastmailOAuthStep
             onSuccess={onClose}
             onSetupInProgressChange={setFastmailOAuthSetupInProgress}
+          />
+        )}
+
+        {step === 'stalwart-oauth' && (
+          <StalwartOAuthStep
+            ref={stalwartOAuthRef}
+            serverUrl={serverUrl}
+            onServerUrlChange={setServerUrl}
+            acceptInvalidCerts={acceptInvalidCerts}
+            onSuccess={onClose}
+            onStepChange={setStalwartOAuthLoginStep}
+            onConnectStateChange={setStalwartOAuthButtonState}
           />
         )}
 

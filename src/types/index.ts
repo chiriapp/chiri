@@ -134,6 +134,7 @@ export interface CalDAVConfig {
   authType: 'basic' | 'oauth';
   refreshToken?: string;
   tokenExpiry?: string;
+  oauthClientId?: string;
 }
 
 export interface Account {

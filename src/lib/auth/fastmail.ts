@@ -11,6 +11,14 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import {
+  assertTokenResponseOk,
+  generateChallenge,
+  generateState,
+  generateVerifier,
+  type OAuthTokens,
+  parseTokenResponse,
+} from '$lib/auth/oauth';
 import { registerDeepLinkHandler, unregisterDeepLinkHandler } from '$lib/deepLink';
 import type { HttpResponse } from '$lib/http';
 import { loggers } from '$lib/logger';
@@ -27,41 +35,15 @@ const TOKEN_URL = 'https://api.fastmail.com/oauth/refresh';
 
 const OAUTH_PATH = '/oauth/fastmail';
 
-// pkce helpers
-
-function base64UrlEncode(buf: Uint8Array) {
-  let s = '';
-  for (const b of buf) s += String.fromCharCode(b);
-  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-}
-
-function generateVerifier() {
-  const buf = new Uint8Array(32);
-  crypto.getRandomValues(buf);
-  return base64UrlEncode(buf);
-}
-
-async function generateChallenge(verifier: string) {
-  const encoded = new TextEncoder().encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', encoded);
-  return base64UrlEncode(new Uint8Array(digest));
-}
-
 // public types
-
-export interface FastmailTokens {
-  accessToken: string;
-  refreshToken: string;
-  /** ISO timestamp of when the access token expires */
-  tokenExpiry: string;
-}
+export type FastmailTokens = OAuthTokens;
 
 // main oauth flow: returns a Promise that resolves when the callback fires
 
 export const startFastmailOAuth = async (): Promise<FastmailTokens> => {
   const verifier = generateVerifier();
   const challenge = await generateChallenge(verifier);
-  const state = generateVerifier(); // random nonce to prevent CSRF
+  const state = generateState(); // random nonce to prevent CSRF
 
   const params = new URLSearchParams({
     response_type: 'code',
@@ -76,47 +58,49 @@ export const startFastmailOAuth = async (): Promise<FastmailTokens> => {
   const authUrl = `${AUTH_URL}?${params}`;
   log.info('[FastmailOAuth] Opening browser for authorization');
 
-  return new Promise((resolve, reject) => {
-    const handler = async (url: URL) => {
-      // clean up before doing anything async so a second stray callback can't fire
-      unregisterDeepLinkHandler(OAUTH_PATH);
+  const { promise, resolve, reject } = Promise.withResolvers<FastmailTokens>();
 
-      const returnedState = url.searchParams.get('state');
-      const code = url.searchParams.get('code');
-      const error = url.searchParams.get('error');
-      const errorDescription = url.searchParams.get('error_description');
+  const handler = async (url: URL) => {
+    // clean up before doing anything async so a second stray callback can't fire
+    unregisterDeepLinkHandler(OAUTH_PATH);
 
-      if (error) {
-        reject(new Error(errorDescription ? `${error}: ${errorDescription}` : error));
-        return;
-      }
+    const returnedState = url.searchParams.get('state');
+    const code = url.searchParams.get('code');
+    const error = url.searchParams.get('error');
+    const errorDescription = url.searchParams.get('error_description');
 
-      if (returnedState !== state) {
-        reject(new Error('OAuth state mismatch (possible CSRF)'));
-        return;
-      }
+    if (error) {
+      reject(new Error(errorDescription ? `${error}: ${errorDescription}` : error));
+      return;
+    }
 
-      if (!code) {
-        reject(new Error('No authorization code received'));
-        return;
-      }
+    if (returnedState !== state) {
+      reject(new Error('OAuth state mismatch (possible CSRF)'));
+      return;
+    }
 
-      try {
-        log.info('[FastmailOAuth] Exchanging code for tokens');
-        const tokens = await exchangeCodeForTokens(code, verifier);
-        resolve(tokens);
-      } catch (e) {
-        reject(e);
-      }
-    };
+    if (!code) {
+      reject(new Error('No authorization code received'));
+      return;
+    }
 
-    registerDeepLinkHandler(OAUTH_PATH, handler);
+    try {
+      log.info('[FastmailOAuth] Exchanging code for tokens');
+      const tokens = await exchangeCodeForTokens(code, verifier);
+      resolve(tokens);
+    } catch (e) {
+      reject(e);
+    }
+  };
 
-    openUrl(authUrl).catch((e: unknown) => {
-      unregisterDeepLinkHandler(OAUTH_PATH);
-      reject(new Error(`Failed to open browser: ${e}`));
-    });
+  registerDeepLinkHandler(OAUTH_PATH, handler);
+
+  openUrl(authUrl).catch((e: unknown) => {
+    unregisterDeepLinkHandler(OAUTH_PATH);
+    reject(new Error(`Failed to open browser: ${e}`));
   });
+
+  return promise;
 };
 
 // token exchange
@@ -140,15 +124,13 @@ const exchangeCodeForTokens = async (code: string, verifier: string) => {
     acceptInvalidCerts: false,
   });
 
-  if (res.status < 200 || res.status >= 300) {
-    throw new Error(`Token exchange failed (${res.status}): ${res.body}`);
-  }
+  assertTokenResponseOk(res, 'Token exchange');
 
   const data = JSON.parse(res.body) as Record<string, unknown>;
   return parseTokenResponse(data);
 };
 
-export const refreshFastmailToken = async (refreshToken: string) => {
+export const refreshFastmailToken = async (refreshToken: string): Promise<FastmailTokens> => {
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
     client_id: FASTMAIL_CLIENT_ID,
@@ -163,24 +145,11 @@ export const refreshFastmailToken = async (refreshToken: string) => {
     acceptInvalidCerts: false,
   });
 
-  if (res.status < 200 || res.status >= 300) {
-    throw new Error(`Token refresh failed (${res.status}): ${res.body}`);
-  }
+  assertTokenResponseOk(res, 'Token refresh');
 
   const data = JSON.parse(res.body) as Record<string, unknown>;
   // some servers rotate the refresh token; fall back to the existing one if not
   return parseTokenResponse(data, refreshToken);
-};
-
-const parseTokenResponse = (
-  data: Record<string, unknown>,
-  fallbackRefreshToken?: string,
-): FastmailTokens => {
-  const accessToken = data.access_token as string;
-  const refreshToken = (data.refresh_token as string | undefined) ?? fallbackRefreshToken ?? '';
-  const expiresIn = (data.expires_in as number | undefined) ?? 3600;
-  const tokenExpiry = new Date(Date.now() + expiresIn * 1000).toISOString();
-  return { accessToken, refreshToken, tokenExpiry };
 };
 
 /**
