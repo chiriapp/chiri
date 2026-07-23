@@ -141,7 +141,7 @@ let
               "value": {
                   "@type": "SystemSettings",
                   "defaultDomainId": "#example.test",
-                  "defaultHostname": "example.test",
+                  "defaultHostname": "local.test",
               },
           },
           {
