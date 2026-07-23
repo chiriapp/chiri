@@ -18,7 +18,7 @@ let
       owner = "jelmer";
       repo = "xandikos";
       rev = "master";
-      sha256 = "sha256-zb3IKecoCVjVksxj9xto3CwlkPfINn9ARHjKUb848zo=";
+      sha256 = "sha256-0OskWcCqAOdyM6BE/hDjv6uuZ0kf6fL1SDznraAYiUI=";
     };
     postPatch = ''
       sed -i 's/if ssl_context is None:/if False:/' xandikos/web.py
