@@ -539,6 +539,19 @@ jobs:
             gh release upload $env:TAG $asset.FullName --repo $env:GITHUB_REPOSITORY --clobber
           }
 
+      - name: Upload signed Windows MSI to Backblaze B2
+        if: vars.B2_BUCKET_NAME != ''
+        uses: backblaze-labs/b2-action@1678a4d7217a31606ec58d046be5ad189e1ee5cc # v1.1.0
+        with:
+          action: upload
+          application-key-id: ${{ secrets.B2_APPLICATION_KEY_ID }}
+          application-key: ${{ secrets.B2_APPLICATION_KEY }}
+          bucket: ${{ vars.B2_BUCKET_NAME }}
+          source: release-assets/Chiri_${{ needs.prepare-release.outputs.version }}_${{ matrix.arch }}_en-US.msi
+          destination: win/${{ needs.prepare-release.outputs.version }}/Chiri_${{ needs.prepare-release.outputs.version }}_${{ matrix.arch }}_en-US.msi
+          content-type: application/x-msi
+          cache-control: public, max-age=31536000, immutable
+
       - name: Attest signed Windows provenance
         uses: actions/attest@v4
         with:
