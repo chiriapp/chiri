@@ -30,6 +30,6 @@ pub(super) fn handle_run_event(app_handle: &tauri::AppHandle<AppRuntime>, event:
 }
 
 #[cfg(not(target_os = "macos"))]
-pub(super) fn handle_run_event(app_handle: &tauri::AppHandle<AppRuntime>, event: tauri::RunEvent) {
+pub(super) fn handle_run_event(_app_handle: &tauri::AppHandle<AppRuntime>, event: tauri::RunEvent) {
     if let tauri::RunEvent::Exit = event {}
 }
