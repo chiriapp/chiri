@@ -5,6 +5,13 @@ vi.mock('$lib/http', () => ({
   propfind: vi.fn(),
   parseMultiStatus: vi.fn(() => []),
   tauriRequest: vi.fn(),
+  DetailedError: class extends Error {
+    detail: string;
+    constructor(message: string, detail: string) {
+      super(message);
+      this.detail = detail;
+    }
+  },
 }));
 
 // mock the connection store. vi.hoisted runs before vi.mock factories so the
@@ -34,46 +41,115 @@ import * as http from '$lib/http';
 
 const httpOk = (status: number, body = ''): HttpResponse => ({ status, headers: {}, body });
 
+const assertDetailedError = (error: unknown, short: string | RegExp, detail: string | RegExp) => {
+  if (!error || typeof error !== 'object' || !('message' in error) || !('detail' in error)) {
+    throw new Error(`Expected an error with message and detail, got ${typeof error}`);
+  }
+  if (typeof error.message !== 'string') {
+    throw new Error(`Expected error.message to be a string, got ${typeof error.message}`);
+  }
+  if (typeof error.detail !== 'string') {
+    throw new Error(`Expected error.detail to be a string, got ${typeof error.detail}`);
+  }
+  if (typeof short === 'string') {
+    expect(error.message).toBe(short);
+  } else {
+    expect(error.message).toMatch(short);
+  }
+  if (typeof detail === 'string') {
+    expect(error.detail).toBe(detail);
+  } else {
+    expect(error.detail).toMatch(detail);
+  }
+};
+
+const catchError = (fn: () => void): unknown => {
+  try {
+    fn();
+    return undefined;
+  } catch (e) {
+    return e;
+  }
+};
+
 describe('handleCommonHttpErrors', () => {
-  it('throws rate-limit message on 429', () => {
-    expect(() => handleCommonHttpErrors({ status: 429 })).toThrow(/rate limit/i);
+  const url = 'https://example.com/dav';
+  const credentials = { username: 'user', password: 'pass' };
+
+  it('throws rate-limit message on 429 with URL detail', () => {
+    assertDetailedError(
+      catchError(() => handleCommonHttpErrors(httpOk(429), 'CalDAV', url, credentials)),
+      'Rate limit exceeded. Try again in a moment.',
+      /CalDAV returned HTTP 429\nURL: https:\/\/example\.com\/dav/,
+    );
   });
 
-  it('throws auth-failed message on 401', () => {
-    expect(() => handleCommonHttpErrors({ status: 401 })).toThrow(/authentication/i);
+  it('throws auth-failed message on 401 with URL, WWW-Authenticate and auth method detail', () => {
+    const response = { ...httpOk(401), headers: { 'WWW-Authenticate': 'Basic realm="test"' } };
+    assertDetailedError(
+      catchError(() => handleCommonHttpErrors(response, 'CalDAV', url, credentials)),
+      'Authentication failed. Check your credentials.',
+      /CalDAV returned HTTP 401\nURL: https:\/\/example\.com\/dav\nWWW-Authenticate: Basic realm="test"\nAuth method used: username \+ password/,
+    );
   });
 
-  it('throws forbidden message on 403', () => {
-    expect(() => handleCommonHttpErrors({ status: 403 })).toThrow(/forbidden/i);
+  it('throws forbidden message on 403 with URL detail', () => {
+    assertDetailedError(
+      catchError(() => handleCommonHttpErrors(httpOk(403), 'CalDAV', url, credentials)),
+      'Access forbidden. Check your permissions.',
+      /CalDAV returned HTTP 403\nURL: https:\/\/example\.com\/dav/,
+    );
   });
 
-  it('throws not-found with context on 404', () => {
-    expect(() => handleCommonHttpErrors({ status: 404 }, 'principal')).toThrow(
-      /principal not found/i,
+  it('throws not-found with context and URL detail on 404', () => {
+    assertDetailedError(
+      catchError(() => handleCommonHttpErrors(httpOk(404), 'principal', url, credentials)),
+      'principal not found at this URL.',
+      /principal returned HTTP 404\nURL: https:\/\/example\.com\/dav/,
     );
   });
 
   it('uses default "CalDAV" context for 404 when none provided', () => {
-    expect(() => handleCommonHttpErrors({ status: 404 })).toThrow(/CalDAV not found/i);
+    assertDetailedError(
+      catchError(() => handleCommonHttpErrors(httpOk(404), 'CalDAV', url, credentials)),
+      'CalDAV not found at this URL.',
+      /CalDAV returned HTTP 404\nURL: https:\/\/example\.com\/dav/,
+    );
   });
 
-  it('throws server-error message on 500', () => {
-    expect(() => handleCommonHttpErrors({ status: 500 })).toThrow(/server error \(500\)/i);
+  it('throws server-error message on 500 with URL detail', () => {
+    assertDetailedError(
+      catchError(() => handleCommonHttpErrors(httpOk(500), 'CalDAV', url, credentials)),
+      'Server error (HTTP 500). Try again later.',
+      /CalDAV returned HTTP 500\nURL: https:\/\/example\.com\/dav/,
+    );
   });
 
-  it('throws server-error message on 503', () => {
-    expect(() => handleCommonHttpErrors({ status: 503 })).toThrow(/server error \(503\)/i);
+  it('throws server-error message on 503 with URL detail', () => {
+    assertDetailedError(
+      catchError(() => handleCommonHttpErrors(httpOk(503), 'CalDAV', url, credentials)),
+      'Server error (HTTP 503). Try again later.',
+      /CalDAV returned HTTP 503\nURL: https:\/\/example\.com\/dav/,
+    );
   });
 
   it('does NOT throw on success codes', () => {
-    expect(() => handleCommonHttpErrors({ status: 200 })).not.toThrow();
-    expect(() => handleCommonHttpErrors({ status: 207 })).not.toThrow();
-    expect(() => handleCommonHttpErrors({ status: 204 })).not.toThrow();
+    expect(() => handleCommonHttpErrors(httpOk(200), 'CalDAV', url, credentials)).not.toThrow();
+    expect(() => handleCommonHttpErrors(httpOk(207), 'CalDAV', url, credentials)).not.toThrow();
+    expect(() => handleCommonHttpErrors(httpOk(204), 'CalDAV', url, credentials)).not.toThrow();
   });
 
   it('does NOT throw on 400 (caller decides)', () => {
     // 400 isn't handled here - the function only maps the "common" ones
-    expect(() => handleCommonHttpErrors({ status: 400 })).not.toThrow();
+    expect(() => handleCommonHttpErrors(httpOk(400), 'CalDAV', url, credentials)).not.toThrow();
+  });
+
+  it('falls back to short messages when URL is not provided', () => {
+    assertDetailedError(
+      catchError(() => handleCommonHttpErrors(httpOk(401))),
+      'Authentication failed. Check your credentials.',
+      'Authentication failed. Check your credentials.',
+    );
   });
 });
 
@@ -249,12 +325,19 @@ describe('connect: explicit server type URL construction', () => {
     expect(result.displayName).toBe('alice');
   });
 
-  it('throws on 401 from final PROPFIND with auth-failed message', async () => {
+  it('throws on 401 from final PROPFIND with auth-failed message and URL detail', async () => {
     vi.mocked(http.propfind).mockReset().mockResolvedValueOnce(httpOk(401));
 
-    await expect(connect('a1', 'https://x.com', 'alice', 'pw', 'baikal')).rejects.toThrow(
-      /authentication failed/i,
-    );
+    try {
+      await connect('a1', 'https://x.com', 'alice', 'pw', 'baikal');
+      throw new Error('Expected connect to throw');
+    } catch (error) {
+      assertDetailedError(
+        error,
+        'Authentication failed. Check your credentials.',
+        /CalDAV principal returned HTTP 401[\s\S]*URL: https:\/\/x\.com\/dav\.php\/principals\/alice\/[\s\S]*Auth method used: username \+ password/,
+      );
+    }
     expect(deleteConnection).toHaveBeenCalledWith('a1');
   });
 

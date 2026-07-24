@@ -2,8 +2,8 @@ import { connectionStore } from '$context/connectionContext';
 import { refreshFastmailToken } from '$lib/auth/fastmail';
 import { refreshStalwartToken } from '$lib/auth/stalwart';
 import { hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
-import type { CalDAVCredentials } from '$lib/http';
-import { parseMultiStatus, propfind, tauriRequest } from '$lib/http';
+import type { CalDAVCredentials, HttpResponse } from '$lib/http';
+import { DetailedError, parseMultiStatus, propfind, tauriRequest } from '$lib/http';
 import { updateAccount } from '$lib/store/accounts';
 import type { Account, ServerType } from '$types';
 
@@ -56,13 +56,98 @@ const SERVER_CONFIGS: Record<string, ServerConfig> = {
   },
 };
 
-export const handleCommonHttpErrors = (response: { status: number }, context = 'CalDAV') => {
-  if (response.status === 429) throw new Error('Rate limit exceeded. Try again in a moment.');
-  if (response.status === 401) throw new Error('Authentication failed. Check your credentials.');
-  if (response.status === 403) throw new Error('Access forbidden. Check your permissions.');
-  if (response.status === 404) throw new Error(`${context} not found at this URL.`);
-  if (response.status >= 500)
-    throw new Error(`Server error (${response.status}). Try again later.`);
+const getAuthMethodLabel = (credentials?: CalDAVCredentials): string => {
+  if (!credentials) return 'unknown';
+  if (credentials.bearerToken) return 'bearer token';
+  if (credentials.username && credentials.password) return 'username + password';
+  if (credentials.username) return 'username only';
+  return 'none';
+};
+
+const buildHttpErrorDetail = (
+  status: number,
+  context: string,
+  url: string,
+  headers: Record<string, string> = {},
+  credentials?: CalDAVCredentials,
+): string => {
+  const parts: string[] = [`${context} returned HTTP ${status}`, `URL: ${url}`];
+  const wwwAuth = headers['www-authenticate'] ?? headers['WWW-Authenticate'];
+  if (wwwAuth) parts.push(`WWW-Authenticate: ${wwwAuth}`);
+  if (credentials) parts.push(`Auth method used: ${getAuthMethodLabel(credentials)}`);
+  return parts.join('\n');
+};
+
+const throwHttpError = (
+  status: number,
+  shortMessage: string,
+  context: string,
+  url?: string,
+  headers: Record<string, string> = {},
+  credentials?: CalDAVCredentials,
+) => {
+  const detail = url
+    ? buildHttpErrorDetail(status, context, url, headers, credentials)
+    : shortMessage;
+  throw new DetailedError(shortMessage, detail);
+};
+
+export const handleCommonHttpErrors = (
+  response: HttpResponse,
+  context = 'CalDAV',
+  url?: string,
+  credentials?: CalDAVCredentials,
+) => {
+  if (response.status === 429) {
+    throwHttpError(
+      429,
+      'Rate limit exceeded. Try again in a moment.',
+      context,
+      url,
+      response.headers,
+      credentials,
+    );
+  }
+  if (response.status === 401) {
+    throwHttpError(
+      401,
+      'Authentication failed. Check your credentials.',
+      context,
+      url,
+      response.headers,
+      credentials,
+    );
+  }
+  if (response.status === 403) {
+    throwHttpError(
+      403,
+      'Access forbidden. Check your permissions.',
+      context,
+      url,
+      response.headers,
+      credentials,
+    );
+  }
+  if (response.status === 404) {
+    throwHttpError(
+      404,
+      `${context} not found at this URL.`,
+      context,
+      url,
+      response.headers,
+      credentials,
+    );
+  }
+  if (response.status >= 500) {
+    throwHttpError(
+      response.status,
+      `Server error (HTTP ${response.status}). Try again later.`,
+      context,
+      url,
+      response.headers,
+      credentials,
+    );
+  }
 };
 
 const discoverPrincipal = async (davRootUrl: string, credentials: CalDAVCredentials) => {
@@ -74,7 +159,7 @@ const discoverPrincipal = async (davRootUrl: string, credentials: CalDAVCredenti
 </d:propfind>`;
 
   const response = await propfind(davRootUrl, credentials, propfindBody, '0');
-  handleCommonHttpErrors(response, 'CalDAV service');
+  handleCommonHttpErrors(response, 'CalDAV service', davRootUrl, credentials);
   if (response.status !== 207) return null;
 
   parseMultiStatus(response.body);
@@ -94,7 +179,7 @@ const discoverCalendarHome = async (principalUrl: string, credentials: CalDAVCre
 </d:propfind>`;
 
   const response = await propfind(principalUrl, credentials, propfindBody, '0');
-  handleCommonHttpErrors(response, 'CalDAV principal');
+  handleCommonHttpErrors(response, 'CalDAV principal', principalUrl, credentials);
   if (response.status !== 207) return null;
 
   const match = response.body.match(
@@ -120,7 +205,7 @@ const resolveGenericDavRoot = async (baseUrl: string, credentials: CalDAVCredent
   const wkResponse = await propfind(wellKnownUrl, credentials, PRINCIPAL_QUERY, '0');
 
   if (wkResponse.status !== 404) {
-    handleCommonHttpErrors(wkResponse, 'CalDAV service');
+    handleCommonHttpErrors(wkResponse, 'CalDAV service', wellKnownUrl, credentials);
     return {
       davRootUrl: wellKnownUrl,
       davRootBody: wkResponse.status === 207 ? wkResponse.body : null,
@@ -132,7 +217,7 @@ const resolveGenericDavRoot = async (baseUrl: string, credentials: CalDAVCredent
     const fbUrl = `${baseUrl}${path}`;
     const fbResponse = await propfind(fbUrl, credentials, PRINCIPAL_QUERY, '0');
     if (fbResponse.status !== 404) {
-      handleCommonHttpErrors(fbResponse, 'CalDAV service');
+      handleCommonHttpErrors(fbResponse, 'CalDAV service', fbUrl, credentials);
       return {
         davRootUrl: fbUrl,
         davRootBody: fbResponse.status === 207 ? fbResponse.body : null,
@@ -140,7 +225,7 @@ const resolveGenericDavRoot = async (baseUrl: string, credentials: CalDAVCredent
     }
   }
 
-  handleCommonHttpErrors(wkResponse, 'CalDAV service'); // throws 404
+  handleCommonHttpErrors(wkResponse, 'CalDAV service', wellKnownUrl, credentials); // throws 404
   throw new Error('CalDAV service not found at this URL.');
 };
 
@@ -298,7 +383,19 @@ export const connect = async (
 
     const response = await propfind(principalUrl, credentials, propfindBody, '0');
 
-    if (response.status === 401) throw new Error('Authentication failed. Check your credentials.');
+    if (response.status === 401) {
+      const shortMessage = 'Authentication failed. Check your credentials.';
+      throw new DetailedError(
+        shortMessage,
+        buildHttpErrorDetail(
+          401,
+          'CalDAV principal',
+          principalUrl,
+          response.headers,
+          credentials,
+        ) || shortMessage,
+      );
+    }
     if (response.status !== 207) throw new Error(`Failed to connect: HTTP ${response.status}`);
 
     const results = parseMultiStatus(response.body);

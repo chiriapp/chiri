@@ -1,6 +1,6 @@
 import type { CalDAVClient } from '$lib/caldav';
 import type { CalendarDiscoveryDiagnostics } from '$lib/caldav/calendars';
-import { getErrorMessage, isCertError } from '$lib/http';
+import { DetailedError, getErrorMessage, isCertError } from '$lib/http';
 import type { ServerType } from '$types';
 
 export interface CalDAVSetupError {
@@ -46,12 +46,18 @@ const getVtodoSetupErrorInfo = (raw: string, lower: string): CalDAVSetupError | 
 };
 
 const extractErrorDetails = (error: unknown, fallback: string) => {
-  const rawMessage =
-    error instanceof Error ? error.message : typeof error === 'string' ? error : fallback;
+  const rawDetail =
+    error instanceof DetailedError
+      ? error.detail
+      : error instanceof Error
+        ? error.message
+        : typeof error === 'string'
+          ? error
+          : fallback;
   const normalized = getErrorMessage(error);
   const normalizedMessage = normalized === 'Unknown error' ? fallback : normalized;
   const status = normalizedMessage.match(HTTP_STATUS_RE)?.[1];
-  return { rawMessage, normalizedMessage, status };
+  return { rawDetail, normalizedMessage, status };
 };
 
 export const getSetupErrorInfo = (
@@ -60,7 +66,7 @@ export const getSetupErrorInfo = (
   serverType: ServerType,
   serverUrl: string,
 ): CalDAVSetupError => {
-  const { rawMessage, normalizedMessage, status } = extractErrorDetails(error, fallback);
+  const { rawDetail, normalizedMessage, status } = extractErrorDetails(error, fallback);
   const lower = normalizedMessage.toLowerCase();
   const serverLabel = serverType === 'generic' ? 'CalDAV' : serverType;
   const trimmedServerUrl = serverUrl.trim();
@@ -86,7 +92,7 @@ export const getSetupErrorInfo = (
         serverType === 'fastmail'
           ? 'Fastmail requires an app password with CalDAV access, not your normal account password.'
           : 'Check the username and password. If your account uses 2FA, you may need an app password.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -96,7 +102,7 @@ export const getSetupErrorInfo = (
       message:
         'Chiri reached the server, but this account is not allowed to access that CalDAV path.',
       hint: 'Check account permissions, sharing settings, or the advanced Principal / Calendar Home URL fields.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -108,7 +114,7 @@ export const getSetupErrorInfo = (
         serverType === 'nextcloud'
           ? 'For Nextcloud, use the base server URL such as http://localhost:8081. Chiri adds /remote.php/dav/ automatically.'
           : 'Check the server URL. For unusual setups, expand Advanced and provide the Principal URL or Calendar Home URL.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -117,7 +123,7 @@ export const getSetupErrorInfo = (
       title: 'Too many requests',
       message: 'The server is rate limiting connection attempts.',
       hint: 'Wait a moment before trying again.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -126,7 +132,7 @@ export const getSetupErrorInfo = (
       title: 'Server error',
       message: `The CalDAV server responded with HTTP ${status}.`,
       hint: 'The server may be temporarily unavailable or misconfigured. Check the server logs if you manage it.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -143,7 +149,7 @@ export const getSetupErrorInfo = (
       title: 'Server unreachable',
       message: `Chiri could not reach ${trimmedServerUrl || 'the server URL'}.`,
       hint: 'Make sure the server is running, the URL is correct, and nothing like a VPN, firewall, or proxy is blocking it.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -152,7 +158,7 @@ export const getSetupErrorInfo = (
       title: 'Certificate not trusted',
       message: 'The server certificate could not be verified.',
       hint: 'If this is your own server with a self-signed/private certificate, choose to trust it when prompted.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -162,7 +168,7 @@ export const getSetupErrorInfo = (
       message:
         'Chiri reached the server, but could not discover the CalDAV principal or calendar home.',
       hint: 'Try choosing the exact server type instead of Generic, or expand Advanced and enter the Principal URL / Calendar Home URL.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -171,7 +177,7 @@ export const getSetupErrorInfo = (
       title: 'Could not list calendars',
       message: 'Chiri connected to the account, but could not read the calendar list.',
       hint: 'Check whether the account has task-capable calendars and permission to list them.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -180,7 +186,7 @@ export const getSetupErrorInfo = (
       title: 'Invalid CalDAV response',
       message: 'Chiri reached the server, but it returned malformed WebDAV XML.',
       hint: 'This usually means the URL points to a non-CalDAV endpoint, a proxy error page, or a broken server response.',
-      detail: rawMessage,
+      detail: rawDetail,
     };
   }
 
@@ -188,7 +194,7 @@ export const getSetupErrorInfo = (
     title: fallback,
     message: normalizedMessage,
     hint: 'Check the fields above and try connecting again. The technical detail may help identify the failing CalDAV step.',
-    detail: rawMessage,
+    detail: rawDetail,
   };
 };
 

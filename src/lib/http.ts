@@ -35,6 +35,15 @@ export interface HttpResponse {
   body: string;
 }
 
+export class DetailedError extends Error {
+  detail: string;
+  constructor(message: string, detail: string) {
+    super(message);
+    this.detail = detail;
+    this.name = 'DetailedError';
+  }
+}
+
 export interface HttpProxyConfig {
   mode: NetworkProxyMode;
   host?: string;
