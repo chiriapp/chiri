@@ -121,7 +121,6 @@ export const TaskList = () => {
   const isRecentlyDeleted = activeView === 'recently-deleted';
   const isFilterView = activeView === 'filter';
   const isDragEnabled = sortConfig.mode === 'manual' && !isRecentlyDeleted;
-  const isDraggingTask = activeTask !== null;
 
   if (flattenedTasks.length === 0) {
     const isSearching = searchQuery.trim().length > 0;
@@ -148,7 +147,7 @@ export const TaskList = () => {
               className="flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 font-medium text-primary-contrast text-sm outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset"
             >
               <Plus className="h-4 w-4" />
-              Create Task
+              New Task
             </button>
           )}
         </div>
@@ -213,17 +212,6 @@ export const TaskList = () => {
           ) : null}
         </DragOverlay>
       </DndContext>
-
-      {!isRecentlyDeleted && !isSelectionMode && !isDraggingTask && (
-        <button
-          type="button"
-          onClick={handleQuickAdd}
-          className="mt-4 flex w-full items-center gap-3 rounded-lg border border-surface-200 p-3 text-surface-500 outline-hidden transition-colors hover:border-surface-300 hover:bg-surface-100 hover:text-surface-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset dark:border-surface-600 dark:text-surface-400 dark:hover:border-surface-500 dark:hover:bg-surface-700 dark:hover:text-surface-300"
-        >
-          <Plus className="h-5 w-5" />
-          <span>Add a task...</span>
-        </button>
-      )}
     </div>
   );
 };

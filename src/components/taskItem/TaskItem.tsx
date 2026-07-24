@@ -1,6 +1,7 @@
 import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import ChevronRight from 'lucide-react/icons/chevron-right';
+import Plus from 'lucide-react/icons/plus';
 import { type CSSProperties, type MouseEvent, useEffect, useRef, useState } from 'react';
 import { RepeatModal } from '$components/modals/RepeatModal/RepeatModal';
 import { TaskItemBadges } from '$components/taskItem/TaskItemBadges';
@@ -11,11 +12,12 @@ import { getPriorityColor, getPriorityRingColor } from '$constants/priority';
 import { useSettingsStore } from '$context/settingsContext';
 import { useTaskHighlight } from '$context/taskHighlightContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
-import { useToggleTaskComplete, useUpdateTask } from '$hooks/queries/useTasks';
+import { useCreateTask, useToggleTaskComplete, useUpdateTask } from '$hooks/queries/useTasks';
 import {
   useSetActiveAccount,
   useSetActiveCalendar,
   useSetActiveTag,
+  useSetSelectedTask,
   useUIState,
 } from '$hooks/queries/useUIState';
 import { useContextMenu } from '$hooks/ui/useContextMenu';
@@ -109,6 +111,8 @@ export const TaskItem = ({
   const setActiveTagMutation = useSetActiveTag();
   const setActiveCalendarMutation = useSetActiveCalendar();
   const setActiveAccountMutation = useSetActiveAccount();
+  const createTaskMutation = useCreateTask();
+  const setSelectedTaskMutation = useSetSelectedTask();
   const { taskListDensity, taskBadgeVisibility, taskBadgeOrder, useAccentColorForCheckboxes } =
     useSettingsStore();
   const resolvedAccentColor = useResolvedAccentColor();
@@ -223,6 +227,18 @@ export const TaskItem = ({
   const handleToggleCollapsed = (e: MouseEvent) => {
     e.stopPropagation();
     toggleTaskCollapsed(task.id);
+  };
+
+  const handleAddSubtask = (e: MouseEvent) => {
+    e.stopPropagation();
+    createTaskMutation.mutate(
+      { title: '', parentUid: task.uid },
+      {
+        onSuccess: (newTask) => {
+          setSelectedTaskMutation.mutate({ id: newTask.id, focusTitle: true });
+        },
+      },
+    );
   };
 
   const resetStaleBadgeCursor = (event: MouseEvent) => {
@@ -350,7 +366,14 @@ export const TaskItem = ({
           )}
         </div>
 
-        <ChevronRight className="h-5 w-5 shrink-0 text-surface-300 transition-colors group-hover:text-surface-500 dark:text-surface-600 dark:group-hover:text-surface-400" />
+        <button
+          type="button"
+          onClick={handleAddSubtask}
+          className="shrink-0 text-surface-300 opacity-0 transition-all hover:text-surface-500 group-hover:opacity-100 dark:text-surface-600 dark:hover:text-surface-400"
+        >
+          <Plus className="size-5" />
+        </button>
+        <ChevronRight className="h-5 w-5 shrink-0 cursor-pointer text-surface-300 transition-colors group-hover:text-surface-500 dark:text-surface-600 dark:group-hover:text-surface-400" />
       </div>
 
       {contextMenu && (
