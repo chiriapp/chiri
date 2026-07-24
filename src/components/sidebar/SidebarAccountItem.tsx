@@ -38,6 +38,21 @@ interface SidebarAccountItemProps {
   ) => void;
 }
 
+const accountButtonBackgroundClass = (
+  isAccountContextMenuOpen: boolean,
+  isAccountMenuButtonContextMenuOpen: boolean,
+  isAnyModalOpen: boolean,
+  isAnyAccountDragging: boolean | undefined,
+) => {
+  if (isAccountContextMenuOpen && !isAccountMenuButtonContextMenuOpen) {
+    return 'bg-surface-200 dark:bg-surface-700';
+  }
+  if (!isAnyModalOpen && !isAnyAccountDragging) {
+    return 'hover:bg-surface-200 dark:hover:bg-surface-700';
+  }
+  return '';
+};
+
 export const SidebarAccountItem = ({
   account,
   tasks,
@@ -72,9 +87,12 @@ export const SidebarAccountItem = ({
   const isAccountActionsActive = isAccountContextMenuOpen || isAccountMenuTriggerActive;
   const isExpanded = expandedAccounts.has(account.id);
   const canRevealActions = !isDragging && !isAnyAccountDragging;
+  const accountNamePaddingClass = isAccountActionsActive
+    ? 'pr-17 delay-0 duration-100'
+    : 'pr-0 delay-100 duration-150 group-hover/account-row:pr-17 group-hover/account-row:delay-0 group-hover/account-row:duration-100';
   const actionVisibilityClass =
     canRevealActions && isAccountActionsActive
-      ? 'opacity-100 pointer-events-auto'
+      ? 'opacity-100 pointer-events-auto delay-0 duration-100'
       : `opacity-0 pointer-events-none ${
           canRevealActions
             ? 'group-hover/account-row:opacity-100 group-hover/account-row:pointer-events-auto focus-within:opacity-100 focus-within:pointer-events-auto'
@@ -92,19 +110,18 @@ export const SidebarAccountItem = ({
       className={isDragging ? 'opacity-50' : ''}
     >
       <div
-        className={`group/account-row relative flex items-center gap-1 ${isAnyAccountDragging && !isDragging ? 'pointer-events-none' : ''}`}
+        className={`group/account-row relative flex items-center ${isAnyAccountDragging && !isDragging ? 'pointer-events-none' : ''}`}
       >
         <button
           type="button"
           onClick={() => onToggleAccount(account.id)}
           onContextMenu={(e) => onContextMenu(e, 'account', account.id)}
-          className={`flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${
-            isAccountContextMenuOpen && !isAccountMenuButtonContextMenuOpen
-              ? 'bg-surface-200 dark:bg-surface-700'
-              : !isAnyModalOpen && !isAnyAccountDragging
-                ? 'hover:bg-surface-200 dark:hover:bg-surface-700'
-                : ''
-          }`}
+          className={`flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg px-3 text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-inset ${accountButtonBackgroundClass(
+            isAccountContextMenuOpen,
+            isAccountMenuButtonContextMenuOpen,
+            isAnyModalOpen,
+            isAnyAccountDragging,
+          )}`}
           {...dragHandleProps}
         >
           <ChevronDown
@@ -115,7 +132,9 @@ export const SidebarAccountItem = ({
           ) : (
             <AccountIcon className="h-4 w-4 shrink-0 text-surface-500 dark:text-surface-400" />
           )}
-          <div className="flex min-w-0 flex-1 items-center overflow-hidden">
+          <div
+            className={`flex min-w-0 flex-1 items-center overflow-hidden transition-[padding] ${accountNamePaddingClass}`}
+          >
             <span className="truncate pr-2 text-left text-sm text-surface-600 dark:text-surface-400">
               {account.name}
             </span>
@@ -127,7 +146,7 @@ export const SidebarAccountItem = ({
         </button>
 
         <div
-          className={`flex h-9 w-17 shrink-0 items-center justify-end gap-1 overflow-hidden transition-opacity ${actionVisibilityClass}`}
+          className={`absolute top-0 right-0 flex h-9 w-17 items-center justify-end gap-1 overflow-hidden transition-opacity delay-100 duration-150 group-hover/account-row:delay-0 group-hover/account-row:duration-100 ${actionVisibilityClass}`}
         >
           <Tooltip content="Add a new calendar" position="top">
             <button
