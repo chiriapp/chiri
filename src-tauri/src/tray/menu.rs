@@ -9,7 +9,6 @@ use super::{icon, AppRuntime, TrayState};
 
 #[cfg(target_os = "macos")]
 use crate::macos::quit::is_keyboard_shortcut;
-use crate::window;
 
 pub(in crate::tray) fn initialize(
     app_handle: tauri::AppHandle<AppRuntime>,
@@ -112,7 +111,6 @@ pub(in crate::tray) fn initialize(
             "quit" => {
                 #[cfg(target_os = "macos")]
                 {
-                    window::state::manager(app).save(app);
                     if is_keyboard_shortcut() {
                         app.exit(0);
                     } else {
@@ -121,12 +119,10 @@ pub(in crate::tray) fn initialize(
                 }
                 #[cfg(not(target_os = "macos"))]
                 {
-                    window::state::manager(app).save(app);
                     app.exit(0);
                 }
             }
             "tray-quit" => {
-                window::state::manager(app).save(app);
                 std::process::exit(0);
             }
             _ => {}

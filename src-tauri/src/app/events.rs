@@ -1,5 +1,4 @@
 use super::AppRuntime;
-use crate::window;
 
 #[cfg(target_os = "macos")]
 use tauri::{Emitter, Manager, RunEvent};
@@ -15,9 +14,7 @@ pub(super) fn handle_run_event(app_handle: &tauri::AppHandle<AppRuntime>, event:
             let _ = app_handle.emit("app:quit-requested", ());
         }
 
-        RunEvent::Exit => {
-            window::state::manager(app_handle).save(app_handle);
-        }
+        RunEvent::Exit => {}
 
         // handle app reactivation (e.g., from Spotlight, Dock, Cmd+Tab)
         RunEvent::Reopen { .. } => {
@@ -34,7 +31,5 @@ pub(super) fn handle_run_event(app_handle: &tauri::AppHandle<AppRuntime>, event:
 
 #[cfg(not(target_os = "macos"))]
 pub(super) fn handle_run_event(app_handle: &tauri::AppHandle<AppRuntime>, event: tauri::RunEvent) {
-    if let tauri::RunEvent::Exit = event {
-        window::state::manager(app_handle).save(app_handle);
-    }
+    if let tauri::RunEvent::Exit = event {}
 }

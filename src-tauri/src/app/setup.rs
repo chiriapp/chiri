@@ -3,7 +3,7 @@ use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
 
 use super::AppRuntime;
-use crate::{legacy, notifications, window};
+use crate::{legacy, notifications};
 
 pub(super) fn configure_process_environment() {
     // on Linux, WebKitGTK 2.42+ allocates DMA-BUF buffers via GBM, which is broken
@@ -28,12 +28,6 @@ pub(super) fn focus_main_window(app: &tauri::AppHandle<AppRuntime>) {
 pub(super) fn setup_app(
     app: &mut tauri::App<AppRuntime>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    app.manage(window::state::WindowStateManager::load(app.handle()));
-
-    if let Some(window) = app.get_webview_window("main") {
-        window::restore_state(&window);
-    }
-
     // macOS uses Info.plist. Windows needs explicit runtime registration. on
     // Linux, packaged installs advertise the scheme through installed .desktop
     // files; only AppImage needs runtime registration as a desktop-integration
