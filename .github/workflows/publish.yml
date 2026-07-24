@@ -617,6 +617,12 @@ jobs:
           tagName: app-v${{ needs.prepare-release.outputs.version }}
           args: --bundles appimage --config src-tauri/tauri.appimage.conf.json
 
+      - name: Install GitHub CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          pacman -Syu --noconfirm --needed github-cli
+
       - name: Download AppImage release assets for attestation
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
