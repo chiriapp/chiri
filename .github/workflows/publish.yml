@@ -321,7 +321,7 @@ jobs:
           chmod 600 "$APPLE_KEY_FILE"
           echo "APPLE_API_KEY_PATH=$APPLE_KEY_FILE" >> "$GITHUB_ENV"
 
-      - uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
+      - uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ env.TAURI_SIGNING_PRIVATE_KEY || secrets.TAURI_SIGNING_PRIVATE_KEY }}
@@ -604,7 +604,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: op://GitHub Actions/Tauri Secrets/signing-key-password
 
       - name: Build and publish portable AppImage
-        uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0
+        uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_BUNDLER_NEW_APPIMAGE_FORMAT: 'true'
