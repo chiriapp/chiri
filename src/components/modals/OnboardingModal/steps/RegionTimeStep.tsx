@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Select } from '$components/Select';
 import { DATE_FORMAT_OPTIONS, WEEK_START_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$context/settingsContext';
-import { getSystemRegionPreferences } from '$lib/preferences';
+import { getSystemRegionPreferences } from '$lib/onboarding';
 import type { SystemRegionPreferences } from '$types/platform';
 import type { DateFormat, StartOfWeek, TimeFormat } from '$types/settings/categories/region';
 
