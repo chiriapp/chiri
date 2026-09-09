@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import CalendarDays from 'lucide-react/icons/calendar-days';
 import Clock from 'lucide-react/icons/clock';
 import Globe from 'lucide-react/icons/globe';
@@ -5,11 +6,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Select } from '$components/Select';
 import { DATE_FORMAT_OPTIONS, WEEK_START_OPTIONS } from '$constants/settings';
 import { useSettingsStore } from '$context/settingsContext';
-import { getSystemRegionPreferences } from '$lib/onboarding';
 import type { SystemRegionPreferences } from '$types/platform';
 import type { DateFormat, StartOfWeek, TimeFormat } from '$types/settings/categories/region';
 
 let nativeDefaultsApplied = false;
+let systemPreferencesRequest: Promise<SystemRegionPreferences> | null = null;
+
+const getSystemRegionPreferences = () => {
+  systemPreferencesRequest ??= invoke<SystemRegionPreferences>('get_system_region_preferences');
+  return systemPreferencesRequest;
+};
 
 export const RegionTimeStep = () => {
   const { dateFormat, setDateFormat, timeFormat, setTimeFormat, startOfWeek, setStartOfWeek } =
