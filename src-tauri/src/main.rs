@@ -10,7 +10,7 @@ mod legacy;
 mod linux;
 mod logging;
 mod notifications;
-mod preferences;
+mod onboarding;
 mod push;
 mod schema;
 mod tray;

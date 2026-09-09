@@ -11,9 +11,7 @@ use crate::linux;
 #[cfg(target_os = "macos")]
 use crate::macos;
 
-use crate::{
-    http, install, logging, notifications, preferences, push, schema, tray, utils, window,
-};
+use crate::{http, install, logging, notifications, onboarding, push, schema, tray, utils, window};
 
 type AppRuntime = tauri::Wry;
 
@@ -106,7 +104,7 @@ pub fn run() {
             notifications::permission::check_notification_alert_style,
             notifications::permission::check_notification_permission,
             notifications::permission::request_notification_permission,
-            preferences::get_system_region_preferences,
+            onboarding::get_system_region_preferences,
             push::ntfy::start_ntfy_sse_listener,
             push::ntfy::stop_all_ntfy_sse_listeners,
             push::ntfy::stop_ntfy_sse_listener,
