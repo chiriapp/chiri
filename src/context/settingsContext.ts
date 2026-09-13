@@ -423,6 +423,7 @@ export const settingsStore = {
     setState({ connectivityCheckInterval }),
   setConnectivityRequestTimeout: (connectivityRequestTimeout: number) =>
     setState({ connectivityRequestTimeout }),
+  setCaldavRequestTimeout: (caldavRequestTimeout: number) => setState({ caldavRequestTimeout }),
   setNetworkProxyMode: (networkProxyMode: NetworkProxyMode) => setState({ networkProxyMode }),
   setNetworkProxyHost: (networkProxyHost: string) => setState({ networkProxyHost }),
   setNetworkProxyPort: (networkProxyPort: string) => setState({ networkProxyPort }),

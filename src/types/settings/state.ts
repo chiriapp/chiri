@@ -106,6 +106,7 @@ export interface SettingsState {
   connectivityCheckUrl: string;
   connectivityCheckInterval: number;
   connectivityRequestTimeout: number;
+  caldavRequestTimeout: number;
   networkProxyMode: NetworkProxyMode;
   networkProxyHost: string;
   networkProxyPort: string;
@@ -209,6 +210,7 @@ interface SettingsActions {
   setConnectivityCheckUrl: (url: string) => void;
   setConnectivityCheckInterval: (interval: number) => void;
   setConnectivityRequestTimeout: (timeout: number) => void;
+  setCaldavRequestTimeout: (timeout: number) => void;
   setNetworkProxyMode: (mode: NetworkProxyMode) => void;
   setNetworkProxyHost: (host: string) => void;
   setNetworkProxyPort: (port: string) => void;

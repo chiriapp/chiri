@@ -176,6 +176,7 @@ export const importSettings = (json: string, defaultState: SettingsState): Setti
       'connectivityCheckUrl',
       'connectivityCheckInterval',
       'connectivityRequestTimeout',
+      'caldavRequestTimeout',
       'networkProxyMode',
       'networkProxyHost',
       'networkProxyPort',
