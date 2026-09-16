@@ -280,7 +280,7 @@ jobs:
 
       - name: Load signing secrets from 1Password
         if: matrix.platform != 'windows-11-arm'
-        uses: 1password/load-secrets-action@3a12b0ab99d9cd590a3e9b5a90ea017210ed9556 # v4
+        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v4
         with:
           export-env: true
           version: 2.33.1
@@ -412,7 +412,7 @@ jobs:
 
       - name: Load Tauri signing secrets from 1Password
         if: matrix.platform != 'windows-11-arm'
-        uses: 1password/load-secrets-action@3a12b0ab99d9cd590a3e9b5a90ea017210ed9556 # v4
+        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v4
         with:
           export-env: true
           version: 2.33.1
@@ -621,7 +621,7 @@ jobs:
         uses: ./.github/actions/setup-portable-appimage
 
       - name: Load signing secrets from 1Password
-        uses: 1password/load-secrets-action@3a12b0ab99d9cd590a3e9b5a90ea017210ed9556 # v4
+        uses: 1password/load-secrets-action@70062d7a876d3eb6334754fa26efd2fbd90c32f2 # v4
         with:
           export-env: true
           version: 2.33.1
