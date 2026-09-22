@@ -48,7 +48,7 @@ rustPlatform.buildRustPackage (finalAttrs: {
   ];
 
   # cargo dependencies hash - update when Cargo.lock changes
-  cargoHash = "sha256-BeEpTFKWr81vNBUhHOnfrJ/yNgpZGDExnaxvIbwkBMs=";
+  cargoHash = "sha256-CyreLhvXoGPbvf1+Zh+5e6pgsCx5F8yHKJVLIjXAC6g=";
 
   # pnpm dependencies for the frontend
   pnpmDeps = fetchPnpmDeps {
