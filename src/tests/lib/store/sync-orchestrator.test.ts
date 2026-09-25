@@ -101,6 +101,8 @@ vi.mock('$lib/store', () => ({
   dataStore: {
     load: vi.fn(() => ({ pendingDeletions: mocks.pendingDeletions })),
     save: vi.fn(),
+    beginBatch: vi.fn(),
+    endBatch: vi.fn(),
   },
 }));
 
