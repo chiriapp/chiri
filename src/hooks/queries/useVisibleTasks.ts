@@ -3,7 +3,6 @@ import { DEFAULT_SORT_CONFIG, DEFAULT_TASK_GROUP_CONFIG } from '$constants';
 import { useFilteredTasks } from '$hooks/queries/useTasks';
 import { useUIState } from '$hooks/queries/useUIState';
 import { dataStore } from '$lib/store';
-import { getChildTasks } from '$lib/store/tasks';
 import { getEffectiveTaskGroupConfig, groupTasks, type TaskGroup } from '$lib/task/grouping';
 import { sortTasks } from '$lib/task/sorting';
 import type { SortConfig, TaskGroupConfig } from '$types/sort';
@@ -41,11 +40,31 @@ export const getVisibleTaskGroups = ({
   );
   const sortedTopLevel = sortTasks(topLevelTasks, sortConfig, moveCompletedTasksToBottom);
 
+  // build a children index once (O(n)) instead of scanning the whole task array
+  // via getChildTasks for every top-level task (O(n^2)) on each render
+  const childFilter = activeView === 'recently-deleted' ? 'deleted' : 'active';
+  const childrenByParent = new Map<string, Task[]>();
+  for (const task of dataStore.load().tasks) {
+    if (!task.parentUid) continue;
+    if (
+      childFilter === 'active'
+        ? !!task.deletedAt
+        : childFilter === 'deleted'
+          ? !task.deletedAt
+          : false
+    ) {
+      continue;
+    }
+    const children = childrenByParent.get(task.parentUid);
+    if (children) {
+      children.push(task);
+    } else {
+      childrenByParent.set(task.parentUid, [task]);
+    }
+  }
+
   const getFilteredChildTasks = (parentUid: string) => {
-    const children = getChildTasks(
-      parentUid,
-      activeView === 'recently-deleted' ? 'deleted' : 'active',
-    );
+    const children = childrenByParent.get(parentUid) ?? [];
     if (!showCompletedTasks) {
       return children.filter((task) => task.status !== 'completed' && task.status !== 'cancelled');
     }

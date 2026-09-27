@@ -45,6 +45,8 @@ class Store {
   private initialized = false;
   private initPromise: Promise<void> | null = null;
   private listeners: Set<DataChangeListener> = new Set();
+  private batchDepth = 0;
+  private notifyPending = false;
 
   subscribe(listener: DataChangeListener) {
     this.listeners.add(listener);
@@ -56,6 +58,23 @@ class Store {
 
   notify() {
     for (const listener of this.listeners) listener();
+  }
+
+  // batch bulk mutations (e.g. sync reconcile loops) so listeners are only
+  // notified once instead of once per write. saves the main thread from
+  // re-rendering / refetching the whole task list on every single task write
+  beginBatch() {
+    this.batchDepth += 1;
+  }
+
+  endBatch() {
+    if (this.batchDepth > 0) {
+      this.batchDepth -= 1;
+    }
+    if (this.batchDepth === 0 && this.notifyPending) {
+      this.notifyPending = false;
+      this.notify();
+    }
   }
 
   async initialize() {
@@ -100,6 +119,10 @@ class Store {
 
   save(data: DataStore) {
     this.cache = data;
+    if (this.batchDepth > 0) {
+      this.notifyPending = true;
+      return;
+    }
     this.notify();
   }
 

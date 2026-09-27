@@ -685,49 +685,59 @@ export const syncCalendarTasks = async (
 
     const client = CalDAVClient.getForAccount(account.id);
 
-    // STEP 0: Process pending deletions for this calendar
-    await processPendingDeletions(client, calendarId, calendar.displayName);
+    // Batch the whole calendar sync (steps 0-4). Sync writes many tasks back into
+    // the store; notifying listeners per write would re-render/refetch the whole
+    // task list on every single task (freezing the UI on large lists - a reorder
+    // flushing to the server is the classic trigger). By batching, listeners fire
+    // once for the whole calendar sync regardless of how many tasks changed.
+    dataStore.beginBatch();
+    try {
+      // STEP 0: Process pending deletions for this calendar
+      await processPendingDeletions(client, calendarId, calendar.displayName);
 
-    // STEP 1: Push unsynced local tasks to server
-    await pushUnsyncedTasks(client, calendar, calendarId);
+      // STEP 1: Push unsynced local tasks to server
+      await pushUnsyncedTasks(client, calendar, calendarId);
 
-    // STEP 2: Fetch tasks from server
-    const remoteTasks = await client.fetchTasks(calendar);
+      // STEP 2: Fetch tasks from server
+      const remoteTasks = await client.fetchTasks(calendar);
 
-    // if fetchTasks returns null, it indicates a server error (not just empty)
-    if (remoteTasks === null) {
-      syncLog.warn(
-        `Failed to fetch tasks from ${calendar.displayName}. Local changes were pushed successfully, but skipping server comparison to prevent data loss.`,
-      );
-      return;
-    }
+      // if fetchTasks returns null, it indicates a server error (not just empty)
+      if (remoteTasks === null) {
+        syncLog.warn(
+          `Failed to fetch tasks from ${calendar.displayName}. Local changes were pushed successfully, but skipping server comparison to prevent data loss.`,
+        );
+        return;
+      }
 
-    // re-get local tasks (may have been updated by push)
-    const updatedLocalTasks = getTasksByCalendar(calendarId);
-    const localUids = new Set(updatedLocalTasks.map((t) => t.uid));
-    const remoteUids = new Set(remoteTasks.map((t) => t.uid));
+      // re-get local tasks (may have been updated by push)
+      const updatedLocalTasks = getTasksByCalendar(calendarId);
+      const localUids = new Set(updatedLocalTasks.map((t) => t.uid));
+      const remoteUids = new Set(remoteTasks.map((t) => t.uid));
 
-    // STEP 3: Process remote tasks
-    for (const remoteTask of remoteTasks) {
-      if (!localUids.has(remoteTask.uid)) {
-        await processNewRemoteTask(remoteTask);
-      } else {
-        const localTask = updatedLocalTasks.find((t) => t.uid === remoteTask.uid);
-        if (localTask) {
-          await processExistingRemoteTask(remoteTask, localTask);
+      // STEP 3: Process remote tasks
+      for (const remoteTask of remoteTasks) {
+        if (!localUids.has(remoteTask.uid)) {
+          await processNewRemoteTask(remoteTask);
+        } else {
+          const localTask = updatedLocalTasks.find((t) => t.uid === remoteTask.uid);
+          if (localTask) {
+            await processExistingRemoteTask(remoteTask, localTask);
+          }
         }
       }
-    }
 
-    // STEP 4: find tasks deleted on server (in local but not in remote)
-    // use removeLocalTask (not deleteTask) so we don't queue a server-side DELETE
-    // the server already removed the resource, and queuing a DELETE could accidentally
-    // destroy a resource that was repurposed (e.g. fruux reassigns the UID on the same href)
-    for (const localTask of updatedLocalTasks) {
-      if (!localTask.deletedAt && localTask.synced && !remoteUids.has(localTask.uid)) {
-        await removeTaskObject(localTask.uid);
-        removeLocalTask(localTask.id);
+      // STEP 4: find tasks deleted on server (in local but not in remote)
+      // use removeLocalTask (not deleteTask) so we don't queue a server-side DELETE
+      // the server already removed the resource, and queuing a DELETE could accidentally
+      // destroy a resource that was repurposed (e.g. fruux reassigns the UID on the same href)
+      for (const localTask of updatedLocalTasks) {
+        if (!localTask.deletedAt && localTask.synced && !remoteUids.has(localTask.uid)) {
+          await removeTaskObject(localTask.uid);
+          removeLocalTask(localTask.id);
+        }
       }
+    } finally {
+      dataStore.endBatch();
     }
 
     // invalidate queries after sync
