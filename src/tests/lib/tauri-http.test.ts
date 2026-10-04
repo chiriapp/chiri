@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 
 import { invoke } from '@tauri-apps/api/core';
+import { settingsStore } from '$context/settingsContext';
+import { defaultState } from '$context/settingsDefaults';
 import { parseMultiStatus, tauriRequest } from '$lib/http';
 
 const xml = (body: string) => `<?xml version="1.0" encoding="utf-8"?>${body}`;
@@ -119,6 +121,20 @@ describe('tauriRequest routing', () => {
         mode: 'system',
       }),
     );
+  });
+
+  it('uses the configured CalDAV request timeout setting', async () => {
+    settingsStore.setCaldavRequestTimeout(45);
+    vi.mocked(invoke).mockResolvedValueOnce(httpResponse(200));
+
+    await tauriRequest('https://calendar.example', 'PROPFIND', credentials);
+
+    expect(invoke).toHaveBeenCalledWith(
+      'http_request',
+      expect.objectContaining({ timeoutMs: 45_000 }),
+    );
+
+    settingsStore.setCaldavRequestTimeout(defaultState.caldavRequestTimeout);
   });
 
   it('cancels the native request when its operation signal is aborted', async () => {

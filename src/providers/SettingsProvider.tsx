@@ -358,6 +358,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     (timeout: number) => settingsStore.setConnectivityRequestTimeout(timeout),
     [],
   );
+  const setCaldavRequestTimeout = useCallback(
+    (timeout: number) => settingsStore.setCaldavRequestTimeout(timeout),
+    [],
+  );
   const setNetworkProxyMode = useCallback(
     (mode: NetworkProxyMode) => settingsStore.setNetworkProxyMode(mode),
     [],
@@ -491,6 +495,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     setConnectivityCheckUrl,
     setConnectivityCheckInterval,
     setConnectivityRequestTimeout,
+    setCaldavRequestTimeout,
     setNetworkProxyMode,
     setNetworkProxyHost,
     setNetworkProxyPort,
