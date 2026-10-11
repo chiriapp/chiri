@@ -78,7 +78,7 @@ pub fn send_notification(
                             }
                             let snooze_id = actions::snooze_action_id(*duration);
                             toast.action(Action::new(
-                                &actions::compact_snooze_label(*duration),
+                                actions::compact_snooze_label(*duration),
                                 &snooze_id,
                                 "",
                             ));

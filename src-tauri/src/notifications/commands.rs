@@ -51,7 +51,7 @@ pub async fn send_notification_with_actions(
     #[cfg(target_os = "windows")]
     {
         let config = _state.config();
-        return super::windows::send_notification(&app, &request, &config);
+        super::windows::send_notification(&app, &request, &config)
     }
 
     #[cfg(target_os = "macos")]
@@ -107,7 +107,7 @@ pub async fn send_simple_notification(
     #[cfg(target_os = "windows")]
     {
         let _ = state;
-        return super::windows::send_simple_notification(&app, &request);
+        super::windows::send_simple_notification(&app, &request)
     }
 
     #[cfg(target_os = "macos")]
