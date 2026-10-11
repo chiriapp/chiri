@@ -2,6 +2,12 @@
 _default:
   @just --list
 
+[unix]
+set shell := ["sh", "-cu"]
+
+[windows]
+set shell := ["powershell.exe", "-NoLogo", "-Command"]
+
 alias b := build
 alias c := cargo
 alias d := dev
@@ -19,9 +25,15 @@ build:
 cargo:
   cd src-tauri && cargo update
 
+[unix]
 check-workflows:
   actionlint .github/workflows/*.yml
   yq '.' .github/workflows/*.yml > /dev/null
+
+[windows]
+check-workflows:
+  Get-ChildItem .github/workflows/*.yml -File | ForEach-Object { actionlint $_.FullName }
+  Get-ChildItem .github/workflows/*.yml -File | ForEach-Object { yq '.' $_.FullName | Out-Null }
 
 clippy:
   cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
