@@ -2,28 +2,24 @@
 _default:
   @just --list
 
-[unix]
-set shell := ["sh", "-cu"]
-
 [windows]
 set shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 alias b := build
-alias c := cargo
+alias c := clippy
 alias d := dev
-alias h := hash
 alias i := install
-alias l := clippy
-alias m := mac-signed-build
 alias u := update
 alias v := vite
-alias g := hooks
+
+[unix]
+alias h := hash
+
+[macos]
+alias bs := build-sign
 
 build:
   pnpm run build:app
-
-cargo:
-  cd src-tauri && cargo update
 
 [unix]
 check-workflows:
@@ -41,16 +37,18 @@ clippy:
 dev:
   pnpm tauri dev
 
+[unix]
 hash:
   ./scripts/update-hashes.sh
 
 hooks:
-  bash scripts/install-hooks.sh
+  node scripts/install-hooks.ts
 
 install: hooks
   pnpm install
 
-mac-signed-build:
+[macos]
+build-sign:
   #!/usr/bin/env bash
   set -euo pipefail
 
@@ -75,6 +73,7 @@ mac-signed-build:
 
 update:
   pnpm upgrade -L
+  cargo update --manifest-path src-tauri/Cargo.toml
 
 vite:
   pnpm vite build
