@@ -2,8 +2,7 @@
 _default:
   @just --list
 
-[windows]
-set shell := ["powershell.exe", "-NoLogo", "-Command"]
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
 
 alias b := build
 alias c := clippy
