@@ -142,6 +142,7 @@ export const defaultState: SettingsState = {
   connectivityCheckUrl: '',
   connectivityCheckInterval: 30,
   connectivityRequestTimeout: 5,
+  caldavRequestTimeout: 15,
   networkProxyMode: 'system',
   networkProxyHost: '',
   networkProxyPort: '',

@@ -10,7 +10,9 @@ import { loggers } from '$lib/logger';
 import type { NetworkProxyMode } from '$types/settings/categories/network';
 
 const log = loggers.http;
-const REQUEST_TIMEOUT_MS = 15_000;
+// configurable in Settings → Network ("CalDAV request timeout"); the Rust side
+// clamps this to 1–60 seconds
+const getRequestTimeoutMs = () => settingsStore.getState().caldavRequestTimeout * 1000;
 const MAX_REDIRECTS = 5;
 const REDIRECT_STATUS_CODES = new Set([301, 302, 307, 308]);
 const HREF_PROP_NAMES = new Set(['current-user-principal', 'calendar-home-set']);
@@ -145,7 +147,7 @@ const sendHttpRequest = async (
     body: body ?? null,
     acceptInvalidCerts: credentials.acceptInvalidCerts ?? false,
     proxyConfig,
-    timeoutMs: REQUEST_TIMEOUT_MS,
+    timeoutMs: getRequestTimeoutMs(),
     ...(context?.operationId ? { operationId: context.operationId } : {}),
   });
 };

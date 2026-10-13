@@ -54,6 +54,8 @@ export const NetworkSettings = () => {
     setConnectivityCheckInterval,
     connectivityRequestTimeout,
     setConnectivityRequestTimeout,
+    caldavRequestTimeout,
+    setCaldavRequestTimeout,
     networkProxyMode,
     setNetworkProxyMode,
     networkProxyHost,
@@ -291,6 +293,28 @@ export const NetworkSettings = () => {
             value={connectivityRequestTimeout}
             onChange={(e) =>
               setConnectivityRequestTimeout(Math.min(60, Math.max(1, Number(e.target.value) || 1)))
+            }
+            className="w-20 shrink-0 rounded-lg border border-surface-300 bg-surface-50 px-3 py-1.5 text-sm text-surface-800 outline-none transition-colors focus:border-primary-ink focus:bg-white dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
+          />
+        </label>
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-surface-300 bg-white dark:border-surface-700 dark:bg-surface-800">
+        <label className="flex items-center justify-between gap-4 p-4">
+          <div className="min-w-0">
+            <p className="text-sm text-surface-700 dark:text-surface-300">CalDAV request timeout</p>
+            <p className="text-surface-500 text-xs dark:text-surface-400">
+              Maximum time to wait for each CalDAV request. Increase for slow servers.
+            </p>
+          </div>
+          <input
+            type="number"
+            min={1}
+            max={60}
+            step={1}
+            value={caldavRequestTimeout}
+            onChange={(e) =>
+              setCaldavRequestTimeout(Math.min(60, Math.max(1, Number(e.target.value) || 1)))
             }
             className="w-20 shrink-0 rounded-lg border border-surface-300 bg-surface-50 px-3 py-1.5 text-sm text-surface-800 outline-none transition-colors focus:border-primary-ink focus:bg-white dark:border-surface-600 dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
           />
