@@ -1,6 +1,15 @@
 import { EmojiPicker } from 'frimousse';
+import Flag from 'lucide-react/icons/flag';
+import Gamepad2 from 'lucide-react/icons/gamepad-2';
+import Lightbulb from 'lucide-react/icons/lightbulb';
+import PawPrint from 'lucide-react/icons/paw-print';
+import Plane from 'lucide-react/icons/plane';
 import Search from 'lucide-react/icons/search';
-import { useRef, useState } from 'react';
+import Shapes from 'lucide-react/icons/shapes';
+import Smile from 'lucide-react/icons/smile';
+import UserRound from 'lucide-react/icons/user-round';
+import Utensils from 'lucide-react/icons/utensils';
+import { type UIEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { CALENDAR_ICONS, getIconByName } from '$constants/icons';
 
@@ -16,6 +25,20 @@ const PICKER_GAP = 6;
 const FALLBACK_PICKER_WIDTH = 352;
 const FALLBACK_PICKER_HEIGHT = 380;
 
+const EMOJI_CATEGORIES = [
+  { label: 'Smileys & Emotion', icon: Smile },
+  { label: 'People & Body', icon: UserRound },
+  { label: 'Animals & Nature', icon: PawPrint },
+  { label: 'Food & Drink', icon: Utensils },
+  { label: 'Travel & Places', icon: Plane },
+  { label: 'Activities', icon: Gamepad2 },
+  { label: 'Objects', icon: Lightbulb },
+  { label: 'Symbols', icon: Shapes },
+  { label: 'Flags', icon: Flag },
+] as const;
+
+const normalizeEmojiCategoryLabel = (label: string) => label.toLowerCase();
+
 export const IconEmojiPicker = ({
   iconValue,
   emojiValue = '',
@@ -26,13 +49,168 @@ export const IconEmojiPicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'icon' | 'emoji'>('icon');
   const [iconSearch, setIconSearch] = useState('');
+  const [emojiSearch, setEmojiSearch] = useState('');
+  const [pendingEmojiCategory, setPendingEmojiCategory] = useState<{
+    label: string;
+    previousRowCount: number | null;
+  } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const emojiViewportRef = useRef<HTMLDivElement>(null);
+  const [activeEmojiCategory, setActiveEmojiCategory] = useState<string>(EMOJI_CATEGORIES[0].label);
 
   const SelectedIcon = getIconByName(iconValue);
 
   const filteredIcons = iconSearch.trim()
     ? CALENDAR_ICONS.filter(({ name }) => name.toLowerCase().includes(iconSearch.toLowerCase()))
     : CALENDAR_ICONS;
+  const isEmojiSearching = emojiSearch.trim().length > 0;
+
+  const scrollToEmojiCategory = useCallback((label: string) => {
+    const categoryHeaders =
+      emojiPickerRef.current?.querySelectorAll<HTMLElement>('[data-emoji-category]');
+    const header = [...(categoryHeaders ?? [])].find((element) => {
+      const category = element.closest<HTMLElement>('[frimousse-category]');
+      return (
+        normalizeEmojiCategoryLabel(element.dataset.emojiCategory ?? '') ===
+          normalizeEmojiCategoryLabel(label) && category?.style.top
+      );
+    });
+    const category = header?.closest<HTMLElement>('[frimousse-category]');
+    const viewport = emojiViewportRef.current;
+
+    if (!category || !viewport) {
+      return;
+    }
+
+    setActiveEmojiCategory(label);
+    const top =
+      category.getBoundingClientRect().top -
+      viewport.getBoundingClientRect().top +
+      viewport.scrollTop;
+    viewport.scrollTo({ top, behavior: 'instant' });
+  }, []);
+
+  const handleEmojiCategoryClick = (label: string) => {
+    if (emojiSearch.trim()) {
+      const rowCountAttribute = emojiPickerRef.current
+        ?.querySelector('[frimousse-list]')
+        ?.getAttribute('aria-rowcount');
+      const rowCount =
+        rowCountAttribute === null || rowCountAttribute === undefined
+          ? null
+          : Number(rowCountAttribute);
+
+      setActiveEmojiCategory(label);
+      setPendingEmojiCategory({
+        label,
+        previousRowCount: rowCount !== null && Number.isFinite(rowCount) ? rowCount : null,
+      });
+      setEmojiSearch('');
+      return;
+    }
+
+    setPendingEmojiCategory(null);
+    scrollToEmojiCategory(label);
+  };
+
+  useEffect(() => {
+    if (!isOpen || emojiSearch.trim() || !pendingEmojiCategory) {
+      return;
+    }
+
+    const picker = emojiPickerRef.current;
+    if (!picker) {
+      return;
+    }
+
+    let didNavigate = false;
+    let observer: MutationObserver | undefined;
+    let timeoutId = 0;
+    const navigateWhenReady = (force = false) => {
+      if (didNavigate) {
+        return;
+      }
+
+      const rowCountAttribute = picker
+        .querySelector('[frimousse-list]')
+        ?.getAttribute('aria-rowcount');
+      const rowCount =
+        rowCountAttribute === null || rowCountAttribute === undefined
+          ? null
+          : Number(rowCountAttribute);
+      const previousRowCount = pendingEmojiCategory.previousRowCount;
+      const searchResultsUpdated =
+        previousRowCount === null
+          ? rowCount !== null
+          : rowCount !== null && Number.isFinite(rowCount) && rowCount > previousRowCount;
+
+      if (!searchResultsUpdated && !force) {
+        return;
+      }
+
+      didNavigate = true;
+      setPendingEmojiCategory(null);
+      scrollToEmojiCategory(pendingEmojiCategory.label);
+      observer?.disconnect();
+      window.clearTimeout(timeoutId);
+    };
+
+    timeoutId = window.setTimeout(() => navigateWhenReady(true), 500);
+    observer = new MutationObserver(() => navigateWhenReady());
+    observer.observe(picker, {
+      attributes: true,
+      attributeFilter: ['aria-rowcount'],
+      childList: true,
+      subtree: true,
+    });
+    navigateWhenReady();
+
+    return () => {
+      observer?.disconnect();
+      window.clearTimeout(timeoutId);
+    };
+  }, [emojiSearch, isOpen, pendingEmojiCategory, scrollToEmojiCategory]);
+
+  const handleEmojiViewportScroll = (event: UIEvent<HTMLDivElement>) => {
+    if (isEmojiSearching) {
+      return;
+    }
+
+    const categoryHeaders =
+      emojiPickerRef.current?.querySelectorAll<HTMLElement>('[data-emoji-category]');
+    let currentCategory: string | undefined;
+    let lastCategory: string | undefined;
+    const viewportTop = event.currentTarget.getBoundingClientRect().top;
+
+    for (const header of categoryHeaders ?? []) {
+      const category = header.closest<HTMLElement>('[frimousse-category]');
+      if (!category?.style.top) {
+        continue;
+      }
+
+      currentCategory ??= header.dataset.emojiCategory;
+      lastCategory = header.dataset.emojiCategory;
+      const categoryTop =
+        category.getBoundingClientRect().top - viewportTop + event.currentTarget.scrollTop;
+      if (categoryTop > event.currentTarget.scrollTop + 1) {
+        break;
+      }
+
+      currentCategory = header.dataset.emojiCategory;
+    }
+
+    if (
+      event.currentTarget.scrollTop + event.currentTarget.clientHeight >=
+      event.currentTarget.scrollHeight - 1
+    ) {
+      currentCategory = lastCategory ?? currentCategory;
+    }
+
+    if (currentCategory) {
+      setActiveEmojiCategory(currentCategory);
+    }
+  };
 
   const dropdown = (
     <FloatingDropdownFrame
@@ -130,6 +308,7 @@ export const IconEmojiPicker = ({
           }
         >
           <EmojiPicker.Root
+            ref={emojiPickerRef}
             className="w-full"
             onEmojiSelect={(emoji) => {
               onEmojiChange(emoji.emoji);
@@ -142,12 +321,54 @@ export const IconEmojiPicker = ({
                 <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-surface-400" />
                 <EmojiPicker.Search
                   placeholder="Search..."
+                  value={emojiSearch}
+                  onChange={(event) => {
+                    setEmojiSearch(event.target.value);
+                    if (event.target.value.trim()) {
+                      setPendingEmojiCategory(null);
+                    } else if (!pendingEmojiCategory) {
+                      setActiveEmojiCategory(EMOJI_CATEGORIES[0].label);
+                    }
+                  }}
                   className="w-full appearance-none rounded-md border border-transparent bg-surface-100 py-2 pr-2.5 pl-8 text-sm text-surface-800 transition-colors placeholder:text-surface-400 focus:border-primary-ink focus:bg-white focus:outline-hidden dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
                 />
               </div>
             </div>
 
-            <EmojiPicker.Viewport className="h-63 outline-hidden">
+            <nav
+              aria-label="Emoji categories"
+              className="mt-2 grid grid-cols-9 gap-0.5 border-surface-200 border-b px-2 pb-1 dark:border-surface-700"
+            >
+              {EMOJI_CATEGORIES.map(({ label, icon: Icon }) => (
+                <button
+                  key={label}
+                  type="button"
+                  title={label}
+                  aria-label={label}
+                  aria-pressed={
+                    !isEmojiSearching &&
+                    normalizeEmojiCategoryLabel(activeEmojiCategory) ===
+                      normalizeEmojiCategoryLabel(label)
+                  }
+                  onClick={() => handleEmojiCategoryClick(label)}
+                  className={`flex h-7 w-full items-center justify-center rounded-md outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+                    !isEmojiSearching &&
+                    normalizeEmojiCategoryLabel(activeEmojiCategory) ===
+                      normalizeEmojiCategoryLabel(label)
+                      ? 'bg-surface-100 text-primary-ink dark:bg-surface-700'
+                      : 'text-surface-500 hover:bg-surface-100 hover:text-surface-800 dark:text-surface-400 dark:hover:bg-surface-700 dark:hover:text-surface-200'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                </button>
+              ))}
+            </nav>
+
+            <EmojiPicker.Viewport
+              ref={emojiViewportRef}
+              onScroll={handleEmojiViewportScroll}
+              className="h-63 outline-hidden"
+            >
               <EmojiPicker.Loading className="absolute inset-0 flex items-center justify-center text-sm text-surface-400 dark:text-surface-500">
                 Loading…
               </EmojiPicker.Loading>
@@ -159,6 +380,7 @@ export const IconEmojiPicker = ({
                 components={{
                   CategoryHeader: ({ category, ...props }) => (
                     <div
+                      data-emoji-category={category.label}
                       className="sticky top-0 bg-white px-3 pt-3 pb-1.5 font-medium text-surface-600 text-xs dark:bg-surface-800 dark:text-surface-400"
                       {...props}
                     >
@@ -212,7 +434,14 @@ export const IconEmojiPicker = ({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (!isOpen) {
+            setActiveEmojiCategory(EMOJI_CATEGORIES[0].label);
+            setEmojiSearch('');
+            setPendingEmojiCategory(null);
+          }
+          setIsOpen(!isOpen);
+        }}
         aria-expanded={isOpen}
         className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border text-surface-600 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink dark:text-surface-300 ${
           isOpen
