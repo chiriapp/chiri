@@ -180,7 +180,7 @@ export const ModalWrapper = ({
         )}
 
         <div
-          className={`${contentPadding ? 'space-y-4 p-4' : ''} ${contentOverflow === 'auto' ? 'overflow-y-auto overscroll-contain' : 'overflow-hidden'} min-h-0 flex-auto ${!title ? 'rounded-t-xl' : ''}`}
+          className={`${contentPadding ? 'space-y-4 p-4' : ''} ${contentOverflow === 'auto' ? 'overflow-y-auto overflow-x-hidden overscroll-contain' : 'overflow-hidden'} min-h-0 flex-auto ${!title ? 'rounded-t-xl' : ''}`}
         >
           {children}
         </div>
