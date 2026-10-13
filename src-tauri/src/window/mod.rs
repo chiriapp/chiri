@@ -104,6 +104,14 @@ pub fn handle_window_event<R: tauri::Runtime>(window: &tauri::Window<R>, event: 
                 crate::macos::window_controls::apply_traffic_light_scale(&webview_window);
             }
         }
+        #[cfg(windows)]
+        WindowEvent::ScaleFactorChanged { scale_factor, .. } if window.label() == "main" => {
+            if let Err(error) =
+                crate::tray::update_windows_tray_icon(window.app_handle(), *scale_factor)
+            {
+                log::warn!("[Window] Failed to update tray icon for display scale: {error}");
+            }
+        }
         WindowEvent::Focused(true) => {
             handle_focus_event(window);
         }
