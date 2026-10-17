@@ -4,15 +4,14 @@
  * the production module routes through Tauri IPC (`invoke('http_request', ...)`
  * or `tauriFetch`). neither is available in plain Node. this shim re-implements
  * the same exports (put, propfind, report, proppatch, mkcalendar, del,
- * tauriRequest, parseMultiStatus) using Node's built-in fetch
+ * tauriRequest) using Node's built-in fetch
  *
  * keep the API surface identical to src/lib/tauri-http.ts. the production
  * CalDAV functions import these by name and won't know they're talking to a
  * different transport
  */
 
-import { DOMParser, type Element, type Node } from '@xmldom/xmldom';
-import type { CalDAVCredentials, HttpResponse, MultiStatusResponse } from '$lib/http';
+import type { CalDAVCredentials, HttpResponse } from '$lib/http';
 
 const MAX_REDIRECTS = 5;
 const REDIRECT_STATUS_CODES = new Set([301, 302, 307, 308]);
@@ -142,93 +141,6 @@ export const del = async (url: string, credentials: CalDAVCredentials, etag?: st
 
 export const mkcalendar = async (url: string, credentials: CalDAVCredentials, body: string) =>
   tauriRequest(url, 'MKCALENDAR', credentials, body);
-
-const elementChildren = (node: Node): Element[] => {
-  const out: Element[] = [];
-  for (let i = 0; i < node.childNodes.length; i++) {
-    const c = node.childNodes.item(i) as Element | null;
-    if (c && c.nodeType === 1) out.push(c);
-  }
-  return out;
-};
-
-const parsePropValue = (child: Element) => {
-  const localName = child.localName ?? '';
-  if (localName === 'resourcetype') {
-    return elementChildren(child)
-      .map((c) => c.localName ?? '')
-      .filter(Boolean)
-      .join(',');
-  }
-  if (localName === 'current-user-principal' || localName === 'calendar-home-set') {
-    return child.getElementsByTagNameNS('DAV:', 'href').item(0)?.textContent ?? null;
-  }
-  if (child.childNodes.length > 0 && hasElementChild(child)) {
-    return innerXml(child);
-  }
-  return child.textContent;
-};
-
-const parseProps = (propstat: Element): Record<string, string | null> => {
-  const prop = propstat.getElementsByTagNameNS('DAV:', 'prop').item(0);
-  if (!prop) return {};
-  const props: Record<string, string | null> = {};
-  for (const child of elementChildren(prop)) {
-    const localName = child.localName ?? '';
-    if (localName) props[localName] = parsePropValue(child);
-  }
-  return props;
-};
-
-// parseMultiStatus identical in shape to the production version, but uses the
-// xmldom DOMParser polyfill so it works under plain Node (no jsdom required
-// per-test in the integration project)
-export const parseMultiStatus = (xml: string): MultiStatusResponse[] => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, 'application/xml');
-  const responses: MultiStatusResponse[] = [];
-  const responseElements = doc.getElementsByTagNameNS('DAV:', 'response');
-
-  for (let i = 0; i < responseElements.length; i++) {
-    const resp = responseElements.item(i);
-    if (!resp) continue;
-    const href = resp.getElementsByTagNameNS('DAV:', 'href').item(0)?.textContent ?? '';
-    const status = resp.getElementsByTagNameNS('DAV:', 'status').item(0)?.textContent ?? '';
-    const propstat = resp.getElementsByTagNameNS('DAV:', 'propstat').item(0);
-    const props = propstat ? parseProps(propstat) : {};
-    responses.push({ href, status, props });
-  }
-  return responses;
-};
-
-const hasElementChild = (node: Node) => {
-  for (let i = 0; i < node.childNodes.length; i++) {
-    const c = node.childNodes.item(i);
-    if (c && c.nodeType === 1) return true;
-  }
-  return false;
-};
-
-const innerXml = (el: Element) => {
-  let out = '';
-  for (let i = 0; i < el.childNodes.length; i++) {
-    const c = el.childNodes.item(i);
-    if (!c) continue;
-    if (c.nodeType === 1) {
-      const child = c as Element;
-      const attrs = Array.from({ length: child.attributes?.length ?? 0 })
-        .map((_, idx) => {
-          const a = child.attributes!.item(idx);
-          return a ? ` ${a.name}="${a.value}"` : '';
-        })
-        .join('');
-      out += `<${child.tagName}${attrs}>${innerXml(child)}</${child.tagName}>`;
-    } else if (c.nodeType === 3) {
-      out += c.textContent ?? '';
-    }
-  }
-  return out;
-};
 
 // re-export error helpers used by production callers
 export const isCertError = () => false;

@@ -1,9 +1,10 @@
 import type { ConnectWithCertHandling } from '$lib/account/test';
 import { CalDAVClient } from '$lib/caldav';
 import { getSetupNotice, probeSetupVtodoCreationIfNeeded } from '$lib/caldav/setup';
+import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { ensureTagExists } from '$lib/store/sync';
-import { createTask } from '$lib/store/tasks';
+import { createTasks } from '$lib/store/tasks';
 import type { AccountDraft } from '$types/account';
 import type { Calendar } from '$types/calendar';
 import { generateUUID } from '$utils/misc';
@@ -21,21 +22,29 @@ export const fetchTasksForCalendar = async (accountId: string, calendar: Calenda
 
     log.info(`Fetched ${remoteTasks.length} tasks from ${calendar.displayName}`);
 
-    for (const remoteTask of remoteTasks) {
+    const tasks = remoteTasks.map((remoteTask) => {
+      const {
+        caldavObject: _caldavObject,
+        tagColorsByName: _tagColorsByName,
+        ...remoteTaskData
+      } = remoteTask;
       const categoryNames = remoteTask.categoryId
         ?.split(',')
         .map((value: string) => value.trim())
         .filter(Boolean);
       const tagIds = categoryNames?.map((name: string) => ensureTagExists(name));
 
-      createTask(
-        {
-          ...remoteTask,
-          ...(tagIds ? { tags: tagIds } : {}),
-        },
-        { source: 'remote' },
-      );
-    }
+      return {
+        ...remoteTaskData,
+        ...(tagIds ? { tags: tagIds } : {}),
+      };
+    });
+    const taskObjects = remoteTasks.flatMap((remoteTask) =>
+      remoteTask.caldavObject ? [remoteTask.caldavObject] : [],
+    );
+
+    await createTasks(tasks, { source: 'remote' });
+    await db.upsertCalDAVTaskObjects(taskObjects, { notify: false });
   } catch (error) {
     log.error(`Failed to fetch tasks for calendar ${calendar.displayName}:`, error);
   }

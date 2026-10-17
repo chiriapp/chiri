@@ -2,6 +2,7 @@ import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import type { PendingDeletionRow } from '$lib/database/types';
 import type { PendingDeletion } from '$types/store/sync';
 
+const MAX_SQLITE_PARAMETERS = 900;
 const fromDate = (date: Date | undefined) => date?.toISOString() ?? null;
 const toDate = (value: string | null) => (value ? new Date(value) : undefined);
 
@@ -21,24 +22,47 @@ export const getPendingDeletions = async (conn: DatabasePlugin): Promise<Pending
 };
 
 export const addPendingDeletion = async (conn: DatabasePlugin, deletion: PendingDeletion) => {
-  const deletedAt = deletion.deletedAt ?? new Date();
-  await conn.execute(
-    `INSERT OR REPLACE INTO pending_deletions (
-      uid, href, account_id, calendar_id, etag, deleted_at,
-      attempt_count, last_attempt_at, last_error
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-    [
-      deletion.uid,
-      deletion.href,
-      deletion.accountId,
-      deletion.calendarId,
-      deletion.etag ?? null,
-      deletedAt.toISOString(),
-      deletion.attemptCount ?? 0,
-      fromDate(deletion.lastAttemptAt),
-      deletion.lastError ?? null,
-    ],
-  );
+  await addPendingDeletions(conn, [deletion]);
+};
+
+export const addPendingDeletions = async (conn: DatabasePlugin, deletions: PendingDeletion[]) => {
+  const parameterCount = 9;
+  const deletionsPerBatch = Math.floor(MAX_SQLITE_PARAMETERS / parameterCount);
+
+  for (let offset = 0; offset < deletions.length; offset += deletionsPerBatch) {
+    const batch = deletions.slice(offset, offset + deletionsPerBatch);
+    const params = batch.flatMap((deletion) => {
+      const deletedAt = deletion.deletedAt ?? new Date();
+      return [
+        deletion.uid,
+        deletion.href,
+        deletion.accountId,
+        deletion.calendarId,
+        deletion.etag ?? null,
+        deletedAt.toISOString(),
+        deletion.attemptCount ?? 0,
+        fromDate(deletion.lastAttemptAt),
+        deletion.lastError ?? null,
+      ];
+    });
+    const placeholders = batch
+      .map((_, deletionIndex) => {
+        const start = deletionIndex * parameterCount;
+        return `(${Array.from(
+          { length: parameterCount },
+          (_value, parameterIndex) => `$${start + parameterIndex + 1}`,
+        ).join(',')})`;
+      })
+      .join(',');
+
+    await conn.execute(
+      `INSERT OR REPLACE INTO pending_deletions (
+        uid, href, account_id, calendar_id, etag, deleted_at,
+        attempt_count, last_attempt_at, last_error
+      ) VALUES ${placeholders}`,
+      params,
+    );
+  }
 };
 
 export const clearPendingDeletion = async (conn: DatabasePlugin, uid: string) => {

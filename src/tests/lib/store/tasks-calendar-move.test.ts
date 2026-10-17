@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Filter } from '$types/filter';
 import type { SettingsState } from '$types/settings/state';
 import type { PendingDeletion } from '$types/store/sync';
@@ -7,41 +7,53 @@ import { makeTask } from '../../fixtures';
 
 // vi.mock factories are hoisted; pre-create the mock fn refs via vi.hoisted
 // so they're initialized before the mock factories run
-const { mockAddPendingDeletion, mockUpdateTask, mockGetSettingsState, mockSettingsState } =
-  vi.hoisted(() => {
-    const mockSettingsState: Partial<SettingsState> = {
-      defaultCalendarId: null,
-      defaultPriority: 'none',
-      defaultStatus: 'needs-action',
-      defaultPercentComplete: 0,
-      defaultTags: [],
-      defaultStartDate: 'none',
-      defaultStartTime: null,
-      defaultDueDate: 'none',
-      defaultDueTime: null,
-      defaultReminders: [],
-      defaultRrule: undefined,
-      defaultRepeatFrom: 0,
-      defaultAllDayReminderHour: 9,
-      allDayReminderNotificationsEnabled: true,
-    };
+const {
+  mockAddPendingDeletion,
+  mockAddPendingDeletions,
+  mockCreateTasks,
+  mockUpdateTask,
+  mockUpsertTasks,
+  mockGetSettingsState,
+  mockSettingsState,
+} = vi.hoisted(() => {
+  const mockSettingsState: Partial<SettingsState> = {
+    defaultCalendarId: null,
+    defaultPriority: 'none',
+    defaultStatus: 'needs-action',
+    defaultPercentComplete: 0,
+    defaultTags: [],
+    defaultStartDate: 'none',
+    defaultStartTime: null,
+    defaultDueDate: 'none',
+    defaultDueTime: null,
+    defaultReminders: [],
+    defaultRrule: undefined,
+    defaultRepeatFrom: 0,
+    defaultAllDayReminderHour: 9,
+    allDayReminderNotificationsEnabled: true,
+  };
 
-    return {
-      mockAddPendingDeletion: vi.fn().mockResolvedValue(undefined),
-      mockUpdateTask: vi.fn().mockResolvedValue(undefined),
-      mockGetSettingsState: vi.fn(() => mockSettingsState),
-      mockSettingsState,
-    };
-  });
+  return {
+    mockAddPendingDeletion: vi.fn().mockResolvedValue(undefined),
+    mockAddPendingDeletions: vi.fn().mockResolvedValue(undefined),
+    mockCreateTasks: vi.fn().mockResolvedValue(undefined),
+    mockUpdateTask: vi.fn().mockResolvedValue(undefined),
+    mockUpsertTasks: vi.fn().mockResolvedValue(undefined),
+    mockGetSettingsState: vi.fn(() => mockSettingsState),
+    mockSettingsState,
+  };
+});
 
 vi.mock('@tauri-apps/plugin-sql', () => ({ default: { load: vi.fn() } }));
 
 vi.mock('$lib/database', () => ({
   db: {
     addPendingDeletion: mockAddPendingDeletion,
+    addPendingDeletions: mockAddPendingDeletions,
+    createTasks: mockCreateTasks,
     updateTask: mockUpdateTask,
+    upsertTasks: mockUpsertTasks,
     subscribe: vi.fn(() => vi.fn()),
-    getIsInitialized: vi.fn(() => false),
   },
 }));
 
@@ -67,7 +79,19 @@ vi.mock('$lib/task/recurrence', () => ({
 
 import { dataStore, defaultDataStore, defaultUIState } from '$lib/store';
 import { addReminder, removeReminder, updateReminder } from '$lib/store/reminders';
-import { addTagToTask, createTask, removeTagFromTask, updateTask } from '$lib/store/tasks';
+import {
+  addTagToTask,
+  createTask,
+  createTasks,
+  removeTagFromTask,
+  replaceTasksFromSync,
+  updateTask,
+  updateTasks,
+} from '$lib/store/tasks';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 const seedStore = (tasks: Task[], pendingDeletions: PendingDeletion[] = []) => {
   dataStore.save({
@@ -77,6 +101,229 @@ const seedStore = (tasks: Task[], pendingDeletions: PendingDeletion[] = []) => {
     ui: defaultUIState,
   });
 };
+
+describe('createTasks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockGetSettingsState.mockReturnValue(mockSettingsState);
+    seedStore([]);
+  });
+
+  it('persists and publishes a bulk task creation once', async () => {
+    vi.spyOn(dataStore, 'getIsInitialized').mockReturnValue(true);
+    const listener = vi.fn();
+    const unsubscribe = dataStore.subscribe(listener);
+    const taskData = [
+      makeTask({ id: 'remote-1', uid: 'uid-1', sortOrder: 10, synced: true }),
+      makeTask({ id: 'remote-2', uid: 'uid-2', sortOrder: 20, synced: true }),
+    ];
+
+    const createdTasks = await createTasks(taskData, { source: 'remote' });
+
+    expect(createdTasks.map((task) => task.uid)).toEqual(['uid-1', 'uid-2']);
+    expect(dataStore.load().tasks).toHaveLength(2);
+    expect(mockCreateTasks).toHaveBeenCalledTimes(1);
+    expect(mockCreateTasks).toHaveBeenCalledWith(createdTasks, { notify: false });
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
+  it('does not publish tasks when bulk persistence fails', async () => {
+    vi.spyOn(dataStore, 'getIsInitialized').mockReturnValue(true);
+    mockCreateTasks.mockRejectedValueOnce(new Error('duplicate uid'));
+    const listener = vi.fn();
+    const unsubscribe = dataStore.subscribe(listener);
+
+    await expect(
+      createTasks([makeTask({ id: 'remote-1', uid: 'uid-1' })], { source: 'remote' }),
+    ).rejects.toThrow('duplicate uid');
+
+    expect(dataStore.load().tasks).toEqual([]);
+    expect(listener).not.toHaveBeenCalled();
+    unsubscribe();
+  });
+
+  it('preserves an edit made while bulk task creation is in flight', async () => {
+    vi.spyOn(dataStore, 'getIsInitialized').mockReturnValue(true);
+    const existingTask = makeTask({ id: 'existing', uid: 'existing-uid', title: 'Original title' });
+    seedStore([existingTask]);
+
+    let finishPersistence: (() => void) | undefined;
+    mockCreateTasks.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishPersistence = resolve;
+        }),
+    );
+
+    const creation = createTasks(
+      [makeTask({ id: 'remote-1', uid: 'remote-uid-1', title: 'Remote task' })],
+      { source: 'remote' },
+    );
+    await vi.waitFor(() => expect(mockCreateTasks).toHaveBeenCalledTimes(1));
+    updateTask(existingTask.id, { title: 'Edited during persistence' });
+
+    finishPersistence?.();
+    await creation;
+
+    expect(dataStore.load().tasks).toEqual([
+      expect.objectContaining({ id: existingTask.id, title: 'Edited during persistence' }),
+      expect.objectContaining({ id: 'remote-1', title: 'Remote task' }),
+    ]);
+  });
+});
+
+describe('replaceTasksFromSync', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    seedStore([]);
+  });
+
+  it('rebases a remote replacement onto an edit made while persistence is in flight', async () => {
+    vi.spyOn(dataStore, 'getIsInitialized').mockReturnValue(true);
+    const task = makeTask({
+      id: 'task-1',
+      uid: 'uid-1',
+      title: 'Original title',
+      priority: 'none',
+      synced: true,
+    });
+    seedStore([task]);
+
+    let finishPersistence: (() => void) | undefined;
+    mockUpsertTasks.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishPersistence = resolve;
+        }),
+    );
+
+    const replacement = {
+      ...task,
+      priority: 'high' as const,
+      modifiedAt: new Date(task.modifiedAt.getTime() + 1_000),
+    };
+    const replacementOperation = replaceTasksFromSync([replacement]);
+    await vi.waitFor(() => expect(mockUpsertTasks).toHaveBeenCalledTimes(1));
+    updateTask(task.id, { title: 'Edited during persistence' });
+
+    finishPersistence?.();
+    await replacementOperation;
+
+    expect(dataStore.load().tasks[0]).toEqual(
+      expect.objectContaining({ title: 'Edited during persistence', priority: 'high' }),
+    );
+    expect(mockUpsertTasks).toHaveBeenCalledTimes(2);
+    expect(mockUpsertTasks).toHaveBeenLastCalledWith(
+      [expect.objectContaining({ title: 'Edited during persistence', priority: 'high' })],
+      { notify: false },
+    );
+  });
+});
+
+describe('updateTasks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    seedStore([]);
+  });
+
+  it('persists and publishes a bulk task update once', async () => {
+    vi.spyOn(dataStore, 'getIsInitialized').mockReturnValue(true);
+    const tasks = [
+      makeTask({ id: 'task-1', uid: 'uid-1', priority: 'none', synced: true }),
+      makeTask({ id: 'task-2', uid: 'uid-2', priority: 'low', synced: true }),
+    ];
+    seedStore(tasks);
+    const listener = vi.fn();
+    const unsubscribe = dataStore.subscribe(listener);
+
+    const updatedTasks = await updateTasks(
+      tasks.map((task) => ({ id: task.id, updates: { priority: 'high' as const } })),
+    );
+
+    expect(updatedTasks).toHaveLength(2);
+    expect(updatedTasks.every((task) => task.priority === 'high' && !task.synced)).toBe(true);
+    expect(mockUpsertTasks).toHaveBeenCalledTimes(1);
+    expect(mockUpsertTasks).toHaveBeenCalledWith(updatedTasks, { notify: false });
+    expect(listener).toHaveBeenCalledTimes(1);
+    unsubscribe();
+  });
+
+  it('batches pending deletions when tasks move between calendars', async () => {
+    vi.spyOn(dataStore, 'getIsInitialized').mockReturnValue(true);
+    const tasks = [
+      makeTask({
+        id: 'task-1',
+        uid: 'uid-1',
+        href: '/personal/task-1.ics',
+        calendarId: 'personal',
+      }),
+      makeTask({
+        id: 'task-2',
+        uid: 'uid-2',
+        href: '/personal/task-2.ics',
+        calendarId: 'personal',
+      }),
+    ];
+    seedStore(tasks);
+
+    const updatedTasks = await updateTasks(
+      tasks.map((task) => ({ id: task.id, updates: { calendarId: 'work' } })),
+    );
+
+    expect(mockAddPendingDeletions).toHaveBeenCalledTimes(1);
+    expect(mockAddPendingDeletions).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ uid: 'uid-1', href: '/personal/task-1.ics' }),
+        expect.objectContaining({ uid: 'uid-2', href: '/personal/task-2.ics' }),
+      ]),
+      { notify: false },
+    );
+    expect(updatedTasks.every((task) => !task.href && !task.etag)).toBe(true);
+    expect(dataStore.load().pendingDeletions).toHaveLength(2);
+  });
+
+  it('preserves an edit made while bulk persistence is in flight', async () => {
+    vi.spyOn(dataStore, 'getIsInitialized').mockReturnValue(true);
+    const task = makeTask({
+      id: 'task-1',
+      uid: 'uid-1',
+      title: 'Original title',
+      priority: 'none',
+      synced: true,
+    });
+    seedStore([task]);
+
+    let finishPersistence: (() => void) | undefined;
+    mockUpsertTasks.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishPersistence = resolve;
+        }),
+    );
+
+    const bulkUpdate = updateTasks([{ id: task.id, updates: { priority: 'high' as const } }]);
+    await vi.waitFor(() => expect(mockUpsertTasks).toHaveBeenCalledTimes(1));
+
+    updateTask(task.id, { title: 'Edited during persistence' });
+    expect(dataStore.load().tasks[0]?.title).toBe('Edited during persistence');
+
+    finishPersistence?.();
+    await bulkUpdate;
+
+    expect(dataStore.load().tasks[0]).toEqual(
+      expect.objectContaining({
+        title: 'Edited during persistence',
+        priority: 'high',
+      }),
+    );
+    expect(mockUpsertTasks).toHaveBeenCalledTimes(2);
+    expect(mockUpsertTasks).toHaveBeenLastCalledWith(
+      [expect.objectContaining({ title: 'Edited during persistence', priority: 'high' })],
+      { notify: false },
+    );
+  });
+});
 
 /**
  * regression coverage for the calendar-move issue. moving a synced task to a

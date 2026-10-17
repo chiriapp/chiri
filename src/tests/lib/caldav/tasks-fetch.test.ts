@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { HttpResponse, MultiStatusResponse } from '$lib/http';
+import type { HttpResponse } from '$lib/http';
+import type { MultiStatusResponse } from '$lib/multistatus';
 import { makeCalendar, makeConnection, makeTask } from '../../fixtures';
 
+vi.mock('$lib/multistatus', () => ({ parseMultiStatusXml: vi.fn() }));
 vi.mock('$lib/http', () => ({
   put: vi.fn(),
   propfind: vi.fn(),
-  parseMultiStatus: vi.fn(),
   report: vi.fn(),
   del: vi.fn(),
 }));
@@ -24,6 +25,7 @@ vi.mock('$lib/caldav/utils', () => ({
 import { fetchTasks } from '$lib/caldav/tasks';
 import * as http from '$lib/http';
 import * as ical from '$lib/ical/vtodo';
+import * as multistatus from '$lib/multistatus';
 
 const conn = makeConnection({ serverUrl: 'https://cal.example.com' });
 const calendar = makeCalendar({ id: 'cal-1', url: 'https://cal.example.com/calendars/default/' });
@@ -39,11 +41,11 @@ describe('fetchTasks', () => {
 
   it('happy path: query + multiget + vtodoToTask produces tasks with CalDAV baselines', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([{ href: '/cal/a.ics' }, { href: '/cal/b.ics' }]),
     );
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         { href: '/cal/a.ics', props: { 'calendar-data': 'V-A', getetag: '"e-a"' } },
         { href: '/cal/b.ics', props: { 'calendar-data': 'V-B', getetag: '"e-b"' } },
@@ -86,7 +88,7 @@ describe('fetchTasks', () => {
 
   it('returns [] when calendar-query returns zero results', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce([]);
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce([]);
 
     const result = await fetchTasks(conn, 'acct', calendar);
 
@@ -99,7 +101,9 @@ describe('fetchTasks', () => {
     // with queryResults.length === 1 and the href filtered out, fetchTasks should
     // return [] rather than null
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(multi([{ href: '/calendars/default/' }]));
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
+      multi([{ href: '/calendars/default/' }]),
+    );
 
     const result = await fetchTasks(conn, 'acct', calendar);
 
@@ -117,7 +121,7 @@ describe('fetchTasks', () => {
 
   it('returns null when multiget fails (non-207)', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(multi([{ href: '/cal/a.ics' }]));
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(multi([{ href: '/cal/a.ics' }]));
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(503));
 
     const result = await fetchTasks(conn, 'acct', calendar);
@@ -125,9 +129,50 @@ describe('fetchTasks', () => {
     expect(result).toBeNull();
   });
 
+  it('fetches large calendars in sequential multiget batches', async () => {
+    const hrefs = Array.from({ length: 501 }, (_, index) => ({ href: `/cal/${index}.ics` }));
+    vi.mocked(http.report)
+      .mockResolvedValueOnce(httpOk(207))
+      .mockResolvedValueOnce(httpOk(207))
+      .mockResolvedValueOnce(httpOk(207));
+    vi.mocked(multistatus.parseMultiStatusXml)
+      .mockReturnValueOnce(multi(hrefs))
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce([]);
+
+    const result = await fetchTasks(conn, 'acct', calendar);
+
+    expect(result).toEqual([]);
+    expect(http.report).toHaveBeenCalledTimes(3);
+    const firstBatchBody = vi.mocked(http.report).mock.calls[1][2];
+    const secondBatchBody = vi.mocked(http.report).mock.calls[2][2];
+    expect(firstBatchBody).toContain('/cal/0.ics');
+    expect(firstBatchBody).toContain('/cal/499.ics');
+    expect(firstBatchBody).not.toContain('/cal/500.ics');
+    expect(secondBatchBody).toContain('/cal/500.ics');
+    expect(secondBatchBody).not.toContain('/cal/499.ics');
+  });
+
+  it('returns null without exposing partial results when a later batch fails', async () => {
+    const hrefs = Array.from({ length: 501 }, (_, index) => ({ href: `/cal/${index}.ics` }));
+    vi.mocked(http.report)
+      .mockResolvedValueOnce(httpOk(207))
+      .mockResolvedValueOnce(httpOk(207))
+      .mockResolvedValueOnce(httpOk(503));
+    vi.mocked(multistatus.parseMultiStatusXml)
+      .mockReturnValueOnce(multi(hrefs))
+      .mockReturnValueOnce(multi([{ href: '/cal/0.ics', props: { 'calendar-data': 'V-A' } }]));
+    vi.mocked(ical.vtodoToTask).mockReturnValueOnce(makeTask({ uid: 'a' }));
+
+    const result = await fetchTasks(conn, 'acct', calendar);
+
+    expect(result).toBeNull();
+    expect(http.report).toHaveBeenCalledTimes(3);
+  });
+
   it('filters out hrefs that do not end in .ics', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         { href: '/cal/a.ics' },
         { href: '/cal/junk.txt' }, // filtered
@@ -135,7 +180,7 @@ describe('fetchTasks', () => {
       ]),
     );
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         { href: '/cal/a.ics', props: { 'calendar-data': 'V-A' } },
         { href: '/cal/b.ics', props: { 'calendar-data': 'V-B' } },
@@ -156,14 +201,14 @@ describe('fetchTasks', () => {
 
   it('filters out the calendar collection URL from hrefs', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         { href: '/calendars/default/' }, // the calendar URL itself, filtered
         { href: '/cal/a.ics' },
       ]),
     );
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([{ href: '/cal/a.ics', props: { 'calendar-data': 'V-A' } }]),
     );
     vi.mocked(ical.vtodoToTask).mockReturnValueOnce(makeTask({ uid: 'a' }));
@@ -176,7 +221,7 @@ describe('fetchTasks', () => {
 
   it('returns null when query has many results but all hrefs are filtered out', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         { href: '/junk1.txt' },
         { href: '/junk2.txt' },
@@ -191,11 +236,11 @@ describe('fetchTasks', () => {
 
   it('skips multiget entries with no calendar-data', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([{ href: '/cal/a.ics' }, { href: '/cal/b.ics' }]),
     );
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         { href: '/cal/a.ics', props: { 'calendar-data': 'V-A' } },
         { href: '/cal/b.ics', props: {} }, // no calendar-data - should be skipped
@@ -211,11 +256,11 @@ describe('fetchTasks', () => {
 
   it('skips results when vtodoToTask returns null', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([{ href: '/cal/a.ics' }, { href: '/cal/b.ics' }]),
     );
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         { href: '/cal/a.ics', props: { 'calendar-data': 'V-A' } },
         { href: '/cal/b.ics', props: { 'calendar-data': 'V-B' } },
@@ -233,9 +278,9 @@ describe('fetchTasks', () => {
 
   it('absolutizes relative hrefs against serverUrl when calling vtodoToTask', async () => {
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(multi([{ href: '/cal/a.ics' }]));
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(multi([{ href: '/cal/a.ics' }]));
     vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([{ href: '/cal/a.ics', props: { 'calendar-data': 'V-A', getetag: '"e1"' } }]),
     );
     vi.mocked(ical.vtodoToTask).mockReturnValueOnce(makeTask({ uid: 'a' }));

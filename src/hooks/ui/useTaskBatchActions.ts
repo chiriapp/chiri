@@ -4,7 +4,7 @@ import { useTaskDeletion } from '$hooks/deletion/useTaskDeletion';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import { useTags } from '$hooks/queries/useTags';
 import { useBatchUpdateTasks, useRestoreTask } from '$hooks/queries/useTasks';
-import { exportTaskAndChildren } from '$lib/store/tasks';
+import { exportTasksAndActiveDescendants } from '$lib/store/tasks';
 import { buildStatusUpdates } from '$lib/task/status';
 import type { Priority, Status, Task } from '$types/task/model';
 
@@ -42,17 +42,10 @@ export const useTaskBatchActions = ({
     () => Array.from(new Set(selectedTasks.map((task) => task.calendarId).filter(Boolean))),
     [selectedTasks],
   );
-  const exportTasks = useMemo(() => {
-    const taskIds = new Set<string>();
-    return selectedTasks.flatMap((task) => {
-      const tasks = [task, ...(exportTaskAndChildren(task.id)?.descendants ?? [])];
-      return tasks.filter((exportTask) => {
-        if (taskIds.has(exportTask.id)) return false;
-        taskIds.add(exportTask.id);
-        return true;
-      });
-    });
-  }, [selectedTasks]);
+  const exportTasks = useMemo(
+    () => (showExportModal ? exportTasksAndActiveDescendants(selectedTasks) : []),
+    [selectedTasks, showExportModal],
+  );
 
   const allCalendars = useMemo(
     () =>

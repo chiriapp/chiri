@@ -48,11 +48,32 @@ class Store {
   private batchDepth = 0;
   private notifyPending = false;
 
-  subscribe(listener: DataChangeListener) {
-    this.listeners.add(listener);
-    db.subscribe(listener);
+  subscribe(listener: DataChangeListener): () => void;
+  subscribe<T>(
+    listener: DataChangeListener,
+    selector: (data: DataStore) => T,
+    isEqual?: (previous: T, next: T) => boolean,
+  ): () => void;
+  subscribe<T>(
+    listener: DataChangeListener,
+    selector?: (data: DataStore) => T,
+    isEqual: (previous: T, next: T) => boolean = Object.is,
+  ) {
+    let selectedValue = selector?.(this.load());
+    const handleChange = () => {
+      if (selector) {
+        const nextValue = selector(this.load());
+        if (isEqual(selectedValue as T, nextValue)) return;
+        selectedValue = nextValue;
+      }
+      listener();
+    };
+
+    this.listeners.add(handleChange);
+    const unsubscribeDatabase = db.subscribe(handleChange);
     return () => {
-      this.listeners.delete(listener);
+      this.listeners.delete(handleChange);
+      unsubscribeDatabase();
     };
   }
 

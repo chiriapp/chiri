@@ -5,7 +5,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 
 import { invoke } from '@tauri-apps/api/core';
-import { parseMultiStatus, tauriRequest } from '$lib/http';
+import { tauriRequest } from '$lib/http';
+import { parseMultiStatusXml } from '$lib/multistatus';
 
 const xml = (body: string) => `<?xml version="1.0" encoding="utf-8"?>${body}`;
 
@@ -151,24 +152,24 @@ describe('tauriRequest routing', () => {
   });
 });
 
-describe('parseMultiStatus', () => {
+describe('parseMultiStatusXml', () => {
   it('returns empty array for empty multistatus', () => {
-    const result = parseMultiStatus(xml('<d:multistatus xmlns:d="DAV:"></d:multistatus>'));
+    const result = parseMultiStatusXml(xml('<d:multistatus xmlns:d="DAV:"></d:multistatus>'));
     expect(result).toEqual([]);
   });
 
   it('throws for malformed XML', () => {
-    expect(() => parseMultiStatus('<not xml lol')).toThrow(/Invalid CalDAV XML response/i);
+    expect(() => parseMultiStatusXml('<not xml lol')).toThrow(/Invalid CalDAV XML response/i);
   });
 
   it('throws when the XML is not a multistatus response', () => {
-    expect(() => parseMultiStatus(xml('<d:error xmlns:d="DAV:"/>'))).toThrow(
+    expect(() => parseMultiStatusXml(xml('<d:error xmlns:d="DAV:"/>'))).toThrow(
       /Invalid CalDAV multistatus response/i,
     );
   });
 
   it('parses a single response with href, status, and props', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:">
           <d:response>
@@ -189,7 +190,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('parses multiple responses', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:">
           <d:response>
@@ -209,7 +210,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('extracts joined child element names for resourcetype', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:response>
@@ -230,7 +231,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('extracts href from current-user-principal', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:">
           <d:response>
@@ -250,7 +251,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('extracts href from calendar-home-set', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
           <d:response>
@@ -270,7 +271,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('returns null for current-user-principal without an inner href', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:">
           <d:response>
@@ -288,7 +289,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('handles a response with no propstat (empty props)', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:">
           <d:response>
@@ -302,7 +303,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('returns empty href when not present', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:">
           <d:response>
@@ -315,7 +316,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('returns innerHTML for elements with non-href child elements', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:" xmlns:cal="urn:ietf:params:xml:ns:caldav">
           <d:response>
@@ -337,7 +338,7 @@ describe('parseMultiStatus', () => {
   });
 
   it('handles unicode content', () => {
-    const result = parseMultiStatus(
+    const result = parseMultiStatusXml(
       xml(`
         <d:multistatus xmlns:d="DAV:">
           <d:response>

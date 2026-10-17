@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { TaskEditorFields } from '$components/taskEditor/TaskEditorFields';
 import { TaskEditorFooter } from '$components/taskEditor/TaskEditorFooter';
 import { TaskEditorHeader } from '$components/taskEditor/TaskEditorHeader';
@@ -79,7 +79,10 @@ export const TaskEditor = ({ task, onOpenNotificationSettings }: TaskEditorProps
   }, [focusRequestVersion, task.id, uiState]);
 
   const visibleTasks = useVisibleTasks();
-  const visibleTaskUids = new Set(visibleTasks.map((visibleTask) => visibleTask.uid));
+  const visibleTaskUids = useMemo(
+    () => new Set(visibleTasks.map((visibleTask) => visibleTask.uid)),
+    [visibleTasks],
+  );
   const parentTask =
     task.parentUid && !visibleTaskUids.has(task.parentUid)
       ? getTaskByUid(task.parentUid)

@@ -1,13 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { HttpResponse, MultiStatusResponse } from '$lib/http';
+import type { HttpResponse } from '$lib/http';
+import type { MultiStatusResponse } from '$lib/multistatus';
 import { makeConnection } from '../../fixtures';
 
+vi.mock('$lib/multistatus', () => ({ parseMultiStatusXml: vi.fn() }));
 vi.mock('$lib/http', () => ({
   propfind: vi.fn(),
   proppatch: vi.fn(),
   mkcalendar: vi.fn(),
   del: vi.fn(),
-  parseMultiStatus: vi.fn(),
 }));
 vi.mock('$lib/caldav/utils', () => ({
   makeAbsoluteUrl: (href: string, base: string) =>
@@ -34,6 +35,7 @@ import {
   updateCalendar,
 } from '$lib/caldav/calendars';
 import * as http from '$lib/http';
+import * as multistatus from '$lib/multistatus';
 
 const httpOk = (status: number, body = ''): HttpResponse => ({ status, headers: {}, body });
 const multi = (
@@ -139,7 +141,7 @@ describe('fetchCalendars', () => {
 
   it('returns calendars with VTODO support', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         // calendar home itself - should be filtered out
         { href: '/calendars/alice/', props: { resourcetype: 'collection' } },
@@ -168,7 +170,7 @@ describe('fetchCalendars', () => {
 
   it('skips calendars without VTODO support (e.g. event-only)', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         {
           href: '/calendars/alice/events/',
@@ -186,7 +188,7 @@ describe('fetchCalendars', () => {
 
   it('reports diagnostics for skipped event-only calendars', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         {
           href: '/calendars/alice/events/',
@@ -212,7 +214,7 @@ describe('fetchCalendars', () => {
 
   it('returns an empty list when the account has no calendars yet', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([{ href: '/calendars/alice/', props: { resourcetype: 'collection' } }]),
     );
 
@@ -221,7 +223,7 @@ describe('fetchCalendars', () => {
 
   it('skips non-calendar resources', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         {
           href: '/calendars/alice/other/',
@@ -235,7 +237,7 @@ describe('fetchCalendars', () => {
 
   it('skips deleted-calendar resources', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         {
           href: '/calendars/alice/trash/',
@@ -252,7 +254,7 @@ describe('fetchCalendars', () => {
 
   it('defaults displayName to "Calendar" when server omits it', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         {
           href: '/calendars/alice/tasks/',
@@ -268,7 +270,7 @@ describe('fetchCalendars', () => {
 
   it('maps Apple DEFAULT_TASK_CALENDAR_NAME to "Reminders" for VTODO calendars', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         {
           href: '/calendars/alice/reminders/',
@@ -289,7 +291,7 @@ describe('fetchCalendars', () => {
 
   it('maps Apple DEFAULT_TASK_CALENDAR_NAME to "Reminders" in skipped-calendar diagnostics', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         {
           href: '/calendars/alice/reminders/',
@@ -313,7 +315,7 @@ describe('fetchCalendars', () => {
 
   it('parses calendar-order as integer (default 0)', async () => {
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         {
           href: '/calendars/alice/a/',
@@ -365,7 +367,7 @@ describe('createCalendar', () => {
   it('returns push metadata from follow-up discovery when available', async () => {
     vi.mocked(http.mkcalendar).mockResolvedValueOnce(httpOk(201));
     vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
       multi([
         { href: '/calendars/alice/', props: { resourcetype: 'collection' } },
         {

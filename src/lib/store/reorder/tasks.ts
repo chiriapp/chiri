@@ -1,3 +1,5 @@
+import { db } from '$lib/database';
+import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import { getSortedTasks } from '$lib/store/tasks';
 import type { SortConfig } from '$types/sort';
@@ -10,6 +12,8 @@ type TaskUpdate = {
   calendarId?: string;
   accountId?: string;
 };
+
+const log = loggers.dataStore;
 
 const findNewParentUid = (
   flattenedItems: FlattenedTask[],
@@ -166,12 +170,15 @@ const applyUpdates = (tasks: Task[], updates: Map<string, TaskUpdate>): Task[] =
   return tasks.map((task) => {
     const update = updates.get(task.id);
     if (!update) return task;
+    const movedToAnotherCalendar =
+      update.calendarId !== undefined && update.calendarId !== task.calendarId;
     return {
       ...task,
       sortOrder: update.sortOrder,
       parentUid: update.parentUid,
       ...(update.calendarId && { calendarId: update.calendarId }),
       ...(update.accountId && { accountId: update.accountId }),
+      ...(movedToAnotherCalendar && { href: undefined, etag: undefined }),
       synced: false,
       modifiedAt: new Date(),
     };
@@ -196,7 +203,35 @@ export const reorderTasks = (
 
   if (!reorderedTasks) return null;
 
-  dataStore.save({ ...data, tasks: reorderedTasks });
+  const reorderedById = new Map(reorderedTasks.map((task) => [task.id, task]));
+  const deletedAt = new Date();
+  const calendarMoveDeletions = data.tasks.flatMap((task) => {
+    const reorderedTask = reorderedById.get(task.id);
+    if (!task.href || !reorderedTask || reorderedTask.calendarId === task.calendarId) return [];
+
+    return [
+      {
+        uid: task.uid,
+        href: task.href,
+        accountId: task.accountId,
+        calendarId: task.calendarId,
+        etag: task.etag,
+        deletedAt,
+      },
+    ];
+  });
+
+  for (const deletion of calendarMoveDeletions) {
+    db.addPendingDeletion(deletion).catch((error) =>
+      log.error('Failed to persist pending deletion for dragged calendar move:', error),
+    );
+  }
+
+  dataStore.save({
+    ...data,
+    tasks: reorderedTasks,
+    pendingDeletions: [...data.pendingDeletions, ...calendarMoveDeletions],
+  });
   return reorderedTasks;
 };
 

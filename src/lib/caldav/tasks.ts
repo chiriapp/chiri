@@ -27,13 +27,16 @@
 import type { Connection } from '$lib/caldav/connection';
 import type { TaskWithCalDAVObject } from '$lib/caldav/types';
 import { cleanEtag, log, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
-import { del, parseMultiStatus, propfind, put, report } from '$lib/http';
+import { del, propfind, put, report } from '$lib/http';
 import { taskToVTodo, vtodoToTask } from '$lib/ical/vtodo';
+import { parseMultiStatusXml } from '$lib/multistatus';
 import type { Calendar } from '$types/calendar';
 import type { Task } from '$types/task/model';
 
 const stripCalDAVObject = ({ caldavObject: _caldavObject, ...task }: TaskWithCalDAVObject): Task =>
   task;
+
+const CALENDAR_MULTIGET_BATCH_SIZE = 500;
 
 export const fetchTasks = async (conn: Connection, accountId: string, calendar: Calendar) => {
   const queryBody = `<?xml version="1.0" encoding="utf-8"?>
@@ -56,7 +59,7 @@ export const fetchTasks = async (conn: Connection, accountId: string, calendar: 
     return null;
   }
 
-  const queryResults = parseMultiStatus(queryResponse.body);
+  const queryResults = parseMultiStatusXml(queryResponse.body);
 
   if (queryResults.length === 0) {
     log.info(`No tasks found in calendar: ${calendar.displayName}`);
@@ -107,46 +110,54 @@ export const fetchTasks = async (conn: Connection, accountId: string, calendar: 
     return null;
   }
 
-  const multigetBody = `<?xml version="1.0" encoding="utf-8"?>
+  const tasks: TaskWithCalDAVObject[] = [];
+
+  for (let offset = 0; offset < hrefs.length; offset += CALENDAR_MULTIGET_BATCH_SIZE) {
+    const hrefBatch = hrefs.slice(offset, offset + CALENDAR_MULTIGET_BATCH_SIZE);
+    const batchNumber = Math.floor(offset / CALENDAR_MULTIGET_BATCH_SIZE) + 1;
+    const batchCount = Math.ceil(hrefs.length / CALENDAR_MULTIGET_BATCH_SIZE);
+    const multigetBody = `<?xml version="1.0" encoding="utf-8"?>
 <c:calendar-multiget xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
   <d:prop>
     <d:getetag/>
     <c:calendar-data/>
   </d:prop>
-${hrefs.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
+${hrefBatch.map((href) => `  <d:href>${href}</d:href>`).join('\n')}
 </c:calendar-multiget>`;
 
-  const multigetResponse = await report(calendar.url, conn.credentials, multigetBody, '0');
+    const multigetResponse = await report(calendar.url, conn.credentials, multigetBody, '0');
 
-  if (multigetResponse.status !== 207) {
-    log.error(`Failed to fetch task data: HTTP ${multigetResponse.status}`);
-    log.error('Response body:', multigetResponse.body);
-    return null;
-  }
+    if (multigetResponse.status !== 207) {
+      log.error(
+        `Failed to fetch task data batch ${batchNumber}/${batchCount}: HTTP ${multigetResponse.status}`,
+      );
+      log.error('Response body:', multigetResponse.body);
+      return null;
+    }
 
-  const results = parseMultiStatus(multigetResponse.body);
-  const tasks: TaskWithCalDAVObject[] = [];
+    const results = parseMultiStatusXml(multigetResponse.body);
 
-  for (const result of results) {
-    const calendarData = result.props['calendar-data'];
-    const etag = cleanEtag(result.props.getetag);
+    for (const result of results) {
+      const calendarData = result.props['calendar-data'];
+      const etag = cleanEtag(result.props.getetag);
 
-    if (calendarData) {
-      const href = makeAbsoluteUrl(result.href, conn.serverUrl);
-      const task = vtodoToTask(calendarData, accountId, calendar.id, href, etag ?? undefined);
-      if (task) {
-        tasks.push({
-          ...task,
-          caldavObject: {
-            taskUid: task.uid,
-            accountId,
-            calendarId: calendar.id,
-            href,
-            etag: etag ?? undefined,
-            vtodo: calendarData,
-            lastSyncAt: new Date(),
-          },
-        });
+      if (calendarData) {
+        const href = makeAbsoluteUrl(result.href, conn.serverUrl);
+        const task = vtodoToTask(calendarData, accountId, calendar.id, href, etag ?? undefined);
+        if (task) {
+          tasks.push({
+            ...task,
+            caldavObject: {
+              taskUid: task.uid,
+              accountId,
+              calendarId: calendar.id,
+              href,
+              etag: etag ?? undefined,
+              vtodo: calendarData,
+              lastSyncAt: new Date(),
+            },
+          });
+        }
       }
     }
   }
@@ -181,7 +192,7 @@ export const createTask = async (conn: Connection, calendar: Calendar, task: Tas
       const propfindResponse = await propfind(url, conn.credentials, propfindBody, '0');
 
       if (propfindResponse.status === 207) {
-        const results = parseMultiStatus(propfindResponse.body);
+        const results = parseMultiStatusXml(propfindResponse.body);
         const etag = cleanEtag(results[0]?.props?.getetag);
         return { href: url, etag };
       }

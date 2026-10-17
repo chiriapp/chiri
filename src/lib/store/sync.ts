@@ -14,11 +14,19 @@ import { dataStore } from '$lib/store';
 import { getAccountById, getAllAccounts, updateAccount } from '$lib/store/accounts';
 import { addCalendar, deleteCalendar, updateCalendar } from '$lib/store/calendars';
 import { createTag, getAllTags, updateTag } from '$lib/store/tags';
-import { createTask, getTasksByCalendar, removeLocalTask, updateTask } from '$lib/store/tasks';
+import {
+  createTasks,
+  getAllTasks,
+  getTasksByCalendar,
+  removeLocalTask,
+  replaceTasksFromSync,
+  updateTask,
+} from '$lib/store/tasks';
 import { getUIState, setAllTasksView } from '$lib/store/ui';
 import { toastManager } from '$lib/toastManager';
 import type { Account } from '$types/account';
 import type { Calendar } from '$types/calendar';
+import type { PendingDeletion } from '$types/store/sync';
 import type { Task } from '$types/task/model';
 import { getColorSchemeColorPresets } from '$utils/color/scheme';
 import { generateTagColor } from '$utils/color/tag';
@@ -95,12 +103,64 @@ const persistTaskObject = async (object: CalDAVTaskObject) => {
   }
 };
 
+const persistTaskObjects = async (objects: CalDAVTaskObject[]) => {
+  if (objects.length === 0) return;
+
+  try {
+    await db.upsertCalDAVTaskObjects(objects, { notify: false });
+  } catch (error) {
+    syncLog.error('Failed to persist CalDAV task object baselines:', error);
+  }
+};
+
 const removeTaskObject = async (taskUid: string) => {
   try {
     await db.removeCalDAVTaskObjectByUid(taskUid);
   } catch (error) {
     syncLog.error('Failed to remove CalDAV task object baseline:', error);
   }
+};
+
+const queuePendingDeletion = async (deletion: PendingDeletion) => {
+  const data = dataStore.load();
+  const alreadyQueued = data.pendingDeletions.some(
+    (pending) =>
+      pending.uid === deletion.uid &&
+      pending.href === deletion.href &&
+      pending.calendarId === deletion.calendarId,
+  );
+  if (alreadyQueued) return;
+
+  await db.addPendingDeletion(deletion);
+  dataStore.save({
+    ...data,
+    pendingDeletions: [...data.pendingDeletions, deletion],
+  });
+};
+
+const detachStaleCalendarHref = async (task: Task, calendarId: string) => {
+  if (!task.href) return task;
+
+  const baseline = await db.getCalDAVTaskObjectByUid(task.uid);
+  if (!baseline || baseline.calendarId === calendarId) return task;
+
+  await queuePendingDeletion({
+    uid: task.uid,
+    href: baseline.href,
+    accountId: baseline.accountId,
+    calendarId: baseline.calendarId,
+    etag: baseline.etag,
+    deletedAt: new Date(),
+  });
+
+  return (
+    updateTask(task.id, { href: undefined, etag: undefined, synced: false }) ?? {
+      ...task,
+      href: undefined,
+      etag: undefined,
+      synced: false,
+    }
+  );
 };
 
 // helper: process pending deletions for a calendar
@@ -159,8 +219,9 @@ const pushUnsyncedTasks = async (
   const localCalendarTasks = getTasksByCalendar(calendarId);
   const unsyncedTasks = localCalendarTasks.filter((t) => !t.synced && !t.deletedAt);
 
-  for (const task of unsyncedTasks) {
+  for (const unsyncedTask of unsyncedTasks) {
     try {
+      const task = await detachStaleCalendarHref(unsyncedTask, calendarId);
       if (task.href) {
         const result = await client.updateTask(task);
         if (result) {
@@ -176,21 +237,25 @@ const pushUnsyncedTasks = async (
       }
     } catch (error) {
       syncLog.error(
-        `Failed to push task ${task.title} to calendar ${calendar.displayName}:`,
+        `Failed to push task ${unsyncedTask.title} to calendar ${calendar.displayName}:`,
         error,
       );
     }
   }
 };
 
-const getBaselineTask = async (taskUid: string) => {
+const getBaselineTasksByUid = async (calendarId: string) => {
   try {
-    const object = await db.getCalDAVTaskObjectByUid(taskUid);
-    if (!object) return null;
-    return vtodoToTask(object.vtodo, object.accountId, object.calendarId, object.href, object.etag);
+    const objects = await db.getCalDAVTaskObjectsByCalendar(calendarId);
+    return new Map(
+      objects.map((object) => [
+        object.taskUid,
+        vtodoToTask(object.vtodo, object.accountId, object.calendarId, object.href, object.etag),
+      ]),
+    );
   } catch (error) {
-    syncLog.error('Failed to load CalDAV task object baseline:', error);
-    return null;
+    syncLog.error('Failed to load CalDAV task object baselines:', error);
+    return new Map<string, Task>();
   }
 };
 
@@ -229,66 +294,12 @@ const buildBaselineMergeUpdates = (
   return updates;
 };
 
-// helper: process a new task from server
-const processNewRemoteTask = async (remoteTask: TaskWithCalDAVObject) => {
-  const remoteTaskData = stripRemoteTaskMetadata(remoteTask);
-  const categoryNames = getRemoteCategoryNames(remoteTask);
-  const tagIds = categoryNames.map((name: string) => ensureTagExists(name));
-  applyRemoteTagColors(remoteTask, categoryNames);
-
-  createTask(
-    {
-      ...remoteTaskData,
-      href: remoteTask.href ?? remoteTask.caldavObject?.href,
-      etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
-      tags: tagIds,
-    },
-    { source: 'remote' },
-  );
-  if (remoteTask.caldavObject) {
-    await persistTaskObject(remoteTask.caldavObject);
-  }
-};
-
-// helper: process an existing task from server (update if needed)
-const processExistingRemoteTask = async (remoteTask: TaskWithCalDAVObject, localTask: Task) => {
-  const remoteTaskData = stripRemoteTaskMetadata(remoteTask);
-  const categoryNames = getRemoteCategoryNames(remoteTask);
-  const remoteTagIds = categoryNames.map((name: string) => ensureTagExists(name));
-  applyRemoteTagColors(remoteTask, categoryNames);
-
-  const localTagIds = localTask.tags || [];
-  const tagsMatch =
-    remoteTagIds.length === localTagIds.length &&
-    remoteTagIds.every((id) => localTagIds.includes(id));
-
-  if (remoteTask.etag !== localTask.etag) {
-    if (localTask.synced) {
-      updateTask(localTask.id, {
-        ...remoteTaskData,
-        id: localTask.id,
-        href: remoteTask.href ?? remoteTask.caldavObject?.href,
-        etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
-        tags: remoteTagIds,
-        synced: true,
-      });
-    } else {
-      const baselineTask = await getBaselineTask(localTask.uid);
-      if (baselineTask) {
-        updateTask(
-          localTask.id,
-          buildBaselineMergeUpdates(remoteTask, localTask, baselineTask, remoteTagIds),
-        );
-      }
-    }
-  } else if (!tagsMatch && localTask.synced) {
-    updateTask(localTask.id, { tags: remoteTagIds, synced: true });
-  }
-
-  if (remoteTask.caldavObject) {
-    await persistTaskObject(remoteTask.caldavObject);
-  }
-};
+const buildTaskReplacement = (localTask: Task, updates: Partial<Task>): Task => ({
+  ...localTask,
+  ...updates,
+  modifiedAt: updates.modifiedAt !== undefined ? updates.modifiedAt : new Date(),
+  synced: updates.synced !== undefined ? updates.synced : false,
+});
 
 export const getPendingDeletions = () => {
   return dataStore.load().pendingDeletions;
@@ -423,10 +434,12 @@ const getRemoteCategoryNames = (remoteTask: Task) => {
     .filter(Boolean);
 };
 
-const applyRemoteTagColors = (remoteTask: Task, categoryNames: string[]) => {
+const applyRemoteTagColors = (
+  remoteTask: Task,
+  categoryNames: string[],
+  tagsByName = new Map(getAllTags().map((tag) => [tag.name.toLowerCase(), tag])),
+) => {
   if (!remoteTask.tagColorsByName || categoryNames.length === 0) return;
-
-  const tagsByName = new Map(getAllTags().map((tag) => [tag.name.toLowerCase(), tag]));
 
   for (const categoryName of categoryNames) {
     const remoteColor = remoteTask.tagColorsByName[categoryName.toLowerCase()];
@@ -441,6 +454,136 @@ const applyRemoteTagColors = (remoteTask: Task, categoryNames: string[]) => {
     updateTag(tag.id, { color: normalizedColor }, { markTaskSyncDirty: false });
     tagsByName.set(categoryName.toLowerCase(), { ...tag, color: normalizedColor });
   }
+};
+
+const handleCrossCalendarUidCollision = async (
+  remoteTask: TaskWithCalDAVObject,
+  taskInAnotherCalendar: Task | undefined,
+) => {
+  if (!taskInAnotherCalendar) return false;
+
+  syncLog.warn(
+    `Skipping remote task ${remoteTask.uid} because that UID already exists in another local calendar`,
+  );
+
+  if (taskInAnotherCalendar.synced) return true;
+
+  const remoteHref = remoteTask.href ?? remoteTask.caldavObject?.href;
+  if (remoteHref) {
+    await queuePendingDeletion({
+      uid: remoteTask.uid,
+      href: remoteHref,
+      accountId: remoteTask.accountId,
+      calendarId: remoteTask.calendarId,
+      etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
+      deletedAt: new Date(),
+    });
+  }
+  if (taskInAnotherCalendar.href) {
+    updateTask(taskInAnotherCalendar.id, {
+      href: undefined,
+      etag: undefined,
+      synced: false,
+    });
+  }
+
+  return true;
+};
+
+const reconcileRemoteTasks = async (
+  calendarId: string,
+  remoteTasks: TaskWithCalDAVObject[],
+  localTasks: Task[],
+) => {
+  const localTasksByUid = new Map(localTasks.map((task) => [task.uid, task]));
+  const allLocalTasksByUid = new Map(getAllTasks().map((task) => [task.uid, task]));
+  const tagsByName = new Map(getAllTags().map((tag) => [tag.name.toLowerCase(), tag]));
+  const newRemoteTaskData: Partial<Task>[] = [];
+  const existingReplacements: Task[] = [];
+  const taskObjects: CalDAVTaskObject[] = [];
+  const pendingBaselineMerges: Array<{
+    remoteTask: TaskWithCalDAVObject;
+    localTask: Task;
+    remoteTagIds: string[];
+  }> = [];
+
+  for (const remoteTask of remoteTasks) {
+    const remoteTaskData = stripRemoteTaskMetadata(remoteTask);
+    const categoryNames = getRemoteCategoryNames(remoteTask);
+    const remoteTagIds = categoryNames.map((name) => {
+      const normalizedName = name.toLowerCase();
+      const existingTag = tagsByName.get(normalizedName);
+      if (existingTag) return existingTag.id;
+
+      const tagId = ensureTagExists(name);
+      const createdTag = getAllTags().find((tag) => tag.id === tagId);
+      if (createdTag) tagsByName.set(normalizedName, createdTag);
+      return tagId;
+    });
+    applyRemoteTagColors(remoteTask, categoryNames, tagsByName);
+
+    const localTask = localTasksByUid.get(remoteTask.uid);
+    if (!localTask) {
+      const taskInAnotherCalendar = allLocalTasksByUid.get(remoteTask.uid);
+      if (await handleCrossCalendarUidCollision(remoteTask, taskInAnotherCalendar)) continue;
+
+      if (remoteTask.caldavObject) {
+        taskObjects.push(remoteTask.caldavObject);
+      }
+      newRemoteTaskData.push({
+        ...remoteTaskData,
+        href: remoteTask.href ?? remoteTask.caldavObject?.href,
+        etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
+        tags: remoteTagIds,
+      });
+      continue;
+    }
+
+    if (remoteTask.caldavObject) {
+      taskObjects.push(remoteTask.caldavObject);
+    }
+
+    const tagsMatch = stringArraysEqual(remoteTagIds, localTask.tags);
+    if (remoteTask.etag !== localTask.etag) {
+      if (localTask.synced) {
+        existingReplacements.push(
+          buildTaskReplacement(localTask, {
+            ...remoteTaskData,
+            id: localTask.id,
+            href: remoteTask.href ?? remoteTask.caldavObject?.href,
+            etag: remoteTask.etag ?? remoteTask.caldavObject?.etag,
+            tags: remoteTagIds,
+            synced: true,
+          }),
+        );
+      } else {
+        pendingBaselineMerges.push({ remoteTask, localTask, remoteTagIds });
+      }
+    } else if (!tagsMatch && localTask.synced) {
+      existingReplacements.push(
+        buildTaskReplacement(localTask, { tags: remoteTagIds, synced: true }),
+      );
+    }
+  }
+
+  if (pendingBaselineMerges.length > 0) {
+    const baselineTasksByUid = await getBaselineTasksByUid(calendarId);
+    for (const { remoteTask, localTask, remoteTagIds } of pendingBaselineMerges) {
+      const baselineTask = baselineTasksByUid.get(localTask.uid);
+      if (baselineTask) {
+        existingReplacements.push(
+          buildTaskReplacement(
+            localTask,
+            buildBaselineMergeUpdates(remoteTask, localTask, baselineTask, remoteTagIds),
+          ),
+        );
+      }
+    }
+  }
+
+  await createTasks(newRemoteTaskData, { source: 'remote' });
+  await replaceTasksFromSync(existingReplacements);
+  await persistTaskObjects(taskObjects);
 };
 
 /**
@@ -711,20 +854,10 @@ export const syncCalendarTasks = async (
 
       // re-get local tasks (may have been updated by push)
       const updatedLocalTasks = getTasksByCalendar(calendarId);
-      const localUids = new Set(updatedLocalTasks.map((t) => t.uid));
       const remoteUids = new Set(remoteTasks.map((t) => t.uid));
 
       // STEP 3: Process remote tasks
-      for (const remoteTask of remoteTasks) {
-        if (!localUids.has(remoteTask.uid)) {
-          await processNewRemoteTask(remoteTask);
-        } else {
-          const localTask = updatedLocalTasks.find((t) => t.uid === remoteTask.uid);
-          if (localTask) {
-            await processExistingRemoteTask(remoteTask, localTask);
-          }
-        }
-      }
+      await reconcileRemoteTasks(calendarId, remoteTasks, updatedLocalTasks);
 
       // STEP 4: find tasks deleted on server (in local but not in remote)
       // use removeLocalTask (not deleteTask) so we don't queue a server-side DELETE

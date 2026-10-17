@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { dataStore } from '$lib/store';
-import { exportTaskAndChildren, getAllDescendants } from '$lib/store/tasks';
+import {
+  exportTaskAndChildren,
+  exportTasksAndActiveDescendants,
+  getAllDescendants,
+} from '$lib/store/tasks';
 import type { DataStore, UIState } from '$types/store/state';
 import type { Task } from '$types/task/model';
 import { makeTask } from '../../fixtures';
@@ -122,5 +126,32 @@ describe('exportTaskAndChildren', () => {
     const result = exportTaskAndChildren('missing');
 
     expect(result).toBeNull();
+  });
+});
+
+describe('exportTasksAndActiveDescendants', () => {
+  it('expands multiple selections without duplicating selected descendants', () => {
+    const parent = makeTask({ id: 'parent', uid: 'parent-uid' });
+    const child = makeTask({ id: 'child', uid: 'child-uid', parentUid: parent.uid });
+    const grandchild = makeTask({
+      id: 'grandchild',
+      uid: 'grandchild-uid',
+      parentUid: child.uid,
+    });
+    const sibling = makeTask({ id: 'sibling', uid: 'sibling-uid' });
+    const deletedChild = makeTask({
+      id: 'deleted-child',
+      uid: 'deleted-child-uid',
+      parentUid: parent.uid,
+      deletedAt: new Date('2025-07-01T00:00:00.000Z'),
+    });
+    mockTasks([parent, child, grandchild, sibling, deletedChild]);
+
+    expect(exportTasksAndActiveDescendants([child, parent, sibling])).toEqual([
+      child,
+      grandchild,
+      parent,
+      sibling,
+    ]);
   });
 });

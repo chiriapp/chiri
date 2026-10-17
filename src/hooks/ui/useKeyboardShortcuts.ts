@@ -135,6 +135,10 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   const { moveTaskToRecentlyDeleted, deleteTasksPermanently } = useTaskDeletion();
   const { isOpen: isConfirmDialogOpen } = useConfirmDialog();
   const { isAnyModalOpen } = useModalState();
+  const taskIndexById = useMemo(
+    () => new Map(flattenedTasks.map((task, index) => [task.id, index])),
+    [flattenedTasks],
+  );
 
   const handleNewTask = useCallback(() => {
     createTaskMutation.mutate({ title: '' });
@@ -215,11 +219,11 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       return;
     }
 
-    const currentIndex = flattenedTasks.findIndex((t) => t.id === selectedTaskId);
+    const currentIndex = taskIndexById.get(selectedTaskId) ?? -1;
     if (currentIndex > 0) {
       setSelectedTaskMutation.mutate(flattenedTasks[currentIndex - 1].id);
     }
-  }, [selectedTaskId, flattenedTasks, setSelectedTaskMutation]);
+  }, [selectedTaskId, flattenedTasks, setSelectedTaskMutation, taskIndexById]);
 
   const handleNavigateDown = useCallback(() => {
     if (flattenedTasks.length === 0) return;
@@ -229,11 +233,11 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       return;
     }
 
-    const currentIndex = flattenedTasks.findIndex((t) => t.id === selectedTaskId);
+    const currentIndex = taskIndexById.get(selectedTaskId) ?? -1;
     if (currentIndex < flattenedTasks.length - 1) {
       setSelectedTaskMutation.mutate(flattenedTasks[currentIndex + 1].id);
     }
-  }, [selectedTaskId, flattenedTasks, setSelectedTaskMutation]);
+  }, [selectedTaskId, flattenedTasks, setSelectedTaskMutation, taskIndexById]);
 
   const orderedLists = useMemo(
     () => getOrderedListItems(accounts, filters, tags),

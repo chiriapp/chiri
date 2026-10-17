@@ -1,15 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { HttpResponse, MultiStatusResponse } from '$lib/http';
+import type { HttpResponse } from '$lib/http';
+import type { MultiStatusResponse } from '$lib/multistatus';
 import type { Task } from '$types/task/model';
 import { makeCalendar, makeConnection, makeTask } from '../../fixtures';
 
 // syncCalendar internally calls fetchTasks (same module). ESM bindings mean we
 // can't replace fetchTasks via vi.mock. mock the layer below (http + ical)
 // instead, and drive the fetchTasks pipeline by controlling those responses
+vi.mock('$lib/multistatus', () => ({ parseMultiStatusXml: vi.fn() }));
 vi.mock('$lib/http', () => ({
   put: vi.fn(),
   propfind: vi.fn(),
-  parseMultiStatus: vi.fn(),
   report: vi.fn(),
   del: vi.fn(),
 }));
@@ -28,6 +29,7 @@ vi.mock('$lib/caldav/utils', () => ({
 import { syncCalendar } from '$lib/caldav/tasks';
 import * as http from '$lib/http';
 import * as ical from '$lib/ical/vtodo';
+import * as multistatus from '$lib/multistatus';
 
 const conn = makeConnection();
 const calendar = makeCalendar({ id: 'cal-1', url: 'https://cal.example.com/calendars/default/' });
@@ -50,17 +52,17 @@ const stubRemote = (remoteTasks: Task[] | null) => {
   // first REPORT (calendar-query) succeeds
   vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
   if (remoteTasks.length === 0) {
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce([]);
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce([]);
     return;
   }
-  // parseMultiStatus on the query result: one href per remote task
-  vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+  // parseMultiStatusXml on the query result: one href per remote task
+  vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
     mkMulti(remoteTasks.map((t) => ({ href: `/cal/${t.uid}.ics`, props: {} }))),
   );
   // second REPORT (multiget) succeeds
   vi.mocked(http.report).mockResolvedValueOnce(httpOk(207));
-  // parseMultiStatus on the multiget result: calendar-data + etag per href
-  vi.mocked(http.parseMultiStatus).mockReturnValueOnce(
+  // parseMultiStatusXml on the multiget result: calendar-data + etag per href
+  vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce(
     mkMulti(
       remoteTasks.map((t) => ({
         href: `/cal/${t.uid}.ics`,

@@ -13,7 +13,6 @@ const log = loggers.http;
 const REQUEST_TIMEOUT_MS = 15_000;
 const MAX_REDIRECTS = 5;
 const REDIRECT_STATUS_CODES = new Set([301, 302, 307, 308]);
-const HREF_PROP_NAMES = new Set(['current-user-principal', 'calendar-home-set']);
 const SENSITIVE_HEADERS = new Set(['authorization', 'cookie', 'proxy-authorization']);
 
 // tracks which server hosts require Digest auth so we can skip the wasted
@@ -450,69 +449,3 @@ export const mkcalendar = async (
 ) => {
   return tauriRequest(url, 'MKCALENDAR', credentials, body, undefined, context);
 };
-
-const parsePropValue = (child: Element) => {
-  const localName = child.localName;
-
-  if (localName === 'resourcetype') {
-    return Array.from(child.children)
-      .map((c) => c.localName)
-      .join(',');
-  }
-
-  if (HREF_PROP_NAMES.has(localName)) {
-    return child.querySelector('href')?.textContent ?? null;
-  }
-
-  return child.children.length > 0 ? child.innerHTML : child.textContent;
-};
-
-const parseProps = (propstat: Element | null) => {
-  const props: Record<string, string | null> = {};
-  const prop = propstat?.querySelector('prop');
-
-  if (!prop) {
-    return props;
-  }
-
-  for (const child of prop.children) {
-    props[child.localName] = parsePropValue(child);
-  }
-
-  return props;
-};
-
-/**
- * parse multistatus XML response
- */
-export const parseMultiStatus = (xml: string) => {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, 'application/xml');
-  const parseError = doc.querySelector('parsererror');
-  if (parseError) {
-    throw new Error('Invalid CalDAV XML response.');
-  }
-
-  if (doc.documentElement?.localName !== 'multistatus') {
-    throw new Error('Invalid CalDAV multistatus response.');
-  }
-
-  const responses: MultiStatusResponse[] = [];
-  const responseElements = doc.querySelectorAll('response');
-
-  for (const resp of responseElements) {
-    responses.push({
-      href: resp.querySelector('href')?.textContent ?? '',
-      status: resp.querySelector('status')?.textContent ?? '',
-      props: parseProps(resp.querySelector('propstat')),
-    });
-  }
-
-  return responses;
-};
-
-export interface MultiStatusResponse {
-  href: string;
-  status: string;
-  props: Record<string, string | null>;
-}

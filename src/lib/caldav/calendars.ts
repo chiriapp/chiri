@@ -5,14 +5,8 @@ import {
 import type { Connection } from '$lib/caldav/connection';
 import { NS_WEBDAV_PUSH } from '$lib/caldav/push';
 import { log, makeAbsoluteUrl } from '$lib/caldav/utils';
-import {
-  del,
-  type HttpRequestContext,
-  mkcalendar,
-  parseMultiStatus,
-  propfind,
-  proppatch,
-} from '$lib/http';
+import { del, type HttpRequestContext, mkcalendar, propfind, proppatch } from '$lib/http';
+import { parseMultiStatusXml } from '$lib/multistatus';
 import type { Calendar } from '$types/calendar';
 import { normalizeHexColor } from '$utils/color';
 
@@ -56,7 +50,7 @@ export const calendarExists = async (
 /**
  * parse WebDAV Push properties from a single calendar's already-extracted prop values
  *
- * uses the per-calendar `topic` and `transports` values from parseMultiStatus rather than
+ * uses the per-calendar `topic` and `transports` values from parseMultiStatusXml rather than
  * scanning the full response body, which would cause all calendars to inherit the first
  * match found anywhere in the document
  */
@@ -137,7 +131,7 @@ export const discoverCalendars = async (
     throw new Error(`Failed to fetch calendars: HTTP ${response.status}`);
   }
 
-  const results = parseMultiStatus(response.body);
+  const results = parseMultiStatusXml(response.body);
   const calendars: Calendar[] = [];
   const calendarHomePath = new URL(conn.calendarHome, conn.serverUrl).pathname;
   const diagnostics: CalendarDiscoveryDiagnostics = {

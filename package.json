@@ -28,6 +28,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@tanstack/react-query": "^5.101.4",
+    "@tanstack/react-virtual": "^3.14.17",
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-autostart": "^2.5.1",
     "@tauri-apps/plugin-deep-link": "^2.4.9",
@@ -46,6 +47,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "rrule-temporal": "^2.0.2",
+    "saxes": "^6.0.0",
     "sonner": "^2.0.8"
   },
   "devDependencies": {

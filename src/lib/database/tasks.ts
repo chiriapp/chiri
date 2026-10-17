@@ -127,6 +127,45 @@ const buildTaskInsertParams = (task: Task): unknown[] => [
   task.repeatFrom ?? 0,
 ];
 
+const TASK_INSERT_COLUMN_NAMES = [
+  'id',
+  'uid',
+  'etag',
+  'href',
+  'title',
+  'description',
+  'completed',
+  'completed_at',
+  'tags',
+  'category_id',
+  'priority',
+  'start_date',
+  'start_date_all_day',
+  'due_date',
+  'due_date_all_day',
+  'created_at',
+  'modified_at',
+  'deleted_at',
+  'reminders',
+  'parent_uid',
+  'is_collapsed',
+  'sort_order',
+  'account_id',
+  'calendar_id',
+  'synced',
+  'local_only',
+  'url',
+  'status',
+  'percent_complete',
+  'rrule',
+  'repeat_from',
+] as const;
+
+const TASK_INSERT_COLUMNS = TASK_INSERT_COLUMN_NAMES.join(', ');
+
+// Stay below SQLite's default 999 bound-parameter limit.
+const MAX_SQLITE_PARAMETERS = 900;
+
 export const createTask = async (
   conn: DatabasePlugin,
   taskData: Partial<Task>,
@@ -170,18 +209,71 @@ export const createTask = async (
   };
 
   await conn.execute(
-    `INSERT INTO tasks (
-      id, uid, etag, href, title, description, completed, completed_at,
-      tags, category_id, priority, start_date, start_date_all_day,
-      due_date, due_date_all_day, created_at, modified_at, deleted_at, reminders,
-      parent_uid, is_collapsed, sort_order, account_id,
-      calendar_id, synced, local_only, url, status, percent_complete,
-      rrule, repeat_from
-    ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)`,
+    `INSERT INTO tasks (${TASK_INSERT_COLUMNS}) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31)`,
     buildTaskInsertParams(task),
   );
 
   return task;
+};
+
+export const createTasks = async (conn: DatabasePlugin, tasks: Task[]) => {
+  let offset = 0;
+
+  while (offset < tasks.length) {
+    const firstParams = buildTaskInsertParams(tasks[offset]);
+    const parameterCount = firstParams.length;
+    const tasksPerBatch = Math.floor(MAX_SQLITE_PARAMETERS / parameterCount);
+    const batch = tasks.slice(offset, offset + tasksPerBatch);
+    const params = batch.flatMap(buildTaskInsertParams);
+    const placeholders = batch
+      .map((_, taskIndex) => {
+        const start = taskIndex * parameterCount;
+        const taskPlaceholders = Array.from(
+          { length: parameterCount },
+          (_value, parameterIndex) => `$${start + parameterIndex + 1}`,
+        );
+        return `(${taskPlaceholders.join(',')})`;
+      })
+      .join(',');
+
+    await conn.execute(`INSERT INTO tasks (${TASK_INSERT_COLUMNS}) VALUES ${placeholders}`, params);
+    offset += batch.length;
+  }
+
+  return tasks;
+};
+
+export const upsertTasks = async (conn: DatabasePlugin, tasks: Task[]) => {
+  let offset = 0;
+  const updateAssignments = TASK_INSERT_COLUMN_NAMES.filter((column) => column !== 'id')
+    .map((column) => `${column} = excluded.${column}`)
+    .join(', ');
+
+  while (offset < tasks.length) {
+    const parameterCount = buildTaskInsertParams(tasks[offset]).length;
+    const tasksPerBatch = Math.floor(MAX_SQLITE_PARAMETERS / parameterCount);
+    const batch = tasks.slice(offset, offset + tasksPerBatch);
+    const params = batch.flatMap(buildTaskInsertParams);
+    const placeholders = batch
+      .map((_, taskIndex) => {
+        const start = taskIndex * parameterCount;
+        const taskPlaceholders = Array.from(
+          { length: parameterCount },
+          (_value, parameterIndex) => `$${start + parameterIndex + 1}`,
+        );
+        return `(${taskPlaceholders.join(',')})`;
+      })
+      .join(',');
+
+    await conn.execute(
+      `INSERT INTO tasks (${TASK_INSERT_COLUMNS}) VALUES ${placeholders}
+       ON CONFLICT(id) DO UPDATE SET ${updateAssignments}`,
+      params,
+    );
+    offset += batch.length;
+  }
+
+  return tasks;
 };
 
 /**

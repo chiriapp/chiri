@@ -3,7 +3,8 @@ import { refreshFastmailToken } from '$lib/auth/fastmail';
 import { refreshStalwartToken } from '$lib/auth/stalwart';
 import { hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
 import type { CalDAVCredentials, HttpRequestContext, HttpResponse } from '$lib/http';
-import { DetailedError, parseMultiStatus, propfind, tauriRequest } from '$lib/http';
+import { DetailedError, propfind, tauriRequest } from '$lib/http';
+import { parseMultiStatusXml } from '$lib/multistatus';
 import { updateAccount } from '$lib/store/accounts';
 import type { Account, ServerType } from '$types/account';
 
@@ -168,7 +169,7 @@ const discoverPrincipal = async (
   handleCommonHttpErrors(response, 'CalDAV service', davRootUrl, credentials);
   if (response.status !== 207) return null;
 
-  parseMultiStatus(response.body);
+  parseMultiStatusXml(response.body);
 
   const match = response.body.match(
     /<[^:>]*:?current-user-principal[^>]*>\s*<[^:>]*:?href[^>]*>([^<]+)<\/[^:>]*:?href>/i,
@@ -269,7 +270,7 @@ const discoverGenericUrls = async (
 
   // last resort: the multistatus href itself may be the DAV root
   if (!discoveredPrincipal && davRootBody) {
-    const results = parseMultiStatus(davRootBody);
+    const results = parseMultiStatusXml(davRootBody);
     if (results[0]?.href) {
       const davRoot = results[0].href.startsWith('http')
         ? results[0].href
@@ -444,7 +445,7 @@ export const connect = async (
     }
     if (response.status !== 207) throw new Error(`Failed to connect: HTTP ${response.status}`);
 
-    const results = parseMultiStatus(response.body);
+    const results = parseMultiStatusXml(response.body);
     const displayName = results[0]?.props.displayname ?? username;
 
     connectionStore.setConnection(accountId, {

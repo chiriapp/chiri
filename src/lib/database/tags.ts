@@ -24,7 +24,7 @@ export const createTag = async (conn: DatabasePlugin, tagData: Partial<Tag>) => 
   const maxOrder = maxOrderRow[0]?.max_order ?? 0;
 
   const tag: Tag = {
-    id: generateUUID(),
+    id: tagData.id ?? generateUUID(),
     name: tagData.name ?? 'New Tag',
     color: tagData.color ?? getFallbackItemColor(),
     icon: tagData.icon,

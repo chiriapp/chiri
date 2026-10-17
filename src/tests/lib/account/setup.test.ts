@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAccountDraft } from '$lib/account/draft';
-import { discoverAccountCalendars } from '$lib/account/setup';
+import { discoverAccountCalendars, fetchTasksForCalendar } from '$lib/account/setup';
 import {
   type AccountConnectionInfo,
   type ConnectWithCertHandling,
@@ -9,6 +9,25 @@ import {
 import { CalDAVClient } from '$lib/caldav';
 import type { Account, AccountDraft } from '$types/account';
 import type { Calendar } from '$types/calendar';
+import { makeTask } from '../../fixtures';
+
+const { mockCreateTasks, mockEnsureTagExists, mockUpsertCalDAVTaskObjects } = vi.hoisted(() => ({
+  mockCreateTasks: vi.fn().mockResolvedValue([]),
+  mockEnsureTagExists: vi.fn((name: string) => `tag-${name}`),
+  mockUpsertCalDAVTaskObjects: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock('$lib/database', () => ({
+  db: { upsertCalDAVTaskObjects: mockUpsertCalDAVTaskObjects },
+}));
+
+vi.mock('$lib/store/sync', () => ({
+  ensureTagExists: mockEnsureTagExists,
+}));
+
+vi.mock('$lib/store/tasks', () => ({
+  createTasks: mockCreateTasks,
+}));
 
 const draft: AccountDraft = {
   name: 'Example',
@@ -88,6 +107,53 @@ describe('createAccountDraft', () => {
 
   it('does not copy an existing password into the editable draft', () => {
     expect(createAccountDraft(makeAccount()).password).toBe('');
+  });
+});
+
+describe('fetchTasksForCalendar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCreateTasks.mockResolvedValue([]);
+    mockEnsureTagExists.mockImplementation((name: string) => `tag-${name}`);
+  });
+
+  it('imports all fetched tasks as one batch and maps category tags', async () => {
+    const taskObject = {
+      taskUid: 'uid-1',
+      accountId: 'account-1',
+      calendarId: 'calendar-1',
+      href: '/tasks/uid-1.ics',
+      etag: 'etag-1',
+      vtodo: 'BEGIN:VTODO\nUID:uid-1\nEND:VTODO',
+      lastSyncAt: new Date('2026-10-15T00:00:00.000Z'),
+    };
+    const remoteTasks = [
+      {
+        ...makeTask({ id: 'remote-1', uid: 'uid-1', categoryId: 'work, errands' }),
+        caldavObject: taskObject,
+      },
+      makeTask({ id: 'remote-2', uid: 'uid-2', categoryId: 'work' }),
+    ];
+    const client = {
+      fetchTasks: vi.fn().mockResolvedValue(remoteTasks),
+    } as unknown as CalDAVClient;
+    vi.spyOn(CalDAVClient, 'getForAccount').mockReturnValue(client);
+
+    await fetchTasksForCalendar('account-1', calendar);
+
+    expect(mockCreateTasks).toHaveBeenCalledTimes(1);
+    expect(mockCreateTasks).toHaveBeenCalledWith(
+      [
+        {
+          ...makeTask({ id: 'remote-1', uid: 'uid-1', categoryId: 'work, errands' }),
+          tags: ['tag-work', 'tag-errands'],
+        },
+        { ...remoteTasks[1], tags: ['tag-work'] },
+      ],
+      { source: 'remote' },
+    );
+    expect(mockUpsertCalDAVTaskObjects).toHaveBeenCalledWith([taskObject], { notify: false });
+    expect(mockEnsureTagExists).toHaveBeenCalledTimes(3);
   });
 });
 

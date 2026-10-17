@@ -26,13 +26,34 @@ import {
   restoreTask,
   toggleTaskComplete,
   updateTask,
+  updateTasks,
 } from '$lib/store/tasks';
 import { buildStatusUpdates, getTaskStatusAfterCompletionToggle } from '$lib/task/status';
+import type { DataStore } from '$types/store/state';
 import type { FlattenedTask } from '$types/store/tasks';
 import type { TaskCreationOptions } from '$types/task/creation';
 import type { Task } from '$types/task/model';
 
 const dateTime = (date: Date | undefined) => date?.getTime();
+
+const selectFilteredTaskDependencies = (data: DataStore) =>
+  [
+    data.tasks,
+    data.filters,
+    data.ui.activeView,
+    data.ui.activeAccountId,
+    data.ui.activeCalendarId,
+    data.ui.activeTagId,
+    data.ui.activeFilterId,
+    data.ui.searchQuery,
+    data.ui.showCompletedTasks,
+    data.ui.showUnstartedTasks,
+  ] as const;
+
+const equalDependencies = (
+  previous: ReturnType<typeof selectFilteredTaskDependencies>,
+  next: ReturnType<typeof selectFilteredTaskDependencies>,
+) => previous.every((value, index) => Object.is(value, next[index]));
 
 const hasReorderPersistenceChange = (before: Task | undefined, after: Task) => {
   if (!before) return false;
@@ -66,9 +87,10 @@ export const useTasks = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return dataStore.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
-    });
+    return dataStore.subscribe(
+      () => queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all }),
+      (data) => data.tasks,
+    );
   }, [queryClient]);
 
   return useQuery({
@@ -86,9 +108,11 @@ export const useFilteredTasks = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return dataStore.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.filteredTasks });
-    });
+    return dataStore.subscribe(
+      () => queryClient.invalidateQueries({ queryKey: queryKeys.filteredTasks }),
+      selectFilteredTaskDependencies,
+      equalDependencies,
+    );
   }, [queryClient]);
 
   return useQuery({
@@ -169,27 +193,31 @@ export const useBatchUpdateTasks = () => {
 
   return useMutation({
     mutationFn: async (taskUpdates: Array<{ id: string; updates: Partial<Task> }>) => {
-      const updatedTasks: Task[] = [];
+      const tasksById = new Map(getAllTasks().map((task) => [task.id, task]));
+      const updatedTasks = await updateTasks(taskUpdates);
+      const updatedTasksById = new Map(updatedTasks.map((task) => [task.id, task]));
+      const historyUpdates = taskUpdates.flatMap(({ id, updates }) => {
+        const oldTask = tasksById.get(id);
+        const updatedTask = updatedTasksById.get(id);
+        if (!oldTask || !updatedTask || updates.synced === true) return [];
 
-      for (const { id, updates } of taskUpdates) {
-        const oldTask = getTaskById(id);
-        const result = updateTask(id, updates);
-        if (result && oldTask && updates.synced !== true) {
-          await db.logHistoryForTaskUpdate(result.uid, oldTask, updates);
-        }
-        if (result) updatedTasks.push(result);
-      }
+        const appliedUpdates = Object.fromEntries(
+          (Object.entries(updates) as Array<[keyof Task, Task[keyof Task]]>).filter(
+            ([field, value]) => Object.is(updatedTask[field], value),
+          ),
+        ) as Partial<Task>;
+        if (Object.keys(appliedUpdates).length === 0) return [];
+        return [{ taskUid: oldTask.uid, oldTask, updates: appliedUpdates }];
+      });
+
+      await db.logHistoryForTaskUpdates(historyUpdates);
 
       return updatedTasks;
     },
-    onSuccess: (updatedTasks) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.filteredTasks });
-
-      for (const task of updatedTasks) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.byId(task.id) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.taskHistory.byTask(task.uid) });
-      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.taskHistory.all });
     },
   });
 };

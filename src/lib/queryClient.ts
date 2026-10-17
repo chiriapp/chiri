@@ -58,6 +58,7 @@ export const queryKeys = {
   },
   filteredTasks: ['filteredTasks'] as const,
   taskHistory: {
+    all: ['taskHistory'] as const,
     byTask: (taskUid: string) => ['taskHistory', taskUid] as const,
   },
   platform: {

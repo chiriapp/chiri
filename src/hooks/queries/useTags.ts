@@ -18,9 +18,10 @@ export const useTags = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return dataStore.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
-    });
+    return dataStore.subscribe(
+      () => queryClient.invalidateQueries({ queryKey: queryKeys.tags.all }),
+      (data) => data.tags,
+    );
   }, [queryClient]);
 
   return useQuery({

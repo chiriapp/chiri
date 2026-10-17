@@ -2,8 +2,8 @@
  * TanStack Query hooks for UI state
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import {
   DEFAULT_ACCOUNT_SORT_CONFIG,
   DEFAULT_CALENDAR_SORT_CONFIG,
@@ -86,24 +86,15 @@ export const subscribeToTaskEditorFocus = (listener: () => void) => {
 
 export const getTaskEditorFocusRequestVersion = () => editorFocusRequestVersion;
 
+const subscribeToUIState = (listener: () => void) =>
+  dataStore.subscribe(listener, (data) => data.ui);
+
 /**
  * hook to get the full UI state
  */
 export const useUIState = () => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    return dataStore.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.uiState.all });
-    });
-  }, [queryClient]);
-
-  return useQuery({
-    queryKey: queryKeys.uiState.all,
-    queryFn: () => getUIState(),
-    initialData: getUIState,
-    staleTime: Infinity,
-  });
+  const data = useSyncExternalStore(subscribeToUIState, getUIState, getUIState);
+  return { data };
 };
 
 /**
@@ -327,31 +318,25 @@ export const useSetRecentlyDeletedView = () => {
  * hook to set selected task
  */
 export const useSetSelectedTask = () => {
-  const queryClient = useQueryClient();
+  const mutate = useCallback((input: SetSelectedTaskInput) => {
+    const id = typeof input === 'object' && input !== null ? input.id : input;
+    const focusTitle =
+      typeof input === 'object' && input !== null ? (input.focusTitle ?? false) : false;
+    const focusEditorField =
+      typeof input === 'object' && input !== null ? input.focusEditorField : undefined;
 
-  return useMutation({
-    mutationFn: (input: SetSelectedTaskInput) => {
-      const id = typeof input === 'object' && input !== null ? input.id : input;
-      const focusTitle =
-        typeof input === 'object' && input !== null ? (input.focusTitle ?? false) : false;
-      const focusEditorField =
-        typeof input === 'object' && input !== null ? input.focusEditorField : undefined;
+    pendingTitleAutofocusTaskId = focusTitle && id !== null ? id : null;
+    pendingTaskListScrollTaskId = focusTitle && id !== null ? id : null;
+    pendingEditorFocus =
+      focusEditorField && id !== null ? { taskId: id, field: focusEditorField } : null;
+    if (pendingEditorFocus) {
+      editorFocusRequestVersion += 1;
+      for (const listener of editorFocusListeners) listener();
+    }
+    setSelectedTask(id);
+  }, []);
 
-      pendingTitleAutofocusTaskId = focusTitle && id !== null ? id : null;
-      pendingTaskListScrollTaskId = focusTitle && id !== null ? id : null;
-      pendingEditorFocus =
-        focusEditorField && id !== null ? { taskId: id, field: focusEditorField } : null;
-      if (pendingEditorFocus) {
-        editorFocusRequestVersion += 1;
-        for (const listener of editorFocusListeners) listener();
-      }
-      setSelectedTask(id);
-      return Promise.resolve();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.uiState.all });
-    },
-  });
+  return useMemo(() => ({ mutate }), [mutate]);
 };
 
 /**
@@ -380,16 +365,10 @@ export const useSetEditorOpen = () => {
  * hook to set search query
  */
 export const useSetSearchQuery = () => {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (query: string) => {
       setSearchQuery(query);
       return Promise.resolve();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.uiState.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.filteredTasks });
     },
   });
 };

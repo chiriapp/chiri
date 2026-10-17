@@ -140,6 +140,18 @@ class Database {
     return result;
   }
 
+  async createTasks(data: Task[], options: { notify?: boolean } = {}) {
+    const result = await taskOps.createTasks(await this.conn(), data);
+    if (options.notify !== false) this.notify();
+    return result;
+  }
+
+  async upsertTasks(data: Task[], options: { notify?: boolean } = {}) {
+    const result = await taskOps.upsertTasks(await this.conn(), data);
+    if (options.notify !== false) this.notify();
+    return result;
+  }
+
   async updateTask(id: string, updates: Partial<Task>) {
     const result = await taskOps.updateTask(await this.conn(), id, updates);
     this.notify();
@@ -263,9 +275,9 @@ class Database {
     this.notify();
   }
 
-  async setSelectedTask(id: string | null) {
+  async setSelectedTask(id: string | null, options: { notify?: boolean } = {}) {
     await uiOps.setSelectedTask(await this.conn(), id);
-    this.notify();
+    if (options.notify !== false) this.notify();
   }
 
   async setEditorOpen(open: boolean) {
@@ -273,9 +285,9 @@ class Database {
     this.notify();
   }
 
-  async setSearchQuery(query: string) {
+  async setSearchQuery(query: string, options: { notify?: boolean } = {}) {
     await uiOps.setSearchQuery(await this.conn(), query);
-    this.notify();
+    if (options.notify !== false) this.notify();
   }
 
   async setSortConfig(config: SortConfig) {
@@ -323,6 +335,12 @@ class Database {
     return historyOps.logHistoryForTaskUpdate(await this.conn(), taskUid, oldTask, updates);
   }
 
+  async logHistoryForTaskUpdates(
+    taskUpdates: Array<{ taskUid: string; oldTask: Task; updates: Partial<Task> }>,
+  ) {
+    return historyOps.logHistoryForTaskUpdates(await this.conn(), taskUpdates);
+  }
+
   async logTaskChange(
     taskUid: string,
     field: string,
@@ -344,6 +362,11 @@ class Database {
   async addPendingDeletion(deletion: PendingDeletion) {
     await pendingOps.addPendingDeletion(await this.conn(), deletion);
     this.notify();
+  }
+
+  async addPendingDeletions(deletions: PendingDeletion[], options: { notify?: boolean } = {}) {
+    await pendingOps.addPendingDeletions(await this.conn(), deletions);
+    if (options.notify !== false) this.notify();
   }
 
   async clearPendingDeletion(uid: string) {
@@ -373,6 +396,12 @@ class Database {
   async upsertCalDAVTaskObject(object: CalDAVTaskObject) {
     await caldavTaskObjectOps.upsertCalDAVTaskObject(await this.conn(), object);
     this.notify();
+  }
+
+  async upsertCalDAVTaskObjects(objects: CalDAVTaskObject[], options: { notify?: boolean } = {}) {
+    const result = await caldavTaskObjectOps.upsertCalDAVTaskObjects(await this.conn(), objects);
+    if (options.notify !== false) this.notify();
+    return result;
   }
 
   async removeCalDAVTaskObjectByUid(taskUid: string) {

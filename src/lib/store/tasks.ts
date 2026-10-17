@@ -241,16 +241,19 @@ export const getAllDescendants = (parentUid: string, filter: ChildTaskFilter = '
   return getDescendants(parentUid);
 };
 
-// task create
-export const createTask = (
+const getMaxSortOrder = (tasks: Task[], now: Date) => {
+  if (tasks.length === 0) return toAppleEpoch(now.getTime()) - 1;
+  return tasks.reduce((max, task) => Math.max(max, task.sortOrder), Number.NEGATIVE_INFINITY);
+};
+
+const buildTask = (
   taskData: Partial<Task>,
-  options: TaskCreationOptions = {},
+  options: TaskCreationOptions,
+  data: ReturnType<typeof dataStore.load>,
+  now: Date,
+  maxSortOrder: number,
   onBeforePublish?: (task: Task) => void,
 ) => {
-  const data = dataStore.load();
-  const { selectCreatedTask = false, ...databaseCreationOptions } = options;
-  const now = new Date();
-
   const filterTaskDefaults = getActiveFilterTaskDefaults(data, options);
 
   // get default calendar and task defaults from settings
@@ -288,12 +291,6 @@ export const createTask = (
 
   const targetAccount = accountId ? data.accounts.find((a) => a.id === accountId) : undefined;
   const isLocalOnly = !calendarId || !accountId || !targetAccount?.caldav;
-
-  // calculate sort order using Apple epoch format
-  const maxSortOrder =
-    data.tasks.length > 0
-      ? Math.max(...data.tasks.map((t) => t.sortOrder))
-      : toAppleEpoch(now.getTime()) - 1;
 
   const due =
     taskData.dueDate !== undefined
@@ -358,6 +355,27 @@ export const createTask = (
 
   onBeforePublish?.(task);
 
+  return task;
+};
+
+// task create
+export const createTask = (
+  taskData: Partial<Task>,
+  options: TaskCreationOptions = {},
+  onBeforePublish?: (task: Task) => void,
+) => {
+  const data = dataStore.load();
+  const { selectCreatedTask = false, ...databaseCreationOptions } = options;
+  const now = new Date();
+  const task = buildTask(
+    taskData,
+    options,
+    data,
+    now,
+    getMaxSortOrder(data.tasks, now),
+    onBeforePublish,
+  );
+
   dataStore.save({
     ...data,
     tasks: [...data.tasks, task],
@@ -380,6 +398,205 @@ export const createTask = (
   }
 
   return task;
+};
+
+const rebaseTaskUpdate = (original: Task, current: Task, planned: Task) => {
+  if (current === original) return planned;
+
+  const unchangedFields = (Object.keys(planned) as Array<keyof Task>).filter(
+    (field) =>
+      Object.is(current[field], original[field]) && !Object.is(planned[field], original[field]),
+  );
+  return {
+    ...current,
+    ...Object.fromEntries(unchangedFields.map((field) => [field, planned[field]])),
+  } as Task;
+};
+
+export const createTasks = async (
+  taskDataList: Partial<Task>[],
+  options: TaskCreationOptions = {},
+) => {
+  if (taskDataList.length === 0) return [];
+
+  const data = dataStore.load();
+  const { selectCreatedTask = false } = options;
+  const now = new Date();
+  let maxSortOrder = getMaxSortOrder(data.tasks, now);
+
+  const tasks = taskDataList.map((taskData) => {
+    const task = buildTask(taskData, options, data, now, maxSortOrder);
+    if (typeof task.sortOrder === 'number') {
+      maxSortOrder = Math.max(maxSortOrder, task.sortOrder);
+    }
+    return task;
+  });
+
+  if (dataStore.getIsInitialized()) {
+    await db.createTasks(tasks, { notify: false });
+  }
+
+  const lastCreatedTask = tasks[tasks.length - 1];
+  const latestData = dataStore.load();
+  const existingTaskIds = new Set(latestData.tasks.map((task) => task.id));
+  dataStore.save({
+    ...latestData,
+    tasks: [...latestData.tasks, ...tasks.filter((task) => !existingTaskIds.has(task.id))],
+    ...(selectCreatedTask
+      ? {
+          ui: {
+            ...latestData.ui,
+            selectedTaskId: lastCreatedTask.id,
+            isEditorOpen: true,
+          },
+        }
+      : {}),
+  });
+
+  return tasks;
+};
+
+export const replaceTasksFromSync = async (replacements: Task[]) => {
+  if (replacements.length === 0) return [];
+
+  const data = dataStore.load();
+  const originalTasksById = new Map(data.tasks.map((task) => [task.id, task]));
+  const replacementsById = new Map(replacements.map((task) => [task.id, task]));
+
+  if (dataStore.getIsInitialized()) {
+    await db.upsertTasks(replacements, { notify: false });
+  }
+
+  const latestData = dataStore.load();
+  const publishedReplacements: Task[] = [];
+  const concurrentlyEditedTasks: Task[] = [];
+  const tasks = latestData.tasks.map((currentTask) => {
+    const originalTask = originalTasksById.get(currentTask.id);
+    const replacement = replacementsById.get(currentTask.id);
+    if (!originalTask || !replacement) return currentTask;
+
+    const rebasedTask = rebaseTaskUpdate(originalTask, currentTask, replacement);
+    publishedReplacements.push(rebasedTask);
+    if (currentTask !== originalTask) concurrentlyEditedTasks.push(rebasedTask);
+    return rebasedTask;
+  });
+
+  dataStore.save({
+    ...latestData,
+    tasks,
+  });
+
+  if (dataStore.getIsInitialized() && concurrentlyEditedTasks.length > 0) {
+    await db.upsertTasks(concurrentlyEditedTasks, { notify: false });
+  }
+
+  return publishedReplacements;
+};
+
+export interface TaskUpdate {
+  id: string;
+  updates: Partial<Task>;
+}
+
+const mergePendingDeletions = (
+  existing: ReturnType<typeof dataStore.load>['pendingDeletions'],
+  additions: ReturnType<typeof dataStore.load>['pendingDeletions'],
+) => {
+  const keys = new Set(
+    existing.map(
+      (deletion) => `${deletion.accountId}\u0000${deletion.calendarId}\u0000${deletion.href}`,
+    ),
+  );
+  return [
+    ...existing,
+    ...additions.filter((deletion) => {
+      const key = `${deletion.accountId}\u0000${deletion.calendarId}\u0000${deletion.href}`;
+      if (keys.has(key)) return false;
+      keys.add(key);
+      return true;
+    }),
+  ];
+};
+
+export const updateTasks = async (taskUpdates: TaskUpdate[]) => {
+  if (taskUpdates.length === 0) return [];
+
+  const data = dataStore.load();
+  const updatesById = new Map(taskUpdates.map(({ id, updates }) => [id, updates]));
+  const updatedTasks: Task[] = [];
+  const newPendingDeletions: typeof data.pendingDeletions = [];
+  const modifiedAt = new Date();
+
+  for (const task of data.tasks) {
+    const requestedUpdates = updatesById.get(task.id);
+    if (!requestedUpdates) continue;
+
+    let updates = requestedUpdates;
+
+    if (task.href && updates.calendarId !== undefined && updates.calendarId !== task.calendarId) {
+      newPendingDeletions.push({
+        uid: task.uid,
+        href: task.href,
+        accountId: task.accountId,
+        calendarId: task.calendarId,
+        etag: task.etag,
+        deletedAt: modifiedAt,
+      });
+      updates = { ...updates, href: undefined, etag: undefined };
+    }
+
+    if (updates.accountId !== undefined && updates.accountId !== task.accountId) {
+      const targetAccount = data.accounts.find((account) => account.id === updates.accountId);
+      if (targetAccount) {
+        updates = { ...updates, localOnly: !targetAccount.caldav, synced: false };
+      }
+    }
+
+    const updatedTask: Task = {
+      ...task,
+      ...updates,
+      modifiedAt: updates.modifiedAt ?? modifiedAt,
+      synced: updates.synced ?? false,
+    };
+    updatedTasks.push(updatedTask);
+  }
+
+  if (updatedTasks.length === 0) return [];
+
+  if (dataStore.getIsInitialized()) {
+    if (newPendingDeletions.length > 0) {
+      await db.addPendingDeletions(newPendingDeletions, { notify: false });
+    }
+    await db.upsertTasks(updatedTasks, { notify: false });
+  }
+
+  const originalTasksById = new Map(data.tasks.map((task) => [task.id, task]));
+  const plannedTasksById = new Map(updatedTasks.map((task) => [task.id, task]));
+  const latestData = dataStore.load();
+  const publishedUpdatedTasks: Task[] = [];
+  const concurrentlyEditedTasks: Task[] = [];
+  const tasks = latestData.tasks.map((currentTask) => {
+    const originalTask = originalTasksById.get(currentTask.id);
+    const plannedTask = plannedTasksById.get(currentTask.id);
+    if (!originalTask || !plannedTask) return currentTask;
+
+    const rebasedTask = rebaseTaskUpdate(originalTask, currentTask, plannedTask);
+    publishedUpdatedTasks.push(rebasedTask);
+    if (currentTask !== originalTask) concurrentlyEditedTasks.push(rebasedTask);
+    return rebasedTask;
+  });
+
+  dataStore.save({
+    ...latestData,
+    tasks,
+    pendingDeletions: mergePendingDeletions(latestData.pendingDeletions, newPendingDeletions),
+  });
+
+  if (dataStore.getIsInitialized() && concurrentlyEditedTasks.length > 0) {
+    await db.upsertTasks(concurrentlyEditedTasks, { notify: false });
+  }
+
+  return publishedUpdatedTasks;
 };
 
 // task update
@@ -730,6 +947,31 @@ export const exportTaskAndChildren = (taskId: string) => {
   return { task, descendants: getAllDescendants(task.uid, 'active') };
 };
 
+export const exportTasksAndActiveDescendants = (selectedTasks: Task[]) => {
+  const childrenByParent = new Map<string, Task[]>();
+  for (const task of dataStore.load().tasks) {
+    if (!task.parentUid || task.deletedAt) continue;
+    const children = childrenByParent.get(task.parentUid);
+    if (children) children.push(task);
+    else childrenByParent.set(task.parentUid, [task]);
+  }
+
+  const includedTaskIds = new Set<string>();
+  const exportTasks: Task[] = [];
+  const appendTaskAndDescendants = (task: Task) => {
+    if (includedTaskIds.has(task.id)) return;
+    includedTaskIds.add(task.id);
+    exportTasks.push(task);
+
+    for (const child of childrenByParent.get(task.uid) ?? []) {
+      appendTaskAndDescendants(child);
+    }
+  };
+
+  for (const task of selectedTasks) appendTaskAndDescendants(task);
+  return exportTasks;
+};
+
 const matchesDeletionVisibility = (task: Task, activeView: string) => {
   return activeView === 'recently-deleted' ? !!task.deletedAt : !task.deletedAt;
 };
@@ -746,9 +988,11 @@ const matchesActiveScope = (
   return true;
 };
 
-const matchesSearchQuery = (task: Task, tasks: Task[], activeView: string, searchQuery: string) => {
-  const query = searchQuery.toLowerCase();
-
+const matchesSearchQuery = (
+  task: Task,
+  query: string,
+  parentUidsWithMatchingChildren: ReadonlySet<string>,
+) => {
   if (
     task.title.toLowerCase().includes(query) ||
     task.description.toLowerCase().includes(query) ||
@@ -757,12 +1001,7 @@ const matchesSearchQuery = (task: Task, tasks: Task[], activeView: string, searc
     return true;
   }
 
-  const childTasks = tasks.filter((candidate) => {
-    if (candidate.parentUid !== task.uid) return false;
-    return activeView === 'recently-deleted' ? !!candidate.deletedAt : !candidate.deletedAt;
-  });
-
-  return childTasks.some((child) => child.title.toLowerCase().includes(query));
+  return parentUidsWithMatchingChildren.has(task.uid);
 };
 
 export const getFilteredTasks = () => {
@@ -782,6 +1021,16 @@ export const getFilteredTasks = () => {
       : undefined;
   const activeFilterControlsStatus = activeFilter?.criteria.some((c) => c.field === 'status');
   const activeFilterControlsStartDate = activeFilter?.criteria.some((c) => c.field === 'startDate');
+  const normalizedSearchQuery = searchQuery.toLowerCase();
+  const parentUidsWithMatchingChildren = new Set<string>();
+  if (normalizedSearchQuery) {
+    for (const task of data.tasks) {
+      if (!task.parentUid || !matchesDeletionVisibility(task, activeView)) continue;
+      if (task.title.toLowerCase().includes(normalizedSearchQuery)) {
+        parentUidsWithMatchingChildren.add(task.parentUid);
+      }
+    }
+  }
 
   return data.tasks.filter((task) => {
     if (!matchesDeletionVisibility(task, activeView)) return false;
@@ -804,7 +1053,9 @@ export const getFilteredTasks = () => {
     }
 
     // filter by search query
-    if (searchQuery) return matchesSearchQuery(task, data.tasks, activeView, searchQuery);
+    if (normalizedSearchQuery) {
+      return matchesSearchQuery(task, normalizedSearchQuery, parentUidsWithMatchingChildren);
+    }
 
     return true;
   });

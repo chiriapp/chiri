@@ -73,6 +73,31 @@ describe('getVisibleTasks', () => {
     expect(getVisibleIds('recently-deleted')).toEqual([{ id: 'child', depth: 0 }]);
   });
 
+  it('indexes child-title search matches without rescanning the task array per task', () => {
+    const parent = makeTask({ id: 'parent', uid: 'parent-uid', title: 'Project' });
+    const matchingChild = makeTask({
+      id: 'matching-child',
+      uid: 'matching-child-uid',
+      parentUid: parent.uid,
+      title: 'Needle task',
+    });
+    const unrelated = Array.from({ length: 100 }, (_, index) =>
+      makeTask({ id: `other-${index}`, uid: `other-uid-${index}`, title: `Other ${index}` }),
+    );
+    const tasks = [parent, matchingChild, ...unrelated];
+    seedStore(tasks, 'tasks');
+    dataStore.save({
+      ...dataStore.load(),
+      ui: { ...dataStore.load().ui, searchQuery: 'needle' },
+    });
+    const taskArrayFilter = vi.spyOn(tasks, 'filter');
+
+    const filteredTasks = getFilteredTasks();
+
+    expect(filteredTasks.map((task) => task.id)).toEqual(['parent', 'matching-child']);
+    expect(taskArrayFilter).toHaveBeenCalledOnce();
+  });
+
   it('keeps deleted subtasks nested when their deleted parent is visible', () => {
     const deletedAt = new Date('2025-02-01T00:00:00.000Z');
     const parent = makeTask({ id: 'parent', uid: 'parent-uid', deletedAt, sortOrder: 100 });

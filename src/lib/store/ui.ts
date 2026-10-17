@@ -12,8 +12,35 @@ import type {
   TagSortConfig,
   TaskGroupConfig,
 } from '$types/sort';
+import type { DataStore } from '$types/store/state';
 
 const log = loggers.dataStore;
+const SEARCH_QUERY_PERSIST_DELAY_MS = 250;
+const SELECTED_TASK_PERSIST_DELAY_MS = 250;
+let searchQueryPersistTimer: ReturnType<typeof setTimeout> | null = null;
+let selectedTaskPersistTimer: ReturnType<typeof setTimeout> | null = null;
+let selectedTaskIdSource: DataStore['tasks'] | null = null;
+let selectedTaskIds = new Set<string>();
+
+const hasTaskId = (tasks: DataStore['tasks'], id: string) => {
+  if (selectedTaskIdSource !== tasks) {
+    selectedTaskIdSource = tasks;
+    selectedTaskIds = new Set(tasks.map((task) => task.id));
+  }
+  return selectedTaskIds.has(id);
+};
+
+const scheduleSelectedTaskPersistence = (id: string | null) => {
+  if (selectedTaskPersistTimer) clearTimeout(selectedTaskPersistTimer);
+  selectedTaskPersistTimer = setTimeout(() => {
+    selectedTaskPersistTimer = null;
+    const ui = dataStore.load().ui;
+    if (ui.selectedTaskId !== id || ui.isEditorOpen !== (id !== null)) return;
+    db.setSelectedTask(id, { notify: false }).catch((e) =>
+      log.error('Failed to persist selected task:', e),
+    );
+  }, SELECTED_TASK_PERSIST_DELAY_MS);
+};
 
 export const getUIState = () => {
   return dataStore.load().ui;
@@ -179,14 +206,14 @@ export const setSelectedTask = (id: string | null) => {
 
   // validate that the task exists before setting it
   if (id !== null) {
-    const taskExists = data.tasks.some((task) => task.id === id);
+    const taskExists = hasTaskId(data.tasks, id);
     if (!taskExists) {
       log.warn('Attempted to set non-existent task as selected, ignoring', { taskId: id });
       return;
     }
   }
 
-  db.setSelectedTask(id).catch((e) => log.error('Failed to persist selected task:', e));
+  scheduleSelectedTaskPersistence(id);
 
   dataStore.save({
     ...data,
@@ -216,7 +243,13 @@ export const setEditorOpen = (open: boolean) => {
 export const setSearchQuery = (query: string) => {
   const data = dataStore.load();
 
-  db.setSearchQuery(query).catch((e) => log.error('Failed to persist search query:', e));
+  if (searchQueryPersistTimer) clearTimeout(searchQueryPersistTimer);
+  searchQueryPersistTimer = setTimeout(() => {
+    searchQueryPersistTimer = null;
+    db.setSearchQuery(query, { notify: false }).catch((e) =>
+      log.error('Failed to persist search query:', e),
+    );
+  }, SEARCH_QUERY_PERSIST_DELAY_MS);
 
   dataStore.save({
     ...data,

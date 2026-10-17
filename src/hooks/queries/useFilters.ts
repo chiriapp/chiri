@@ -21,9 +21,10 @@ export const useFilters = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    return dataStore.subscribe(() => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.filters.all });
-    });
+    return dataStore.subscribe(
+      () => queryClient.invalidateQueries({ queryKey: queryKeys.filters.all }),
+      (data) => data.filters,
+    );
   }, [queryClient]);
 
   return useQuery({

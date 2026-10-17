@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { HttpResponse } from '$lib/http';
 
+vi.mock('$lib/multistatus', () => ({ parseMultiStatusXml: vi.fn(() => []) }));
 vi.mock('$lib/http', () => ({
   propfind: vi.fn(),
-  parseMultiStatus: vi.fn(() => []),
   tauriRequest: vi.fn(),
   DetailedError: class extends Error {
     detail: string;
@@ -40,6 +40,7 @@ vi.mock('$lib/caldav/utils', () => ({
 
 import { connect, detectVikunja, handleCommonHttpErrors } from '$lib/caldav/connection';
 import * as http from '$lib/http';
+import * as multistatus from '$lib/multistatus';
 
 const httpOk = (status: number, body = ''): HttpResponse => ({ status, headers: {}, body });
 
@@ -232,7 +233,7 @@ describe('connect: explicit server type URL construction', () => {
     vi.clearAllMocks();
     // connect() does a final PROPFIND to verify principal - make it succeed
     vi.mocked(http.propfind).mockResolvedValue(httpOk(207, ''));
-    vi.mocked(http.parseMultiStatus).mockReturnValue([
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValue([
       { href: '', status: '', props: { displayname: 'Test User' } },
     ]);
   });
@@ -320,7 +321,9 @@ describe('connect: explicit server type URL construction', () => {
   });
 
   it('falls back to username as displayName when server omits it', async () => {
-    vi.mocked(http.parseMultiStatus).mockReturnValueOnce([{ href: '', status: '', props: {} }]);
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce([
+      { href: '', status: '', props: {} },
+    ]);
 
     const result = await connect('a1', 'https://x.com', 'alice', 'pw', 'baikal');
 
@@ -366,7 +369,7 @@ describe('connect: generic server URL path stripping', () => {
       '<c:calendar-home-set><d:href>/calendars/alice/</d:href></c:calendar-home-set>' +
       '</d:prop></d:propstat></d:response></d:multistatus>';
     vi.mocked(http.propfind).mockImplementation(async () => httpOk(207, discoveryBody));
-    vi.mocked(http.parseMultiStatus).mockReturnValue([
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValue([
       { href: '', status: '', props: { displayname: 'Test User' } },
     ]);
   });

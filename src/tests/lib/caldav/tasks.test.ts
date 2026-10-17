@@ -1,15 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTask, deleteTask, updateTask } from '$lib/caldav/tasks';
-import type { HttpResponse, MultiStatusResponse } from '$lib/http';
+import type { HttpResponse } from '$lib/http';
 import * as http from '$lib/http';
+import type { MultiStatusResponse } from '$lib/multistatus';
+import * as multistatus from '$lib/multistatus';
 import { makeCalendar, makeConnection, makeTask } from '../../fixtures';
 
 // mock the entire tauri-http module. all functions call into Tauri IPC which
 // isn't available outside the Tauri runtime
+vi.mock('$lib/multistatus', () => ({ parseMultiStatusXml: vi.fn() }));
 vi.mock('$lib/http', () => ({
   put: vi.fn(),
   propfind: vi.fn(),
-  parseMultiStatus: vi.fn(),
   report: vi.fn(),
   del: vi.fn(),
 }));
@@ -70,7 +72,7 @@ describe('createTask', () => {
       it(`fetches etag via PROPFIND and returns href+etag on ${status}`, async () => {
         vi.mocked(http.put).mockResolvedValueOnce(ok(status));
         vi.mocked(http.propfind).mockResolvedValueOnce(ok(207));
-        vi.mocked(http.parseMultiStatus).mockReturnValueOnce([
+        vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce([
           {
             props: { getetag: '"server-etag"' },
             href: expectedHref,
@@ -95,7 +97,7 @@ describe('createTask', () => {
     it('sends PROPFIND to the correct URL with depth 0', async () => {
       vi.mocked(http.put).mockResolvedValueOnce(ok(409));
       vi.mocked(http.propfind).mockResolvedValueOnce(ok(207));
-      vi.mocked(http.parseMultiStatus).mockReturnValueOnce([
+      vi.mocked(multistatus.parseMultiStatusXml).mockReturnValueOnce([
         { props: { getetag: '"e"' }, href: expectedHref, status: '' } as MultiStatusResponse,
       ]);
 
