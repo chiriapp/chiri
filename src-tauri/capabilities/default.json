@@ -19,6 +19,7 @@
     "core:window:allow-show",
     "dialog:default",
     "fs:default",
+    "fs:allow-write-text-file",
     {
       "identifier": "fs:allow-read-dir",
       "allow": [{ "path": "$APPLOG" }, { "path": "$APPLOG/**" }]
