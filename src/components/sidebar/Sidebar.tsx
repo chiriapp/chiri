@@ -242,11 +242,9 @@ export const Sidebar = ({
           account.caldav?.serverType ?? 'generic',
           account.caldav?.serverUrl ?? '',
         );
-        const errorMessage = setupError.hint
-          ? `${setupError.message} ${setupError.hint}`
-          : setupError.message;
-        toastManager.error(setupError.title, errorMessage, {
+        toastManager.error(setupError.title, setupError.message, {
           groupKey: `connection-test-result-${account.id}`,
+          hint: setupError.hint,
         });
       }
     },
