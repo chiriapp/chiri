@@ -1,6 +1,4 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { emit } from '@tauri-apps/api/event';
-import { MENU_EVENTS } from '$constants/menu';
 import { settingsStore } from '$context/settingsContext';
 import { CalDAVClient } from '$lib/caldav';
 import type { CalDAVTaskObject, TaskWithCalDAVObject } from '$lib/caldav/types';
@@ -363,12 +361,6 @@ export const reconnectAccounts = async () => {
         failedAccountIds.add(account.id);
         toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
           groupKey: `sync-error-account-${account.id}`,
-          action: {
-            label: 'Edit Account',
-            onClick: () => {
-              emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
-            },
-          },
         });
       }
     }
@@ -908,12 +900,6 @@ export const performFullSync = async (
       failedAccountIds.add(account.id);
       toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
         groupKey: `sync-error-account-${account.id}`,
-        action: {
-          label: 'Edit Account',
-          onClick: () => {
-            emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
-          },
-        },
       });
     }
   }
@@ -944,12 +930,6 @@ export const performFullSync = async (
         syncLog.error(`Failed to sync calendar ${calendar.displayName}:`, error);
         toastManager.error(`Calendar sync failed: ${calendar.displayName}`, errorMessage, {
           groupKey: `sync-error-calendar-${calendar.id}`,
-          action: {
-            label: 'Edit Account',
-            onClick: () => {
-              emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
-            },
-          },
         });
       }
     }

@@ -1,11 +1,9 @@
-import { emit } from '@tauri-apps/api/event';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SidebarCollapsedView } from '$components/sidebar/SidebarCollapsedView';
 import { SidebarExpandedView } from '$components/sidebar/SidebarExpandedView';
 import { SidebarHeader } from '$components/sidebar/SidebarHeader';
 import { SidebarOverlays } from '$components/sidebar/SidebarOverlays';
 import { getFilterPresetId } from '$constants/filters';
-import { MENU_EVENTS } from '$constants/menu';
 import { useConnectionStore } from '$context/connectionContext';
 import { useModalState } from '$context/modalStateContext';
 import { useSettingsStore } from '$context/settingsContext';
@@ -249,12 +247,6 @@ export const Sidebar = ({
           : setupError.message;
         toastManager.error(setupError.title, errorMessage, {
           groupKey: `connection-test-result-${account.id}`,
-          action: {
-            label: 'Edit Account',
-            onClick: () => {
-              emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
-            },
-          },
         });
       }
     },

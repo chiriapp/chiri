@@ -1,9 +1,7 @@
-import { emit } from '@tauri-apps/api/event';
 import Edit2 from 'lucide-react/icons/edit-2';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
-import { MENU_EVENTS } from '$constants/menu';
 import { toastManager } from '$lib/toastManager';
 import type { Account } from '$types/account';
 
@@ -50,12 +48,6 @@ export const SidebarCalendarContextMenu = ({
                   errorMessage,
                   {
                     groupKey: `sync-error-calendar-${calendarId}`,
-                    action: {
-                      label: 'Edit Account',
-                      onClick: () => {
-                        emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account?.id });
-                      },
-                    },
                   },
                 );
               });
