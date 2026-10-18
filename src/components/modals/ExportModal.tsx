@@ -13,6 +13,7 @@ import {
   exportTasksAsMarkdown,
 } from '$lib/ical/export';
 import { loggers } from '$lib/logger';
+import { toastManager } from '$lib/toastManager';
 import type { Calendar } from '$types/calendar';
 import type { Task } from '$types/task/model';
 import { saveTextFile } from '$utils/fs';
@@ -157,6 +158,10 @@ export const ExportModal = ({
         return;
       }
 
+      toastManager.success(
+        'Export complete',
+        `${tasks.length} ${pluralize(tasks.length, 'task')} exported as ${format?.label ?? 'a file'}.`,
+      );
       onClose();
     } catch (err) {
       setError(`Failed to export: ${err instanceof Error ? err.message : 'Unknown error'}`);
