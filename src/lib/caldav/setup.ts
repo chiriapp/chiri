@@ -158,6 +158,15 @@ export const getSetupErrorInfo = (
     };
   }
 
+  if (lower.includes('could not connect to ')) {
+    return {
+      title: fallback,
+      message: normalizedMessage,
+      hint: 'Verify the URL, port, and that the server is running.',
+      detail: rawDetail,
+    };
+  }
+
   if (
     lower.includes('server unreachable') ||
     lower.includes('failed to fetch') ||
@@ -215,7 +224,7 @@ export const getSetupErrorInfo = (
   return {
     title: fallback,
     message: normalizedMessage,
-    hint: 'Check the fields above and try connecting again. The technical detail may help identify the failing CalDAV step.',
+    hint: 'Review the account details and try again.',
     detail: rawDetail,
   };
 };

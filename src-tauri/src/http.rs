@@ -309,9 +309,7 @@ fn sanitize_reqwest_error(error: reqwest::Error) -> String {
     }
 
     if is_connect {
-        return format!(
-            "Could not connect to {host}: {inner}. Verify the URL, port, and that the server is running."
-        );
+        return format!("Could not connect to {host}: {inner}.");
     }
 
     if let Some(status) = status {
