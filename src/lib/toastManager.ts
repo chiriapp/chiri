@@ -13,6 +13,8 @@ interface ToastAction {
 interface ToastOptions {
   /** key to prevent duplicate toasts for the same event */
   groupKey?: string;
+  /** optional secondary guidance shown below the description */
+  hint?: ReactNode;
   /** optional action button with label and onClick handler */
   action?: ToastAction;
   /** whether to show the close button (defaults to false) */
@@ -37,7 +39,7 @@ class ToastManager {
    * @param message - description shown under the title; pass null for no description
    */
   show(title: ReactNode, message: ReactNode, options: ShowToastOptions = {}) {
-    const { type = 'info', groupKey, action, closeButton = false, duration } = options;
+    const { type = 'info', groupKey, hint, action, closeButton = false, duration } = options;
 
     log.debug(
       `[${type.toUpperCase()}] Showing toast: "${title}" | "${message}" | groupKey: ${groupKey || 'none'}`,
@@ -64,8 +66,22 @@ class ToastManager {
         }
       : undefined;
 
+    const description = hint
+      ? createElement(
+          'div',
+          { className: 'flex flex-col gap-1' },
+          message != null &&
+            createElement('div', { className: 'text-surface-700 dark:text-surface-300' }, message),
+          createElement(
+            'div',
+            { className: 'text-xs text-surface-500 dark:text-surface-400' },
+            hint,
+          ),
+        )
+      : message;
+
     const toastId = toastFn(createElement(ToastTitle, { type }, title), {
-      description: message,
+      description,
       duration: duration ?? 5000,
       closeButton,
       icon: null,
