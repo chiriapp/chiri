@@ -1,10 +1,12 @@
 use log::debug;
 #[cfg(not(target_os = "linux"))]
 use log::error;
+#[cfg(windows)]
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconEvent};
 #[cfg(not(target_os = "linux"))]
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
-    tray::{TrayIconBuilder, TrayIconEvent, TrayIconId},
+    tray::{TrayIconBuilder, TrayIconId},
     Emitter, Manager,
 };
 
@@ -15,6 +17,18 @@ use super::{icon, AppRuntime, TrayState};
 
 #[cfg(target_os = "macos")]
 use crate::macos::quit::is_keyboard_shortcut;
+
+#[cfg(not(target_os = "linux"))]
+fn show_main_window(app: &tauri::AppHandle<AppRuntime>) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+
+        #[cfg(target_os = "macos")]
+        crate::window::show_dock_icon(app);
+    }
+}
 
 #[cfg(not(target_os = "linux"))]
 pub(in crate::tray) fn initialize(
@@ -94,16 +108,14 @@ pub(in crate::tray) fn initialize(
     #[cfg(target_os = "macos")]
     let tray_builder = tray_builder.icon_as_template(true);
 
+    #[cfg(windows)]
+    let tray_builder = tray_builder.show_menu_on_left_click(false);
+
+    let tray_app_handle = app_handle.clone();
     let _tray = tray_builder
         .on_menu_event(|app, event| match event.id.as_ref() {
             "show" => {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
-
-                    #[cfg(target_os = "macos")]
-                    crate::window::show_dock_icon(app);
-                }
+                show_main_window(app);
             }
             "sync" => {
                 if let Some(window) = app.get_webview_window("main") {
@@ -129,10 +141,23 @@ pub(in crate::tray) fn initialize(
             }
             _ => {}
         })
-        .on_tray_icon_event(|_tray, event| {
-            if let TrayIconEvent::Click { .. } = event {
-                // menu display is platform-handled
+        .on_tray_icon_event(move |_tray, event| {
+            #[cfg(windows)]
+            match event {
+                TrayIconEvent::Click {
+                    button: MouseButton::Left,
+                    button_state: MouseButtonState::Up,
+                    ..
+                }
+                | TrayIconEvent::DoubleClick {
+                    button: MouseButton::Left,
+                    ..
+                } => show_main_window(&tray_app_handle),
+                _ => {}
             }
+
+            #[cfg(not(windows))]
+            let _ = (event, &tray_app_handle);
         })
         .build(&app_handle)
         .map_err(|e| {
