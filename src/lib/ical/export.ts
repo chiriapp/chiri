@@ -69,6 +69,11 @@ export const exportTasksAsMarkdown = (tasks: Task[], level: number = 0) => {
   return markdown;
 };
 
+const escapeCsvCell = (value: string, alwaysQuote = false) => {
+  const escaped = value.replace(/"/g, '""');
+  return alwaysQuote || /[",\r\n]/.test(value) ? `"${escaped}"` : escaped;
+};
+
 /**
  * export tasks as CSV format
  */
@@ -85,8 +90,8 @@ export const exportTasksAsCsv = (tasks: Task[]) => {
     'Modified',
   ];
   const rows = tasks.map((task) => [
-    `"${task.title.replace(/"/g, '""')}"`,
-    `"${task.description.replace(/"/g, '""')}"`,
+    task.title,
+    task.description,
     task.status === 'completed'
       ? 'Completed'
       : task.status === 'cancelled'
@@ -102,5 +107,8 @@ export const exportTasksAsCsv = (tasks: Task[]) => {
     formatDate(new Date(task.modifiedAt), true),
   ]);
 
-  return [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
+  return [
+    headers.join(','),
+    ...rows.map((row) => row.map((cell, index) => escapeCsvCell(cell, index < 2)).join(',')),
+  ].join('\n');
 };
