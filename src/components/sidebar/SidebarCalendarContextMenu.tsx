@@ -3,6 +3,7 @@ import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import type { SyncTrigger } from '$hooks/queries/useSync';
+import { getErrorMessage } from '$lib/http';
 import { toastManager } from '$lib/toastManager';
 import type { Account } from '$types/account';
 
@@ -47,7 +48,7 @@ export const SidebarCalendarContextMenu = ({
                 reason: 'user selected sync for a calendar from the sidebar context menu',
                 where: 'SidebarCalendarContextMenu',
               }).catch((error) => {
-                const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                const errorMessage = getErrorMessage(error);
                 toastManager.error(
                   `Calendar sync failed: ${calendar?.displayName || 'Unknown'}`,
                   errorMessage,
