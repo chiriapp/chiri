@@ -1,4 +1,5 @@
 import type DatabasePlugin from '@tauri-apps/plugin-sql';
+import type { OAuthTokens } from '$lib/auth/oauth';
 import { rowToAccount, rowToCalendar } from '$lib/database/converters';
 import type { AccountRow, CalDAVConfigRow, CalendarRow } from '$lib/database/types';
 import { getUIState } from '$lib/database/ui';
@@ -131,6 +132,24 @@ export const updateAccount = async (
   }
 
   return updated;
+};
+
+export const updateOAuthTokens = async (
+  conn: DatabasePlugin,
+  accountId: string,
+  consumedRefreshToken: string,
+  tokens: OAuthTokens,
+) => {
+  const result = await conn.execute(
+    `UPDATE caldav_configs
+     SET password = $1, refresh_token = $2, token_expiry = $3
+     WHERE account_id = $4 AND (refresh_token = $5 OR refresh_token = $2)`,
+    [tokens.accessToken, tokens.refreshToken, tokens.tokenExpiry, accountId, consumedRefreshToken],
+  );
+
+  if (result.rowsAffected !== 1) {
+    throw new Error(`OAuth tokens changed before they could be saved for account ${accountId}.`);
+  }
 };
 
 export const deleteAccount = async (conn: DatabasePlugin, id: string) => {

@@ -1,4 +1,5 @@
 import DatabasePlugin from '@tauri-apps/plugin-sql';
+import type { OAuthTokens } from '$lib/auth/oauth';
 import type { CalDAVTaskObject } from '$lib/caldav/types';
 import * as accountOps from '$lib/database/accounts';
 import * as caldavTaskObjectOps from '$lib/database/caldav';
@@ -82,6 +83,10 @@ class Database {
     const result = await accountOps.updateAccount(await this.conn(), id, updates);
     this.notify();
     return result;
+  }
+
+  async updateOAuthTokens(accountId: string, consumedRefreshToken: string, tokens: OAuthTokens) {
+    return accountOps.updateOAuthTokens(await this.conn(), accountId, consumedRefreshToken, tokens);
   }
 
   async deleteAccount(id: string) {

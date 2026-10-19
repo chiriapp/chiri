@@ -1,4 +1,5 @@
 import { deleteAppPassword as deleteNextcloudAppPassword } from '$lib/auth/nextcloud';
+import type { OAuthTokens } from '$lib/auth/oauth';
 import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
@@ -69,6 +70,49 @@ export const updateAccount = (id: string, updates: Partial<Account>) => {
 
   if (updatedAccount) {
     db.updateAccount(id, updates).catch((e) => log.error('Failed to persist account update:', e));
+  }
+
+  dataStore.save({ ...data, accounts });
+  return updatedAccount;
+};
+
+export const persistOAuthTokens = async (
+  accountId: string,
+  consumedRefreshToken: string,
+  tokens: OAuthTokens,
+) => {
+  await db.updateOAuthTokens(accountId, consumedRefreshToken, tokens);
+
+  const data = dataStore.load();
+  let updatedAccount: Account | undefined;
+  const accounts = data.accounts.map((account) => {
+    if (account.id !== accountId) return account;
+    if (account.caldav?.authType !== 'oauth') {
+      throw new Error(`Cannot publish OAuth tokens for account ${accountId}.`);
+    }
+    if (
+      account.caldav.refreshToken !== consumedRefreshToken &&
+      account.caldav.refreshToken !== tokens.refreshToken
+    ) {
+      throw new Error(
+        `OAuth tokens changed before they could be published for account ${accountId}.`,
+      );
+    }
+
+    updatedAccount = {
+      ...account,
+      caldav: {
+        ...account.caldav,
+        password: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        tokenExpiry: tokens.tokenExpiry,
+      },
+    };
+    return updatedAccount;
+  });
+
+  if (!updatedAccount) {
+    throw new Error(`Cannot publish OAuth tokens for missing account ${accountId}.`);
   }
 
   dataStore.save({ ...data, accounts });

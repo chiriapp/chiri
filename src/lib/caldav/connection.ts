@@ -1,11 +1,9 @@
 import { connectionStore } from '$context/connectionContext';
-import { refreshFastmailToken } from '$lib/auth/fastmail';
-import { refreshStalwartToken } from '$lib/auth/stalwart';
+import { OAuthTokenPersistenceError, refreshOAuthAccountToken } from '$lib/auth/refresh';
 import { hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
 import type { CalDAVCredentials, HttpRequestContext, HttpResponse } from '$lib/http';
 import { DetailedError, propfind, tauriRequest } from '$lib/http';
 import { parseMultiStatusXml } from '$lib/multistatus';
-import { updateAccount } from '$lib/store/accounts';
 import type { Account, ServerType } from '$types/account';
 
 interface ServerConfig {
@@ -523,29 +521,10 @@ export const reconnect = async (
 
       if (now >= expiresAt - bufferMs && caldav.refreshToken) {
         try {
-          let fresh: { accessToken: string; refreshToken: string; tokenExpiry: string };
-          if (caldav.serverType === 'fastmail') {
-            fresh = await refreshFastmailToken(caldav.refreshToken);
-          } else if (caldav.serverType === 'stalwart') {
-            fresh = await refreshStalwartToken(
-              caldav.serverUrl,
-              caldav.refreshToken,
-              caldav.oauthClientId,
-              { acceptInvalidCerts: caldav.acceptInvalidCerts },
-            );
-          } else {
-            throw new Error(`OAuth refresh not implemented for ${caldav.serverType}`);
-          }
+          const fresh = await refreshOAuthAccountToken(account.id, caldav.refreshToken);
           accessToken = fresh.accessToken;
-          updateAccount(account.id, {
-            caldav: {
-              ...caldav,
-              password: fresh.accessToken,
-              refreshToken: fresh.refreshToken,
-              tokenExpiry: fresh.tokenExpiry,
-            },
-          });
         } catch (e) {
+          if (e instanceof OAuthTokenPersistenceError) throw e;
           console.warn('[CalDAV] Token refresh failed, retrying with existing token:', e);
         }
       }
