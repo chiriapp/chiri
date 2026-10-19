@@ -84,7 +84,7 @@ const getSyncButtonClass = (
   isAnyModalOpen: boolean,
 ) => {
   const base =
-    'w-9 h-9 rounded-lg border text-sm transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset flex items-center justify-center';
+    'flex h-9 items-center gap-1.5 rounded-lg border border-transparent px-3 text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset';
   if (isSyncing) {
     return `${base} text-primary-ink border-transparent cursor-not-allowed`;
   }
@@ -301,8 +301,9 @@ export const Header = ({
                 )}
               >
                 <RefreshCw
-                  className={`h-5 w-5 shrink-0 ${isSyncing ? 'motion-safe:animate-spin' : ''}`}
+                  className={`h-4 w-4 shrink-0 ${isSyncing ? 'motion-safe:animate-spin' : ''}`}
                 />
+                <span>Sync</span>
               </button>
             </Tooltip>
           )}
