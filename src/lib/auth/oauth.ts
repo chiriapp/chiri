@@ -11,6 +11,17 @@ export interface OAuthTokens {
   tokenExpiry: string;
 }
 
+export interface OAuthTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+}
+
+interface ParseTokenResponseOptions {
+  fallbackRefreshToken?: string;
+  requireRotatedRefreshTokenFrom?: string;
+}
+
 export const base64UrlEncode = (buf: Uint8Array): string => {
   const bytes = Array.from(buf, (b) => String.fromCharCode(b));
   return btoa(bytes.join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -30,15 +41,63 @@ export const generateChallenge = async (verifier: string): Promise<string> => {
 
 export const generateState = (): string => generateVerifier();
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const readTokenResponse = (data: unknown): OAuthTokenResponse => {
+  if (!isRecord(data)) {
+    throw new Error('Token response must be a JSON object.');
+  }
+
+  const accessToken = data.access_token;
+  if (typeof accessToken !== 'string' || accessToken.length === 0) {
+    throw new Error('Token response is missing a valid access_token.');
+  }
+
+  const refreshToken = data.refresh_token;
+  if (
+    refreshToken !== undefined &&
+    (typeof refreshToken !== 'string' || refreshToken.length === 0)
+  ) {
+    throw new Error('Token response contains an invalid refresh_token.');
+  }
+
+  const expiresIn = data.expires_in;
+  if (
+    expiresIn !== undefined &&
+    (typeof expiresIn !== 'number' || !Number.isFinite(expiresIn) || expiresIn < 0)
+  ) {
+    throw new Error('Token response contains an invalid expires_in value.');
+  }
+
+  return {
+    access_token: accessToken,
+    ...(refreshToken === undefined ? {} : { refresh_token: refreshToken }),
+    ...(expiresIn === undefined ? {} : { expires_in: expiresIn }),
+  };
+};
+
 export const parseTokenResponse = (
-  data: Record<string, unknown>,
-  fallbackRefreshToken?: string,
+  data: unknown,
+  { fallbackRefreshToken, requireRotatedRefreshTokenFrom }: ParseTokenResponseOptions = {},
 ): OAuthTokens => {
-  const accessToken = data.access_token as string;
-  const refreshToken = (data.refresh_token as string | undefined) ?? fallbackRefreshToken ?? '';
-  const expiresIn = (data.expires_in as number | undefined) ?? 3600;
+  const response = readTokenResponse(data);
+  const refreshToken = response.refresh_token ?? fallbackRefreshToken;
+
+  if (!refreshToken) {
+    throw new Error('Token response is missing a valid refresh_token.');
+  }
+
+  if (
+    requireRotatedRefreshTokenFrom !== undefined &&
+    refreshToken === requireRotatedRefreshTokenFrom
+  ) {
+    throw new Error('Token response did not rotate the refresh_token.');
+  }
+
+  const expiresIn = response.expires_in ?? 3600;
   const tokenExpiry = new Date(Date.now() + expiresIn * 1000).toISOString();
-  return { accessToken, refreshToken, tokenExpiry };
+  return { accessToken: response.access_token, refreshToken, tokenExpiry };
 };
 
 const HTML_TAG_RE = /<[^>]+>/g;

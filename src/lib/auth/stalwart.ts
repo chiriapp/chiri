@@ -407,7 +407,7 @@ export const refreshStalwartToken = async (
   assertTokenResponseOk(res, 'Token refresh');
 
   const data = JSON.parse(res.body) as Record<string, unknown>;
-  return parseTokenResponse(data, refreshToken);
+  return parseTokenResponse(data, { fallbackRefreshToken: refreshToken });
 };
 
 const usernameFromTokenResponse = (data: Record<string, unknown>): string => {

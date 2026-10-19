@@ -162,9 +162,8 @@ export const refreshFastmailToken = async (refreshToken: string): Promise<Fastma
 
   assertTokenResponseOk(res, 'Token refresh');
 
-  const data = JSON.parse(res.body) as Record<string, unknown>;
-  // some servers rotate the refresh token; fall back to the existing one if not
-  return parseTokenResponse(data, refreshToken);
+  const data = JSON.parse(res.body) as unknown;
+  return parseTokenResponse(data, { requireRotatedRefreshTokenFrom: refreshToken });
 };
 
 /**
