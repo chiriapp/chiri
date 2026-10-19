@@ -2,6 +2,7 @@ import Edit2 from 'lucide-react/icons/edit-2';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
+import type { SyncTrigger } from '$hooks/queries/useSync';
 import { toastManager } from '$lib/toastManager';
 import type { Account } from '$types/account';
 
@@ -10,7 +11,7 @@ interface SidebarCalendarContextMenuProps {
   accountId?: string;
   accounts: Account[];
   syncingCalendarId: string | null;
-  syncCalendar: (calendarId: string) => Promise<void>;
+  syncCalendar: (calendarId: string, trigger?: SyncTrigger) => Promise<void>;
   onClose: () => void;
   onEditCalendar: (calendarId: string, accountId: string) => void;
   onExportCalendar: (calendarId: string) => void;
@@ -41,7 +42,11 @@ export const SidebarCalendarContextMenu = ({
             onClick={() => {
               onClose();
               const calendar = account?.calendars.find((c) => c.id === calendarId);
-              syncCalendar(calendarId).catch((error) => {
+              syncCalendar(calendarId, {
+                source: 'sidebar-calendar-context-menu',
+                reason: 'user selected sync for a calendar from the sidebar context menu',
+                where: 'SidebarCalendarContextMenu',
+              }).catch((error) => {
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                 toastManager.error(
                   `Calendar sync failed: ${calendar?.displayName || 'Unknown'}`,

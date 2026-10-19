@@ -5,6 +5,7 @@ import { SidebarAccountsContextMenu } from '$components/sidebar/SidebarAccountsC
 import { SidebarCalendarContextMenu } from '$components/sidebar/SidebarCalendarContextMenu';
 import { SidebarFilterItemContextMenu } from '$components/sidebar/SidebarFilterItemContextMenu';
 import { SidebarTagItemContextMenu } from '$components/sidebar/SidebarTagItemContextMenu';
+import type { SyncTrigger } from '$hooks/queries/useSync';
 import type { Account } from '$types/account';
 
 interface ContextMenuState {
@@ -20,7 +21,7 @@ interface SidebarContextMenuProps {
   accounts: Account[];
   syncingCalendarId: string | null;
   testingAccountIds: Readonly<Record<string, true>>;
-  syncCalendar: (calendarId: string) => Promise<void>;
+  syncCalendar: (calendarId: string, trigger?: SyncTrigger) => Promise<void>;
   onClose: () => void;
   onPointerClose?: MouseEventHandler<HTMLDivElement>;
   onEditAccount: (account: Account) => void;

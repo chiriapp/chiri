@@ -1,5 +1,6 @@
 import type { MouseEventHandler } from 'react';
 import { SidebarContextMenu } from '$components/sidebar/SidebarContextMenu';
+import type { SyncTrigger } from '$hooks/queries/useSync';
 import type { Account } from '$types/account';
 
 export type SidebarContextMenuState = {
@@ -18,7 +19,7 @@ export interface SidebarContextMenuOverlayProps {
   testingAccountIds: Readonly<Record<string, true>>;
   onCloseContextMenu: () => void;
   onPointerCloseContextMenu: MouseEventHandler<HTMLDivElement>;
-  syncCalendar: (calendarId: string) => Promise<void>;
+  syncCalendar: (calendarId: string, trigger?: SyncTrigger) => Promise<void>;
   onEditAccount: (account: Account) => void;
   onTestConnection: (account: Account) => void;
   onEditCalendar: (calendarId: string, accountId: string) => void;
