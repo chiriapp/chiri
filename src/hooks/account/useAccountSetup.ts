@@ -7,7 +7,7 @@ import type { ConnectWithCertHandling } from '$lib/account/test';
 import {
   type CalDAVSetupError,
   type CalDAVSetupNotice,
-  getSetupErrorInfo,
+  getCalDAVErrorInfo,
 } from '$lib/caldav/setup';
 import { loggers } from '$lib/logger';
 import { queryKeys } from '$lib/queryClient';
@@ -159,7 +159,7 @@ export const useAccountSetup = ({
     } catch (error) {
       log.error('Error setting up account:', error);
       setSetupError(
-        getSetupErrorInfo(error, 'Failed to create account', draft.serverType, draft.serverUrl),
+        getCalDAVErrorInfo(error, 'Failed to create account', draft.serverType, draft.serverUrl),
       );
     }
 
@@ -196,7 +196,7 @@ export const useAccountSetup = ({
       }
     } catch (error) {
       setSetupError(
-        getSetupErrorInfo(
+        getCalDAVErrorInfo(
           error,
           'Failed to connect to CalDAV server',
           draft.serverType,

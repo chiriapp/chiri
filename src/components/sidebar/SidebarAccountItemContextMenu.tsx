@@ -7,7 +7,9 @@ import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { LoadingSpinner } from '$components/LoadingSpinner';
 import type { SyncTrigger } from '$hooks/queries/useSync';
+import { getCalDAVErrorInfo } from '$lib/caldav/setup';
 import { getErrorMessage } from '$lib/http';
+import { ensureAccountConnected } from '$lib/store/sync';
 import { toastManager } from '$lib/toastManager';
 import type { Account } from '$types/account';
 
@@ -52,24 +54,52 @@ export const SidebarAccountItemContextMenu = ({
         <>
           <button
             type="button"
-            onClick={() => {
+            onClick={async () => {
               onClose();
-              if (account) {
-                for (const calendar of account.calendars) {
-                  syncCalendar(calendar.id, {
+              if (!account) return;
+
+              try {
+                await ensureAccountConnected(account);
+              } catch (error) {
+                const errorMessage = getErrorMessage(error);
+                const errorInfo = getCalDAVErrorInfo(
+                  error,
+                  'Account sync failed',
+                  account.caldav?.serverType ?? 'generic',
+                  account.caldav?.serverUrl ?? '',
+                  'account-sync',
+                );
+                toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
+                  groupKey: `sync-error-account-${account.id}`,
+                  hint: errorInfo.hint,
+                });
+                return;
+              }
+
+              for (const calendar of account.calendars) {
+                try {
+                  await syncCalendar(calendar.id, {
                     source: 'sidebar-account-context-menu',
                     reason: 'user selected sync for an account from the sidebar context menu',
                     where: 'SidebarAccountItemContextMenu',
-                  }).catch((error) => {
-                    const errorMessage = getErrorMessage(error);
-                    toastManager.error(
-                      `Calendar sync failed: ${calendar.displayName || 'Unknown'}`,
-                      errorMessage,
-                      {
-                        groupKey: `sync-error-calendar-${calendar.id}`,
-                      },
-                    );
                   });
+                } catch (error) {
+                  const errorMessage = getErrorMessage(error);
+                  const errorInfo = getCalDAVErrorInfo(
+                    error,
+                    'Calendar sync failed',
+                    account.caldav?.serverType ?? 'generic',
+                    account.caldav?.serverUrl ?? '',
+                    'calendar-sync',
+                  );
+                  toastManager.error(
+                    `Calendar sync failed: ${calendar.displayName || 'Unknown'}`,
+                    errorMessage,
+                    {
+                      groupKey: `sync-error-calendar-${calendar.id}`,
+                      hint: errorInfo.hint,
+                    },
+                  );
                 }
               }
             }}

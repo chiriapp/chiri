@@ -22,7 +22,7 @@ import { useSidebarActions } from '$hooks/ui/useSidebarActions';
 import { useSidebarContextMenu } from '$hooks/ui/useSidebarContextMenu';
 import { useSidebarResize } from '$hooks/ui/useSidebarResize';
 import { useSidebarModals } from '$hooks/useSidebarModals';
-import { getSetupErrorInfo } from '$lib/caldav/setup';
+import { getCalDAVErrorInfo } from '$lib/caldav/setup';
 import { exportMobileConfigFile } from '$lib/mobileconfig/export';
 import { toastManager } from '$lib/toastManager';
 import type { Account } from '$types/account';
@@ -236,7 +236,7 @@ export const Sidebar = ({
       } catch (error) {
         toastManager.dismiss(groupKey);
         if (error instanceof AccountConnectionTestCancelledError) return;
-        const setupError = getSetupErrorInfo(
+        const setupError = getCalDAVErrorInfo(
           error,
           'Failed to test CalDAV connection',
           account.caldav?.serverType ?? 'generic',

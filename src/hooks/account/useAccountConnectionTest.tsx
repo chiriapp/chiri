@@ -8,7 +8,7 @@ import {
 } from '$lib/account/test';
 import { CalDAVClient } from '$lib/caldav';
 import type { CalDAVSetupError, CalDAVSetupNotice } from '$lib/caldav/setup';
-import { getSetupErrorInfo } from '$lib/caldav/setup';
+import { getCalDAVErrorInfo } from '$lib/caldav/setup';
 import { isValidPrincipalUrlOverride, parseCalDAVServerUrl } from '$lib/caldav/utils';
 import { getServerWarning, getUrlWarning, toConfirmOptions } from '$lib/caldav/warnings';
 import type { HttpRequestContext } from '$lib/http';
@@ -243,7 +243,7 @@ export const useAccountConnectionTest = ({
         return;
       }
       setSetupError(
-        getSetupErrorInfo(
+        getCalDAVErrorInfo(
           err,
           'Failed to test CalDAV connection',
           draft.serverType,

@@ -16,6 +16,8 @@ export interface CalDAVSetupNotice {
   message: string;
 }
 
+export type CalDAVErrorContext = 'setup' | 'account-sync' | 'calendar-sync';
+
 const HTML_TAG_RE = /<[^>]+>/g;
 const WHITESPACE_RE = /\s+/g;
 
@@ -69,25 +71,17 @@ const extractErrorDetails = (error: unknown, fallback: string) => {
           : fallback;
   const normalized = getErrorMessage(error);
   const normalizedMessage = normalized === 'Unknown error' ? fallback : normalized;
-  const status = normalizedMessage.match(HTTP_STATUS_RE)?.[1];
+  const status = (normalizedMessage.match(HTTP_STATUS_RE) ?? rawDetail.match(HTTP_STATUS_RE))?.[1];
   return { rawDetail, normalizedMessage, status };
 };
 
-export const getSetupErrorInfo = (
-  error: unknown,
-  fallback: string,
-  serverType: ServerType,
-  serverUrl: string,
-): CalDAVSetupError => {
-  const { rawDetail, normalizedMessage, status } = extractErrorDetails(error, fallback);
-  const lower = normalizedMessage.toLowerCase();
-  const serverLabel = serverType === 'generic' ? 'CalDAV' : serverType;
-  const trimmedServerUrl = serverUrl.trim();
+const getSetupContextErrorInfo = (
+  normalizedMessage: string,
+  lower: string,
+  rawDetail: string,
+): CalDAVSetupError | null => {
   const vtodoSetupError = getVtodoSetupErrorInfo(normalizedMessage, lower);
-
-  if (vtodoSetupError) {
-    return vtodoSetupError;
-  }
+  if (vtodoSetupError) return vtodoSetupError;
 
   if (lower.includes('connection test is already in progress')) {
     return {
@@ -106,36 +100,69 @@ export const getSetupErrorInfo = (
     };
   }
 
-  if (lower.includes('authentication failed') || status === '401') {
-    return {
-      title: 'Authentication failed',
-      message: 'Chiri reached the server, but the username or password was rejected.',
-      hint:
-        serverType === 'fastmail'
-          ? 'Fastmail requires an app password with CalDAV access, not your normal account password.'
-          : 'Check the username and password. If your account uses 2FA, you may need an app password.',
-      detail: rawDetail,
-    };
-  }
+  return null;
+};
 
+const getAuthenticationErrorInfo = (
+  lower: string,
+  status: string | undefined,
+  serverType: ServerType,
+  rawDetail: string,
+): CalDAVSetupError | null => {
+  if (!lower.includes('authentication failed') && status !== '401') return null;
+
+  return {
+    title: 'Authentication failed',
+    message: 'Chiri reached the server, but the username or password was rejected.',
+    hint:
+      serverType === 'fastmail'
+        ? 'Fastmail requires an app password with CalDAV access, not your normal account password.'
+        : 'Check the username and password. If your account uses 2FA, you may need an app password.',
+    detail: rawDetail,
+  };
+};
+
+const getServerResponseErrorInfo = (
+  lower: string,
+  status: string | undefined,
+  serverType: ServerType,
+  serverUrl: string,
+  context: CalDAVErrorContext,
+  rawDetail: string,
+): CalDAVSetupError | null => {
   if (lower.includes('forbidden') || status === '403') {
     return {
       title: 'Access forbidden',
       message:
         'Chiri reached the server, but this account is not allowed to access that CalDAV path.',
-      hint: 'Check account permissions, sharing settings, or the advanced Principal / Calendar Home URL fields.',
+      hint:
+        context === 'calendar-sync'
+          ? 'Check that this account still has permission to access this calendar.'
+          : 'Check account permissions, sharing settings, or the advanced Principal / Calendar Home URL fields.',
       detail: rawDetail,
     };
   }
 
-  if (lower.includes('not found') || status === '404') {
+  const isCalendarMissing =
+    context === 'calendar-sync' &&
+    (status === '404' ||
+      lower.includes('calendar not found') ||
+      lower.includes('calendar unavailable'));
+  const isEndpointMissing =
+    context !== 'calendar-sync' && (lower.includes('not found') || status === '404');
+  if (isCalendarMissing || isEndpointMissing) {
     return {
-      title: 'CalDAV endpoint not found',
-      message: `Chiri reached ${trimmedServerUrl || 'the server'}, but did not find ${serverLabel} CalDAV there.`,
+      title: context === 'calendar-sync' ? 'Calendar unavailable' : 'CalDAV endpoint not found',
+      message:
+        context === 'calendar-sync'
+          ? 'Chiri could not find this calendar on the server.'
+          : `Chiri reached ${serverUrl.trim() || 'the server'}, but did not find ${serverType === 'generic' ? 'CalDAV' : serverType} CalDAV there.`,
       hint:
-        serverType === 'nextcloud'
-          ? 'For Nextcloud, use the base server URL such as http://localhost:8081. Chiri adds /remote.php/dav/ automatically.'
-          : 'Check the server URL. For unusual setups, expand Advanced and provide the Principal URL or Calendar Home URL.',
+        context === 'calendar-sync'
+          ? 'Check that this calendar still exists on the server and that its URL is current.'
+          : serverType === 'nextcloud'
+            ? 'For Nextcloud, use the base server URL such as http://localhost:8081. Chiri adds /remote.php/dav/ automatically.'
+            : 'Check the server URL. For unusual setups, expand Advanced and provide the Principal URL or Calendar Home URL.',
       detail: rawDetail,
     };
   }
@@ -158,6 +185,17 @@ export const getSetupErrorInfo = (
     };
   }
 
+  return null;
+};
+
+const getRequestErrorInfo = (
+  normalizedMessage: string,
+  lower: string,
+  serverUrl: string,
+  fallback: string,
+  context: CalDAVErrorContext,
+  rawDetail: string,
+): CalDAVSetupError | null => {
   if (lower.includes('could not connect to ')) {
     return {
       title: fallback,
@@ -167,9 +205,21 @@ export const getSetupErrorInfo = (
     };
   }
 
+  if (lower.includes('failed to fetch calendars')) {
+    return {
+      title: 'Could not list calendars',
+      message: 'Chiri connected to the account, but could not read the calendar list.',
+      hint: 'Check whether the account has task-capable calendars and permission to list them.',
+      detail: rawDetail,
+    };
+  }
+
+  const isFetchNetworkFailure =
+    lower === 'failed to fetch' ||
+    (context !== 'calendar-sync' && lower.includes('failed to fetch'));
   if (
     lower.includes('server unreachable') ||
-    lower.includes('failed to fetch') ||
+    isFetchNetworkFailure ||
     lower.includes('network') ||
     lower.includes('connection refused') ||
     lower.includes('error sending request for url') ||
@@ -178,7 +228,7 @@ export const getSetupErrorInfo = (
   ) {
     return {
       title: 'Server unreachable',
-      message: `Chiri could not reach ${trimmedServerUrl || 'the server URL'}.`,
+      message: `Chiri could not reach ${serverUrl.trim() || 'the server URL'}.`,
       hint: 'Make sure the server is running, the URL is correct, and nothing like a VPN, firewall, or proxy is blocking it.',
       detail: rawDetail,
     };
@@ -203,15 +253,6 @@ export const getSetupErrorInfo = (
     };
   }
 
-  if (lower.includes('failed to fetch calendars')) {
-    return {
-      title: 'Could not list calendars',
-      message: 'Chiri connected to the account, but could not read the calendar list.',
-      hint: 'Check whether the account has task-capable calendars and permission to list them.',
-      detail: rawDetail,
-    };
-  }
-
   if (lower.includes('invalid caldav xml') || lower.includes('invalid caldav multistatus')) {
     return {
       title: 'Invalid CalDAV response',
@@ -221,10 +262,51 @@ export const getSetupErrorInfo = (
     };
   }
 
+  return null;
+};
+
+export const getCalDAVErrorInfo = (
+  error: unknown,
+  fallback: string,
+  serverType: ServerType,
+  serverUrl: string,
+  context: CalDAVErrorContext = 'setup',
+): CalDAVSetupError => {
+  const { rawDetail, normalizedMessage, status } = extractErrorDetails(error, fallback);
+  const lower = normalizedMessage.toLowerCase();
+
+  if (context === 'setup') {
+    const setupError = getSetupContextErrorInfo(normalizedMessage, lower, rawDetail);
+    if (setupError) return setupError;
+  }
+
+  const authenticationError = getAuthenticationErrorInfo(lower, status, serverType, rawDetail);
+  if (authenticationError) return authenticationError;
+
+  const serverError = getServerResponseErrorInfo(
+    lower,
+    status,
+    serverType,
+    serverUrl,
+    context,
+    rawDetail,
+  );
+  if (serverError) return serverError;
+
+  const requestError = getRequestErrorInfo(
+    normalizedMessage,
+    lower,
+    serverUrl,
+    fallback,
+    context,
+    rawDetail,
+  );
+  if (requestError) return requestError;
+
   return {
     title: fallback,
     message: normalizedMessage,
-    hint: 'Review the account details and try again.',
+    hint: context === 'setup' ? 'Review the account details and try again.' : undefined,
     detail: rawDetail,
   };
 };

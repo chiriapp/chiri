@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { settingsStore } from '$context/settingsContext';
 import { CalDAVClient } from '$lib/caldav';
+import { getCalDAVErrorInfo } from '$lib/caldav/setup';
 import type { CalDAVTaskObject, TaskWithCalDAVObject } from '$lib/caldav/types';
 import { db } from '$lib/database';
 import { getErrorMessage } from '$lib/http';
@@ -33,6 +34,19 @@ import { resolveEffectiveTheme } from '$utils/color/theme';
 const log = loggers.dataStore;
 const syncLog = loggers.sync;
 const OAUTH_REFRESH_BUFFER_MS = 60 * 1000;
+
+const getSyncErrorHint = (
+  error: unknown,
+  account: Account,
+  context: 'account-sync' | 'calendar-sync',
+) =>
+  getCalDAVErrorInfo(
+    error,
+    'Sync failed',
+    account.caldav?.serverType ?? 'generic',
+    account.caldav?.serverUrl ?? '',
+    context,
+  ).hint;
 
 const taskFieldsForBaselineMerge = [
   'title',
@@ -361,6 +375,7 @@ export const reconnectAccounts = async () => {
         failedAccountIds.add(account.id);
         toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
           groupKey: `sync-error-account-${account.id}`,
+          hint: getSyncErrorHint(error, account, 'account-sync'),
         });
       }
     }
@@ -382,7 +397,7 @@ const shouldReconnectAccount = (account: Account) => {
   return !CalDAVClient.isConnected(account.id) || isOAuthTokenExpiring(account);
 };
 
-const ensureAccountConnected = async (account: Account) => {
+export const ensureAccountConnected = async (account: Account) => {
   if (shouldReconnectAccount(account)) {
     await CalDAVClient.reconnect(account);
   }
@@ -693,6 +708,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
     const errorMessage = getErrorMessage(error);
     toastManager.error('Calendar Sync Error', `${account.name}: ${errorMessage}`, {
       groupKey: 'calendar-fetch-error',
+      hint: getSyncErrorHint(error, account, 'account-sync'),
     });
     return; // skip calendar sync to avoid deleting calendars based on failed fetch
   }
@@ -900,6 +916,7 @@ export const performFullSync = async (
       failedAccountIds.add(account.id);
       toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
         groupKey: `sync-error-account-${account.id}`,
+        hint: getSyncErrorHint(error, account, 'account-sync'),
       });
     }
   }
@@ -930,6 +947,7 @@ export const performFullSync = async (
         syncLog.error(`Failed to sync calendar ${calendar.displayName}:`, error);
         toastManager.error(`Calendar sync failed: ${calendar.displayName}`, errorMessage, {
           groupKey: `sync-error-calendar-${calendar.id}`,
+          hint: getSyncErrorHint(error, account, 'calendar-sync'),
         });
       }
     }

@@ -19,7 +19,7 @@ import {
 import { useAccountDeletion } from '$hooks/deletion/useAccountDeletion';
 import { useTasks } from '$hooks/queries/useTasks';
 import type { CalDAVSetupError, CalDAVSetupNotice } from '$lib/caldav/setup';
-import { getSetupErrorInfo } from '$lib/caldav/setup';
+import { getCalDAVErrorInfo } from '$lib/caldav/setup';
 import { exportMobileConfigFile } from '$lib/mobileconfig/export';
 import type { Account } from '$types/account';
 import { pluralize } from '$utils/misc';
@@ -108,7 +108,7 @@ export const ConnectionsSettings = ({
         ...prev,
         [account.id]: {
           success: false,
-          error: getSetupErrorInfo(
+          error: getCalDAVErrorInfo(
             error,
             'Failed to test CalDAV connection',
             account.caldav?.serverType ?? 'generic',
