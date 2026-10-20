@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import {
@@ -7,10 +8,11 @@ import {
 } from '$components/modals/AccountModal/steps/BrowserAuthFlowStep';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
-import { useSyncQuery } from '$hooks/queries/useSync';
+import { fetchTasksForCalendar } from '$lib/account/setup';
 import { cancelNextcloudLogin, initiateNextcloudLogin } from '$lib/auth/nextcloud';
 import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
+import { queryKeys } from '$lib/queryClient';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.account;
@@ -34,9 +36,9 @@ export const DisrootCloudBrowserLoginStep = forwardRef<
   DisrootCloudBrowserLoginStepProps
 >(({ onSuccess, onSetupInProgressChange, onConnectStateChange }, ref) => {
   const flowRef = useRef<BrowserAuthFlowStepHandle>(null);
+  const queryClient = useQueryClient();
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
-  const { syncAll } = useSyncQuery();
   const { enforceVapid } = useSettingsStore();
 
   useEffect(() => {
@@ -110,11 +112,12 @@ export const DisrootCloudBrowserLoginStep = forwardRef<
         }
       }
 
-      syncAll({
-        source: 'account-setup-disrootCloud',
-        reason: 'completed Disroot Cloud browser login account creation',
-        where: 'DisrootCloudBrowserLoginStep',
-      });
+      for (const calendar of calendars) {
+        await fetchTasksForCalendar(accountId, calendar);
+      }
+
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
     } catch (e) {
       if (signal.aborted || (e instanceof Error && e.message.toLowerCase().includes('cancelled'))) {
         throw new DOMException('Login flow cancelled', 'AbortError');

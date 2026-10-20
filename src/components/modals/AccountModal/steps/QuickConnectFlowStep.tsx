@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
@@ -6,7 +7,7 @@ import {
 } from '$components/modals/AccountModal/steps/BrowserAuthFlowStep';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
-import { useSyncQuery } from '$hooks/queries/useSync';
+import { fetchTasksForCalendar } from '$lib/account/setup';
 import {
   cancelNextcloudLogin,
   initiateNextcloudLogin,
@@ -17,6 +18,7 @@ import { normalizeRusticalUrl, validateRusticalServer } from '$lib/auth/rustical
 import { CalDAVClient } from '$lib/caldav';
 import { toCalDAVSetupError } from '$lib/caldav/setup';
 import { loggers } from '$lib/logger';
+import { queryKeys } from '$lib/queryClient';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.account;
@@ -42,9 +44,6 @@ const CONFIG = {
     urlPlaceholder: 'https://cloud.example.com',
     normalize: normalizeNextcloudUrl,
     validate: validateNextcloudServer,
-    syncSource: 'account-setup-nextcloud' as const,
-    syncReason: 'completed Nextcloud account creation flow',
-    syncWhere: 'QuickConnectFlowStep.nextcloud',
   },
   rustical: {
     label: 'RustiCal',
@@ -52,9 +51,6 @@ const CONFIG = {
     urlPlaceholder: 'https://rust.example.com',
     normalize: normalizeRusticalUrl,
     validate: validateRusticalServer,
-    syncSource: 'account-setup-rustical' as const,
-    syncReason: 'completed RustiCal account creation flow',
-    syncWhere: 'QuickConnectFlowStep.rustical',
   },
 };
 
@@ -64,9 +60,9 @@ export const QuickConnectFlowStep = forwardRef<
 >(({ serverType, onSuccess, onStepChange, onConnectStateChange }, ref) => {
   const [serverUrl, setServerUrl] = useState('');
   const flowRef = useRef<BrowserAuthFlowStepHandle>(null);
+  const queryClient = useQueryClient();
   const createAccountMutation = useCreateAccount();
   const addCalendarMutation = useAddCalendar();
-  const { syncAll } = useSyncQuery();
   const { enforceVapid } = useSettingsStore();
   const config = CONFIG[serverType];
 
@@ -171,11 +167,12 @@ export const QuickConnectFlowStep = forwardRef<
         }
       }
 
-      await syncAll({
-        source: config.syncSource,
-        reason: config.syncReason,
-        where: config.syncWhere,
-      });
+      for (const calendar of calendars) {
+        await fetchTasksForCalendar(accountId, calendar);
+      }
+
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
     } catch (e) {
       if (signal.aborted || (e instanceof Error && e.message.toLowerCase().includes('cancelled'))) {
         throw new DOMException('Login flow cancelled', 'AbortError');

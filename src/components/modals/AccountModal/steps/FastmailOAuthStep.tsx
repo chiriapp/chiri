@@ -8,20 +8,16 @@ import {
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
+import { fetchTasksForCalendar } from '$lib/account/setup';
 import {
   FASTMAIL_CALDAV_URL,
   startFastmailOAuth,
   usernameFromPrincipalUrl,
 } from '$lib/auth/fastmail';
 import { CalDAVClient } from '$lib/caldav';
-import { loggers } from '$lib/logger';
 import { queryKeys } from '$lib/queryClient';
 import { replaceOAuthAccountAuthorization } from '$lib/store/accounts';
-import { ensureTagExists } from '$lib/store/sync';
-import { createTask } from '$lib/store/tasks';
 import type { Account } from '$types/account';
-
-const log = loggers.account;
 
 export interface FastmailOAuthStepHandle {
   connect: () => void;
@@ -119,39 +115,18 @@ export const FastmailOAuthStep = forwardRef<FastmailOAuthStepHandle, FastmailOAu
         });
 
         for (const calendar of calendars) {
-          addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
+          await addCalendarMutation.mutateAsync({
+            accountId: newAccount.id,
+            calendarData: calendar,
+          });
         }
 
         for (const calendar of calendars) {
-          try {
-            const remoteTasks = await CalDAVClient.getForAccount(newAccount.id).fetchTasks(
-              calendar,
-            );
-            if (!remoteTasks) continue;
-            for (const remoteTask of remoteTasks) {
-              let tagIds: string[] = [];
-              if (remoteTask.categoryId) {
-                const names = remoteTask.categoryId
-                  .split(',')
-                  .map((s: string) => s.trim())
-                  .filter(Boolean);
-                tagIds = names.map((name: string) => ensureTagExists(name));
-              }
-              createTask({ ...remoteTask, tags: tagIds }, { source: 'remote' });
-            }
-          } catch (e) {
-            log.error(`[FastmailOAuth] Failed to fetch tasks for ${calendar.displayName}:`, e);
-          }
+          await fetchTasksForCalendar(newAccount.id, calendar);
         }
 
-        queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
-        queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
-
-        syncAll({
-          source: 'account-setup-fastmail',
-          reason: 'completed Fastmail OAuth account creation',
-          where: 'FastmailOAuthStep',
-        });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+        await queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
       } catch (e) {
         if (
           signal.aborted ||

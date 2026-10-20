@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import {
@@ -7,7 +8,7 @@ import {
 } from '$components/modals/AccountModal/steps/BrowserAuthFlowStep';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
-import { useSyncQuery } from '$hooks/queries/useSync';
+import { fetchTasksForCalendar } from '$lib/account/setup';
 import {
   type StalwartTokens,
   startStalwartOAuth,
@@ -17,8 +18,7 @@ import {
 import { CalDAVClient } from '$lib/caldav';
 import { toCalDAVSetupError } from '$lib/caldav/setup';
 import { loggers } from '$lib/logger';
-import { ensureTagExists } from '$lib/store/sync';
-import { createTask } from '$lib/store/tasks';
+import { queryKeys } from '$lib/queryClient';
 
 const log = loggers.account;
 
@@ -52,14 +52,15 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
     ref,
   ) => {
     const flowRef = useRef<BrowserAuthFlowStepHandle>(null);
+    const queryClient = useQueryClient();
     const createAccountMutation = useCreateAccount();
     const addCalendarMutation = useAddCalendar();
-    const { syncAll } = useSyncQuery();
     const { enforceVapid } = useSettingsStore();
 
     const finishSetup = async (url: string, tokens: StalwartTokens) => {
+      const accountId = crypto.randomUUID();
       const { principalUrl, displayName } = await CalDAVClient.connectWithBearer(
-        'stalwart-oauth-setup',
+        accountId,
         url,
         tokens.username,
         tokens.accessToken,
@@ -72,8 +73,7 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
       const username =
         tokens.username || usernameFromPrincipalUrl(principalUrl) || 'Stalwart account';
 
-      const calendars =
-        await CalDAVClient.getForAccount('stalwart-oauth-setup').fetchCalendars(enforceVapid);
+      const calendars = await CalDAVClient.getForAccount(accountId).fetchCalendars(enforceVapid);
 
       log.info(`[StalwartOAuth] Found ${calendars?.length ?? 0} calendars`, {
         serverUrl: url,
@@ -81,6 +81,7 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
       });
 
       const newAccount = await createAccountMutation.mutateAsync({
+        id: accountId,
         name: displayName || username,
         caldav: {
           serverUrl: url,
@@ -96,34 +97,18 @@ export const StalwartOAuthStep = forwardRef<StalwartOAuthStepHandle, StalwartOAu
       });
 
       for (const calendar of calendars ?? []) {
-        addCalendarMutation.mutate({ accountId: newAccount.id, calendarData: calendar });
+        await addCalendarMutation.mutateAsync({
+          accountId: newAccount.id,
+          calendarData: calendar,
+        });
       }
 
       for (const calendar of calendars ?? []) {
-        try {
-          const remoteTasks = await CalDAVClient.getForAccount(newAccount.id).fetchTasks(calendar);
-          if (!remoteTasks) continue;
-          for (const remoteTask of remoteTasks) {
-            let tagIds: string[] = [];
-            if (remoteTask.categoryId) {
-              const names = remoteTask.categoryId
-                .split(',')
-                .map((s: string) => s.trim())
-                .filter(Boolean);
-              tagIds = names.map((name: string) => ensureTagExists(name));
-            }
-            createTask({ ...remoteTask, tags: tagIds }, { source: 'remote' });
-          }
-        } catch (e) {
-          log.error(`[StalwartOAuth] Failed to fetch tasks for ${calendar.displayName}:`, e);
-        }
+        await fetchTasksForCalendar(newAccount.id, calendar);
       }
 
-      syncAll({
-        source: 'account-setup-stalwart',
-        reason: 'completed Stalwart OAuth account creation',
-        where: 'StalwartOAuthStep',
-      });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tags.all });
     };
 
     const validateServerUrl = async (rawUrl: string, signal: AbortSignal) => {
