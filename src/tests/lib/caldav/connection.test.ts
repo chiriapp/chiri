@@ -23,6 +23,14 @@ const authMocks = vi.hoisted(() => ({
   refreshOAuthAccountToken: vi.fn(),
 }));
 vi.mock('$lib/auth/refresh', () => ({
+  OAuthReauthorizationRequiredError: class extends Error {
+    readonly accountId: string;
+    constructor(accountId: string, message: string) {
+      super(message);
+      this.name = 'OAuthReauthorizationRequiredError';
+      this.accountId = accountId;
+    }
+  },
   OAuthTokenPersistenceError: class extends Error {},
   refreshOAuthAccountToken: authMocks.refreshOAuthAccountToken,
 }));
@@ -169,6 +177,30 @@ describe('reconnect OAuth recovery', () => {
         credentials: expect.objectContaining({ bearerToken: 'new-access-token' }),
       }),
     );
+  });
+
+  it('requires reauthorization without attempting a connection when the grant was cleared', async () => {
+    const account: Account = {
+      id: 'account-needs-reauthorization',
+      name: 'Fastmail',
+      calendars: [],
+      isActive: true,
+      sortOrder: 100,
+      caldav: {
+        serverUrl: 'https://caldav.fastmail.com',
+        username: 'user@example.com',
+        password: '',
+        serverType: 'fastmail',
+        authType: 'oauth',
+      },
+    };
+
+    await expect(reconnect(account)).rejects.toMatchObject({
+      name: 'OAuthReauthorizationRequiredError',
+      accountId: account.id,
+    });
+    expect(http.propfind).not.toHaveBeenCalled();
+    expect(authMocks.refreshOAuthAccountToken).not.toHaveBeenCalled();
   });
 });
 

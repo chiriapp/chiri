@@ -16,8 +16,10 @@ import {
 import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
 import { queryKeys } from '$lib/queryClient';
+import { replaceOAuthAccountAuthorization } from '$lib/store/accounts';
 import { ensureTagExists } from '$lib/store/sync';
 import { createTask } from '$lib/store/tasks';
+import type { Account } from '$types/account';
 
 const log = loggers.account;
 
@@ -28,13 +30,14 @@ export interface FastmailOAuthStepHandle {
 }
 
 interface FastmailOAuthStepProps {
+  account?: Account | null;
   onSuccess: () => void;
   onSetupInProgressChange: (inProgress: boolean) => void;
   onConnectStateChange?: (state: { disabled: boolean; loading: boolean }) => void;
 }
 
 export const FastmailOAuthStep = forwardRef<FastmailOAuthStepHandle, FastmailOAuthStepProps>(
-  ({ onSuccess, onSetupInProgressChange, onConnectStateChange }, ref) => {
+  ({ account, onSuccess, onSetupInProgressChange, onConnectStateChange }, ref) => {
     const flowRef = useRef<BrowserAuthFlowStepHandle>(null);
     const queryClient = useQueryClient();
     const createAccountMutation = useCreateAccount();
@@ -73,8 +76,20 @@ export const FastmailOAuthStep = forwardRef<FastmailOAuthStepHandle, FastmailOAu
 
         setPhase('connecting');
 
-        const accountId = crypto.randomUUID();
         const { accessToken, refreshToken, tokenExpiry } = tokens;
+
+        if (account) {
+          const updatedAccount = await replaceOAuthAccountAuthorization(account.id, tokens);
+          await CalDAVClient.reconnect(updatedAccount);
+          syncAll({
+            source: 'account-setup-fastmail',
+            reason: 'completed Fastmail OAuth account reconnection',
+            where: 'FastmailOAuthStep',
+          });
+          return;
+        }
+
+        const accountId = crypto.randomUUID();
 
         const { principalUrl, displayName } = await CalDAVClient.connectWithBearer(
           accountId,

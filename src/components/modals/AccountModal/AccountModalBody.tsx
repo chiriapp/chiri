@@ -155,6 +155,7 @@ export const AccountModalBody = ({
       {step === 'fastmail-oauth' && (
         <FastmailOAuthStep
           ref={fastmailRef}
+          account={account}
           onSuccess={onFastmailSuccess}
           onSetupInProgressChange={onFastmailSetupInProgressChange}
           onConnectStateChange={onFastmailStateChange}

@@ -18,6 +18,7 @@ export const useAppModals = (): AppModals => {
   const [showImport, setShowImport] = useState(false);
   const [showAccountModal, setShowAccountModal] = useState(false);
   const [editingAccountId, setEditingAccountId] = useState<string | null>(null);
+  const [reauthorizingAccountId, setReauthorizingAccountId] = useState<string | null>(null);
   const [accountModalZIndex, setAccountModalZIndex] = useState<AccountModalZIndex>(
     ACCOUNT_MODAL_Z_INDEX.default,
   );
@@ -53,8 +54,9 @@ export const useAppModals = (): AppModals => {
   }, []);
 
   const openAccount = useCallback(
-    ({ accountId = null, layer = 'default' }: OpenAccountOptions = {}) => {
+    ({ accountId = null, layer = 'default', reauthorize = false }: OpenAccountOptions = {}) => {
       setEditingAccountId(accountId);
+      setReauthorizingAccountId(reauthorize ? accountId : null);
       setAccountModalZIndex(ACCOUNT_MODAL_Z_INDEX[layer]);
       setShowAccountModal(true);
     },
@@ -64,6 +66,7 @@ export const useAppModals = (): AppModals => {
   const closeAccount = useCallback(() => {
     setShowAccountModal(false);
     setEditingAccountId(null);
+    setReauthorizingAccountId(null);
     setAccountModalZIndex(ACCOUNT_MODAL_Z_INDEX.default);
   }, []);
 
@@ -110,6 +113,7 @@ export const useAppModals = (): AppModals => {
     showImport,
     showAccountModal,
     editingAccountId,
+    reauthorizingAccountId,
     accountModalZIndex,
     showCreateCalendar,
     createCalendarAccountId,

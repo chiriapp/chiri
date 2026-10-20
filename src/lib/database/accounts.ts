@@ -152,6 +152,38 @@ export const updateOAuthTokens = async (
   }
 };
 
+export const clearOAuthAuthorization = async (
+  conn: DatabasePlugin,
+  accountId: string,
+  expectedRefreshToken: string,
+) => {
+  const result = await conn.execute(
+    `UPDATE caldav_configs
+     SET password = '', refresh_token = NULL, token_expiry = NULL
+     WHERE account_id = $1 AND auth_type = 'oauth' AND refresh_token = $2`,
+    [accountId, expectedRefreshToken],
+  );
+
+  return result.rowsAffected === 1;
+};
+
+export const replaceOAuthAuthorization = async (
+  conn: DatabasePlugin,
+  accountId: string,
+  tokens: OAuthTokens,
+) => {
+  const result = await conn.execute(
+    `UPDATE caldav_configs
+     SET password = $1, refresh_token = $2, token_expiry = $3
+     WHERE account_id = $4 AND auth_type = 'oauth'`,
+    [tokens.accessToken, tokens.refreshToken, tokens.tokenExpiry, accountId],
+  );
+
+  if (result.rowsAffected !== 1) {
+    throw new Error(`OAuth authorization could not be replaced for account ${accountId}.`);
+  }
+};
+
 export const deleteAccount = async (conn: DatabasePlugin, id: string) => {
   await conn.execute('DELETE FROM accounts WHERE id = $1', [id]);
 

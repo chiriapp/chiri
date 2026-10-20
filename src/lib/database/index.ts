@@ -89,6 +89,14 @@ class Database {
     return accountOps.updateOAuthTokens(await this.conn(), accountId, consumedRefreshToken, tokens);
   }
 
+  async clearOAuthAuthorization(accountId: string, expectedRefreshToken: string) {
+    return accountOps.clearOAuthAuthorization(await this.conn(), accountId, expectedRefreshToken);
+  }
+
+  async replaceOAuthAuthorization(accountId: string, tokens: OAuthTokens) {
+    return accountOps.replaceOAuthAuthorization(await this.conn(), accountId, tokens);
+  }
+
   async deleteAccount(id: string) {
     await accountOps.deleteAccount(await this.conn(), id);
     this.notify();

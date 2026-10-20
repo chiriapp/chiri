@@ -1,6 +1,10 @@
 import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import { describe, expect, it, vi } from 'vitest';
-import { updateOAuthTokens } from '$lib/database/accounts';
+import {
+  clearOAuthAuthorization,
+  replaceOAuthAuthorization,
+  updateOAuthTokens,
+} from '$lib/database/accounts';
 
 const tokens = {
   accessToken: 'new-access-token',
@@ -35,5 +39,43 @@ describe('OAuth account persistence', () => {
     await expect(
       updateOAuthTokens(connection, 'account-1', 'stale-refresh-token', tokens),
     ).rejects.toThrow('OAuth tokens changed before they could be saved');
+  });
+
+  it('clears only the expected OAuth authorization', async () => {
+    const execute = vi.fn().mockResolvedValue({ rowsAffected: 1 });
+    const connection = { execute } as unknown as DatabasePlugin;
+
+    await expect(
+      clearOAuthAuthorization(connection, 'account-1', 'old-refresh-token'),
+    ).resolves.toBe(true);
+
+    expect(execute).toHaveBeenCalledWith(
+      expect.stringContaining("auth_type = 'oauth' AND refresh_token = $2"),
+      ['account-1', 'old-refresh-token'],
+    );
+  });
+
+  it('reports a stale authorization clear without touching a newer grant', async () => {
+    const connection = {
+      execute: vi.fn().mockResolvedValue({ rowsAffected: 0 }),
+    } as unknown as DatabasePlugin;
+
+    await expect(
+      clearOAuthAuthorization(connection, 'account-1', 'old-refresh-token'),
+    ).resolves.toBe(false);
+  });
+
+  it('durably replaces a reauthorized OAuth grant', async () => {
+    const execute = vi.fn().mockResolvedValue({ rowsAffected: 1 });
+    const connection = { execute } as unknown as DatabasePlugin;
+
+    await replaceOAuthAuthorization(connection, 'account-1', tokens);
+
+    expect(execute).toHaveBeenCalledWith(expect.stringContaining("auth_type = 'oauth'"), [
+      'new-access-token',
+      'new-refresh-token',
+      '2026-10-19T01:00:00.000Z',
+      'account-1',
+    ]);
   });
 });

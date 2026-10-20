@@ -83,4 +83,24 @@ describe('refreshFastmailToken', () => {
       'Token response did not rotate the refresh_token.',
     );
   });
+
+  it('preserves Fastmail structured refresh errors', async () => {
+    mocks.invoke.mockResolvedValueOnce({
+      status: 400,
+      headers: {},
+      body: JSON.stringify({
+        error: 'invalid_grant',
+        error_description: 'Your administrator has temporarily locked this account.',
+        temporary: true,
+      }),
+    });
+
+    await expect(refreshFastmailToken('old-refresh-token')).rejects.toMatchObject({
+      name: 'OAuthTokenEndpointError',
+      error: 'invalid_grant',
+      errorDescription: 'Your administrator has temporarily locked this account.',
+      temporary: true,
+      status: 400,
+    });
+  });
 });

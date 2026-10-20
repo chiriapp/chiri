@@ -22,6 +22,14 @@ vi.mock('$lib/caldav/connection', () => ({
 }));
 
 vi.mock('$lib/auth/refresh', () => ({
+  OAuthReauthorizationRequiredError: class extends Error {
+    readonly accountId: string;
+    constructor(accountId: string, message: string) {
+      super(message);
+      this.name = 'OAuthReauthorizationRequiredError';
+      this.accountId = accountId;
+    }
+  },
   refreshOAuthAccountToken: mocks.refreshOAuthAccountToken,
 }));
 
@@ -149,6 +157,21 @@ describe('CalDAVClient OAuth recovery', () => {
     const client = CalDAVClient.getForAccount('account-1');
 
     await expect(client.fetchTasks(calendar)).rejects.toMatchObject({ status: 403 });
+    expect(mocks.refreshOAuthAccountToken).not.toHaveBeenCalled();
+    expect(mocks.fetchTasks).toHaveBeenCalledTimes(1);
+  });
+
+  it('requires reauthorization instead of retrying a cleared refresh token', async () => {
+    const account = makeAccount();
+    if (account.caldav) account.caldav.refreshToken = undefined;
+    mocks.getAccountById.mockReturnValue(account);
+    mocks.fetchTasks.mockRejectedValueOnce(unauthorized());
+    const client = CalDAVClient.getForAccount('account-1');
+
+    await expect(client.fetchTasks(calendar)).rejects.toMatchObject({
+      name: 'OAuthReauthorizationRequiredError',
+      accountId: 'account-1',
+    });
     expect(mocks.refreshOAuthAccountToken).not.toHaveBeenCalled();
     expect(mocks.fetchTasks).toHaveBeenCalledTimes(1);
   });

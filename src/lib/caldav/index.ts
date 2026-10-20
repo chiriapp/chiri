@@ -1,4 +1,4 @@
-import { refreshOAuthAccountToken } from '$lib/auth/refresh';
+import { OAuthReauthorizationRequiredError, refreshOAuthAccountToken } from '$lib/auth/refresh';
 import * as calendarOps from '$lib/caldav/calendars';
 import type { Connection } from '$lib/caldav/connection';
 import * as connectionOps from '$lib/caldav/connection';
@@ -27,7 +27,15 @@ export class CalDAVClient {
 
       const account = getAccountById(this.accountId);
       const config = account?.caldav;
-      if (config?.authType !== 'oauth' || !config.refreshToken) throw error;
+      if (config?.authType !== 'oauth') throw error;
+      if (!config.refreshToken) {
+        throw new OAuthReauthorizationRequiredError(
+          this.accountId,
+          config.serverType === 'fastmail'
+            ? 'Reconnect Fastmail to authorize this account again.'
+            : 'Reconnect this account to authorize it again.',
+        );
+      }
 
       // a different operation may already have refreshed this account while
       // this client still held the rejected access token

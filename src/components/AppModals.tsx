@@ -88,6 +88,7 @@ export const AppModals = ({
     showAccountModal,
     accountModalZIndex,
     editingAccountId,
+    reauthorizingAccountId,
     showCreateCalendar,
     createCalendarAccountId,
     settingsInitialTab,
@@ -178,6 +179,7 @@ export const AppModals = ({
       {showAccountModal && (
         <AccountModal
           account={editingAccount}
+          reauthorize={reauthorizingAccountId === editingAccount?.id}
           preloadedConfig={preloadedConfig ?? undefined}
           zIndex={accountModalZIndex}
           onBackToConfigProfileChooser={

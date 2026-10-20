@@ -22,6 +22,34 @@ interface ParseTokenResponseOptions {
   requireRotatedRefreshTokenFrom?: string;
 }
 
+export class OAuthTokenEndpointError extends Error {
+  readonly error: string;
+  readonly errorDescription?: string;
+  readonly temporary?: boolean;
+  readonly status: number;
+
+  constructor({
+    context,
+    error,
+    errorDescription,
+    temporary,
+    status,
+  }: {
+    context: string;
+    error: string;
+    errorDescription?: string;
+    temporary?: boolean;
+    status: number;
+  }) {
+    super(`${context} failed (${status}): ${errorDescription ?? error}`);
+    this.name = 'OAuthTokenEndpointError';
+    this.error = error;
+    this.errorDescription = errorDescription;
+    this.temporary = temporary;
+    this.status = status;
+  }
+}
+
 export const base64UrlEncode = (buf: Uint8Array): string => {
   const bytes = Array.from(buf, (b) => String.fromCharCode(b));
   return btoa(bytes.join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
@@ -108,6 +136,26 @@ const stripHtmlTags = (value: string): string =>
 
 export const assertTokenResponseOk = (res: HttpResponse, context: string): void => {
   if (res.status < 200 || res.status >= 300) {
+    try {
+      const data = JSON.parse(res.body) as unknown;
+      if (isRecord(data) && typeof data.error === 'string' && data.error.length > 0) {
+        const errorDescription =
+          typeof data.error_description === 'string' && data.error_description.length > 0
+            ? data.error_description
+            : undefined;
+        const temporary = typeof data.temporary === 'boolean' ? data.temporary : undefined;
+        throw new OAuthTokenEndpointError({
+          context,
+          error: data.error,
+          errorDescription,
+          temporary,
+          status: res.status,
+        });
+      }
+    } catch (error) {
+      if (error instanceof OAuthTokenEndpointError) throw error;
+    }
+
     const body = stripHtmlTags(res.body).slice(0, 200);
     throw new Error(`${context} failed (${res.status})${body ? `: ${body}` : '.'}`);
   }

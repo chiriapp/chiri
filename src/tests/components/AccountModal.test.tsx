@@ -3,7 +3,7 @@ import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AccountModal } from '$components/modals/AccountModal/AccountModal';
-import type { AccountDraft, ServerType } from '$types/account';
+import type { Account, AccountDraft, ServerType } from '$types/account';
 
 const mocks = vi.hoisted(() => {
   const draft: AccountDraft = {
@@ -158,6 +158,33 @@ describe('AccountModal workflow', () => {
     );
     expect(container.querySelector('[data-testid="footer"]')?.textContent).toBe('');
     expect(container.querySelector('[data-testid="footer-left"]')?.textContent).toBe('');
+  });
+
+  it('opens a Fastmail account directly in browser reauthorization mode', () => {
+    const account: Account = {
+      id: 'fastmail-account',
+      name: 'Fastmail',
+      calendars: [],
+      isActive: true,
+      sortOrder: 100,
+      caldav: {
+        serverUrl: 'https://caldav.fastmail.com',
+        username: 'user@example.com',
+        password: '',
+        serverType: 'fastmail',
+        authType: 'oauth',
+      },
+    };
+    mocks.draft.serverType = 'fastmail';
+
+    act(() => {
+      root.render(<AccountModal account={account} reauthorize onClose={vi.fn()} />);
+    });
+
+    expect(container.querySelector('h1')?.textContent).toBe('Reconnect Fastmail');
+    expect(container.querySelector('[data-testid="account-step"]')?.getAttribute('data-step')).toBe(
+      'fastmail-oauth',
+    );
   });
 
   it('moves from server type selection to connect method selection', () => {

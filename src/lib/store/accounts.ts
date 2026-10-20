@@ -119,6 +119,77 @@ export const persistOAuthTokens = async (
   return updatedAccount;
 };
 
+export const markOAuthReauthorizationRequired = async (
+  accountId: string,
+  expectedRefreshToken: string,
+) => {
+  const current = getAccountById(accountId);
+  if (current?.caldav?.authType !== 'oauth') {
+    throw new Error(`Cannot clear OAuth authorization for account ${accountId}.`);
+  }
+  if (current.caldav.refreshToken !== expectedRefreshToken) return false;
+
+  const cleared = await db.clearOAuthAuthorization(accountId, expectedRefreshToken);
+  if (!cleared) return false;
+
+  const data = dataStore.load();
+  let marked = false;
+  const accounts = data.accounts.map((account) => {
+    if (
+      account.id !== accountId ||
+      account.caldav?.authType !== 'oauth' ||
+      account.caldav.refreshToken !== expectedRefreshToken
+    ) {
+      return account;
+    }
+
+    marked = true;
+    return {
+      ...account,
+      caldav: {
+        ...account.caldav,
+        password: '',
+        refreshToken: undefined,
+        tokenExpiry: undefined,
+      },
+    };
+  });
+  if (!marked) return false;
+  dataStore.save({ ...data, accounts });
+  return true;
+};
+
+export const replaceOAuthAccountAuthorization = async (accountId: string, tokens: OAuthTokens) => {
+  const current = getAccountById(accountId);
+  if (current?.caldav?.authType !== 'oauth') {
+    throw new Error(`Cannot replace OAuth authorization for account ${accountId}.`);
+  }
+
+  await db.replaceOAuthAuthorization(accountId, tokens);
+
+  const data = dataStore.load();
+  let updatedAccount: Account | undefined;
+  const accounts = data.accounts.map((account) => {
+    if (account.id !== accountId || account.caldav?.authType !== 'oauth') return account;
+    updatedAccount = {
+      ...account,
+      caldav: {
+        ...account.caldav,
+        password: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        tokenExpiry: tokens.tokenExpiry,
+      },
+    };
+    return updatedAccount;
+  });
+
+  if (!updatedAccount) {
+    throw new Error(`Cannot publish OAuth authorization for account ${accountId}.`);
+  }
+  dataStore.save({ ...data, accounts });
+  return updatedAccount;
+};
+
 export const deleteAccount = (id: string) => {
   const data = dataStore.load();
   const newAccounts = data.accounts.filter((acc) => acc.id !== id);

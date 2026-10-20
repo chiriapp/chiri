@@ -19,11 +19,15 @@ export const useAccountCommands = ({ modals }: UseAccountCommandsOptions) => {
   }, [isAnyModalOpen, modals]);
 
   const editAccount = useCallback(
-    (accountId: string) => {
-      if (isAnyModalOpen) return;
+    (accountId: string, reauthorize = false) => {
+      if (isAnyModalOpen && !reauthorize) return;
       const account = accounts.find((a) => a.id === accountId);
       if (!account?.caldav) return;
-      modals.openAccount({ accountId });
+      modals.openAccount({
+        accountId,
+        reauthorize,
+        layer: reauthorize ? 'above-modal' : 'default',
+      });
     },
     [accounts, isAnyModalOpen, modals],
   );

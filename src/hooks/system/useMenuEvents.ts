@@ -14,7 +14,7 @@ interface MenuCallbacks {
   onOpenSettings?: RefObject<(() => void) | null>;
   onOpenImport?: RefObject<(() => void) | null>;
   onOpenAccount?: RefObject<(() => void) | null>;
-  onEditAccount?: RefObject<((accountId: string) => void) | null>;
+  onEditAccount?: RefObject<((accountId: string, reauthorize?: boolean) => void) | null>;
   onOpenCreateCalendar?: RefObject<((accountId?: string) => void) | null>;
   onSearch?: RefObject<(() => void) | null>;
   onOpenAbout?: RefObject<(() => void) | null>;
@@ -112,7 +112,7 @@ const PARAM_EVENTS: ParamEventConfig[] = [
   {
     event: MENU_EVENTS.EDIT_ACCOUNT,
     label: 'Edit Account',
-    handler: (cb, p) => cb.onEditAccount?.current?.(p.accountId as string),
+    handler: (cb, p) => cb.onEditAccount?.current?.(p.accountId as string, p.reauthorize === true),
   },
   {
     event: MENU_EVENTS.ADD_CALENDAR,
@@ -261,7 +261,9 @@ const registerParamEvents = async (
     const success = await registerListener<Record<string, unknown>>(
       config.event,
       (payload) => {
-        if (isBlocked(config.event, config.label)) return;
+        const isOAuthReauthorization =
+          config.event === MENU_EVENTS.EDIT_ACCOUNT && payload.reauthorize === true;
+        if (!isOAuthReauthorization && isBlocked(config.event, config.label)) return;
         log.debug(`${config.label} triggered`, payload);
         config.handler(callbacks, payload);
       },

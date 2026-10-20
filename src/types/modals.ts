@@ -16,6 +16,7 @@ export interface EditingCalendar {
 export interface OpenAccountOptions {
   accountId?: string | null;
   layer?: AccountModalLayer;
+  reauthorize?: boolean;
 }
 
 export interface AppModalState {
@@ -24,6 +25,7 @@ export interface AppModalState {
   showImport: boolean;
   showAccountModal: boolean;
   editingAccountId: string | null;
+  reauthorizingAccountId?: string | null;
   accountModalZIndex: AccountModalZIndex;
   showCreateCalendar: boolean;
   createCalendarAccountId: string | null;

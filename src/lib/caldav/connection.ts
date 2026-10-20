@@ -1,5 +1,9 @@
 import { connectionStore } from '$context/connectionContext';
-import { OAuthTokenPersistenceError, refreshOAuthAccountToken } from '$lib/auth/refresh';
+import {
+  OAuthReauthorizationRequiredError,
+  OAuthTokenPersistenceError,
+  refreshOAuthAccountToken,
+} from '$lib/auth/refresh';
 import { hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
 import type { CalDAVCredentials, HttpRequestContext, HttpResponse } from '$lib/http';
 import { DetailedError, isUnauthorizedError, propfind, tauriRequest } from '$lib/http';
@@ -497,6 +501,22 @@ export const isConnected = (accountId: string) => {
   return connectionStore.hasConnection(accountId);
 };
 
+const getOAuthRefreshToken = (accountId: string, account: Account) => {
+  const caldav = account.caldav;
+  if (caldav?.authType !== 'oauth') return undefined;
+  if (caldav.refreshToken) return caldav.refreshToken;
+
+  throw new OAuthReauthorizationRequiredError(
+    accountId,
+    caldav.serverType === 'fastmail'
+      ? 'Reconnect Fastmail to authorize this account again.'
+      : 'Reconnect this account to authorize it again.',
+  );
+};
+
+const isFatalOAuthRefreshError = (error: unknown) =>
+  error instanceof OAuthTokenPersistenceError || error instanceof OAuthReauthorizationRequiredError;
+
 export const reconnect = async (
   account: Account,
   context?: HttpRequestContext,
@@ -514,7 +534,7 @@ export const reconnect = async (
 
   if (caldav.authType === 'oauth') {
     let accessToken = caldav.password;
-    let refreshToken = caldav.refreshToken;
+    let refreshToken = getOAuthRefreshToken(account.id, account);
 
     if (caldav.tokenExpiry) {
       const expiresAt = new Date(caldav.tokenExpiry).getTime();
@@ -527,7 +547,7 @@ export const reconnect = async (
           accessToken = fresh.accessToken;
           refreshToken = fresh.refreshToken;
         } catch (e) {
-          if (e instanceof OAuthTokenPersistenceError) throw e;
+          if (isFatalOAuthRefreshError(e)) throw e;
           console.warn('[CalDAV] Token refresh failed, retrying with existing token:', e);
         }
       }

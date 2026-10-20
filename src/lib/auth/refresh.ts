@@ -1,7 +1,12 @@
+import { connectionStore } from '$context/connectionContext';
 import { refreshFastmailToken } from '$lib/auth/fastmail';
-import type { OAuthTokens } from '$lib/auth/oauth';
+import { OAuthTokenEndpointError, type OAuthTokens } from '$lib/auth/oauth';
 import { refreshStalwartToken } from '$lib/auth/stalwart';
-import { getAccountById, persistOAuthTokens } from '$lib/store/accounts';
+import {
+  getAccountById,
+  markOAuthReauthorizationRequired,
+  persistOAuthTokens,
+} from '$lib/store/accounts';
 import type { CalDAVConfig } from '$types/account';
 
 interface PendingTokenPersistence {
@@ -11,6 +16,19 @@ interface PendingTokenPersistence {
 
 const refreshesByAccount = new Map<string, Promise<OAuthTokens>>();
 const pendingPersistenceByAccount = new Map<string, PendingTokenPersistence>();
+const temporaryFailuresByAccount = new Map<
+  string,
+  {
+    refreshToken: string;
+    attempt: number;
+    retryAt: number;
+    description: string;
+  }
+>();
+const reauthorizationByAccount = new Map<string, { refreshToken: string; description: string }>();
+
+const TEMPORARY_RETRY_BASE_MS = 30_000;
+const TEMPORARY_RETRY_MAX_MS = 15 * 60_000;
 
 export class OAuthTokenPersistenceError extends Error {
   readonly accountId: string;
@@ -24,13 +42,44 @@ export class OAuthTokenPersistenceError extends Error {
   }
 }
 
+export class OAuthTemporaryRefreshError extends Error {
+  readonly retryAt: number;
+
+  constructor(description: string, retryAt: number) {
+    super(description);
+    this.name = 'OAuthTemporaryRefreshError';
+    this.retryAt = retryAt;
+  }
+}
+
+export class OAuthReauthorizationRequiredError extends Error {
+  readonly accountId: string;
+  readonly persistenceError?: unknown;
+
+  constructor(accountId: string, description: string, persistenceError?: unknown) {
+    super(description);
+    this.name = 'OAuthReauthorizationRequiredError';
+    this.accountId = accountId;
+    this.persistenceError = persistenceError;
+  }
+}
+
+export const isOAuthReauthorizationRequiredError = (
+  error: unknown,
+): error is OAuthReauthorizationRequiredError => error instanceof OAuthReauthorizationRequiredError;
+
 const getOAuthConfig = (accountId: string): CalDAVConfig => {
   const account = getAccountById(accountId);
   if (account?.caldav?.authType !== 'oauth') {
     throw new Error(`Cannot refresh OAuth tokens for account ${accountId}.`);
   }
   if (!account.caldav.refreshToken) {
-    throw new Error(`OAuth account ${accountId} has no refresh token.`);
+    throw new OAuthReauthorizationRequiredError(
+      accountId,
+      account.caldav.serverType === 'fastmail'
+        ? 'Reconnect Fastmail to authorize this account again.'
+        : 'Reconnect this account to authorize it again.',
+    );
   }
   return account.caldav;
 };
@@ -61,6 +110,32 @@ const refreshProviderToken = async (
   throw new Error(`OAuth refresh not implemented for ${config.serverType}.`);
 };
 
+const getTemporaryRetryDelay = (attempt: number) =>
+  Math.min(TEMPORARY_RETRY_BASE_MS * 2 ** Math.max(0, attempt - 1), TEMPORARY_RETRY_MAX_MS);
+
+const blockForReauthorization = async (
+  accountId: string,
+  refreshToken: string,
+  description: string,
+): Promise<OAuthTokens> => {
+  reauthorizationByAccount.set(accountId, { refreshToken, description });
+  temporaryFailuresByAccount.delete(accountId);
+  pendingPersistenceByAccount.delete(accountId);
+
+  try {
+    const marked = await markOAuthReauthorizationRequired(accountId, refreshToken);
+    if (!marked) {
+      reauthorizationByAccount.delete(accountId);
+      return tokensFromConfig(accountId, getOAuthConfig(accountId));
+    }
+  } catch (error) {
+    connectionStore.deleteConnection(accountId);
+    throw new OAuthReauthorizationRequiredError(accountId, description, error);
+  }
+  connectionStore.deleteConnection(accountId);
+  throw new OAuthReauthorizationRequiredError(accountId, description);
+};
+
 const persistPendingTokens = async (
   accountId: string,
   pending: PendingTokenPersistence,
@@ -77,11 +152,79 @@ const persistPendingTokens = async (
   return pending.tokens;
 };
 
+const enforceTemporaryBackoff = (accountId: string, config: CalDAVConfig) => {
+  const temporaryFailure = temporaryFailuresByAccount.get(accountId);
+  if (!temporaryFailure) return;
+
+  if (config.refreshToken !== temporaryFailure.refreshToken) {
+    temporaryFailuresByAccount.delete(accountId);
+    return;
+  }
+  if (Date.now() < temporaryFailure.retryAt) {
+    throw new OAuthTemporaryRefreshError(temporaryFailure.description, temporaryFailure.retryAt);
+  }
+};
+
+const handleProviderRefreshError = (
+  accountId: string,
+  config: CalDAVConfig,
+  expectedRefreshToken: string,
+  error: unknown,
+): Promise<OAuthTokens> => {
+  if (
+    config.serverType === 'fastmail' &&
+    error instanceof OAuthTokenEndpointError &&
+    error.error === 'invalid_grant'
+  ) {
+    const description =
+      error.errorDescription ??
+      (error.temporary === true
+        ? 'Fastmail temporarily rejected the account authorization.'
+        : 'The Fastmail authorization is no longer valid.');
+    if (error.temporary === true) {
+      const previous = temporaryFailuresByAccount.get(accountId);
+      const attempt = previous?.refreshToken === expectedRefreshToken ? previous.attempt + 1 : 1;
+      const retryAt = Date.now() + getTemporaryRetryDelay(attempt);
+      temporaryFailuresByAccount.set(accountId, {
+        refreshToken: expectedRefreshToken,
+        attempt,
+        retryAt,
+        description,
+      });
+      throw new OAuthTemporaryRefreshError(description, retryAt);
+    }
+
+    return blockForReauthorization(accountId, expectedRefreshToken, description);
+  }
+
+  if (config.serverType === 'fastmail' && !(error instanceof OAuthTokenEndpointError)) {
+    return blockForReauthorization(
+      accountId,
+      expectedRefreshToken,
+      'Fastmail returned an uncertain token refresh result. Reconnect Fastmail to protect this account.',
+    );
+  }
+
+  throw error;
+};
+
 const performTokenRefresh = async (
   accountId: string,
   expectedRefreshToken: string,
 ): Promise<OAuthTokens> => {
+  const blocked = reauthorizationByAccount.get(accountId);
+  if (blocked) {
+    const currentRefreshToken = getAccountById(accountId)?.caldav?.refreshToken;
+    if (!currentRefreshToken || currentRefreshToken === blocked.refreshToken) {
+      throw new OAuthReauthorizationRequiredError(accountId, blocked.description);
+    }
+    reauthorizationByAccount.delete(accountId);
+  }
+
   const config = getOAuthConfig(accountId);
+
+  enforceTemporaryBackoff(accountId, config);
+
   const pending = pendingPersistenceByAccount.get(accountId);
   if (pending) {
     if (
@@ -103,7 +246,15 @@ const performTokenRefresh = async (
     return tokensFromConfig(accountId, config);
   }
 
-  const tokens = await refreshProviderToken(config, expectedRefreshToken);
+  let tokens: OAuthTokens;
+  try {
+    tokens = await refreshProviderToken(config, expectedRefreshToken);
+  } catch (error) {
+    return handleProviderRefreshError(accountId, config, expectedRefreshToken, error);
+  }
+
+  temporaryFailuresByAccount.delete(accountId);
+  reauthorizationByAccount.delete(accountId);
   const nextPending = { consumedRefreshToken: expectedRefreshToken, tokens };
   pendingPersistenceByAccount.set(accountId, nextPending);
   return persistPendingTokens(accountId, nextPending);

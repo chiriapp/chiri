@@ -42,6 +42,7 @@ const mocks = vi.hoisted(() => ({
   localDeleteCalendar: vi.fn(),
   localUpdateCalendar: vi.fn(),
   disablePushForCalendar: vi.fn(),
+  emit: vi.fn(),
 
   // DB / dataStore
   pendingDeletions: [] as Array<{
@@ -75,6 +76,10 @@ vi.mock('$lib/caldav', () => ({
       calendarExists: mocks.clientCalendarExists,
     })),
   },
+}));
+
+vi.mock('$lib/caldav/setup', () => ({
+  getCalDAVErrorInfo: () => ({ hint: 'Reconnect the account.' }),
 }));
 
 vi.mock('$lib/store/accounts', () => ({
@@ -143,13 +148,30 @@ vi.mock('$lib/push', () => ({
   disablePushForCalendar: mocks.disablePushForCalendar,
 }));
 
-vi.mock('@tauri-apps/api/event', () => ({ emit: vi.fn() }));
+vi.mock('@tauri-apps/api/event', () => ({ emit: mocks.emit }));
+
+vi.mock('$lib/auth/refresh', () => {
+  class OAuthReauthorizationRequiredError extends Error {
+    constructor(
+      readonly accountId: string,
+      message: string,
+    ) {
+      super(message);
+      this.name = 'OAuthReauthorizationRequiredError';
+    }
+  }
+  return {
+    OAuthReauthorizationRequiredError,
+    isOAuthReauthorizationRequiredError: (error: unknown) =>
+      error instanceof OAuthReauthorizationRequiredError,
+  };
+});
 
 vi.mock('$utils/color/scheme', () => ({
   getColorSchemeColorPresets: vi.fn(() => ['#ef4444']),
 }));
 
-vi.mock('$constants/menu', () => ({ MENU_EVENTS: {} }));
+vi.mock('$constants/menu', () => ({ MENU_EVENTS: { EDIT_ACCOUNT: 'menu:edit-account' } }));
 
 vi.mock('$lib/queryClient', () => ({
   queryKeys: {
@@ -159,7 +181,9 @@ vi.mock('$lib/queryClient', () => ({
   },
 }));
 
-vi.mock('$lib/http', () => ({ getErrorMessage: (e: unknown) => String(e) }));
+vi.mock('$lib/http', () => ({
+  getErrorMessage: (e: unknown) => String(e),
+}));
 
 vi.mock('$utils/color/tag', () => ({
   generateTagColor: vi.fn(() => '#000'),
@@ -169,9 +193,11 @@ vi.mock('$utils/color/theme', () => ({
   resolveEffectiveTheme: vi.fn(() => 'light'),
 }));
 
+import { OAuthReauthorizationRequiredError } from '$lib/auth/refresh';
 import { taskToVTodo } from '$lib/ical/vtodo';
 // import AFTER mocks are set up
 import { reconnectAccounts, syncCalendarsForAccount, syncCalendarTasks } from '$lib/store/sync';
+import { toastManager } from '$lib/toastManager';
 
 const testCalendar = makeCalendar({
   id: 'cal-1',
@@ -230,6 +256,34 @@ describe('reconnectAccounts', () => {
     await reconnectAccounts();
 
     expect(mocks.reconnect).not.toHaveBeenCalled();
+  });
+
+  it('offers Fastmail reauthorization when its grant is no longer usable', async () => {
+    const fastmailAccount = {
+      ...testOAuthAccount,
+      caldav: { ...testOAuthAccount.caldav, serverType: 'fastmail' as const },
+    };
+    mocks.getAllAccounts.mockReturnValueOnce([fastmailAccount]);
+    mocks.reconnect.mockRejectedValueOnce(
+      new OAuthReauthorizationRequiredError(
+        fastmailAccount.id,
+        'This authorization has been revoked.',
+      ),
+    );
+
+    await reconnectAccounts();
+
+    const toastOptions = vi.mocked(toastManager.error).mock.calls[0]?.[2];
+    expect(toastOptions).toMatchObject({
+      action: { label: 'Reconnect Fastmail' },
+      closeButton: true,
+      duration: Number.POSITIVE_INFINITY,
+    });
+    toastOptions?.action?.onClick();
+    expect(mocks.emit).toHaveBeenCalledWith('menu:edit-account', {
+      accountId: fastmailAccount.id,
+      reauthorize: true,
+    });
   });
 });
 

@@ -51,6 +51,7 @@ export type AccountModalStep =
 
 interface AccountModalProps {
   account: Account | null;
+  reauthorize?: boolean;
   onClose: () => void;
   onBackToConfigProfileChooser?: () => void;
   preloadedConfig?: MobileConfigImportSelection;
@@ -59,6 +60,7 @@ interface AccountModalProps {
 
 export const AccountModal = ({
   account,
+  reauthorize = false,
   onClose,
   onBackToConfigProfileChooser,
   preloadedConfig,
@@ -66,7 +68,13 @@ export const AccountModal = ({
 }: AccountModalProps) => {
   const { confirm } = useConfirmDialog();
   const hasInitialType = !!(account || preloadedConfig);
-  const [step, setStep] = useState<AccountModalStep>(hasInitialType ? 'credentials' : 'pick-type');
+  const [step, setStep] = useState<AccountModalStep>(
+    reauthorize && account?.caldav?.serverType === 'fastmail'
+      ? 'fastmail-oauth'
+      : hasInitialType
+        ? 'credentials'
+        : 'pick-type',
+  );
   const { draft, updateDraft, setDraftField, selectServerType, hasChanges } = useAccountDraft({
     account,
     preloadedConfig,
@@ -266,13 +274,16 @@ export const AccountModal = ({
   const serverTypeLabel =
     SERVER_TYPE_OPTIONS.find((option) => option.value === draft.serverType)?.label ??
     draft.serverType;
-  const modalTitle = account
-    ? 'Edit Account'
-    : step === 'pick-type'
-      ? 'Add CalDAV Account'
-      : draft.serverType === 'generic'
-        ? 'Add a CalDAV Account'
-        : `Add ${serverTypeLabel} Account`;
+  const modalTitle =
+    reauthorize && account?.caldav?.serverType === 'fastmail'
+      ? 'Reconnect Fastmail'
+      : account
+        ? 'Edit Account'
+        : step === 'pick-type'
+          ? 'Add CalDAV Account'
+          : draft.serverType === 'generic'
+            ? 'Add a CalDAV Account'
+            : `Add ${serverTypeLabel} Account`;
   const modalDescription =
     step === 'pick-type' ? 'Choose your server type to get started.' : undefined;
   const isProcessing =

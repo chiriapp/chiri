@@ -1,5 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
+import { emit } from '@tauri-apps/api/event';
+import { MENU_EVENTS } from '$constants/menu';
 import { settingsStore } from '$context/settingsContext';
+import { isOAuthReauthorizationRequiredError } from '$lib/auth/refresh';
 import { CalDAVClient } from '$lib/caldav';
 import { getCalDAVErrorInfo } from '$lib/caldav/setup';
 import type { CalDAVTaskObject, TaskWithCalDAVObject } from '$lib/caldav/types';
@@ -47,6 +50,23 @@ const getSyncErrorHint = (
     account.caldav?.serverUrl ?? '',
     context,
   ).hint;
+
+const getOAuthReconnectToastOptions = (error: unknown, account: Account) => {
+  if (!isOAuthReauthorizationRequiredError(error) || account.caldav?.serverType !== 'fastmail') {
+    return {};
+  }
+
+  return {
+    action: {
+      label: 'Reconnect Fastmail',
+      onClick: () => {
+        void emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id, reauthorize: true });
+      },
+    },
+    closeButton: true,
+    duration: Number.POSITIVE_INFINITY,
+  };
+};
 
 const taskFieldsForBaselineMerge = [
   'title',
@@ -376,6 +396,7 @@ export const reconnectAccounts = async () => {
         toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
           groupKey: `sync-error-account-${account.id}`,
           hint: getSyncErrorHint(error, account, 'account-sync'),
+          ...getOAuthReconnectToastOptions(error, account),
         });
       }
     }
@@ -709,6 +730,7 @@ export const syncCalendarsForAccount = async (accountId: string, queryClient: Qu
     toastManager.error('Calendar Sync Error', `${account.name}: ${errorMessage}`, {
       groupKey: 'calendar-fetch-error',
       hint: getSyncErrorHint(error, account, 'account-sync'),
+      ...getOAuthReconnectToastOptions(error, account),
     });
     return; // skip calendar sync to avoid deleting calendars based on failed fetch
   }
@@ -917,6 +939,7 @@ export const performFullSync = async (
       toastManager.error(`Account sync failed: ${account.name}`, errorMessage, {
         groupKey: `sync-error-account-${account.id}`,
         hint: getSyncErrorHint(error, account, 'account-sync'),
+        ...getOAuthReconnectToastOptions(error, account),
       });
     }
   }
@@ -948,6 +971,7 @@ export const performFullSync = async (
         toastManager.error(`Calendar sync failed: ${calendar.displayName}`, errorMessage, {
           groupKey: `sync-error-calendar-${calendar.id}`,
           hint: getSyncErrorHint(error, account, 'calendar-sync'),
+          ...getOAuthReconnectToastOptions(error, account),
         });
       }
     }
