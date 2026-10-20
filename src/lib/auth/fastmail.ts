@@ -32,6 +32,7 @@ export const FASTMAIL_CALDAV_URL = 'https://caldav.fastmail.com';
 
 const AUTH_URL = 'https://api.fastmail.com/oauth/authorize';
 const TOKEN_URL = 'https://api.fastmail.com/oauth/refresh';
+const REVOKE_URL = 'https://api.fastmail.com/oauth/revoke';
 
 const OAUTH_PATH = '/oauth/fastmail';
 
@@ -164,6 +165,56 @@ export const refreshFastmailToken = async (refreshToken: string): Promise<Fastma
 
   const data = JSON.parse(res.body) as unknown;
   return parseTokenResponse(data, { requireRotatedRefreshTokenFrom: refreshToken });
+};
+
+export class FastmailRevocationError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super(`Fastmail token revocation failed (${status}).`);
+    this.name = 'FastmailRevocationError';
+    this.status = status;
+  }
+}
+
+const revokeWithAccessToken = async (accessToken: string) => {
+  const res = await invoke<HttpResponse>('http_request', {
+    url: REVOKE_URL,
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: undefined,
+    acceptInvalidCerts: false,
+  });
+
+  if (res.status < 200 || res.status >= 300) {
+    throw new FastmailRevocationError(res.status);
+  }
+};
+
+export const revokeFastmailAuthorization = async ({
+  accessToken,
+  refreshToken,
+}: {
+  accessToken?: string;
+  refreshToken?: string;
+}) => {
+  if (!accessToken) {
+    if (!refreshToken) return;
+    const fresh = await refreshFastmailToken(refreshToken);
+    await revokeWithAccessToken(fresh.accessToken);
+    return;
+  }
+
+  try {
+    await revokeWithAccessToken(accessToken);
+  } catch (error) {
+    if (!(error instanceof FastmailRevocationError) || error.status !== 401 || !refreshToken) {
+      throw error;
+    }
+
+    const fresh = await refreshFastmailToken(refreshToken);
+    await revokeWithAccessToken(fresh.accessToken);
+  }
 };
 
 /**

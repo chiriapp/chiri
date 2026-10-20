@@ -1,3 +1,4 @@
+import { revokeFastmailAuthorization } from '$lib/auth/fastmail';
 import { deleteAppPassword as deleteNextcloudAppPassword } from '$lib/auth/nextcloud';
 import type { OAuthTokens } from '$lib/auth/oauth';
 import { db } from '$lib/database';
@@ -207,6 +208,18 @@ export const deleteAccount = (id: string) => {
     )
       .then(() => log.info('Nextcloud app password deleted for account', { accountId: id }))
       .catch((e) => log.warn('Failed to delete Nextcloud app password:', e));
+  }
+
+  if (
+    deletedAccount?.caldav?.serverType === 'fastmail' &&
+    deletedAccount.caldav.authType === 'oauth'
+  ) {
+    revokeFastmailAuthorization({
+      accessToken: deletedAccount.caldav.password,
+      refreshToken: deletedAccount.caldav.refreshToken,
+    })
+      .then(() => log.info('Fastmail authorization revoked for account', { accountId: id }))
+      .catch((e) => log.warn('Failed to revoke Fastmail authorization:', e));
   }
 
   db.deleteAccount(id).catch((e) => log.error('Failed to persist account deletion:', e));
