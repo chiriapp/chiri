@@ -17,16 +17,24 @@ export const OfflineBanner = ({
   }
 
   return (
-    <div className="flex flex-row items-center justify-center gap-2 border border-surface-200 bg-surface-100 p-1.5 text-center text-surface-700 dark:border-surface-700 dark:bg-surface-800 dark:text-surface-300">
+    <div
+      role="status"
+      aria-live="polite"
+      className={`mx-4 mt-4 flex items-center gap-2.5 rounded-lg border px-3 py-2 text-sm text-surface-700 dark:text-surface-300 ${
+        isReconnecting
+          ? 'border-semantic-info/30 bg-semantic-info/10'
+          : 'border-semantic-warning/30 bg-semantic-warning/10'
+      }`}
+    >
       {isReconnecting ? (
         <>
-          <LoadingSpinner className="h-5 w-5" />
-          <p>Reconnecting...</p>
+          <LoadingSpinner className="size-4 text-semantic-info" />
+          <p className="min-w-0">Reconnecting...</p>
         </>
       ) : (
         <>
-          <WifiOff className="h-5 w-5" />
-          <p>
+          <WifiOff className="size-4 shrink-0 text-semantic-warning" />
+          <p className="min-w-0">
             You're offline.
             {syncOnReconnect
               ? ' Changes will sync when you reconnect.'
