@@ -152,6 +152,50 @@ describe('tauriRequest routing', () => {
   });
 });
 
+describe('tauriRequest bearer authentication failures', () => {
+  const bearerCredentials = {
+    username: 'alice',
+    password: '',
+    bearerToken: 'expired-access-token',
+  };
+
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+  });
+
+  it('throws a typed error for an authenticated bearer 401', async () => {
+    vi.mocked(invoke).mockResolvedValueOnce(
+      httpResponse(401, { 'www-authenticate': 'Bearer error="invalid_token"' }),
+    );
+
+    await expect(
+      tauriRequest('https://calendar.example/dav', 'REPORT', bearerCredentials),
+    ).rejects.toMatchObject({
+      name: 'DetailedError',
+      status: 401,
+      detail: expect.stringContaining('Auth method used: bearer token'),
+    });
+  });
+
+  it('continues returning basic-auth 401 responses for existing handling', async () => {
+    vi.mocked(invoke).mockResolvedValueOnce(httpResponse(401));
+
+    await expect(
+      tauriRequest('https://calendar.example/dav', 'PROPFIND', credentials),
+    ).resolves.toMatchObject({ status: 401 });
+  });
+
+  it('does not treat a cross-origin redirect response as an authenticated bearer 401', async () => {
+    vi.mocked(invoke)
+      .mockResolvedValueOnce(httpResponse(302, { Location: 'https://untrusted.example/dav' }))
+      .mockResolvedValueOnce(httpResponse(401));
+
+    await expect(
+      tauriRequest('https://calendar.example/dav', 'PROPFIND', bearerCredentials),
+    ).resolves.toMatchObject({ status: 401 });
+  });
+});
+
 describe('parseMultiStatusXml', () => {
   it('returns empty array for empty multistatus', () => {
     const result = parseMultiStatusXml(xml('<d:multistatus xmlns:d="DAV:"></d:multistatus>'));

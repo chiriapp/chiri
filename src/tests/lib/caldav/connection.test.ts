@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { HttpResponse } from '$lib/http';
+import type { Account } from '$types/account';
 
 vi.mock('$lib/multistatus', () => ({ parseMultiStatusXml: vi.fn(() => []) }));
 vi.mock('$lib/http', () => ({
@@ -7,24 +8,37 @@ vi.mock('$lib/http', () => ({
   tauriRequest: vi.fn(),
   DetailedError: class extends Error {
     detail: string;
-    constructor(message: string, detail: string) {
+    status?: number;
+    constructor(message: string, detail: string, status?: number) {
       super(message);
       this.detail = detail;
+      this.status = status;
     }
   },
+  isUnauthorizedError: (error: unknown) =>
+    typeof error === 'object' && error !== null && 'status' in error && error.status === 401,
+}));
+
+const authMocks = vi.hoisted(() => ({
+  refreshOAuthAccountToken: vi.fn(),
+}));
+vi.mock('$lib/auth/refresh', () => ({
+  OAuthTokenPersistenceError: class extends Error {},
+  refreshOAuthAccountToken: authMocks.refreshOAuthAccountToken,
 }));
 
 // mock the connection store. vi.hoisted runs before vi.mock factories so the
 // spy reference is initialized in time
-const { setConnection, deleteConnection, beginConnection } = vi.hoisted(() => ({
+const { setConnection, getConnection, deleteConnection, beginConnection } = vi.hoisted(() => ({
   setConnection: vi.fn(),
+  getConnection: vi.fn(),
   deleteConnection: vi.fn(),
   beginConnection: vi.fn(),
 }));
 vi.mock('$context/connectionContext', () => ({
   connectionStore: {
     setConnection,
-    getConnection: vi.fn(),
+    getConnection,
     deleteConnection,
     hasConnection: vi.fn(),
     beginConnection,
@@ -38,7 +52,13 @@ vi.mock('$lib/caldav/utils', () => ({
   normalizeUrl: (url: string) => url.replace(/\/$/, ''),
 }));
 
-import { connect, detectVikunja, handleCommonHttpErrors } from '$lib/caldav/connection';
+import {
+  connect,
+  detectVikunja,
+  handleCommonHttpErrors,
+  reconnect,
+  replaceBearerToken,
+} from '$lib/caldav/connection';
 import * as http from '$lib/http';
 import * as multistatus from '$lib/multistatus';
 
@@ -74,6 +94,83 @@ const catchError = (fn: () => void): unknown => {
     return e;
   }
 };
+
+describe('replaceBearerToken', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('replaces only the bearer token and republishes the connection', () => {
+    const connection = {
+      serverUrl: 'https://caldav.fastmail.com',
+      principalUrl: 'https://caldav.fastmail.com/principal',
+      calendarHome: 'https://caldav.fastmail.com/calendars',
+      serverType: 'fastmail' as const,
+      credentials: {
+        username: 'user@example.com',
+        password: '',
+        bearerToken: 'old-access-token',
+        acceptInvalidCerts: false,
+      },
+    };
+    getConnection.mockReturnValue(connection);
+
+    const updated = replaceBearerToken('account-1', 'new-access-token');
+
+    expect(updated).toEqual({
+      ...connection,
+      credentials: { ...connection.credentials, bearerToken: 'new-access-token' },
+    });
+    expect(setConnection).toHaveBeenCalledWith('account-1', updated);
+  });
+});
+
+describe('reconnect OAuth recovery', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(multistatus.parseMultiStatusXml).mockReturnValue([
+      { href: '', status: '', props: { displayname: 'Fastmail User' } },
+    ]);
+    authMocks.refreshOAuthAccountToken.mockResolvedValue({
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+      tokenExpiry: '2026-10-20T00:00:00.000Z',
+    });
+  });
+
+  it('refreshes and retries once when an unexpired access token receives 401', async () => {
+    const account: Account = {
+      id: 'account-1',
+      name: 'Fastmail',
+      calendars: [],
+      isActive: true,
+      sortOrder: 100,
+      caldav: {
+        serverUrl: 'https://caldav.fastmail.com',
+        username: 'user@example.com',
+        password: 'rejected-access-token',
+        serverType: 'fastmail',
+        authType: 'oauth',
+        refreshToken: 'current-refresh-token',
+        tokenExpiry: '2999-01-01T00:00:00.000Z',
+        calendarHomeUrl: 'https://caldav.fastmail.com/calendars/user@example.com',
+      },
+    };
+    vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(401)).mockResolvedValueOnce(httpOk(207));
+
+    await reconnect(account);
+
+    expect(authMocks.refreshOAuthAccountToken).toHaveBeenCalledWith(
+      'account-1',
+      'current-refresh-token',
+    );
+    expect(http.propfind).toHaveBeenCalledTimes(2);
+    expect(setConnection).toHaveBeenCalledWith(
+      'account-1',
+      expect.objectContaining({
+        credentials: expect.objectContaining({ bearerToken: 'new-access-token' }),
+      }),
+    );
+  });
+});
 
 describe('handleCommonHttpErrors', () => {
   const url = 'https://example.com/dav';

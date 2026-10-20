@@ -2,7 +2,7 @@ import { connectionStore } from '$context/connectionContext';
 import { OAuthTokenPersistenceError, refreshOAuthAccountToken } from '$lib/auth/refresh';
 import { hasHttpUrlScheme, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';
 import type { CalDAVCredentials, HttpRequestContext, HttpResponse } from '$lib/http';
-import { DetailedError, propfind, tauriRequest } from '$lib/http';
+import { DetailedError, isUnauthorizedError, propfind, tauriRequest } from '$lib/http';
 import { parseMultiStatusXml } from '$lib/multistatus';
 import type { Account, ServerType } from '$types/account';
 
@@ -88,7 +88,7 @@ const throwHttpError = (
   const detail = url
     ? buildHttpErrorDetail(status, context, url, headers, credentials)
     : shortMessage;
-  throw new DetailedError(shortMessage, detail);
+  throw new DetailedError(shortMessage, detail, status);
 };
 
 export const handleCommonHttpErrors = (
@@ -439,6 +439,7 @@ export const connect = async (
           response.headers,
           credentials,
         ) || shortMessage,
+        401,
       );
     }
     if (response.status !== 207) throw new Error(`Failed to connect: HTTP ${response.status}`);
@@ -513,16 +514,18 @@ export const reconnect = async (
 
   if (caldav.authType === 'oauth') {
     let accessToken = caldav.password;
+    let refreshToken = caldav.refreshToken;
 
     if (caldav.tokenExpiry) {
       const expiresAt = new Date(caldav.tokenExpiry).getTime();
       const now = Date.now();
       const bufferMs = 60 * 1000;
 
-      if (now >= expiresAt - bufferMs && caldav.refreshToken) {
+      if (now >= expiresAt - bufferMs && refreshToken) {
         try {
-          const fresh = await refreshOAuthAccountToken(account.id, caldav.refreshToken);
+          const fresh = await refreshOAuthAccountToken(account.id, refreshToken);
           accessToken = fresh.accessToken;
+          refreshToken = fresh.refreshToken;
         } catch (e) {
           if (e instanceof OAuthTokenPersistenceError) throw e;
           console.warn('[CalDAV] Token refresh failed, retrying with existing token:', e);
@@ -530,17 +533,26 @@ export const reconnect = async (
       }
     }
 
-    await connectWithBearer(
-      connectionId,
-      caldav.serverUrl,
-      caldav.username,
-      accessToken,
-      caldav.serverType ?? 'generic',
-      caldav.calendarHomeUrl,
-      caldav.principalUrl,
-      caldav.acceptInvalidCerts,
-      context,
-    );
+    const connectBearer = (token: string) =>
+      connectWithBearer(
+        connectionId,
+        caldav.serverUrl,
+        caldav.username,
+        token,
+        caldav.serverType ?? 'generic',
+        caldav.calendarHomeUrl,
+        caldav.principalUrl,
+        caldav.acceptInvalidCerts,
+        context,
+      );
+
+    try {
+      await connectBearer(accessToken);
+    } catch (error) {
+      if (!refreshToken || !isUnauthorizedError(error)) throw error;
+      const fresh = await refreshOAuthAccountToken(account.id, refreshToken);
+      await connectBearer(fresh.accessToken);
+    }
     return;
   }
 
@@ -566,4 +578,21 @@ export const getConnection = (accountId: string): Connection => {
   const conn = connectionStore.getConnection(accountId);
   if (!conn) throw new Error('Account not connected');
   return conn;
+};
+
+export const replaceBearerToken = (accountId: string, accessToken: string): Connection => {
+  const connection = getConnection(accountId);
+  if (!connection.credentials.bearerToken) {
+    throw new Error(`Cannot replace bearer token for non-OAuth account ${accountId}.`);
+  }
+
+  const updated = {
+    ...connection,
+    credentials: {
+      ...connection.credentials,
+      bearerToken: accessToken,
+    },
+  };
+  connectionStore.setConnection(accountId, updated);
+  return updated;
 };

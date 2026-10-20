@@ -124,6 +124,14 @@ describe('createTask', () => {
 
     expect(await createTask(conn, calendar, task)).toBeNull();
   });
+
+  it('rethrows bearer 401 errors for client-level recovery', async () => {
+    vi.mocked(http.put).mockRejectedValueOnce(
+      Object.assign(new Error('unauthorized'), { status: 401 }),
+    );
+
+    await expect(createTask(conn, calendar, task)).rejects.toMatchObject({ status: 401 });
+  });
 });
 
 describe('updateTask', () => {
@@ -189,6 +197,14 @@ describe('updateTask', () => {
     expect(await updateTask(conn, existingTask)).toBeNull();
   });
 
+  it('rethrows bearer 401 errors for client-level recovery', async () => {
+    vi.mocked(http.put).mockRejectedValueOnce(
+      Object.assign(new Error('unauthorized'), { status: 401 }),
+    );
+
+    await expect(updateTask(conn, existingTask)).rejects.toMatchObject({ status: 401 });
+  });
+
   it('returns empty string etag if server omits the header (current behavior)', async () => {
     vi.mocked(http.put).mockResolvedValueOnce(ok(204));
 
@@ -252,5 +268,13 @@ describe('deleteTask', () => {
     vi.mocked(http.del).mockRejectedValueOnce(new Error('network'));
 
     expect(await deleteTask(conn, existingTask)).toBe(false);
+  });
+
+  it('rethrows bearer 401 errors for client-level recovery', async () => {
+    vi.mocked(http.del).mockRejectedValueOnce(
+      Object.assign(new Error('unauthorized'), { status: 401 }),
+    );
+
+    await expect(deleteTask(conn, existingTask)).rejects.toMatchObject({ status: 401 });
   });
 });

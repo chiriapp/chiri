@@ -35,12 +35,18 @@ export interface HttpResponse {
 
 export class DetailedError extends Error {
   detail: string;
-  constructor(message: string, detail: string) {
+  readonly status?: number;
+
+  constructor(message: string, detail: string, status?: number) {
     super(message);
     this.detail = detail;
+    this.status = status;
     this.name = 'DetailedError';
   }
 }
+
+export const isUnauthorizedError = (error: unknown): error is DetailedError =>
+  error instanceof DetailedError && error.status === 401;
 
 export interface HttpProxyConfig {
   mode: NetworkProxyMode;
@@ -344,6 +350,18 @@ export const tauriRequest = async (
       _redirects,
       _allowAuth,
     );
+  }
+
+  if (response.status === 401 && credentials.bearerToken && _allowAuth) {
+    const wwwAuthenticate =
+      response.headers['www-authenticate'] ?? response.headers['WWW-Authenticate'];
+    const detail = [
+      'CalDAV request returned HTTP 401',
+      `URL: ${url}`,
+      ...(wwwAuthenticate ? [`WWW-Authenticate: ${wwwAuthenticate}`] : []),
+      'Auth method used: bearer token',
+    ].join('\n');
+    throw new DetailedError('Authentication failed. Check your credentials.', detail, 401);
   }
 
   return response;

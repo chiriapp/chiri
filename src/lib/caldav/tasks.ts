@@ -38,6 +38,9 @@ const stripCalDAVObject = ({ caldavObject: _caldavObject, ...task }: TaskWithCal
 
 const CALENDAR_MULTIGET_BATCH_SIZE = 500;
 
+const isUnauthorizedError = (error: unknown) =>
+  typeof error === 'object' && error !== null && 'status' in error && error.status === 401;
+
 export const fetchTasks = async (conn: Connection, accountId: string, calendar: Calendar) => {
   const queryBody = `<?xml version="1.0" encoding="utf-8"?>
 <c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav">
@@ -204,6 +207,7 @@ export const createTask = async (conn: Connection, calendar: Calendar, task: Tas
     log.error(`Failed to create task: HTTP ${response.status}`);
     return null;
   } catch (error) {
+    if (isUnauthorizedError(error)) throw error;
     log.error('Error creating task:', error);
     return null;
   }
@@ -231,6 +235,7 @@ export const updateTask = async (conn: Connection, task: Task) => {
     log.error(`Failed to update task: HTTP ${response.status}`);
     return null;
   } catch (error) {
+    if (isUnauthorizedError(error)) throw error;
     log.error('Error updating task:', error);
     return null;
   }
@@ -256,6 +261,7 @@ export const deleteTask = async (conn: Connection, task: Task) => {
     log.error(`Failed to delete task: HTTP ${response.status}`);
     return false;
   } catch (error) {
+    if (isUnauthorizedError(error)) throw error;
     log.error('Error deleting task:', error);
     return false;
   }
