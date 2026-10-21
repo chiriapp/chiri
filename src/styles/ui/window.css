@@ -123,10 +123,6 @@
   transform: translateY(0.25px);
 }
 
-.app-shell[data-platform="macos"] .app-task-list {
-  padding-right: 17px;
-}
-
 .app-shell[data-platform="macos"] .app-task-editor-content {
   padding-right: 17px;
 }
