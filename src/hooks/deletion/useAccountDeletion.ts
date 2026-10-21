@@ -45,8 +45,9 @@ export const useAccountDeletion = () => {
         }
       }
 
-      deleteAccountMutation.mutate(accountId);
+      const deletion = deleteAccountMutation.mutateAsync(accountId);
       close();
+      await deletion;
       return true;
     },
     [close, confirm, deleteAccountMutation],

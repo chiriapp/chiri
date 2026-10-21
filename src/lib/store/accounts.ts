@@ -191,11 +191,12 @@ export const replaceOAuthAccountAuthorization = async (accountId: string, tokens
   return updatedAccount;
 };
 
-export const deleteAccount = (id: string) => {
+export const deleteAccount = async (id: string) => {
   const data = dataStore.load();
   const newAccounts = data.accounts.filter((acc) => acc.id !== id);
   const deletedAccount = data.accounts.find((acc) => acc.id === id);
   const deletedCalendarIds = deletedAccount?.calendars.map((c) => c.id) ?? [];
+  let fastmailRevocation: Promise<void> | undefined;
 
   if (
     deletedAccount?.caldav?.serverType === 'nextcloud' ||
@@ -214,7 +215,7 @@ export const deleteAccount = (id: string) => {
     deletedAccount?.caldav?.serverType === 'fastmail' &&
     deletedAccount.caldav.authType === 'oauth'
   ) {
-    revokeFastmailAuthorization({
+    fastmailRevocation = revokeFastmailAuthorization({
       accessToken: deletedAccount.caldav.password,
       refreshToken: deletedAccount.caldav.refreshToken,
     })
@@ -245,4 +246,6 @@ export const deleteAccount = (id: string) => {
     },
     tasks: data.tasks.filter((task) => task.accountId !== id),
   });
+
+  await fastmailRevocation;
 };

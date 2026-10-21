@@ -72,11 +72,15 @@ describe('deleteAccount Fastmail revocation', () => {
     mocks.revokeFastmailAuthorization.mockResolvedValue(undefined);
   });
 
-  it('starts remote revocation without delaying local deletion', () => {
+  it('deletes locally immediately but waits for the revocation attempt to finish', async () => {
     const revocation = Promise.withResolvers<void>();
     mocks.revokeFastmailAuthorization.mockReturnValueOnce(revocation.promise);
 
-    deleteAccount(account.id);
+    const deletion = deleteAccount(account.id);
+    let deletionFinished = false;
+    void deletion.then(() => {
+      deletionFinished = true;
+    });
 
     expect(mocks.revokeFastmailAuthorization).toHaveBeenCalledWith({
       accessToken: 'access-token',
@@ -90,19 +94,21 @@ describe('deleteAccount Fastmail revocation', () => {
         ui: expect.objectContaining({ activeAccountId: null }),
       }),
     );
+    await Promise.resolve();
+    expect(deletionFinished).toBe(false);
 
     revocation.resolve();
+    await deletion;
+    expect(deletionFinished).toBe(true);
   });
 
   it('keeps the account deleted when remote revocation fails', async () => {
     const error = new Error('network unavailable');
     mocks.revokeFastmailAuthorization.mockRejectedValueOnce(error);
 
-    deleteAccount(account.id);
+    await deleteAccount(account.id);
 
-    await vi.waitFor(() =>
-      expect(mocks.logWarn).toHaveBeenCalledWith('Failed to revoke Fastmail authorization:', error),
-    );
+    expect(mocks.logWarn).toHaveBeenCalledWith('Failed to revoke Fastmail authorization:', error);
     expect(mocks.deleteAccount).toHaveBeenCalledWith(account.id);
     expect(mocks.save).toHaveBeenCalledWith(expect.objectContaining({ accounts: [] }));
   });

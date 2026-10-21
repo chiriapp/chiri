@@ -224,6 +224,7 @@ const testOAuthAccount = {
   caldav: {
     ...testAccount.caldav,
     password: 'expired-access-token',
+    serverType: 'fastmail' as const,
     authType: 'oauth' as const,
     refreshToken: 'refresh-token',
     tokenExpiry: new Date(Date.now() - 1000).toISOString(),
@@ -243,10 +244,23 @@ describe('reconnectAccounts', () => {
     mocks.getAllAccounts.mockReturnValue([testOAuthAccount]);
   });
 
-  it('reconnects connected OAuth accounts when their access token is expired', async () => {
+  it('keeps using a connected Fastmail account when its access token is expired', async () => {
     const failedAccountIds = await reconnectAccounts();
 
-    expect(mocks.reconnect).toHaveBeenCalledWith(testOAuthAccount);
+    expect(mocks.reconnect).not.toHaveBeenCalled();
+    expect(failedAccountIds.size).toBe(0);
+  });
+
+  it('still reconnects connected non-Fastmail OAuth accounts when their token is expired', async () => {
+    const stalwartAccount = {
+      ...testOAuthAccount,
+      caldav: { ...testOAuthAccount.caldav, serverType: 'stalwart' as const },
+    };
+    mocks.getAllAccounts.mockReturnValueOnce([stalwartAccount]);
+
+    const failedAccountIds = await reconnectAccounts();
+
+    expect(mocks.reconnect).toHaveBeenCalledWith(stalwartAccount);
     expect(failedAccountIds.size).toBe(0);
   });
 
@@ -264,6 +278,7 @@ describe('reconnectAccounts', () => {
       caldav: { ...testOAuthAccount.caldav, serverType: 'fastmail' as const },
     };
     mocks.getAllAccounts.mockReturnValueOnce([fastmailAccount]);
+    mocks.isConnected.mockReturnValueOnce(false);
     mocks.reconnect.mockRejectedValueOnce(
       new OAuthReauthorizationRequiredError(
         fastmailAccount.id,
@@ -385,14 +400,14 @@ describe('syncCalendarTasks orchestrator', () => {
     expect(mocks.reconnect).toHaveBeenCalledWith(testAccount);
   });
 
-  it('reconnects automatically if a connected OAuth token is expired', async () => {
+  it('does not reconnect a connected Fastmail account based on token expiry', async () => {
     mocks.getAllAccounts.mockReturnValue([testOAuthAccount]);
     mocks.getTasksByCalendar.mockReturnValue([]);
     mocks.clientFetchTasks.mockResolvedValueOnce([]);
 
     await syncCalendarTasks('cal-1', queryClient, noopSetSyncing);
 
-    expect(mocks.reconnect).toHaveBeenCalledWith(testOAuthAccount);
+    expect(mocks.reconnect).not.toHaveBeenCalled();
   });
 
   it('step 0: processes pending deletions BEFORE pushing local changes', async () => {

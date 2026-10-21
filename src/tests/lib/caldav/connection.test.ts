@@ -179,6 +179,38 @@ describe('reconnect OAuth recovery', () => {
     );
   });
 
+  it('uses an expired Fastmail access token until the server returns 401', async () => {
+    const account: Account = {
+      id: 'account-1',
+      name: 'Fastmail',
+      calendars: [],
+      isActive: true,
+      sortOrder: 100,
+      caldav: {
+        serverUrl: 'https://caldav.fastmail.com',
+        username: 'user@example.com',
+        password: 'expired-access-token',
+        serverType: 'fastmail',
+        authType: 'oauth',
+        refreshToken: 'current-refresh-token',
+        tokenExpiry: '2020-01-01T00:00:00.000Z',
+        calendarHomeUrl: 'https://caldav.fastmail.com/calendars/user@example.com',
+      },
+    };
+    vi.mocked(http.propfind).mockResolvedValueOnce(httpOk(207));
+
+    await reconnect(account);
+
+    expect(authMocks.refreshOAuthAccountToken).not.toHaveBeenCalled();
+    expect(http.propfind).toHaveBeenCalledTimes(1);
+    expect(setConnection).toHaveBeenCalledWith(
+      'account-1',
+      expect.objectContaining({
+        credentials: expect.objectContaining({ bearerToken: 'expired-access-token' }),
+      }),
+    );
+  });
+
   it('requires reauthorization without attempting a connection when the grant was cleared', async () => {
     const account: Account = {
       id: 'account-needs-reauthorization',

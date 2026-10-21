@@ -536,7 +536,10 @@ export const reconnect = async (
     let accessToken = caldav.password;
     let refreshToken = getOAuthRefreshToken(account.id, account);
 
-    if (caldav.tokenExpiry) {
+    // Fastmail requires clients to keep using the current access token until
+    // the server rejects it with 401. other providers may still benefit from
+    // refreshing shortly before their advertised expiry
+    if (caldav.serverType !== 'fastmail' && caldav.tokenExpiry) {
       const expiresAt = new Date(caldav.tokenExpiry).getTime();
       const now = Date.now();
       const bufferMs = 60 * 1000;

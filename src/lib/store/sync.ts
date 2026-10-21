@@ -407,6 +407,7 @@ export const reconnectAccounts = async () => {
 const isOAuthTokenExpiring = (account: Account) => {
   const caldav = account.caldav;
   if (caldav?.authType !== 'oauth' || !caldav.tokenExpiry) return false;
+  if (caldav.serverType === 'fastmail') return false;
 
   const expiresAt = new Date(caldav.tokenExpiry).getTime();
   if (!Number.isFinite(expiresAt)) return true;

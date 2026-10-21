@@ -75,10 +75,7 @@ export const useDeleteAccount = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: string) => {
-      deleteAccount(id);
-      return Promise.resolve();
-    },
+    mutationFn: (id: string) => deleteAccount(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all });
