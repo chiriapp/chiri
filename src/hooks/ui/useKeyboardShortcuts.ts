@@ -147,13 +147,15 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   const handleSearch = useCallback(() => {
     const searchInput = document.querySelector<HTMLInputElement>('[data-search-input]');
     if (searchInput) {
-      // toggle focus: if already focused, blur it; otherwise focus it
       if (document.activeElement === searchInput) {
-        searchInput.blur();
+        document.querySelector<HTMLButtonElement>('[data-search-close]')?.click();
       } else {
         searchInput.focus();
       }
+      return;
     }
+
+    document.querySelector<HTMLButtonElement>('[data-search-toggle]')?.click();
   }, []);
 
   const handleDelete = useCallback(async () => {

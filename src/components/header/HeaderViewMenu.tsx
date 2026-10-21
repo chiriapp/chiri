@@ -53,14 +53,14 @@ export const HeaderViewMenu = ({
           ref={buttonRef}
           type="button"
           onClick={() => setIsOpen((current) => !current)}
-          className={`flex h-9 items-center gap-1.5 rounded-lg border border-transparent px-3 text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+          aria-label="View options"
+          className={`flex h-9 w-9 items-center justify-center rounded-lg border border-transparent outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
             isOpen
               ? 'bg-surface-200 text-surface-700 dark:bg-surface-600 dark:text-surface-200'
               : `text-surface-600 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`
           }`}
         >
           <SlidersHorizontal className="h-4 w-4" />
-          <span>View</span>
         </button>
       </Tooltip>
 
@@ -72,6 +72,9 @@ export const HeaderViewMenu = ({
           dataAttribute="data-context-menu-content"
         >
           <div className="border-surface-300 border-b px-3 py-2 dark:border-surface-700">
+            <div className="pt-1 pb-1 font-medium text-sm text-surface-500 dark:text-surface-400">
+              View
+            </div>
             <ViewMenuCheckbox
               label="Show completed"
               checked={showCompletedTasks}

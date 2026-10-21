@@ -16,7 +16,6 @@ import type { TaskBatchMenu } from '$hooks/ui/useTaskBatchActions';
 interface TaskBatchActionsToolbarProps {
   selectedCount: number;
   mode: 'active' | 'deleted';
-  isCompact: boolean;
   isTight: boolean;
   toolbarRef: RefObject<HTMLDivElement | null>;
   openMenu: TaskBatchMenu;
@@ -38,26 +37,17 @@ interface TaskBatchActionsToolbarProps {
 const actionButtonClass =
   'inline-flex h-8 shrink-0 items-center rounded-lg border border-surface-300 dark:border-surface-700 text-sm font-medium text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset disabled:opacity-50 disabled:cursor-not-allowed';
 const destructiveButtonClass =
-  'inline-flex h-8 shrink-0 items-center rounded-lg bg-semantic-error text-sm font-medium text-primary-contrast hover:opacity-90 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset';
-
-const getDestructiveButtonClass = (isCompact: boolean) =>
-  `${destructiveButtonClass} ${isCompact ? 'w-8 justify-center gap-0 px-0' : 'gap-2 px-3'}`;
+  'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-semantic-error text-sm font-medium text-primary-contrast hover:opacity-90 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset';
 
 const getActionButtonClass = ({
   isActive = false,
-  isCompact = false,
   hasDisclosure = false,
 }: {
   isActive?: boolean;
-  isCompact?: boolean;
   hasDisclosure?: boolean;
 } = {}) =>
   `${actionButtonClass} ${
-    isCompact
-      ? hasDisclosure
-        ? 'w-12 justify-center gap-0.5 px-1'
-        : 'w-8 justify-center gap-0 px-0'
-      : 'gap-2 px-3'
+    hasDisclosure ? 'w-12 justify-center gap-0.5 px-1' : 'w-8 justify-center gap-0 px-0'
   }${
     isActive
       ? ' bg-surface-100 text-surface-900 border-surface-300 dark:bg-surface-700 dark:text-surface-50 dark:border-surface-600'
@@ -69,12 +59,9 @@ const getDisclosureChevronClass = (isOpen: boolean) =>
     isOpen ? 'rotate-0' : '-rotate-90'
   }`;
 
-const compactLabelClass = (isCompact: boolean) => (isCompact ? 'sr-only' : '');
-
 export const TaskBatchActionsToolbar = ({
   selectedCount,
   mode,
-  isCompact,
   isTight,
   toolbarRef,
   openMenu,
@@ -113,51 +100,33 @@ export const TaskBatchActionsToolbar = ({
     <div className="ml-auto flex min-w-0 items-center gap-2 overflow-hidden">
       {mode === 'deleted' ? (
         <>
-          <TaskBatchActionTooltip content="Restore selected tasks" isCompact={isCompact}>
-            <button
-              type="button"
-              onClick={onRestore}
-              className={getActionButtonClass({ isCompact })}
-            >
+          <TaskBatchActionTooltip content="Restore selected tasks">
+            <button type="button" onClick={onRestore} className={getActionButtonClass()}>
               <RotateCcw className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>Restore</span>
+              <span className="sr-only">Restore</span>
             </button>
           </TaskBatchActionTooltip>
 
-          <TaskBatchActionTooltip content="Delete selected tasks permanently" isCompact={isCompact}>
-            <button
-              type="button"
-              onClick={onPermanentDelete}
-              className={getDestructiveButtonClass(isCompact)}
-            >
+          <TaskBatchActionTooltip content="Delete selected tasks permanently">
+            <button type="button" onClick={onPermanentDelete} className={destructiveButtonClass}>
               <Trash2 className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>
-                {isCompact ? 'Delete' : 'Delete permanently'}
-              </span>
+              <span className="sr-only">Delete permanently</span>
             </button>
           </TaskBatchActionTooltip>
         </>
       ) : (
         <>
-          <TaskBatchActionTooltip content="Edit tags" isCompact={isCompact}>
-            <button
-              type="button"
-              onClick={onOpenTagsModal}
-              className={getActionButtonClass({ isCompact })}
-            >
+          <TaskBatchActionTooltip content="Edit tags">
+            <button type="button" onClick={onOpenTagsModal} className={getActionButtonClass()}>
               <Tag className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>Tags</span>
+              <span className="sr-only">Tags</span>
             </button>
           </TaskBatchActionTooltip>
 
-          <TaskBatchActionTooltip content="Edit dates" isCompact={isCompact}>
-            <button
-              type="button"
-              onClick={onOpenDatesModal}
-              className={getActionButtonClass({ isCompact })}
-            >
+          <TaskBatchActionTooltip content="Edit dates">
+            <button type="button" onClick={onOpenDatesModal} className={getActionButtonClass()}>
               <CalendarClock className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>Dates</span>
+              <span className="sr-only">Dates</span>
             </button>
           </TaskBatchActionTooltip>
 
@@ -167,76 +136,65 @@ export const TaskBatchActionsToolbar = ({
                 ? 'Add a calendar to be able to move tasks'
                 : 'Move to calendar'
             }
-            isCompact={isCompact}
           >
             <button
               type="button"
               onClick={onOpenMoveModal}
-              className={getActionButtonClass({ isCompact })}
+              className={getActionButtonClass()}
               disabled={allCalendarsCount === 0}
             >
               <CalendarMove className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>Move</span>
+              <span className="sr-only">Move</span>
             </button>
           </TaskBatchActionTooltip>
 
-          <TaskBatchActionTooltip content="Set status" isCompact={isCompact}>
+          <TaskBatchActionTooltip content="Set status">
             <button
               type="button"
               ref={statusButtonRef}
               onClick={() => onToggleMenu('status')}
               className={getActionButtonClass({
                 isActive: openMenu === 'status',
-                isCompact,
                 hasDisclosure: true,
               })}
               aria-haspopup="menu"
               aria-expanded={openMenu === 'status'}
             >
               <CheckCircle2 className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>Status</span>
+              <span className="sr-only">Status</span>
               <ChevronDown className={getDisclosureChevronClass(openMenu === 'status')} />
             </button>
           </TaskBatchActionTooltip>
 
-          <TaskBatchActionTooltip content="Change priority" isCompact={isCompact}>
+          <TaskBatchActionTooltip content="Change priority">
             <button
               type="button"
               ref={priorityButtonRef}
               onClick={() => onToggleMenu('priority')}
               className={getActionButtonClass({
                 isActive: openMenu === 'priority',
-                isCompact,
                 hasDisclosure: true,
               })}
               aria-haspopup="menu"
               aria-expanded={openMenu === 'priority'}
             >
               <Flag className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>Priority</span>
+              <span className="sr-only">Priority</span>
               <ChevronDown className={getDisclosureChevronClass(openMenu === 'priority')} />
             </button>
           </TaskBatchActionTooltip>
 
-          <TaskBatchActionTooltip content="Export selected tasks" isCompact={isCompact}>
-            <button
-              type="button"
-              onClick={onOpenExportModal}
-              className={getActionButtonClass({ isCompact })}
-            >
+          <TaskBatchActionTooltip content="Export selected tasks">
+            <button type="button" onClick={onOpenExportModal} className={getActionButtonClass()}>
               <Share2 className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>Export</span>
+              <span className="sr-only">Export</span>
             </button>
           </TaskBatchActionTooltip>
 
-          <TaskBatchActionTooltip content="Delete selected tasks" isCompact={isCompact}>
-            <button
-              type="button"
-              onClick={onDelete}
-              className={getDestructiveButtonClass(isCompact)}
-            >
+          <TaskBatchActionTooltip content="Delete selected tasks">
+            <button type="button" onClick={onDelete} className={destructiveButtonClass}>
               <Trash2 className="h-4 w-4" />
-              <span className={compactLabelClass(isCompact)}>Delete</span>
+              <span className="sr-only">Delete</span>
             </button>
           </TaskBatchActionTooltip>
         </>

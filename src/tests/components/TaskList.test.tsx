@@ -4,6 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TaskList } from '$components/TaskList';
 import type { FlattenedTask } from '$types/store/tasks';
 
+const taskListMocks = vi.hoisted(() => ({
+  activeView: 'tasks',
+  createTask: vi.fn(),
+  isEmpty: false,
+  searchQuery: '',
+}));
+
 const tasks: FlattenedTask[] = Array.from({ length: 3400 }, (_, index) => ({
   id: `task-${index}`,
   uid: `uid-${index}`,
@@ -64,16 +71,22 @@ vi.mock('$context/taskHighlightContext', () => ({
   useTaskHighlight: () => ({ highlightedTaskId: null }),
 }));
 
+vi.mock('$context/settingsContext', () => ({
+  useSettingsStore: () => ({
+    keyboardShortcuts: [{ id: 'new-task', key: 'n', meta: true, description: 'Create new task' }],
+  }),
+}));
+
 vi.mock('$hooks/queries/useTasks', () => ({
-  useCreateTask: () => ({ mutate: vi.fn() }),
+  useCreateTask: () => ({ mutate: taskListMocks.createTask }),
 }));
 
 vi.mock('$hooks/queries/useUIState', () => ({
   useUIState: () => ({
     data: {
       activeCalendarId: 'calendar-1',
-      activeView: 'tasks',
-      searchQuery: '',
+      activeView: taskListMocks.activeView,
+      searchQuery: taskListMocks.searchQuery,
       selectedTaskId: null,
       sortConfig: { mode: 'manual', direction: 'asc' },
       taskGroupConfig: { mode: 'none', direction: 'asc' },
@@ -88,9 +101,13 @@ vi.mock('$hooks/queries/useVisibleTasks', () => ({
     {
       key: 'all',
       label: 'All tasks',
-      tasks,
+      tasks: taskListMocks.isEmpty ? [] : tasks,
     },
   ],
+}));
+
+vi.mock('$components/banners/RecentlyDeletedNoticeBanner', () => ({
+  RecentlyDeletedNoticeBanner: () => <div data-testid="recently-deleted-notice" />,
 }));
 
 vi.mock('$hooks/ui/useSortableDrag', () => ({
@@ -121,8 +138,14 @@ vi.mock('$hooks/ui/useTaskListSelection', () => ({
 }));
 
 vi.mock('$utils/keyboard', () => ({
+  formatShortcut: (shortcut: { key?: string; meta?: boolean }) =>
+    [shortcut.meta ? '⌘' : null, shortcut.key?.toUpperCase()].filter(Boolean).join(' + '),
   getMetaKeyLabel: () => '⌘',
   getModifierJoiner: () => '',
+}));
+
+vi.mock('$utils/platform', () => ({
+  isMacPlatform: () => true,
 }));
 
 describe('TaskList virtualization', () => {
@@ -131,6 +154,10 @@ describe('TaskList virtualization', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    taskListMocks.activeView = 'tasks';
+    taskListMocks.createTask = vi.fn();
+    taskListMocks.isEmpty = false;
+    taskListMocks.searchQuery = '';
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -149,5 +176,68 @@ describe('TaskList virtualization', () => {
     expect(renderedTasks[0]?.getAttribute('data-task-id')).toBe('task-0');
     expect(container.querySelector('[data-task-id="task-3399"]')).toBeNull();
     expect(container.querySelector('[style*="height: 353600px"]')).not.toBeNull();
+  });
+
+  it('shows the quick-add field instead of the create button in an empty task view', async () => {
+    taskListMocks.isEmpty = true;
+
+    await act(async () => root.render(<TaskList />));
+
+    expect(container.querySelector<HTMLInputElement>('#add-task-input')).not.toBeNull();
+    expect(container.textContent).not.toContain('Create Task');
+    expect(container.textContent).toContain('Add a task above');
+    expect(
+      Array.from(container.querySelectorAll('kbd')).map((keycap) => keycap.textContent),
+    ).toEqual(['⌘', 'N']);
+  });
+
+  it('keeps the quick-add field available when an empty view is filtered by search', async () => {
+    taskListMocks.isEmpty = true;
+    taskListMocks.searchQuery = 'missing task';
+
+    await act(async () => root.render(<TaskList />));
+
+    expect(container.querySelector<HTMLInputElement>('#add-task-input')).not.toBeNull();
+    expect(container.textContent).toContain('No tasks found');
+  });
+
+  it('keeps the quick-add field available in an empty filter view', async () => {
+    taskListMocks.activeView = 'filter';
+    taskListMocks.isEmpty = true;
+
+    await act(async () => root.render(<TaskList />));
+
+    const input = container.querySelector<HTMLInputElement>('#add-task-input');
+    expect(input).not.toBeNull();
+    expect(container.textContent).toContain('No tasks match this filter');
+
+    const inputValueSetter = Object.getOwnPropertyDescriptor(
+      window.HTMLInputElement.prototype,
+      'value',
+    )?.set;
+    await act(async () => {
+      inputValueSetter?.call(input, '  Filter task  ');
+      input?.dispatchEvent(new Event('input', { bubbles: true }));
+      input?.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    });
+
+    expect(taskListMocks.createTask).toHaveBeenCalledWith({ title: 'Filter task' });
+    expect(input?.value).toBe('');
+  });
+
+  it('does not show the quick-add field in Recently Deleted', async () => {
+    taskListMocks.activeView = 'recently-deleted';
+    taskListMocks.isEmpty = true;
+
+    await act(async () => root.render(<TaskList />));
+
+    expect(container.querySelector('#add-task-input')).toBeNull();
+    expect(container.querySelector('[data-testid="recently-deleted-notice"]')).not.toBeNull();
+    expect(container.textContent).toContain('Recently Deleted is empty');
+
+    taskListMocks.isEmpty = false;
+    await act(async () => root.render(<TaskList />));
+
+    expect(container.querySelector('#add-task-input')).toBeNull();
   });
 });

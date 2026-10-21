@@ -1,10 +1,17 @@
 import { formatDistanceToNow } from 'date-fns';
 
-import Plus from 'lucide-react/icons/plus';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import Search from 'lucide-react/icons/search';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import X from 'lucide-react/icons/x';
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ComposedInput } from '$components/ComposedInput';
+import { getHeaderContextTitle, HeaderContextTitle } from '$components/header/HeaderContextTitle';
 import { HeaderViewMenu } from '$components/header/HeaderViewMenu';
 import { TaskBatchActionsBar } from '$components/header/TaskBatchActionsBar/TaskBatchActionsBar';
 import { Tooltip } from '$components/Tooltip';
@@ -16,7 +23,8 @@ import {
 import { useModalState } from '$context/modalStateContext';
 import { useTaskSelection } from '$context/taskSelectionContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
-import { useCreateTask } from '$hooks/queries/useTasks';
+import { useFilters } from '$hooks/queries/useFilters';
+import { useTags } from '$hooks/queries/useTags';
 import {
   useSetMoveCompletedTasksToBottom,
   useSetSearchQuery,
@@ -84,7 +92,7 @@ const getSyncButtonClass = (
   isAnyModalOpen: boolean,
 ) => {
   const base =
-    'flex h-9 items-center gap-1.5 rounded-lg border border-transparent px-3 text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset';
+    'flex h-9 w-9 items-center justify-center rounded-lg border border-transparent outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset';
   if (isSyncing) {
     return `${base} text-primary-ink border-transparent cursor-not-allowed`;
   }
@@ -121,13 +129,14 @@ export const Header = ({
 }: HeaderProps) => {
   const { data: uiState } = useUIState();
   const { data: accounts = [] } = useAccounts();
+  const { data: filters = [] } = useFilters();
+  const { data: tags = [] } = useTags();
   const setSearchQueryMutation = useSetSearchQuery();
   const setSortConfigMutation = useSetSortConfig();
   const setTaskGroupConfigMutation = useSetTaskGroupConfig();
   const setShowCompletedTasksMutation = useSetShowCompletedTasks();
   const setMoveCompletedTasksToBottomMutation = useSetMoveCompletedTasksToBottom();
   const setShowUnstartedTasksMutation = useSetShowUnstartedTasks();
-  const createTaskMutation = useCreateTask('created', { selectCreatedTask: true });
   const visibleTasks = useVisibleTasks();
   const { selectedTaskIdSet, clearSelection } = useTaskSelection();
 
@@ -135,6 +144,8 @@ export const Header = ({
   const sortConfig = uiState?.sortConfig ?? DEFAULT_SORT_CONFIG;
   const taskGroupConfig = uiState?.taskGroupConfig ?? DEFAULT_TASK_GROUP_CONFIG;
   const activeCalendarId = uiState?.activeCalendarId ?? null;
+  const activeTagId = uiState?.activeTagId ?? null;
+  const activeFilterId = uiState?.activeFilterId ?? null;
   const showCompletedTasks = uiState?.showCompletedTasks ?? true;
   const moveCompletedTasksToBottom = uiState?.moveCompletedTasksToBottom ?? false;
   const showUnstartedTasks = uiState?.showUnstartedTasks ?? true;
@@ -149,15 +160,27 @@ export const Header = ({
   const searchShortcut = `${metaKey}${modifierJoiner}F`;
   const syncShortcut = `${metaKey}${modifierJoiner}R`;
 
-  const syncingCalendarName = syncingCalendarId
-    ? (accounts.flatMap((a) => a.calendars).find((c) => c.id === syncingCalendarId)?.displayName ??
-      null)
-    : null;
-
   const selectedTasks = useMemo(
     () => visibleTasks.filter((task) => selectedTaskIdSet.has(task.id)),
     [selectedTaskIdSet, visibleTasks],
   );
+  const [isSearchOpen, setIsSearchOpen] = useState(() => Boolean(searchQuery));
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchToggleRef = useRef<HTMLButtonElement>(null);
+
+  const calendars = accounts.flatMap((account) => account.calendars);
+  const searchContextTitle = getHeaderContextTitle({
+    activeView,
+    activeCalendarId,
+    activeTagId,
+    activeFilterId,
+    calendars,
+    tags,
+    filters,
+  });
+  const syncingCalendarName = syncingCalendarId
+    ? (calendars.find((calendar) => calendar.id === syncingCalendarId)?.displayName ?? null)
+    : null;
 
   // track when sync completes and show "just now" for 3 seconds
   useEffect(() => {
@@ -175,21 +198,25 @@ export const Header = ({
     }
   }, [isSyncing]);
 
-  const handleNewTask = () => {
-    createTaskMutation.mutate({ title: '' });
+  useEffect(() => {
+    if (isSearchOpen) searchInputRef.current?.focus();
+  }, [isSearchOpen]);
+
+  const closeSearch = () => {
+    setSearchQueryMutation.mutate('');
+    setIsSearchOpen(false);
+    requestAnimationFrame(() => {
+      searchToggleRef.current?.focus();
+    });
   };
 
-  const newTaskButton = (
-    <button
-      type="button"
-      onClick={handleNewTask}
-      disabled={activeView === 'recently-deleted'}
-      className={`flex h-9 items-center gap-2 rounded-lg border border-transparent bg-primary-500 px-4 font-medium text-primary-contrast text-sm transition-colors ${!isAnyModalOpen ? 'hover:bg-primary-600' : ''} shadow-xs outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50`}
-    >
-      <Plus className="h-4 w-4" />
-      New Task
-    </button>
-  );
+  const handleSearchKeyDown = (event: ReactKeyboardEvent<HTMLInputElement | HTMLButtonElement>) => {
+    if (isAnyModalOpen || event.key !== 'Escape') return;
+    event.preventDefault();
+    closeSearch();
+  };
+
+  const headerIconButtonClass = `flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-transparent text-surface-600 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`;
 
   const toggleSortDirection = () => {
     const newDirection = sortConfig.direction === 'asc' ? 'desc' : 'asc';
@@ -258,90 +285,124 @@ export const Header = ({
     <header
       className={`app-main-header flex h-13 items-center bg-surface-50 pr-4.25 pl-4 dark:bg-surface-900 ${className}`}
     >
-      <div data-drag-region-pass-through className="flex flex-1 items-center justify-between gap-4">
-        <div data-drag-region-pass-through className="relative max-w-lg flex-1">
-          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-surface-500 dark:text-surface-400" />
-          <ComposedInput
-            type="text"
-            data-search-input
-            placeholder={`Search tasks... (${searchShortcut})`}
-            value={searchQuery}
-            onChange={(value) => setSearchQueryMutation.mutate(value)}
-            className="h-9 w-full rounded-lg border border-surface-300 bg-white py-0 pr-4 pl-9 text-sm text-surface-800 outline-hidden transition-colors placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-ink focus:bg-white focus:hover:border-primary-ink dark:border-surface-700 dark:bg-surface-800/80 dark:text-surface-200 dark:focus:bg-surface-800 dark:hover:border-surface-600 dark:focus:hover:border-primary-ink"
-          />
-        </div>
-
-        <div data-drag-region-pass-through className="flex shrink-0 items-center gap-2">
-          {onSync && (
-            <Tooltip
-              content={getSyncTooltip(
-                disableSync,
-                isConnectionTesting,
-                isOffline,
-                isSyncing,
-                lastSyncTime,
-                showJustNow,
-                syncShortcut,
-                syncingCalendarName,
-                syncProgress,
-                lastSyncSource,
-                accounts.filter((a) => a.caldav).length,
-              )}
-              position="bottom"
-            >
+      <div
+        data-drag-region-pass-through
+        className="@container flex min-w-0 flex-1 items-center justify-between gap-2"
+      >
+        {isSearchOpen ? (
+          <div data-drag-region-pass-through className="flex min-w-0 flex-1 items-center gap-2">
+            <div className="relative min-w-0 flex-1">
+              <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-surface-500 dark:text-surface-400" />
+              <ComposedInput
+                ref={searchInputRef}
+                type="text"
+                data-search-input
+                placeholder={`Search tasks in ${searchContextTitle}...`}
+                value={searchQuery}
+                onChange={(value) => setSearchQueryMutation.mutate(value)}
+                onKeyDown={handleSearchKeyDown}
+                className="h-9 w-full rounded-lg border border-surface-300 bg-white py-0 pr-10 pl-9 text-sm text-surface-800 outline-hidden transition-colors placeholder:text-surface-400 hover:border-surface-400 focus:border-primary-ink focus:bg-white focus:hover:border-primary-ink dark:border-surface-700 dark:bg-surface-800/80 dark:text-surface-200 dark:focus:bg-surface-800 dark:hover:border-surface-600 dark:focus:hover:border-primary-ink"
+              />
               <button
                 type="button"
-                onClick={onSync}
-                disabled={isSyncing || isOffline || disableSync || isConnectionTesting}
-                className={getSyncButtonClass(
-                  isSyncing,
-                  isOffline,
-                  disableSync || isConnectionTesting,
-                  isAnyModalOpen,
-                )}
+                data-search-close
+                aria-label="Close search"
+                title="Close search"
+                onClick={closeSearch}
+                onKeyDown={handleSearchKeyDown}
+                className={`absolute top-1/2 right-1 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-md text-surface-500 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-100 dark:hover:bg-surface-700' : ''}`}
               >
-                <RefreshCw
-                  className={`h-4 w-4 shrink-0 ${isSyncing ? 'motion-safe:animate-spin' : ''}`}
-                />
-                <span>Sync</span>
+                <X className="h-4 w-4" />
               </button>
-            </Tooltip>
-          )}
+            </div>
+          </div>
+        ) : (
+          <>
+            <HeaderContextTitle
+              activeView={activeView}
+              activeCalendarId={activeCalendarId}
+              activeTagId={activeTagId}
+              activeFilterId={activeFilterId}
+              calendars={calendars}
+              tags={tags}
+              filters={filters}
+            />
 
-          <HeaderViewMenu
-            isAnyModalOpen={isAnyModalOpen}
-            sortConfig={sortConfig}
-            taskGroupConfig={taskGroupConfig}
-            activeCalendarId={activeCalendarId}
-            showCompletedTasks={showCompletedTasks}
-            showUnstartedTasks={showUnstartedTasks}
-            moveCompletedTasksToBottom={moveCompletedTasksToBottom}
-            onShowCompletedTasksChange={() =>
-              setShowCompletedTasksMutation.mutate(!showCompletedTasks)
-            }
-            onShowUnstartedTasksChange={() =>
-              setShowUnstartedTasksMutation.mutate(!showUnstartedTasks)
-            }
-            onMoveCompletedTasksToBottomChange={() =>
-              setMoveCompletedTasksToBottomMutation.mutate(!moveCompletedTasksToBottom)
-            }
-            onSortDirectionToggle={toggleSortDirection}
-            onSortChange={handleSortChange}
-            onTaskGroupDirectionToggle={toggleTaskGroupDirection}
-            onTaskGroupChange={handleTaskGroupChange}
-          />
+            <div data-drag-region-pass-through className="flex shrink-0 items-center gap-2">
+              {onSync && (
+                <Tooltip
+                  content={getSyncTooltip(
+                    disableSync,
+                    isConnectionTesting,
+                    isOffline,
+                    isSyncing,
+                    lastSyncTime,
+                    showJustNow,
+                    syncShortcut,
+                    syncingCalendarName,
+                    syncProgress,
+                    lastSyncSource,
+                    accounts.filter((a) => a.caldav).length,
+                  )}
+                  position="bottom"
+                >
+                  <button
+                    type="button"
+                    onClick={onSync}
+                    aria-label="Sync"
+                    disabled={isSyncing || isOffline || disableSync || isConnectionTesting}
+                    className={getSyncButtonClass(
+                      isSyncing,
+                      isOffline,
+                      disableSync || isConnectionTesting,
+                      isAnyModalOpen,
+                    )}
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 shrink-0 ${isSyncing ? 'motion-safe:animate-spin' : ''}`}
+                    />
+                  </button>
+                </Tooltip>
+              )}
 
-          {activeView === 'recently-deleted' ? (
-            <Tooltip
-              content="Creating new tasks in Recently Deleted is not allowed"
-              position="bottom"
-            >
-              {newTaskButton}
-            </Tooltip>
-          ) : (
-            newTaskButton
-          )}
-        </div>
+              <HeaderViewMenu
+                isAnyModalOpen={isAnyModalOpen}
+                sortConfig={sortConfig}
+                taskGroupConfig={taskGroupConfig}
+                activeCalendarId={activeCalendarId}
+                showCompletedTasks={showCompletedTasks}
+                showUnstartedTasks={showUnstartedTasks}
+                moveCompletedTasksToBottom={moveCompletedTasksToBottom}
+                onShowCompletedTasksChange={() =>
+                  setShowCompletedTasksMutation.mutate(!showCompletedTasks)
+                }
+                onShowUnstartedTasksChange={() =>
+                  setShowUnstartedTasksMutation.mutate(!showUnstartedTasks)
+                }
+                onMoveCompletedTasksToBottomChange={() =>
+                  setMoveCompletedTasksToBottomMutation.mutate(!moveCompletedTasksToBottom)
+                }
+                onSortDirectionToggle={toggleSortDirection}
+                onSortChange={handleSortChange}
+                onTaskGroupDirectionToggle={toggleTaskGroupDirection}
+                onTaskGroupChange={handleTaskGroupChange}
+              />
+
+              <Tooltip content={`Search tasks (${searchShortcut})`} position="bottom">
+                <button
+                  ref={searchToggleRef}
+                  type="button"
+                  data-search-toggle
+                  aria-label="Search tasks"
+                  onClick={() => setIsSearchOpen(true)}
+                  className={headerIconButtonClass}
+                >
+                  <Search className="h-4 w-4" />
+                </button>
+              </Tooltip>
+            </div>
+          </>
+        )}
       </div>
     </header>
   );

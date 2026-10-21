@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
-export const COMPACT_TOOLBAR_WIDTH = 820;
 export const TIGHT_TOOLBAR_WIDTH = 460;
 
 export const useTaskBatchActionsLayout = () => {
@@ -29,7 +28,6 @@ export const useTaskBatchActionsLayout = () => {
 
   return {
     toolbarRef,
-    isCompact: toolbarWidth !== null && toolbarWidth < COMPACT_TOOLBAR_WIDTH,
     isTight: toolbarWidth !== null && toolbarWidth < TIGHT_TOOLBAR_WIDTH,
   };
 };

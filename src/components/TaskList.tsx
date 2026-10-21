@@ -1,15 +1,12 @@
 import { closestCenter, DndContext, DragOverlay, type Modifier } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import ArrowRight from 'lucide-react/icons/arrow-right';
 import ClipboardPlus from 'lucide-react/icons/clipboard-plus';
 import FunnelX from 'lucide-react/icons/funnel-x';
-import Plus from 'lucide-react/icons/plus';
 import SearchX from 'lucide-react/icons/search-x';
 import Trash2 from 'lucide-react/icons/trash-2';
 import {
   type KeyboardEvent,
-  type MouseEvent,
   type ReactNode,
   useCallback,
   useEffect,
@@ -18,9 +15,12 @@ import {
   useState,
 } from 'react';
 import { RecentlyDeletedNoticeBanner } from '$components/banners/RecentlyDeletedNoticeBanner';
+import { ShortcutKeycaps } from '$components/ShortcutKeycaps';
 import { TaskGroupHeader } from '$components/TaskGroupHeader';
+import { TaskQuickAddInput } from '$components/TaskQuickAddInput';
 import { TaskItem } from '$components/taskItem/TaskItem';
 import { DEFAULT_SORT_CONFIG, DEFAULT_TASK_GROUP_CONFIG } from '$constants';
+import { useSettingsStore } from '$context/settingsContext';
 import { useTaskHighlight } from '$context/taskHighlightContext';
 import { useCreateTask } from '$hooks/queries/useTasks';
 import { useUIState } from '$hooks/queries/useUIState';
@@ -29,8 +29,8 @@ import { truncateName, useSortableDrag } from '$hooks/ui/useSortableDrag';
 import { useTaskListSelection } from '$hooks/ui/useTaskListSelection';
 import { getEffectiveTaskGroupConfig } from '$lib/task/grouping';
 import type { LucideIcon } from '$types/lucide';
+import type { KeyboardShortcut } from '$types/shortcuts';
 import type { FlattenedTask } from '$types/store/tasks';
-import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
 import { getSortableItemKey } from '$utils/sortable';
 
 const TASK_ROW_ESTIMATED_HEIGHT = 104;
@@ -56,8 +56,8 @@ const getEmptyState = (
   isRecentlyDeleted: boolean,
   isFilterView: boolean,
   isSearching: boolean,
-  newTaskShortcut: string,
-): { Icon: LucideIcon; title: string; description: ReactNode; showCreateButton: boolean } => {
+  newTaskShortcut: KeyboardShortcut | undefined,
+): { Icon: LucideIcon; title: string; description: ReactNode } => {
   if (isRecentlyDeleted) {
     return {
       Icon: Trash2,
@@ -65,7 +65,6 @@ const getEmptyState = (
       description: isSearching
         ? 'Try adjusting your search terms.'
         : 'Deleted tasks will appear here until you restore or permanently delete them.',
-      showCreateButton: false,
     };
   }
 
@@ -74,7 +73,6 @@ const getEmptyState = (
       Icon: SearchX,
       title: 'No tasks found',
       description: 'Try adjusting your search terms.',
-      showCreateButton: false,
     };
   }
 
@@ -83,7 +81,6 @@ const getEmptyState = (
       Icon: FunnelX,
       title: 'No tasks match this filter',
       description: 'Tasks will appear here when they match this filter.',
-      showCreateButton: false,
     };
   }
 
@@ -92,19 +89,22 @@ const getEmptyState = (
     title: 'No tasks yet',
     description: (
       <>
-        Click the button below or press{' '}
-        <kbd className="rounded-sm bg-surface-100 px-2 py-1 font-mono text-sm dark:bg-surface-700">
-          {newTaskShortcut}
-        </kbd>{' '}
+        Add a task above
+        {newTaskShortcut?.key ? (
+          <>
+            {' or press '}
+            <ShortcutKeycaps shortcut={newTaskShortcut} />
+          </>
+        ) : null}{' '}
         to create a new task.
       </>
     ),
-    showCreateButton: true,
   };
 };
 
 export const TaskList = () => {
   const { data: uiState } = useUIState();
+  const { keyboardShortcuts } = useSettingsStore();
   const { highlightedTaskId } = useTaskHighlight();
   const visibleTaskGroups = useVisibleTaskGroups();
   const taskListRef = useRef<HTMLDivElement>(null);
@@ -131,10 +131,8 @@ export const TaskList = () => {
     [displayedTaskGroups],
   );
   const createTaskMutation = useCreateTask();
-  const createAndSelectTaskMutation = useCreateTask('created', { selectCreatedTask: true });
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const newTaskInputRef = useRef<HTMLInputElement>(null);
-  const hasNewTaskTitle = newTaskTitle.trim().length > 0;
 
   const sortConfig = uiState?.sortConfig ?? DEFAULT_SORT_CONFIG;
   const taskGroupConfig = uiState?.taskGroupConfig ?? DEFAULT_TASK_GROUP_CONFIG;
@@ -304,11 +302,6 @@ export const TaskList = () => {
     selectedTaskIdSet,
   } = useTaskListSelection({ visibleTasks: visibleFlattenedTasks });
 
-  const handleQuickAdd = () => {
-    clearSelection();
-    createAndSelectTaskMutation.mutate({ title: '' });
-  };
-
   const handleCreateTaskFromInput = () => {
     const title = newTaskTitle.trim();
     if (!title) return;
@@ -328,15 +321,25 @@ export const TaskList = () => {
     }
   };
 
-  const metaKey = getMetaKeyLabel();
-  const modifierJoiner = getModifierJoiner();
-  const newTaskShortcut = `${metaKey}${modifierJoiner}N`;
+  const newTaskShortcut = keyboardShortcuts.find((shortcut) => shortcut.id === 'new-task');
 
   // group order is derived from task properties; manual drag-reordering applies within each group.
   const isRecentlyDeleted = activeView === 'recently-deleted';
   const isFilterView = activeView === 'filter';
   const isDragEnabled = sortConfig.mode === 'manual' && !isRecentlyDeleted;
-  const isDraggingTask = activeTask !== null;
+  const taskListHeader = isRecentlyDeleted ? (
+    <div className="app-task-list shrink-0 bg-surface-50 px-4 py-4 dark:bg-surface-900">
+      <RecentlyDeletedNoticeBanner />
+    </div>
+  ) : (
+    <TaskQuickAddInput
+      inputRef={newTaskInputRef}
+      onCreate={handleCreateTaskFromInput}
+      onKeyDown={handleTaskKeyDown}
+      onTitleChange={setNewTaskTitle}
+      title={newTaskTitle}
+    />
+  );
 
   const visibleTaskCount = visibleTaskGroups.reduce(
     (count, group) => count + group.tasks.length,
@@ -344,7 +347,7 @@ export const TaskList = () => {
   );
   if (visibleTaskCount === 0) {
     const isSearching = searchQuery.trim().length > 0;
-    const { Icon, title, description, showCreateButton } = getEmptyState(
+    const { Icon, title, description } = getEmptyState(
       isRecentlyDeleted,
       isFilterView,
       isSearching,
@@ -352,181 +355,130 @@ export const TaskList = () => {
     );
 
     return (
-      <div className="app-task-list flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4">
-        {isRecentlyDeleted && <RecentlyDeletedNoticeBanner />}
-        <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
-          <Icon className="mb-4 h-16 w-16 text-surface-500 dark:text-surface-600" />
-          <h3 className="mb-2 font-medium text-lg text-surface-700 dark:text-surface-300">
-            {title}
-          </h3>
-          <p className="mb-6 max-w-sm text-surface-500 dark:text-surface-400">{description}</p>
-          {showCreateButton && (
-            <button
-              type="button"
-              onClick={handleQuickAdd}
-              className="flex items-center gap-2 rounded-lg bg-primary-500 px-4 py-2 font-medium text-primary-contrast text-sm outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset"
-            >
-              <Plus className="h-4 w-4" />
-              Create Task
-            </button>
-          )}
+      <div className="flex min-h-0 flex-1 flex-col">
+        {taskListHeader}
+        <div className="app-task-list flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-4">
+          <div className="flex flex-1 flex-col items-center justify-center p-4 text-center">
+            <Icon className="mb-4 h-16 w-16 text-surface-500 dark:text-surface-600" />
+            <h3 className="mb-2 font-medium text-lg text-surface-700 dark:text-surface-300">
+              {title}
+            </h3>
+            <p className="mb-6 text-surface-500 dark:text-surface-400">{description}</p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div
-      ref={taskListRef}
-      className="app-task-list min-h-0 flex-1 overflow-y-auto overscroll-contain"
-    >
-      <div className="p-4">
-        {isRecentlyDeleted && <RecentlyDeletedNoticeBanner />}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          modifiers={
-            effectiveTaskGroupConfig.mode === 'none' ? undefined : [restrictTaskDragToGroup]
-          }
-          onDragStart={handleDragStart}
-          onDragMove={handleDragMove}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
-        >
-          <SortableContext
-            items={sortableTaskIds}
-            strategy={verticalListSortingStrategy}
-            disabled={!isDragEnabled}
+    <div className="flex min-h-0 flex-1 flex-col">
+      {taskListHeader}
+
+      <div
+        ref={taskListRef}
+        className="app-task-list min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
+        <div className="px-4 pt-1.5 pb-4">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={
+              effectiveTaskGroupConfig.mode === 'none' ? undefined : [restrictTaskDragToGroup]
+            }
+            onDragStart={handleDragStart}
+            onDragMove={handleDragMove}
+            onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
           >
-            <div
-              ref={setTaskVirtualContentRef}
-              className={isRecentlyDeleted ? 'relative mt-4' : 'relative'}
+            <SortableContext
+              items={sortableTaskIds}
+              strategy={verticalListSortingStrategy}
+              disabled={!isDragEnabled}
             >
-              {taskListVirtualizer.getVirtualItems().map((virtualRow) => {
-                const row = taskListRows[virtualRow.index];
-                if (!row) return null;
+              <div ref={setTaskVirtualContentRef} className="relative">
+                {taskListVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const row = taskListRows[virtualRow.index];
+                  if (!row) return null;
 
-                return (
-                  <div
-                    key={row.key}
-                    data-index={virtualRow.index}
-                    ref={taskListVirtualizer.measureElement}
-                    className="absolute left-0 w-full"
-                  >
-                    {row.type === 'group-header' ? (
-                      <div className={row.isCollapsed ? 'pb-4' : ''}>
-                        <TaskGroupHeader
-                          group={row.group}
-                          isCollapsed={row.isCollapsed}
-                          onToggleCollapsed={() =>
-                            setCollapsedGroupKeys((keys) => {
-                              const next = new Set(keys);
-                              if (next.has(row.group.key)) next.delete(row.group.key);
-                              else next.add(row.group.key);
-                              return next;
-                            })
-                          }
-                        />
-                      </div>
-                    ) : (
-                      <div className={row.isLastInGroup && showGroupHeaders ? 'pb-4' : 'pb-1.5'}>
-                        <TaskItem
-                          task={row.task}
-                          depth={row.task.depth}
-                          ancestorIds={row.task.ancestorIds}
-                          isDragEnabled={isDragEnabled && !isSelectionMode}
-                          isMultiSelected={selectedTaskIdSet.has(row.task.id)}
-                          isSelectionMode={isSelectionMode}
-                          hideDueDateBadge={
-                            row.group.key.startsWith('due-date:') &&
-                            row.group.key !== 'due-date:overdue' &&
-                            !row.task.parentUid
-                          }
-                          hideStartDateBadge={
-                            row.group.key.startsWith('start-date:') && !row.task.parentUid
-                          }
-                          hideCalendarBadge={row.group.key.startsWith('calendar:')}
-                          onTaskClick={handleTaskClick}
-                          onSelectionCheckboxClick={handleSelectionCheckboxClick}
-                          onTaskContextMenu={handleTaskContextMenu}
-                        />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </SortableContext>
-
-          <DragOverlay dropAnimation={null}>
-            {activeTask ? (
-              <div
-                className="drag-overlay relative"
-                style={{ marginLeft: `${targetIndent * 24}px` }}
-              >
-                {targetIndent !== originalIndentRef.current && (
-                  <div className="absolute -top-6 left-2 whitespace-nowrap rounded-sm bg-primary-500 px-2 py-0.5 text-primary-contrast text-xs shadow-sm">
-                    {targetIndent > originalIndentRef.current
-                      ? `→ Nest in ${truncateName(targetParentName || 'parent')}`
-                      : targetIndent === 0
-                        ? '← Move to root'
-                        : `← Move under ${truncateName(targetParentName || 'parent')}`}
-                  </div>
-                )}
-                <TaskItem
-                  task={activeTask}
-                  depth={0}
-                  ancestorIds={[]}
-                  isDragEnabled={false}
-                  isOverlay
-                />
+                  return (
+                    <div
+                      key={row.key}
+                      data-index={virtualRow.index}
+                      ref={taskListVirtualizer.measureElement}
+                      className="absolute left-0 w-full"
+                    >
+                      {row.type === 'group-header' ? (
+                        <div className={row.isCollapsed ? 'pb-4' : ''}>
+                          <TaskGroupHeader
+                            group={row.group}
+                            isCollapsed={row.isCollapsed}
+                            onToggleCollapsed={() =>
+                              setCollapsedGroupKeys((keys) => {
+                                const next = new Set(keys);
+                                if (next.has(row.group.key)) next.delete(row.group.key);
+                                else next.add(row.group.key);
+                                return next;
+                              })
+                            }
+                          />
+                        </div>
+                      ) : (
+                        <div className={row.isLastInGroup && showGroupHeaders ? 'pb-4' : 'pb-1.5'}>
+                          <TaskItem
+                            task={row.task}
+                            depth={row.task.depth}
+                            ancestorIds={row.task.ancestorIds}
+                            isDragEnabled={isDragEnabled && !isSelectionMode}
+                            isMultiSelected={selectedTaskIdSet.has(row.task.id)}
+                            isSelectionMode={isSelectionMode}
+                            hideDueDateBadge={
+                              row.group.key.startsWith('due-date:') &&
+                              row.group.key !== 'due-date:overdue' &&
+                              !row.task.parentUid
+                            }
+                            hideStartDateBadge={
+                              row.group.key.startsWith('start-date:') && !row.task.parentUid
+                            }
+                            hideCalendarBadge={row.group.key.startsWith('calendar:')}
+                            onTaskClick={handleTaskClick}
+                            onSelectionCheckboxClick={handleSelectionCheckboxClick}
+                            onTaskContextMenu={handleTaskContextMenu}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            ) : null}
-          </DragOverlay>
-        </DndContext>
+            </SortableContext>
 
-        {!isRecentlyDeleted && !isSelectionMode && !isDraggingTask && (
-          // biome-ignore lint/a11y/noStaticElementInteractions: wrapper focuses the nested input when clicking its non-interactive area
-          <div
-            onMouseDown={(event: MouseEvent<HTMLDivElement>) => {
-              const target = event.target as HTMLElement;
-              if (target.closest('button') || target === newTaskInputRef.current) return;
-              event.preventDefault();
-              newTaskInputRef.current?.focus();
-            }}
-            className="mt-4 flex w-full cursor-text items-center gap-3 rounded-lg border border-surface-200 px-3 py-2.5 text-surface-500 outline-hidden transition-colors focus-within:bg-surface-50 dark:border-surface-700 dark:text-surface-400 dark:focus-within:bg-surface-800/50"
-          >
-            <label
-              htmlFor="add-task-input"
-              className="flex min-w-0 flex-1 cursor-text items-center gap-3"
-            >
-              <Plus className="h-5 w-5" />
-              <input
-                ref={newTaskInputRef}
-                id="add-task-input"
-                type="text"
-                value={newTaskTitle}
-                onChange={(event) => setNewTaskTitle(event.target.value)}
-                onKeyDown={handleTaskKeyDown}
-                placeholder="Add a task..."
-                aria-label="Add a task"
-                className="min-w-0 flex-1 bg-transparent text-surface-700 outline-hidden placeholder:text-surface-500 dark:text-surface-300 dark:placeholder:text-surface-400"
-              />
-            </label>
-            {hasNewTaskTitle ? (
-              <button
-                type="button"
-                onClick={handleCreateTaskFromInput}
-                aria-label="Add task"
-                className="flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-surface-400 outline-hidden transition-colors hover:bg-surface-200 hover:text-surface-700 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-500 dark:hover:bg-surface-700 dark:hover:text-surface-300"
-              >
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            ) : (
-              <span className="h-6 w-6 shrink-0" aria-hidden="true" />
-            )}
-          </div>
-        )}
+            <DragOverlay dropAnimation={null}>
+              {activeTask ? (
+                <div
+                  className="drag-overlay relative"
+                  style={{ marginLeft: `${targetIndent * 24}px` }}
+                >
+                  {targetIndent !== originalIndentRef.current && (
+                    <div className="absolute -top-6 left-2 whitespace-nowrap rounded-sm bg-primary-500 px-2 py-0.5 text-primary-contrast text-xs shadow-sm">
+                      {targetIndent > originalIndentRef.current
+                        ? `→ Nest in ${truncateName(targetParentName || 'parent')}`
+                        : targetIndent === 0
+                          ? '← Move to root'
+                          : `← Move under ${truncateName(targetParentName || 'parent')}`}
+                    </div>
+                  )}
+                  <TaskItem
+                    task={activeTask}
+                    depth={0}
+                    ancestorIds={[]}
+                    isDragEnabled={false}
+                    isOverlay
+                  />
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
       </div>
     </div>
   );

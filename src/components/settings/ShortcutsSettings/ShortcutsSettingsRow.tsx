@@ -1,9 +1,8 @@
 import Pencil from 'lucide-react/icons/pencil';
 import PencilLine from 'lucide-react/icons/pencil-line';
+import { ShortcutKeycaps } from '$components/ShortcutKeycaps';
 import { Tooltip } from '$components/Tooltip';
 import type { KeyboardShortcut } from '$types/shortcuts';
-import { formatShortcut } from '$utils/keyboard';
-import { isMacPlatform } from '$utils/platform';
 
 export const ShortcutsSettingsRow = ({
   shortcut,
@@ -25,20 +24,7 @@ export const ShortcutsSettingsRow = ({
     <div className="flex shrink-0 items-center gap-2">
       {shortcut.key ? (
         <>
-          <div className="flex items-center gap-1.5">
-            {formatShortcut(shortcut)
-              .split(' + ')
-              .map((key, keyIndex, arr) => (
-                <span key={key} className="flex items-center gap-1.5">
-                  <kbd className="inline-flex items-center rounded-sm border border-surface-300 bg-surface-100 px-2 py-1 font-mono text-surface-700 text-xs leading-none dark:border-surface-600 dark:bg-surface-700 dark:text-surface-300">
-                    {key}
-                  </kbd>
-                  {keyIndex < arr.length - 1 && !isMacPlatform() && (
-                    <span className="text-surface-500 text-xs">+</span>
-                  )}
-                </span>
-              ))}
-          </div>
+          <ShortcutKeycaps shortcut={shortcut} />
           <Tooltip content="Edit shortcut" position="right" allowInModal>
             <button
               type="button"

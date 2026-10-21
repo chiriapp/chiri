@@ -18,7 +18,7 @@ export const TaskBatchActionsBar = ({
   mode = 'active',
   'data-drag-region-pass-through': dataDragRegionPassThrough,
 }: TaskBatchActionsBarProps) => {
-  const { toolbarRef, isCompact, isTight } = useTaskBatchActionsLayout();
+  const { toolbarRef, isTight } = useTaskBatchActionsLayout();
   const actions = useTaskBatchActions({ selectedTasks, onClearSelection });
 
   if (actions.selectedCount === 0) return null;
@@ -28,7 +28,6 @@ export const TaskBatchActionsBar = ({
       <TaskBatchActionsToolbar
         selectedCount={actions.selectedCount}
         mode={mode}
-        isCompact={isCompact}
         isTight={isTight}
         toolbarRef={toolbarRef}
         openMenu={actions.openMenu}
