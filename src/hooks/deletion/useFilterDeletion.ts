@@ -1,4 +1,5 @@
-import { useCallback } from 'react';
+import { createElement, useCallback } from 'react';
+import { ColoredItemLabel } from '$components/ColoredItemLabel';
 import { useConfirmDialog } from '$context/confirmDialogContext';
 import { useDeleteFilter, useFilters } from '$hooks/queries/useFilters';
 
@@ -13,7 +14,15 @@ export const useFilterDeletion = () => {
 
       const confirmed = await confirm({
         title: 'Delete filter',
-        subtitle: filter?.name,
+        subtitle: filter
+          ? createElement(ColoredItemLabel, {
+              name: filter.name,
+              icon: filter.icon,
+              emoji: filter.emoji,
+              color: filter.color,
+              defaultIcon: 'list-todo',
+            })
+          : undefined,
         message: 'Are you sure? Tasks shown by this filter will not be affected.',
         confirmLabel: 'Delete',
         cancelLabel: 'Cancel',

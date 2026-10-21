@@ -1,4 +1,5 @@
-import { useCallback } from 'react';
+import { createElement, useCallback } from 'react';
+import { ColoredItemLabel } from '$components/ColoredItemLabel';
 import { useConfirmDialog } from '$context/confirmDialogContext';
 import { useDeleteAccount } from '$hooks/queries/useAccounts';
 import { loggers } from '$lib/logger';
@@ -17,7 +18,15 @@ export const useAccountDeletion = () => {
 
       const confirmed = await confirm({
         title: 'Remove account',
-        subtitle: account?.name,
+        subtitle: account
+          ? createElement(ColoredItemLabel, {
+              name: account.name,
+              icon: account.icon,
+              emoji: account.emoji,
+              defaultIcon: 'user',
+              useAccentColor: false,
+            })
+          : undefined,
         message:
           'Are you sure? All tasks from this account will be removed from the app. They will remain on the server.',
         confirmLabel: 'Remove',

@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { createElement, useCallback } from 'react';
+import { ColoredItemLabel } from '$components/ColoredItemLabel';
 import { useConfirmDialog } from '$context/confirmDialogContext';
 import { useSetAllTasksView } from '$hooks/queries/useUIState';
 import { CalDAVClient } from '$lib/caldav';
@@ -58,7 +59,15 @@ export const useCalendarDeletion = () => {
 
       const confirmed = await confirm({
         title: 'Delete calendar',
-        subtitle: calendar?.displayName,
+        subtitle: calendar
+          ? createElement(ColoredItemLabel, {
+              name: calendar.displayName,
+              icon: calendar.icon,
+              emoji: calendar.emoji,
+              color: calendar.color,
+              defaultIcon: 'calendar',
+            })
+          : undefined,
         message: isVikunja ? undefined : deleteMessage,
         confirmLabel: 'Delete',
         destructive: true,

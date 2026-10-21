@@ -1,4 +1,5 @@
-import { useCallback } from 'react';
+import { createElement, useCallback } from 'react';
+import { ColoredItemLabel } from '$components/ColoredItemLabel';
 import { useConfirmDialog } from '$context/confirmDialogContext';
 import { useDeleteTag } from '$hooks/queries/useTags';
 import type { Tag } from '$types/tag';
@@ -13,7 +14,15 @@ export const useTagDeletion = () => {
 
       const confirmed = await confirm({
         title: 'Delete tag',
-        subtitle: tag?.name,
+        subtitle: tag
+          ? createElement(ColoredItemLabel, {
+              name: tag.name,
+              icon: tag.icon,
+              emoji: tag.emoji,
+              color: tag.color,
+              defaultIcon: 'tag',
+            })
+          : undefined,
         message: 'Are you sure? Tasks with this tag will not be affected.',
         confirmLabel: 'Delete',
         cancelLabel: 'Cancel',

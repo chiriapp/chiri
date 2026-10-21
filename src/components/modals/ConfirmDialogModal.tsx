@@ -9,7 +9,7 @@ type ConfirmButtonVariant = 'primary' | 'secondary' | 'destructive';
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  subtitle?: string;
+  subtitle?: ReactNode;
   message: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;

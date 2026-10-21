@@ -8,7 +8,7 @@ export interface ConfirmNotice {
 
 export interface ConfirmOptions {
   title?: string;
-  subtitle?: string; // for displaying things like task name being deleted
+  subtitle?: ReactNode; // for displaying things like the item being deleted
   message?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
