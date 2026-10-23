@@ -17,6 +17,12 @@ vi.mock('$components/Tooltip', () => ({
   Tooltip: ({ children }: { children: ReactNode }) => children,
 }));
 
+const getViewButton = (container: HTMLElement) => {
+  const button = container.querySelector<HTMLButtonElement>('button[aria-label="View options"]');
+  if (!button) throw new Error('Expected the View options button to render');
+  return button;
+};
+
 describe('HeaderViewMenu', () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -54,13 +60,11 @@ describe('HeaderViewMenu', () => {
     });
 
     expect(container.querySelector('[data-testid="view-menu"]')).toBeNull();
-    const viewButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.trim() === 'View',
-    );
-    act(() => viewButton?.click());
+    const viewButton = getViewButton(container);
+    act(() => viewButton.click());
     expect(container.querySelector('[data-testid="view-menu"]')).not.toBeNull();
 
-    act(() => viewButton?.click());
+    act(() => viewButton.click());
     expect(container.querySelector('[data-testid="view-menu"]')).toBeNull();
   });
 
@@ -93,7 +97,7 @@ describe('HeaderViewMenu', () => {
       );
     });
 
-    act(() => container.querySelector('button')?.click());
+    act(() => getViewButton(container).click());
 
     const checkboxes = container.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
     act(() => checkboxes[0]?.click());
