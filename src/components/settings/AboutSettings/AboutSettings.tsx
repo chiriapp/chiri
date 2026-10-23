@@ -1,7 +1,6 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
 import Bug from 'lucide-react/icons/bug';
 import Code from 'lucide-react/icons/code';
-import Globe from 'lucide-react/icons/globe';
 import HandHeart from 'lucide-react/icons/hand-heart';
 import Heart from 'lucide-react/icons/heart';
 import HeartHandshake from 'lucide-react/icons/heart-handshake';
@@ -20,7 +19,6 @@ import { getAppInfo } from '$utils/meta';
 const GITHUB_URL = 'https://github.com/chiriapp/chiri';
 const NEW_ISSUE_URL = 'https://github.com/chiriapp/chiri/issues/new';
 const CONTACT_EMAIL = 'contact@sapphic.moe';
-const FIND_US_ELSEWHERE = 'https://sapphic.moe/contact';
 
 const link = (url: string) => () => openUrl(url);
 
@@ -101,13 +99,6 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
             label="Contact developer"
             description={CONTACT_EMAIL}
             onClick={link(`mailto:${CONTACT_EMAIL}`)}
-          />
-
-          <AboutSettingsLinkRow
-            icon={<Globe className="h-5 w-5" />}
-            label="Find us elsewhere"
-            description="Follow or contact us elsewhere through our website"
-            onClick={link(FIND_US_ELSEWHERE)}
           />
         </AboutSettingsSection>
 
