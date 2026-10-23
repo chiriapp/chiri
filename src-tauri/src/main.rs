@@ -11,6 +11,7 @@ mod linux;
 mod logging;
 mod notifications;
 mod onboarding;
+mod preferences;
 mod push;
 mod schema;
 mod tray;

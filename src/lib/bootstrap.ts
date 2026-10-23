@@ -1,12 +1,15 @@
 import { setDockVisibility } from '@tauri-apps/api/app';
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { BaseDirectory, remove } from '@tauri-apps/plugin-fs';
+import { BaseDirectory, exists, remove } from '@tauri-apps/plugin-fs';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { settingsStore } from '$context/settingsContext';
 import { preloadAutostartState } from '$hooks/system/useAutostart';
 import { db } from '$lib/database';
 import { initLogger, loggers } from '$lib/logger';
+import { flushTaskSnoozes, initializeTaskSnoozes } from '$lib/notifications/snoozes';
+import { LEGACY_PREFERENCES_KEYS } from '$lib/preferences/persistence';
+import { preferencesRepository } from '$lib/preferences/repository';
 import { dataStore } from '$lib/store';
 import { setActiveFilter, setAllTasksView, setRecentlyDeletedView } from '$lib/store/ui';
 import { initAppMenu } from '$utils/menu';
@@ -127,10 +130,12 @@ export const initializeApp = async () => {
   await initLogger();
   log.info('Starting application initialization...');
 
+  await settingsStore.initialize();
   await applyMacWindowDecorationPreference();
 
   log.debug('Initializing data store...');
   await dataStore.initialize();
+  await initializeTaskSnoozes();
   log.debug('Data store initialized');
   applyDefaultLaunchViewPreference();
 
@@ -262,20 +267,49 @@ export const shouldShowWindowOnStartup = async () => {
 export const deleteDatabase = async () => {
   try {
     log.warn('Deleting database file...');
+    await flushTaskSnoozes();
     const baseDir = isMacPlatform() ? BaseDirectory.AppLocalData : BaseDirectory.AppConfig;
     await remove('chiri.db', { baseDir });
     log.info('Database file deleted successfully');
 
-    // reset user preferences along with the database
-    log.info('Resetting user preferences...');
-    settingsStore.resetSettings();
-    log.info('User preferences reset successfully');
-
     // relaunch the app so migrations run on the fresh database
     log.info('Relaunching app to reinitialize database...');
+    await settingsStore.flush();
     await relaunch();
   } catch (error) {
     log.error('Failed to delete database:', error);
+    throw error;
+  }
+};
+
+export const resetPreferences = async () => {
+  try {
+    log.warn('Resetting user preferences...');
+
+    try {
+      settingsStore.resetSettings();
+      await settingsStore.flush();
+    } catch (error) {
+      log.warn('Could not write default preferences; removing the database files instead:', error);
+      await preferencesRepository.close().catch(() => undefined);
+
+      const baseDir = isMacPlatform() ? BaseDirectory.AppLocalData : BaseDirectory.AppConfig;
+      for (const file of ['preferences.db', 'preferences.db-wal', 'preferences.db-shm']) {
+        if (await exists(file, { baseDir })) await remove(file, { baseDir });
+      }
+    }
+
+    for (const key of LEGACY_PREFERENCES_KEYS) {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        log.warn(`Could not remove legacy preferences from ${key}:`, error);
+      }
+    }
+    log.info('User preferences reset successfully');
+    await relaunch();
+  } catch (error) {
+    log.error('Failed to reset user preferences:', error);
     throw error;
   }
 };

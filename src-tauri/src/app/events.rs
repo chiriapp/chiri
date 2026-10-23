@@ -1,14 +1,25 @@
 use super::AppRuntime;
+use std::time::Duration;
+use tauri::Emitter;
 
 #[cfg(target_os = "macos")]
-use tauri::{Emitter, Manager, RunEvent};
+use tauri::{Manager, RunEvent};
+
+/// asks the frontend to flush transient writes before exiting, with a fallback
+/// so a failed or unresponsive webview can never prevent the app from quitting
+pub(crate) fn request_frontend_quit(app_handle: &tauri::AppHandle<tauri::Wry>) {
+    let _ = app_handle.emit("app:flush-and-quit-requested", ());
+    tauri::async_runtime::spawn(async move {
+        tokio::time::sleep(Duration::from_secs(2)).await;
+        std::process::exit(0);
+    });
+}
 
 #[cfg(target_os = "macos")]
 pub(super) fn handle_run_event(app_handle: &tauri::AppHandle<AppRuntime>, event: RunEvent) {
     match event {
         // intercept all quit requests (Cmd+Q, Dock quit, window close) so the
-        // frontend can apply double-press confirmation when enabled. The frontend
-        // calls exit(0) via tauri-plugin-process, which bypasses this handler
+        // frontend can flush preferences and apply double-press confirmation
         RunEvent::ExitRequested { api, .. } => {
             api.prevent_exit();
             let _ = app_handle.emit("app:quit-requested", ());

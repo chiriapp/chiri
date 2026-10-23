@@ -1,5 +1,5 @@
 mod commands;
-mod events;
+pub(crate) mod events;
 mod setup;
 
 #[cfg(any(windows, target_os = "linux"))]
@@ -11,7 +11,10 @@ use crate::linux;
 #[cfg(target_os = "macos")]
 use crate::macos;
 
-use crate::{http, install, logging, notifications, onboarding, push, schema, tray, utils, window};
+use crate::{
+    http, install, logging, notifications, onboarding, preferences, push, schema, tray, utils,
+    window,
+};
 
 type AppRuntime = tauri::Wry;
 
@@ -43,6 +46,7 @@ pub fn run() {
         .plugin(
             SqlBuilder::default()
                 .add_migrations("sqlite:chiri.db", schema::get_migrations())
+                .add_migrations("sqlite:preferences.db", preferences::get_migrations())
                 .build(),
         )
         .manage(tray::TrayState::default())

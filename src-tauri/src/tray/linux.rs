@@ -2,6 +2,7 @@ use ksni::{menu::MenuItem, menu::StandardItem, ToolTip, Tray};
 use tauri::{image::Image, AppHandle, Emitter, Manager};
 
 use super::AppRuntime;
+use crate::app::events::request_frontend_quit;
 
 pub struct LinuxTray {
     app_handle: AppHandle<AppRuntime>,
@@ -110,7 +111,7 @@ impl Tray for LinuxTray {
             StandardItem {
                 label: "Quit".into(),
                 activate: Box::new(move |_| {
-                    quit_app.exit(0);
+                    request_frontend_quit(&quit_app);
                 }),
                 ..Default::default()
             }

@@ -1,6 +1,7 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { arch, exeExtension, locale, platform, version } from '@tauri-apps/plugin-os';
 import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { settingsStore } from '$context/settingsContext';
 import { loggers } from '$lib/logger';
 import { createErrorReportIssueUrl, getAppInfo } from '$utils/meta';
 import { formatPlatformName } from '$utils/platform';
@@ -63,8 +64,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     window.location.reload();
   };
 
-  handleResetPreferences = () => {
-    localStorage.removeItem('chiri-settings');
+  handleResetPreferences = async () => {
+    settingsStore.resetSettings();
+    await settingsStore.flush();
     window.location.reload();
   };
 

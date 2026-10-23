@@ -32,6 +32,7 @@ mod v031_push_provider_metadata_json;
 mod v032_completed_tasks_to_bottom;
 mod v033_restore_filter_preset_ids;
 mod v034_task_group_mode;
+mod v035_task_snoozes;
 
 use tauri_plugin_sql::Migration;
 
@@ -72,5 +73,6 @@ pub fn get_migrations() -> Vec<Migration> {
         v032_completed_tasks_to_bottom::migration(),
         v033_restore_filter_preset_ids::migration(),
         v034_task_group_mode::migration(),
+        v035_task_snoozes::migration(),
     ]
 }

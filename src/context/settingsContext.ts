@@ -1,22 +1,10 @@
 import { createContext, useContext } from 'react';
 import { DEFAULT_SHORTCUTS } from '$constants';
 import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color';
-import {
-  clampSnoozeDurations,
-  exportSettings,
-  importSettings,
-  mergeEditorFieldOrder,
-  mergeEditorFieldVisibility,
-  mergeOrder,
-  mergeShortcuts,
-} from '$context/settingsImportExport';
 import { loggers } from '$lib/logger';
-import {
-  DEFAULT_MOZILLA_AUTOPUSH_ENDPOINT_URL,
-  DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL,
-} from '$lib/push/providers/mozillaAutopush';
-import { DEFAULT_NTFY_SERVER_URL } from '$lib/push/providers/ntfy';
-import { getPercentCompleteForStatus } from '$lib/task/status';
+import { mergeShortcuts } from '$lib/preferences/normalization';
+import { preferencesPersistence } from '$lib/preferences/persistence';
+import { exportSettings, importSettings } from '$lib/preferences/serialization';
 import type { AccentColor, Theme } from '$types/color';
 import type { NotificationActionSettings } from '$types/notifications/settings';
 import type { PushProviderId } from '$types/push/providers';
@@ -33,10 +21,7 @@ import type { NetworkProxyMode } from '$types/settings/categories/network';
 import type { DateFormat, StartOfWeek, TimeFormat } from '$types/settings/categories/region';
 import type { SubtaskDeletionBehavior } from '$types/settings/categories/safety';
 import type { QuickTimePresets, WorkingDay } from '$types/settings/categories/scheduling';
-import {
-  isProgressIncrement,
-  type ProgressIncrement,
-} from '$types/settings/categories/statusProgress';
+import type { ProgressIncrement } from '$types/settings/categories/statusProgress';
 import type { WindowDecorationStyle } from '$types/settings/categories/system';
 import type { SettingsState, SettingsStore } from '$types/settings/state';
 import type { KeyboardShortcut } from '$types/shortcuts';
@@ -45,168 +30,26 @@ import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$u
 import { applyColorScheme, getColorSchemeFlavor } from '$utils/color/scheme';
 import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
 import { getShortcutSignature } from '$utils/keyboard';
-import { normalizeProxyPort } from '$utils/misc';
 import { defaultState } from './settingsDefaults';
 
 const log = loggers.settings;
 
-const STORAGE_KEY = 'chiri-settings';
-
-const loadFromStorage = (): { state: SettingsState; migrated: boolean } => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      const {
-        confirmBeforeDelete: _confirmBeforeDelete,
-        confirmBeforeDeletion: _confirmBeforeDeletion,
-        confirmBeforePermanentDelete: _confirmBeforePermanentDelete,
-        confirmBeforeDeleteCalendar: _confirmBeforeDeleteCalendar,
-        confirmBeforeDeleteAccount: _confirmBeforeDeleteAccount,
-        confirmBeforeDeleteFilter: _confirmBeforeDeleteFilter,
-        confirmBeforeDeleteTag: _confirmBeforeDeleteTag,
-        defaultAccountsExpanded: _defaultAccountsExpanded,
-        ...storedState
-      } = parsed.state ?? {};
-      const loadedState = { ...defaultState, ...storedState };
-      loadedState.networkProxyPort = normalizeProxyPort(loadedState.networkProxyPort);
-      if (!isProgressIncrement(loadedState.progressIncrement)) {
-        loadedState.progressIncrement = defaultState.progressIncrement;
-      }
-      if (loadedState.syncStatusProgress) {
-        loadedState.defaultPercentComplete =
-          getPercentCompleteForStatus(
-            loadedState.defaultStatus,
-            loadedState.defaultPercentComplete,
-          ) ?? 0;
-      }
-
-      // keep built-in WebDAV provider defaults as placeholders instead of persisted values
-      const legacyDefaultPushUrls = [
-        ['ntfyServerUrl', DEFAULT_NTFY_SERVER_URL],
-        ['mozillaAutopushWebsocketUrl', DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL],
-        ['mozillaAutopushEndpointUrl', DEFAULT_MOZILLA_AUTOPUSH_ENDPOINT_URL],
-      ] as const;
-      let migrated = false;
-      for (const [key, defaultUrl] of legacyDefaultPushUrls) {
-        if (loadedState[key] === defaultUrl) {
-          loadedState[key] = '';
-          migrated = true;
-        }
-      }
-
-      // migrate old number[] quickTimePresets to object format
-      if (Array.isArray(loadedState.quickTimePresets)) {
-        loadedState.quickTimePresets = defaultState.quickTimePresets;
-      }
-
-      loadedState.editorFieldVisibility = mergeEditorFieldVisibility(
-        loadedState.editorFieldVisibility,
-        defaultState.editorFieldVisibility,
-      );
-      loadedState.notificationActions = {
-        ...defaultState.notificationActions,
-        ...loadedState.notificationActions,
-      };
-      loadedState.notificationActions.order = mergeOrder(
-        loadedState.notificationActions.order,
-        defaultState.notificationActions.order,
-      );
-      loadedState.notificationActions.snoozeDurations = clampSnoozeDurations(
-        loadedState.notificationActions,
-      );
-      loadedState.taskBadgeVisibility = {
-        ...defaultState.taskBadgeVisibility,
-        ...loadedState.taskBadgeVisibility,
-      };
-
-      loadedState.editorFieldOrder = mergeEditorFieldOrder(
-        loadedState.editorFieldOrder,
-        defaultState.editorFieldOrder,
-      );
-      loadedState.taskBadgeOrder = mergeOrder(
-        loadedState.taskBadgeOrder,
-        defaultState.taskBadgeOrder,
-      );
-      loadedState.sidebarSectionOrder = mergeOrder(
-        loadedState.sidebarSectionOrder,
-        defaultState.sidebarSectionOrder,
-      );
-
-      // merge keyboard shortcuts to include any new defaults
-      if (parsed.state?.keyboardShortcuts) {
-        const originalLength = parsed.state.keyboardShortcuts.length;
-        const originalIds = parsed.state.keyboardShortcuts.map((s: KeyboardShortcut) => s.id);
-
-        loadedState.keyboardShortcuts = mergeShortcuts(
-          parsed.state.keyboardShortcuts,
-          DEFAULT_SHORTCUTS,
-        );
-
-        const newLength = loadedState.keyboardShortcuts.length;
-        const originalShortcutsById = new Map(
-          parsed.state.keyboardShortcuts.map((s: KeyboardShortcut) => [s.id, s]),
-        );
-        const newIds = loadedState.keyboardShortcuts
-          .filter((s: KeyboardShortcut) => !originalIds.includes(s.id))
-          .map((s: KeyboardShortcut) => s.id);
-        const removedIds = originalIds.filter(
-          (id: string) => !loadedState.keyboardShortcuts.find((s: KeyboardShortcut) => s.id === id),
-        );
-
-        // mark if shortcuts were added or deprecated shortcuts were removed during merge
-        const changedIds = loadedState.keyboardShortcuts
-          .filter((s: KeyboardShortcut) => {
-            const original = originalShortcutsById.get(s.id);
-            return original && getShortcutSignature(original) !== getShortcutSignature(s);
-          })
-          .map((s: KeyboardShortcut) => s.id);
-
-        if (newLength !== originalLength || changedIds.length > 0) {
-          migrated = true;
-          log.info(
-            `Migrated keyboard shortcuts: ${originalLength} → ${newLength} (added: ${newIds.join(', ') || 'none'}, removed: ${removedIds.join(', ') || 'none'}, changed: ${changedIds.join(', ') || 'none'})`,
-          );
-        }
-      }
-
-      return { state: loadedState, migrated };
-    }
-  } catch (e) {
-    log.error('Failed to load settings from storage:', e);
-  }
-
-  return { state: defaultState, migrated: false };
-};
-
-const saveToStorage = (state: SettingsState) => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ state, version: 0 }));
-  } catch (e) {
-    log.error('Failed to save settings to storage:', e);
-  }
-};
-
 // singleton store for accessing state outside React
-const loadResult = loadFromStorage();
-let state: SettingsState = loadResult.state;
-let pendingMigrationSave = loadResult.migrated;
+let state: SettingsState = defaultState;
+let initializationPromise: Promise<void> | null = null;
 
-// apply theme, color scheme, and accent color immediately on module load
-applyTheme(state.theme);
-const _initEffectiveMode = resolveEffectiveTheme(state.theme);
-applyColorScheme(state.colorScheme, state.colorSchemeFlavor, _initEffectiveMode);
-const _initFlavor = getColorSchemeFlavor(
-  state.colorScheme,
-  state.colorSchemeFlavor,
-  _initEffectiveMode,
-);
-const _initAccent = resolveAccentColor(state.accentColor, _initFlavor.accentColors);
-if (state.colorScheme === DEFAULT_COLOR_SCHEME_ID) {
-  applyAccentColor(_initAccent, _initEffectiveMode);
-} else {
-  applySchemeAccentColor(_initAccent, _initEffectiveMode);
-}
+const applyInitialAppearance = () => {
+  applyTheme(state.theme);
+  const effectiveMode = resolveEffectiveTheme(state.theme);
+  applyColorScheme(state.colorScheme, state.colorSchemeFlavor, effectiveMode);
+  const flavor = getColorSchemeFlavor(state.colorScheme, state.colorSchemeFlavor, effectiveMode);
+  const accent = resolveAccentColor(state.accentColor, flavor.accentColors);
+  if (state.colorScheme === DEFAULT_COLOR_SCHEME_ID) {
+    applyAccentColor(accent, effectiveMode);
+  } else {
+    applySchemeAccentColor(accent, effectiveMode);
+  }
+};
 
 const listeners = new Set<() => void>();
 
@@ -217,18 +60,7 @@ const emitChange = () => {
 };
 
 const subscribe = (listener: () => void) => {
-  const isFirstSubscriber = listeners.size === 0;
   listeners.add(listener);
-
-  // if migration happened during load and hasn't been saved yet,
-  // save and notify all subscribers (including the new one)
-  if (pendingMigrationSave && isFirstSubscriber) {
-    saveToStorage(state);
-    pendingMigrationSave = false; // clear flag so we don't save again
-    // notify all subscribers about the migrated state
-    emitChange();
-  }
-
   return () => listeners.delete(listener);
 };
 
@@ -238,12 +70,30 @@ const getSnapshot = () => {
 
 const setState = (partial: Partial<SettingsState>) => {
   state = { ...state, ...partial };
-  saveToStorage(state);
+  preferencesPersistence.schedule(state);
   emitChange();
+};
+
+const initialize = () => {
+  initializationPromise ??= preferencesPersistence.load(defaultState).then((result) => {
+    state = result.state;
+    const shortcutMigration = result.shortcutMigration;
+    if (shortcutMigration) {
+      log.info(
+        `Migrated keyboard shortcuts: ${shortcutMigration.originalLength} → ${shortcutMigration.newLength} (added: ${shortcutMigration.newIds.join(', ') || 'none'}, removed: ${shortcutMigration.removedIds.join(', ') || 'none'}, changed: ${shortcutMigration.changedIds.join(', ') || 'none'})`,
+      );
+    }
+    applyInitialAppearance();
+    emitChange();
+  });
+
+  return initializationPromise;
 };
 
 // actions that can be called from anywhere
 export const settingsStore = {
+  initialize,
+  flush: () => preferencesPersistence.flush(),
   getState: () => state,
   subscribe,
   getSnapshot,

@@ -14,7 +14,7 @@ const shortcut = (overrides: Partial<KeyboardShortcut>): KeyboardShortcut => ({
 
 describe('mergeShortcuts', () => {
   it('restores defaults for stored shortcuts reserved by macOS', async () => {
-    const { mergeShortcuts } = await import('$context/settingsImportExport');
+    const { mergeShortcuts } = await import('$lib/preferences/normalization');
     const defaults = [shortcut({ id: 'new-task', key: 'n', meta: true })];
     const existing = [shortcut({ id: 'new-task', key: 'q', meta: true })];
 
@@ -22,7 +22,7 @@ describe('mergeShortcuts', () => {
   });
 
   it('keeps non-reserved stored shortcuts', async () => {
-    const { mergeShortcuts } = await import('$context/settingsImportExport');
+    const { mergeShortcuts } = await import('$lib/preferences/normalization');
     const defaults = [shortcut({ id: 'new-task', key: 'n', meta: true })];
     const existing = [shortcut({ id: 'new-task', key: 'j', meta: true })];
 
@@ -32,7 +32,7 @@ describe('mergeShortcuts', () => {
 
 describe('enableSystemTrayExplicitlySet round-trip', () => {
   it('preserves the explicit tray flag through export and import', async () => {
-    const { exportSettings, importSettings } = await import('$context/settingsImportExport');
+    const { exportSettings, importSettings } = await import('$lib/preferences/serialization');
     const { defaultState } = await import('$context/settingsDefaults');
 
     const state = {
@@ -50,7 +50,7 @@ describe('enableSystemTrayExplicitlySet round-trip', () => {
   });
 
   it('defaults the explicit tray flag to false when missing from imported data', async () => {
-    const { importSettings } = await import('$context/settingsImportExport');
+    const { importSettings } = await import('$lib/preferences/serialization');
     const { defaultState } = await import('$context/settingsDefaults');
 
     const exported = JSON.stringify({
@@ -68,7 +68,7 @@ describe('enableSystemTrayExplicitlySet round-trip', () => {
 
 describe('status and progress synchronization', () => {
   it('round-trips the synchronization preference', async () => {
-    const { exportSettings, importSettings } = await import('$context/settingsImportExport');
+    const { exportSettings, importSettings } = await import('$lib/preferences/serialization');
     const { defaultState } = await import('$context/settingsDefaults');
 
     const imported = importSettings(
@@ -91,7 +91,7 @@ describe('status and progress synchronization', () => {
   });
 
   it('defaults the preference to enabled when importing older settings', async () => {
-    const { importSettings } = await import('$context/settingsImportExport');
+    const { importSettings } = await import('$lib/preferences/serialization');
     const { defaultState } = await import('$context/settingsDefaults');
 
     const imported = importSettings(JSON.stringify({ version: 1 }), defaultState);
@@ -102,7 +102,7 @@ describe('status and progress synchronization', () => {
   });
 
   it('falls back to the default for an invalid progress increment', async () => {
-    const { importSettings } = await import('$context/settingsImportExport');
+    const { importSettings } = await import('$lib/preferences/serialization');
     const { defaultState } = await import('$context/settingsDefaults');
 
     const imported = importSettings(
@@ -116,7 +116,7 @@ describe('status and progress synchronization', () => {
 
 describe('editor field migration', () => {
   it('keeps legacy grouped visibility settings in sync', async () => {
-    const { importSettings } = await import('$context/settingsImportExport');
+    const { importSettings } = await import('$lib/preferences/serialization');
     const { defaultState } = await import('$context/settingsDefaults');
 
     const imported = importSettings(
@@ -134,7 +134,7 @@ describe('editor field migration', () => {
   });
 
   it('keeps independently configured progress visibility intact', async () => {
-    const { importSettings } = await import('$context/settingsImportExport');
+    const { importSettings } = await import('$lib/preferences/serialization');
     const { defaultState } = await import('$context/settingsDefaults');
 
     const imported = importSettings(
@@ -153,7 +153,7 @@ describe('editor field migration', () => {
 
 describe('snooze duration limits', () => {
   it('clamps imported durations to one year', async () => {
-    const { importSettings } = await import('$context/settingsImportExport');
+    const { importSettings } = await import('$lib/preferences/serialization');
     const { defaultState } = await import('$context/settingsDefaults');
 
     const imported = importSettings(

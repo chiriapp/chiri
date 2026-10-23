@@ -8,6 +8,7 @@ import { LoadingSpinner } from '$components/LoadingSpinner';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAutostart } from '$hooks/system/useAutostart';
 import { useTrayHostAvailability } from '$hooks/system/useTrayHostAvailability';
+import { flushLocalState } from '$lib/shutdown';
 import {
   installAppImageDesktopIntegration,
   isAppImageDesktopFileInstalled,
@@ -118,6 +119,7 @@ export const SystemSettings = () => {
   const handleRestart = async () => {
     try {
       setConfirmBeforeQuitAppliedValue(confirmBeforeQuit);
+      await flushLocalState();
       await relaunch();
     } catch (error) {
       console.error('Failed to relaunch app:', error);

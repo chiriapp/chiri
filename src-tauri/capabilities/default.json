@@ -36,6 +36,24 @@
         },
         {
           "path": "$APPCONFIG/chiri.db"
+        },
+        {
+          "path": "$APPLOCALDATA/preferences.db"
+        },
+        {
+          "path": "$APPLOCALDATA/preferences.db-wal"
+        },
+        {
+          "path": "$APPLOCALDATA/preferences.db-shm"
+        },
+        {
+          "path": "$APPCONFIG/preferences.db"
+        },
+        {
+          "path": "$APPCONFIG/preferences.db-wal"
+        },
+        {
+          "path": "$APPCONFIG/preferences.db-shm"
         }
       ]
     },

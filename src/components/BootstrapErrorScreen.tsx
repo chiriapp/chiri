@@ -13,6 +13,7 @@ const log = loggers.bootstrap;
 interface BootstrapErrorScreenProps {
   error: unknown;
   onResetDatabase: () => Promise<void>;
+  onResetPreferences: () => Promise<void>;
 }
 
 interface ActionCardProps {
@@ -28,7 +29,7 @@ const secondaryButtonClasses =
   'inline-flex items-center justify-center gap-2 rounded-md border border-surface-200 bg-surface-50 px-4 py-2 text-sm font-medium text-surface-800 transition-colors hover:bg-surface-100 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 dark:border-surface-600 dark:bg-surface-700/60 dark:text-surface-200 dark:hover:bg-surface-700 dark:focus-visible:ring-offset-surface-800';
 
 const warningButtonClasses =
-  'inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-semantic-warning px-4 py-2 text-sm font-medium text-surface-900 transition-colors hover:opacity-90 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-warning focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-800';
+  'inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-semantic-warning px-4 py-2 text-sm font-medium text-surface-900 transition-colors hover:opacity-90 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-warning focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-surface-800';
 
 const destructiveButtonClasses =
   'inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-semantic-error px-4 py-2 text-sm font-medium text-primary-contrast transition-colors hover:opacity-90 outline-hidden focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:focus-visible:ring-offset-surface-800';
@@ -78,9 +79,15 @@ const ActionCard = ({ title, description, children }: ActionCardProps) => {
   );
 };
 
-export const BootstrapErrorScreen = ({ error, onResetDatabase }: BootstrapErrorScreenProps) => {
+export const BootstrapErrorScreen = ({
+  error,
+  onResetDatabase,
+  onResetPreferences,
+}: BootstrapErrorScreenProps) => {
   const [confirmResetDatabase, setConfirmResetDatabase] = useState(false);
   const [confirmResetPrefs, setConfirmResetPrefs] = useState(false);
+  const [isResettingPreferences, setIsResettingPreferences] = useState(false);
+  const [resetPreferencesError, setResetPreferencesError] = useState<string | null>(null);
   const [isResettingDatabase, setIsResettingDatabase] = useState(false);
   const [resetDatabaseError, setResetDatabaseError] = useState<string | null>(null);
 
@@ -113,9 +120,17 @@ export const BootstrapErrorScreen = ({ error, onResetDatabase }: BootstrapErrorS
     }
   };
 
-  const handleResetPreferences = () => {
-    localStorage.removeItem('chiri-settings');
-    window.location.reload();
+  const handleResetPreferences = async () => {
+    setIsResettingPreferences(true);
+    setResetPreferencesError(null);
+
+    try {
+      await onResetPreferences();
+    } catch (err) {
+      log.error('Failed to reset preferences:', err);
+      setResetPreferencesError(`Failed to reset preferences: ${errorToString(err)}`);
+      setIsResettingPreferences(false);
+    }
   };
 
   const handleResetDatabase = async () => {
@@ -189,6 +204,7 @@ export const BootstrapErrorScreen = ({ error, onResetDatabase }: BootstrapErrorS
                   onClick={() => {
                     setConfirmResetPrefs(true);
                     setConfirmResetDatabase(false);
+                    setResetPreferencesError(null);
                     setResetDatabaseError(null);
                   }}
                   className={secondaryButtonClasses}
@@ -197,21 +213,33 @@ export const BootstrapErrorScreen = ({ error, onResetDatabase }: BootstrapErrorS
                   Reset Preferences
                 </button>
               ) : (
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={handleResetPreferences}
-                    className={warningButtonClasses}
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConfirmResetPrefs(false)}
-                    className={cancelButtonClasses}
-                  >
-                    Cancel
-                  </button>
+                <div className="space-y-3">
+                  {resetPreferencesError && (
+                    <p className="selectable text-semantic-error text-sm">
+                      {resetPreferencesError}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      type="button"
+                      onClick={handleResetPreferences}
+                      disabled={isResettingPreferences}
+                      className={warningButtonClasses}
+                    >
+                      {isResettingPreferences ? 'Resetting...' : 'Reset'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConfirmResetPrefs(false);
+                        setResetPreferencesError(null);
+                      }}
+                      disabled={isResettingPreferences}
+                      className={cancelButtonClasses}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               )}
             </section>
@@ -239,6 +267,7 @@ export const BootstrapErrorScreen = ({ error, onResetDatabase }: BootstrapErrorS
                   onClick={() => {
                     setConfirmResetDatabase(true);
                     setConfirmResetPrefs(false);
+                    setResetPreferencesError(null);
                   }}
                   className={destructiveButtonClasses}
                 >

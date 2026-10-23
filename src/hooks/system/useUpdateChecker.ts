@@ -5,6 +5,7 @@ import { check } from '@tauri-apps/plugin-updater';
 import { useCallback, useEffect, useState } from 'react';
 import { settingsStore } from '$context/settingsContext';
 import { loggers } from '$lib/logger';
+import { flushLocalState } from '$lib/shutdown';
 import { toastManager } from '$lib/toastManager';
 import { fetchReleaseNotes } from '$utils/meta';
 import { getInstallType, getPackageManagerName, shouldDisableUpdates } from '$utils/platform';
@@ -262,6 +263,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
       });
 
       log.info('Update installed, relaunching...');
+      await flushLocalState();
       await relaunch();
     },
   });

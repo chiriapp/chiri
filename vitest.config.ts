@@ -41,6 +41,7 @@ export default defineConfig({
           include: [
             'src/tests/lib/tauri-http.test.ts',
             'src/tests/components/GlobalDragRegion.test.tsx',
+            'src/tests/components/BootstrapErrorScreen.test.tsx',
             'src/tests/components/MobileConfigImportChooserModal.test.tsx',
             'src/tests/components/MobileConfigImportSkippedWarning.test.tsx',
             'src/tests/components/MobileConfigSignatureWarning.test.tsx',

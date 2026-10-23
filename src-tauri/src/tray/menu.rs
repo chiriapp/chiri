@@ -14,6 +14,7 @@ use tauri::{
 use ksni::TrayMethods;
 
 use super::{icon, AppRuntime, TrayState};
+use crate::app::events::request_frontend_quit;
 
 #[cfg(target_os = "macos")]
 use crate::macos::quit::is_keyboard_shortcut;
@@ -128,16 +129,16 @@ pub(in crate::tray) fn initialize(
                     if is_keyboard_shortcut() {
                         app.exit(0);
                     } else {
-                        std::process::exit(0);
+                        request_frontend_quit(app);
                     }
                 }
                 #[cfg(not(target_os = "macos"))]
                 {
-                    app.exit(0);
+                    request_frontend_quit(app);
                 }
             }
             "tray-quit" => {
-                std::process::exit(0);
+                request_frontend_quit(app);
             }
             _ => {}
         })

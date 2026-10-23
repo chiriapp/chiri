@@ -4,11 +4,13 @@ import type { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { getAllWebviewWindows } from '@tauri-apps/api/webviewWindow';
 import { type RefObject, useEffect, useRef } from 'react';
 import { useSettingsStore } from '$context/settingsContext';
+import { loggers } from '$lib/logger';
 import {
   checkNotificationPermission,
   requestNotificationPermission,
   sendSimpleNotification,
 } from '$lib/notifications';
+import { flushLocalState } from '$lib/shutdown';
 import { toastManager } from '$lib/toastManager';
 import { isMacPlatform } from '$utils/platform';
 
@@ -99,10 +101,17 @@ const showWindowWithToast = async (windows: WebviewWindow[]) => {
   showQuitToast();
 };
 
+const forceQuit = async () => {
+  await flushLocalState().catch((error) => {
+    loggers.settings.error('Failed to flush local state before quitting:', error);
+  });
+  await invoke('force_quit');
+};
+
 /**
  * intercepts all quit requests (Cmd+Q, Dock quit, window close) emitted by the
  * Rust backend via RunEvent::ExitRequested. When confirmBeforeQuit is enabled,
- * requires a second quit action within 2 seconds to confirm. Otherwise exits immediately
+ * requires a second quit action within 2 seconds to confirm. Otherwise flushes and exits.
  *
  * the Rust backend always prevents the default exit and emits 'app:quit-requested',
  * so this hook is the single exit point for the app. It calls the `force_quit` Tauri
@@ -128,7 +137,7 @@ export const useConfirmQuit = () => {
 
     const handleQuitRequested = async () => {
       if (!confirmBeforeQuitRef.current) {
-        invoke('force_quit');
+        await forceQuit();
         return;
       }
 
@@ -140,7 +149,7 @@ export const useConfirmQuit = () => {
         }
         toastManager.dismiss(QUIT_TOAST_KEY);
         pendingQuit.current = false;
-        invoke('force_quit');
+        await forceQuit();
         return;
       }
 

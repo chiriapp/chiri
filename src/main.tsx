@@ -10,11 +10,13 @@ import {
   forceShowWindow,
   initializeApp,
   initializeTray,
+  resetPreferences,
   shouldShowWindowOnStartup,
   showWindow,
 } from '$lib/bootstrap';
 import { loggers } from '$lib/logger';
 import { queryClient } from '$lib/queryClient';
+import { initializeShutdownHandler } from '$lib/shutdown';
 import { ConfirmDialogProvider } from '$providers/ConfirmDialogProvider';
 import { ConnectionProvider } from '$providers/ConnectionProvider';
 import { DismissableLayerProvider } from '$providers/DismissableLayerProvider';
@@ -78,7 +80,13 @@ const renderApp = () => {
 };
 
 const renderBootstrapError = (error: unknown) => {
-  renderRoot(<BootstrapErrorScreen error={error} onResetDatabase={deleteDatabase} />);
+  renderRoot(
+    <BootstrapErrorScreen
+      error={error}
+      onResetDatabase={deleteDatabase}
+      onResetPreferences={resetPreferences}
+    />,
+  );
 };
 
 const bootstrap = async () => {
@@ -91,6 +99,9 @@ const bootstrap = async () => {
   }
 };
 
+await initializeShutdownHandler().catch((error) => {
+  log.error('Failed to initialize shutdown handler:', error);
+});
 await bootstrap().catch(async (error) => {
   log.error('Failed to initialize app:', error);
   await initializeTray();

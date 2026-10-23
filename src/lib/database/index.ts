@@ -8,6 +8,7 @@ import * as filterOps from '$lib/database/filters';
 import * as historyOps from '$lib/database/history';
 import * as pendingOps from '$lib/database/pending';
 import * as snapshotOps from '$lib/database/snapshot';
+import * as snoozeOps from '$lib/database/snoozes';
 import * as pushOps from '$lib/database/subscriptions';
 import * as tagOps from '$lib/database/tags';
 import * as taskOps from '$lib/database/tasks';
@@ -199,6 +200,27 @@ class Database {
   async toggleTaskComplete(id: string) {
     await taskOps.toggleTaskComplete(await this.conn(), id);
     this.notify();
+  }
+
+  // notification snoozes
+  async getTaskSnoozes(now?: number) {
+    return snoozeOps.getTaskSnoozes(await this.conn(), now);
+  }
+
+  async setTaskSnooze(taskId: string, snoozedUntil: number) {
+    return snoozeOps.setTaskSnooze(await this.conn(), taskId, snoozedUntil);
+  }
+
+  async clearTaskSnooze(taskId: string) {
+    return snoozeOps.clearTaskSnooze(await this.conn(), taskId);
+  }
+
+  async hasImportedLegacyTaskSnoozes() {
+    return snoozeOps.hasImportedLegacyTaskSnoozes(await this.conn());
+  }
+
+  async importLegacyTaskSnoozes(snoozes: Array<[string, number]>) {
+    return snoozeOps.importLegacyTaskSnoozes(await this.conn(), snoozes);
   }
 
   // tags
