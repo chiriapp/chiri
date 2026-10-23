@@ -14,6 +14,7 @@ use tauri::{
 use ksni::TrayMethods;
 
 use super::{icon, AppRuntime, TrayState};
+#[cfg(not(target_os = "linux"))]
 use crate::app::events::request_frontend_quit;
 
 #[cfg(target_os = "macos")]
