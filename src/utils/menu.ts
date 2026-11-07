@@ -35,12 +35,16 @@ const menuItemRefs: {
   sortDirectionSubmenu?: Submenu;
 } = {};
 
-const modalMenuItems: Array<{ item: MenuItem | CheckMenuItem; normallyEnabled: boolean }> = [];
+const modalMenuItems: Array<{
+  item: MenuItem | CheckMenuItem | Submenu;
+  normallyEnabled: boolean;
+}> = [];
 let modalMenuOpen = false;
 
 const collectModalMenuItems = async (submenu: Submenu) => {
   for (const item of await submenu.items()) {
     if (item instanceof Submenu) {
+      modalMenuItems.push({ item, normallyEnabled: await item.isEnabled() });
       await collectModalMenuItems(item);
     } else if (item instanceof MenuItem || item instanceof CheckMenuItem) {
       // these two actions remain available while a modal is open
@@ -635,6 +639,7 @@ export const createMacMenu = async (options?: {
   menuItemRefs.sortDirectionDesc = sortDirectionDescItem;
 
   const sortDirectionSubmenu = await Submenu.new({
+    id: 'sort-direction-submenu',
     text: 'Sort Direction',
     enabled: sortMode !== 'manual',
     items: [sortDirectionAscItem, sortDirectionDescItem],
@@ -1029,7 +1034,7 @@ export const updateMenuItem = async (
     }
 
     if (updates.enabled !== undefined && 'setEnabled' in item) {
-      const modalManagedItem = modalMenuItems.find((entry) => entry.item === item);
+      const modalManagedItem = modalMenuItems.find((entry) => entry.item.id === menuId);
       if (modalManagedItem) {
         modalManagedItem.normallyEnabled = updates.enabled;
         await item.setEnabled(!modalMenuOpen && updates.enabled);
@@ -1062,17 +1067,16 @@ export const updateMenuState = async (options: {
   if (options.isModalOpen === true) await setModalMenuState(true);
   // modal enablement is applied as an overlay by the registered menu items
   // keep these updates as the underlying enabled state
-  const isAppActionEnabled = (enabled = true) => enabled;
 
   if (options.accountCount !== undefined || options.isSyncing !== undefined) {
     const hasAccounts = (options.accountCount ?? 1) > 0;
     const isSyncing = options.isSyncing ?? false;
-    await updateMenuItem('sync', { enabled: isAppActionEnabled(hasAccounts && !isSyncing) });
+    await updateMenuItem('sync', { enabled: hasAccounts && !isSyncing });
   }
   if (options.showCompleted !== undefined) {
     await updateMenuItem('toggle-completed', { checked: options.showCompleted });
     await updateMenuItem('toggle-completed-to-bottom', {
-      enabled: isAppActionEnabled(options.showCompleted),
+      enabled: options.showCompleted,
     });
   }
   if (options.moveCompletedTasksToBottom !== undefined) {
@@ -1105,10 +1109,9 @@ export const updateMenuState = async (options: {
 
     // enable/disable sort direction submenu and items based on sort mode
     const directionSubmenuEnabled = options.sortMode !== 'manual';
-    const directionItemEnabled = isAppActionEnabled(directionSubmenuEnabled);
     await updateMenuItem('sort-direction-submenu', { enabled: directionSubmenuEnabled });
-    await updateMenuItem('sort-direction-asc', { enabled: directionItemEnabled });
-    await updateMenuItem('sort-direction-desc', { enabled: directionItemEnabled });
+    await updateMenuItem('sort-direction-asc', { enabled: directionSubmenuEnabled });
+    await updateMenuItem('sort-direction-desc', { enabled: directionSubmenuEnabled });
   }
   if (options.sortDirection !== undefined) {
     await updateMenuItem('sort-direction-asc', {
