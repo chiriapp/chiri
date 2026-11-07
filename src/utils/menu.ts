@@ -35,6 +35,29 @@ const menuItemRefs: {
   sortDirectionSubmenu?: Submenu;
 } = {};
 
+const modalMenuItems: Array<{ item: MenuItem | CheckMenuItem; normallyEnabled: boolean }> = [];
+let modalMenuOpen = false;
+
+const collectModalMenuItems = async (submenu: Submenu) => {
+  for (const item of await submenu.items()) {
+    if (item instanceof Submenu) {
+      await collectModalMenuItems(item);
+    } else if (item instanceof MenuItem || item instanceof CheckMenuItem) {
+      // these two actions remain available while a modal is open
+      if (item.id === 'quit' || item.id === 'select-all') continue;
+      modalMenuItems.push({ item, normallyEnabled: await item.isEnabled() });
+    }
+  }
+};
+
+const setModalMenuState = async (isOpen: boolean) => {
+  if (isOpen === modalMenuOpen) return;
+  modalMenuOpen = isOpen;
+  await Promise.all(
+    modalMenuItems.map(({ item, normallyEnabled }) => item.setEnabled(!isOpen && normallyEnabled)),
+  );
+};
+
 /**
  * converts a KeyboardShortcut to Tauri accelerator format
  */
@@ -891,6 +914,11 @@ export const initAppMenu = async (options?: {
   try {
     const { menu, windowSubmenu } = await createMacMenu(options);
     await menu.setAsAppMenu();
+    modalMenuItems.length = 0;
+    modalMenuOpen = false;
+    for (const item of await menu.items()) {
+      if (item instanceof Submenu) await collectModalMenuItems(item);
+    }
     await windowSubmenu.setAsWindowsMenuForNSApp();
     // fix macOS Help menu search bar; muda's setAsHelpMenuForNSApp() is broken,
     // so we call NSApp.setHelpMenu() directly from Rust after the menu is live
@@ -1001,7 +1029,13 @@ export const updateMenuItem = async (
     }
 
     if (updates.enabled !== undefined && 'setEnabled' in item) {
-      await item.setEnabled(updates.enabled);
+      const modalManagedItem = modalMenuItems.find((entry) => entry.item === item);
+      if (modalManagedItem) {
+        modalManagedItem.normallyEnabled = updates.enabled;
+        await item.setEnabled(!modalMenuOpen && updates.enabled);
+      } else {
+        await item.setEnabled(updates.enabled);
+      }
     }
 
     if (updates.checked !== undefined && 'setChecked' in item) {
@@ -1025,8 +1059,10 @@ export const updateMenuState = async (options: {
   isSyncing?: boolean;
   isModalOpen?: boolean;
 }) => {
-  const isAppActionEnabled = (enabled = true) =>
-    isEnabledOutsideModal(options.isModalOpen ?? false, enabled);
+  if (options.isModalOpen === true) await setModalMenuState(true);
+  // modal enablement is applied as an overlay by the registered menu items
+  // keep these updates as the underlying enabled state
+  const isAppActionEnabled = (enabled = true) => enabled;
 
   if (options.accountCount !== undefined || options.isSyncing !== undefined) {
     const hasAccounts = (options.accountCount ?? 1) > 0;
@@ -1082,4 +1118,5 @@ export const updateMenuState = async (options: {
       text: options.sortDirection === 'desc' ? '✓ Descending' : 'Descending',
     });
   }
+  if (options.isModalOpen === false) await setModalMenuState(false);
 };

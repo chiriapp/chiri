@@ -140,7 +140,6 @@ export const useAppMenu = (isSyncing?: boolean) => {
       },
       caldavAccountCount,
       isSyncing: isSyncing ?? false,
-      isModalOpen: isAnyModalOpen,
     });
   }, [
     keyboardShortcuts,
@@ -158,6 +157,5 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.sortConfig?.mode,
     uiState?.sortConfig?.direction,
     isSyncing,
-    isAnyModalOpen,
   ]);
 };
