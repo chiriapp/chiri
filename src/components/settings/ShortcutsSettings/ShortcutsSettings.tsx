@@ -19,6 +19,7 @@ const SHORTCUT_GROUPS: { label: string; ids: string[] }[] = [
       'delete',
       'toggle-complete',
       'toggle-show-completed',
+      'toggle-completed-to-bottom',
       'toggle-show-unstarted',
     ],
   },

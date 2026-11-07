@@ -15,6 +15,7 @@ import {
   useSetActiveTag,
   useSetAllTasksView,
   useSetEditorOpen,
+  useSetMoveCompletedTasksToBottom,
   useSetRecentlyDeletedView,
   useSetSearchQuery,
   useSetSelectedTask,
@@ -44,6 +45,7 @@ const BLOCKED_IN_MODAL = new Set([
   'delete',
   'toggle-complete',
   'toggle-show-completed',
+  'toggle-completed-to-bottom',
   'toggle-show-unstarted',
   'nav-up',
   'nav-down',
@@ -114,12 +116,14 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
   const setSelectedTaskMutation = useSetSelectedTask();
   const setEditorOpenMutation = useSetEditorOpen();
   const setShowCompletedMutation = useSetShowCompletedTasks();
+  const setMoveCompletedTasksToBottomMutation = useSetMoveCompletedTasksToBottom();
   const setShowUnstartedMutation = useSetShowUnstartedTasks();
   const { selectedTaskIds, setSelection, clearSelection } = useTaskSelection();
 
   const selectedTaskId = uiState?.selectedTaskId ?? null;
   const activeView = uiState?.activeView ?? 'tasks';
   const showCompletedTasks = uiState?.showCompletedTasks ?? true;
+  const moveCompletedTasksToBottom = uiState?.moveCompletedTasksToBottom ?? false;
   const showUnstartedTasks = uiState?.showUnstartedTasks ?? true;
 
   const { keyboardShortcuts, toggleSidebarCollapsed } = useSettingsStore();
@@ -313,6 +317,11 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
     setShowCompletedMutation.mutate(!showCompletedTasks);
   }, [setShowCompletedMutation, showCompletedTasks]);
 
+  const handleToggleCompletedToBottom = useCallback(() => {
+    if (!showCompletedTasks) return;
+    setMoveCompletedTasksToBottomMutation.mutate(!moveCompletedTasksToBottom);
+  }, [setMoveCompletedTasksToBottomMutation, showCompletedTasks, moveCompletedTasksToBottom]);
+
   const handleToggleShowUnstarted = useCallback(() => {
     setShowUnstartedMutation.mutate(!showUnstartedTasks);
   }, [setShowUnstartedMutation, showUnstartedTasks]);
@@ -330,6 +339,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       'toggle-complete': handleToggleComplete,
       'select-all-tasks': handleSelectAllTasks,
       'toggle-show-completed': handleToggleShowCompleted,
+      'toggle-completed-to-bottom': handleToggleCompletedToBottom,
       'toggle-show-unstarted': handleToggleShowUnstarted,
       'nav-up': handleNavigateUp,
       'nav-down': handleNavigateDown,
@@ -348,6 +358,7 @@ export const useKeyboardShortcuts = (options: UseKeyboardShortcutsOptions = {}) 
       handleToggleComplete,
       handleSelectAllTasks,
       handleToggleShowCompleted,
+      handleToggleCompletedToBottom,
       handleToggleShowUnstarted,
       handleNavigateUp,
       handleNavigateDown,

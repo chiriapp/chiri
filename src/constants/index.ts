@@ -148,6 +148,13 @@ export const DEFAULT_SHORTCUTS: KeyboardShortcut[] = [
     shift: true,
     description: 'Toggle completed tasks',
   },
+  {
+    id: 'toggle-completed-to-bottom',
+    key: 'b',
+    meta: true,
+    shift: true,
+    description: 'Move completed tasks to bottom',
+  },
   { id: 'toggle-show-unstarted', key: 'u', meta: true, description: 'Toggle unstarted tasks' },
   { id: 'nav-up', key: 'ArrowUp', description: 'Navigate to previous task' },
   { id: 'nav-down', key: 'ArrowDown', description: 'Navigate to next task' },

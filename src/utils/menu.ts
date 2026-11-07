@@ -518,6 +518,11 @@ export const createMacMenu = async (options?: {
   const toggleCompletedToBottomItem = await CheckMenuItem.new({
     id: 'toggle-completed-to-bottom',
     text: 'Move Completed Tasks to Bottom',
+    accelerator: getAcceleratorOrDefault(
+      shortcuts,
+      'toggle-completed-to-bottom',
+      'CmdOrCtrl+Shift+B',
+    ),
     checked: moveCompletedTasksToBottom,
     enabled: isAppActionEnabled(showCompleted),
     action: () => {
