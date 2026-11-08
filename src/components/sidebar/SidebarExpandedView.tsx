@@ -42,7 +42,7 @@ export const SidebarExpandedView = ({
     <div
       className={`flex min-h-0 flex-1 flex-col motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
     >
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto overscroll-contain px-2 py-2">
+      <div className="flex flex-1 flex-col gap-2 overflow-y-auto overscroll-contain px-2.25 py-2">
         <button
           type="button"
           onClick={navigation.onAllTasks}
@@ -72,6 +72,11 @@ export const SidebarExpandedView = ({
           <span className="flex-1 text-left">Recently Deleted</span>
           {sections.showSidebarTaskCounts && <span className="text-xs">{deletedTaskCount}</span>}
         </button>
+
+        <div
+          aria-hidden="true"
+          className="-mx-2.25 h-px w-[calc(100%+18px)] shrink-0 bg-surface-200 dark:bg-surface-700"
+        />
 
         <SidebarSections {...sections} />
       </div>

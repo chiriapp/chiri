@@ -32,7 +32,7 @@ export const SidebarCollapsedSortableItem = ({
     <div
       ref={setNodeRef}
       style={{ transform: transformStr }}
-      className={`cursor-grab active:cursor-grabbing ${isDragging ? 'opacity-50' : ''} ${
+      className={`cursor-grab overflow-hidden rounded-xl active:cursor-grabbing ${isDragging ? 'opacity-50' : ''} ${
         isAnyDragging && !isDragging ? 'pointer-events-none' : ''
       }`}
     >

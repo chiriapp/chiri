@@ -13,7 +13,8 @@ export type SidebarCollapsedSensors = SensorDescriptor<SensorOptions>[];
 export const useSidebarCollapsedDragState = () => {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const filtersDragBoundsRef = useRef<HTMLDivElement>(null);
-  const calendarsDragBoundsRef = useRef<HTMLDivElement>(null);
+  const localCalendarsDragBoundsRef = useRef<HTMLDivElement>(null);
+  const accountsCalendarsDragBoundsRef = useRef<HTMLDivElement>(null);
   const tagsDragBoundsRef = useRef<HTMLDivElement>(null);
   const [isDraggingFilters, setIsDraggingFilters] = useState(false);
   const [draggingCalendarAccountId, setDraggingCalendarAccountId] = useState<string | null>(null);
@@ -43,7 +44,8 @@ export const useSidebarCollapsedDragState = () => {
   return {
     sensors,
     filtersDragBoundsRef,
-    calendarsDragBoundsRef,
+    localCalendarsDragBoundsRef,
+    accountsCalendarsDragBoundsRef,
     tagsDragBoundsRef,
     isDraggingFilters,
     setIsDraggingFilters,
@@ -54,7 +56,8 @@ export const useSidebarCollapsedDragState = () => {
     isAnyCollapsedItemDragging:
       isDraggingFilters || draggingCalendarAccountId !== null || isDraggingTags,
     restrictFilterDragToSection: restrictDragToBounds(filtersDragBoundsRef),
-    restrictCalendarDragToSection: restrictDragToBounds(calendarsDragBoundsRef),
+    restrictLocalCalendarDragToSection: restrictDragToBounds(localCalendarsDragBoundsRef),
+    restrictAccountCalendarDragToSection: restrictDragToBounds(accountsCalendarsDragBoundsRef),
     restrictTagDragToSection: restrictDragToBounds(tagsDragBoundsRef),
   };
 };

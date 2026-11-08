@@ -363,6 +363,10 @@ export const Sidebar = ({
               showFiltersSection,
               showTagsSection,
               sidebarSectionOrder,
+              onToggleLocalSection: toggleLocalSectionCollapsed,
+              onToggleAccountsSection: toggleAccountsSectionCollapsed,
+              onToggleFiltersSection: toggleFiltersSectionCollapsed,
+              onToggleTagsSection: toggleTagsSectionCollapsed,
             }}
             footer={{
               updateAvailable,
