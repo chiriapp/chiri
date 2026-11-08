@@ -78,7 +78,7 @@ export const StatusProgressSettings = () => {
                 setProgressIncrement(value);
               }
             }}
-            className="shrink-0 border border-surface-300 bg-surface-50 text-sm dark:border-surface-600 dark:bg-surface-700"
+            className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-ink focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
           >
             <option value="1">1%</option>
             <option value="5">5%</option>
@@ -105,7 +105,7 @@ export const StatusProgressSettings = () => {
             id="complete-in-process-tasks"
             value={completeInProcessTasks ? 'complete' : 'needs-action'}
             onChange={(event) => setCompleteInProcessTasks(event.target.value === 'complete')}
-            className="shrink-0 border border-surface-300 bg-surface-50 text-sm dark:border-surface-600 dark:bg-surface-700"
+            className="shrink-0 rounded-lg border border-transparent bg-surface-100 text-sm text-surface-800 outline-hidden transition-colors focus:border-primary-ink focus:bg-white dark:bg-surface-700 dark:text-surface-200 dark:focus:bg-surface-800"
           >
             <option value="complete">Complete the task</option>
             <option value="needs-action">Back to "Needs Action"</option>

@@ -4,14 +4,16 @@
   -webkit-user-select: none;
 }
 
-/* date picker styling */
+/* match native date pickers and number steppers to the app theme */
 input[type="date"],
-input[type="datetime-local"] {
+input[type="datetime-local"],
+input[type="number"] {
   color-scheme: light;
 }
 
 .dark input[type="date"],
-.dark input[type="datetime-local"] {
+.dark input[type="datetime-local"],
+.dark input[type="number"] {
   color-scheme: dark;
 }
 
