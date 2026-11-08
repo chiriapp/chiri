@@ -195,7 +195,7 @@ export const ExportModal = ({
           </ModalButton>
           <ModalButton onClick={handleExportToFile} disabled={exporting || tasks.length === 0}>
             <Download className="h-4 w-4" />
-            {exporting ? 'Exporting...' : 'Download'}
+            {exporting ? 'Exporting...' : 'Export'}
           </ModalButton>
         </>
       }
