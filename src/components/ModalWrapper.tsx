@@ -1,6 +1,6 @@
 import X from 'lucide-react/icons/x';
 import type { CSSProperties, DragEventHandler, ReactNode } from 'react';
-import { useRef } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ModalBackdrop } from '$components/ModalBackdrop';
 import { MODAL_SIZE_CLASSES } from '$constants';
@@ -80,16 +80,31 @@ export const ModalWrapper = ({
   const { isAnyModalOpen } = useModalState();
   const previousIsOpenRef = useRef(false);
   const animateBackdropRef = useRef(false);
+  const pendingNestedBackdropRef = useRef(false);
+  const [isNestedModalOpen, setIsNestedModalOpen] = useState(false);
 
-  // keep the backdrop opaque when replacing one modal with another. the old
-  // modal is removed before the new portal can finish its fade-in animation,
-  // which briefly exposes the app behind it
+  // keep the backdrop opaque when replacing one modal with another
   if (isOpen && !previousIsOpenRef.current) {
     previousIsOpenRef.current = true;
     animateBackdropRef.current = animateBackdrop && !isAnyModalOpen;
+    pendingNestedBackdropRef.current = animateBackdrop && isAnyModalOpen;
   } else if (!isOpen) {
     previousIsOpenRef.current = false;
   }
+
+  // backdrop layer here so we can have nice gradual background dim for nested modals too
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      pendingNestedBackdropRef.current = false;
+      setIsNestedModalOpen(false);
+      return;
+    }
+
+    if (!pendingNestedBackdropRef.current) return;
+
+    pendingNestedBackdropRef.current = false;
+    setIsNestedModalOpen(document.querySelectorAll('[data-modal-backdrop-layer]').length > 1);
+  }, [isOpen]);
 
   const focusTrapRef = useFocusTrap(
     isOpen,
@@ -137,8 +152,8 @@ export const ModalWrapper = ({
       className="cursor-default p-4"
       backdropClassName={backdropClassName}
       zIndex={zIndex}
-      animate={animateBackdropRef.current}
-      animateFromDimmed={animateBackdrop && !animateBackdropRef.current}
+      animate={animateBackdropRef.current || isNestedModalOpen}
+      animateFromDimmed={animateBackdrop && !animateBackdropRef.current && !isNestedModalOpen}
       {...backdropProps}
     >
       <div

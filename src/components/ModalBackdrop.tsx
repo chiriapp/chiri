@@ -36,6 +36,7 @@ export const ModalBackdrop = ({
   // biome-ignore lint/a11y/noStaticElementInteractions: import modals need drag handlers on the backdrop to prevent browser file navigation
   <div
     role="presentation"
+    data-modal-backdrop-layer
     className={`modal-backdrop-layer pointer-events-none fixed inset-0 ${zIndex} flex items-center justify-center ${animate ? 'motion-safe:animate-fade-in' : animateFromDimmed ? 'motion-safe:animate-fade-in-from-dimmed' : ''} ${className}`}
     onDrop={onDrop}
     onDragOver={onDragOver}
