@@ -33,6 +33,7 @@ mod v032_completed_tasks_to_bottom;
 mod v033_restore_filter_preset_ids;
 mod v034_task_group_mode;
 mod v035_task_snoozes;
+mod v036_filter_sort_config;
 
 use tauri_plugin_sql::Migration;
 
@@ -74,5 +75,6 @@ pub fn get_migrations() -> Vec<Migration> {
         v033_restore_filter_preset_ids::migration(),
         v034_task_group_mode::migration(),
         v035_task_snoozes::migration(),
+        v036_filter_sort_config::migration(),
     ]
 }

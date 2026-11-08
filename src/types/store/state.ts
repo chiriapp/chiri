@@ -3,6 +3,7 @@ import type { Filter } from '$types/filter';
 import type {
   AccountSortConfig,
   CalendarSortConfig,
+  FilterSortConfig,
   SortConfig,
   TagSortConfig,
   TaskGroupConfig,
@@ -24,6 +25,7 @@ export interface UIState {
   accountSortConfig: AccountSortConfig;
   calendarSortConfig: CalendarSortConfig;
   tagSortConfig: TagSortConfig;
+  filterSortConfig: FilterSortConfig;
   showCompletedTasks: boolean;
   moveCompletedTasksToBottom: boolean;
   showUnstartedTasks: boolean;

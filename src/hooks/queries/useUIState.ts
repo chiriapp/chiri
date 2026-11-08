@@ -7,6 +7,7 @@ import { useCallback, useMemo, useSyncExternalStore } from 'react';
 import {
   DEFAULT_ACCOUNT_SORT_CONFIG,
   DEFAULT_CALENDAR_SORT_CONFIG,
+  DEFAULT_FILTER_SORT_CONFIG,
   DEFAULT_SORT_CONFIG,
   DEFAULT_TAG_SORT_CONFIG,
   DEFAULT_TASK_GROUP_CONFIG,
@@ -23,6 +24,7 @@ import {
   setAllTasksView,
   setCalendarSortConfig,
   setEditorOpen,
+  setFilterSortConfig,
   setMoveCompletedTasksToBottom,
   setRecentlyDeletedView,
   setSearchQuery,
@@ -36,6 +38,7 @@ import {
 import type {
   AccountSortConfig,
   CalendarSortConfig,
+  FilterSortConfig,
   SortConfig,
   TagSortConfig,
   TaskGroupConfig,
@@ -438,6 +441,31 @@ export const useSetTagSortConfig = () => {
   return useMutation({
     mutationFn: (config: TagSortConfig) => {
       setTagSortConfig(config);
+      return Promise.resolve();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.uiState.all });
+    },
+  });
+};
+
+/**
+ * hook to get filter sort config
+ */
+export const useFilterSortConfig = () => {
+  const { data: uiState } = useUIState();
+  return uiState?.filterSortConfig ?? DEFAULT_FILTER_SORT_CONFIG;
+};
+
+/**
+ * hook to set filter sort config
+ */
+export const useSetFilterSortConfig = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (config: FilterSortConfig) => {
+      setFilterSortConfig(config);
       return Promise.resolve();
     },
     onSuccess: () => {

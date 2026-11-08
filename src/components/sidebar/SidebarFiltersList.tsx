@@ -8,12 +8,15 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import Plus from 'lucide-react/icons/plus';
 import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import { SidebarFilterItem } from '$components/sidebar/SidebarFilterItem';
+import { SidebarFiltersSortMenu } from '$components/sidebar/SidebarFiltersSortMenu';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderFilters } from '$hooks/queries/useFilters';
+import { useFilterSortConfig } from '$hooks/queries/useUIState';
 import { matchesFilter } from '$lib/task/filtering';
 import type { Filter } from '$types/filter';
 import type { Task } from '$types/task/model';
@@ -49,14 +52,30 @@ export const SidebarFiltersList = ({
   onContextMenu,
 }: SidebarFiltersListProps) => {
   const [isAnyFilterDragging, setIsAnyFilterDragging] = useState(false);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const sortButtonRef = useRef<HTMLButtonElement>(null);
   const filtersDragBoundsRef = useRef<HTMLDivElement>(null);
   const reorderMutation = useReorderFilters();
+  const filterSortConfig = useFilterSortConfig();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const getFilterTaskCount = (filter: Filter) =>
     tasks.filter((task) => isActiveTask(task) && matchesFilter(task, filter)).length;
 
-  const sortedFilters = [...filters].sort((a, b) => a.sortOrder - b.sortOrder);
+  const filterTaskCounts = new Map(
+    filters.map((filter) => [filter.id, getFilterTaskCount(filter)] as const),
+  );
+  const sortedFilters = [...filters].sort((a, b) => {
+    let cmp = 0;
+    if (filterSortConfig.mode === 'title') {
+      cmp = a.name.localeCompare(b.name);
+    } else if (filterSortConfig.mode === 'task-count') {
+      cmp = (filterTaskCounts.get(a.id) ?? 0) - (filterTaskCounts.get(b.id) ?? 0);
+    } else {
+      cmp = a.sortOrder - b.sortOrder;
+    }
+    return filterSortConfig.direction === 'desc' ? -cmp : cmp;
+  });
 
   const handleDragEnd = (event: DragEndEvent) => {
     setIsAnyFilterDragging(false);
@@ -99,18 +118,42 @@ export const SidebarFiltersList = ({
           </span>
         </button>
 
-        <Tooltip content="Add filter" position="top" triggerClassName="shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              onAddFilter();
-            }}
-            className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''} text-surface-500 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400`}
-          >
-            <Plus className="h-4 w-4" />
-          </button>
-        </Tooltip>
+        <div className="flex shrink-0 items-center gap-1">
+          <Tooltip content="Filter order" position="top">
+            <button
+              ref={sortButtonRef}
+              type="button"
+              onClick={() => setShowSortMenu((value) => !value)}
+              aria-label="Sort filters"
+              className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+                showSortMenu
+                  ? 'bg-surface-300 text-surface-700 dark:bg-surface-600 dark:text-surface-200'
+                  : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''}`
+              }`}
+            >
+              <ArrowUpDown className="h-4 w-4" />
+            </button>
+          </Tooltip>
+
+          <Tooltip content="Add filter" position="top" triggerClassName="shrink-0">
+            <button
+              type="button"
+              onClick={() => onAddFilter()}
+              className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''} text-surface-500 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400`}
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </Tooltip>
+        </div>
       </div>
+
+      {showSortMenu && (
+        <SidebarFiltersSortMenu
+          anchorRef={sortButtonRef}
+          filterSortConfig={filterSortConfig}
+          onClose={() => setShowSortMenu(false)}
+        />
+      )}
 
       <div
         className={`grid motion-safe:transition-[grid-template-rows] motion-safe:duration-200 motion-safe:ease-in-out ${collapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]'} pt-1`}
@@ -145,9 +188,9 @@ export const SidebarFiltersList = ({
                         }
                         isAnyModalOpen={isAnyModalOpen}
                         isAnyFilterDragging={isAnyFilterDragging}
-                        taskCount={getFilterTaskCount(filter)}
+                        taskCount={filterTaskCounts.get(filter.id) ?? 0}
                         showTaskCount={showTaskCounts}
-                        sortable
+                        sortable={filterSortConfig.mode === 'manual'}
                         onSelect={() => onSelectFilter(filter.id)}
                         onContextMenu={(e) => onContextMenu(e, 'filter', filter.id)}
                       />

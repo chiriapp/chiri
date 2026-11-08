@@ -8,6 +8,7 @@ import { dataStore } from '$lib/store';
 import type {
   AccountSortConfig,
   CalendarSortConfig,
+  FilterSortConfig,
   SortConfig,
   TagSortConfig,
   TaskGroupConfig,
@@ -313,6 +314,19 @@ export const setTagSortConfig = (config: TagSortConfig) => {
   dataStore.save({
     ...data,
     ui: { ...data.ui, tagSortConfig: config },
+  });
+};
+
+export const setFilterSortConfig = (config: FilterSortConfig) => {
+  const data = dataStore.load();
+
+  db.setFilterSortConfig(config).catch((e) =>
+    log.error('Failed to persist filter sort config:', e),
+  );
+
+  dataStore.save({
+    ...data,
+    ui: { ...data.ui, filterSortConfig: config },
   });
 };
 

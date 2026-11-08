@@ -21,6 +21,7 @@ import type { PushSubscription } from '$types/push/webdav';
 import type {
   AccountSortConfig,
   CalendarSortConfig,
+  FilterSortConfig,
   SortConfig,
   TagSortConfig,
   TaskGroupConfig,
@@ -347,6 +348,11 @@ class Database {
 
   async setTagSortConfig(config: TagSortConfig) {
     await uiOps.setTagSortConfig(await this.conn(), config);
+    this.notify();
+  }
+
+  async setFilterSortConfig(config: FilterSortConfig) {
+    await uiOps.setFilterSortConfig(await this.conn(), config);
     this.notify();
   }
 

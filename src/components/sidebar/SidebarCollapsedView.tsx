@@ -183,6 +183,7 @@ export const SidebarCollapsedView = ({
               <SidebarCollapsedFilters
                 key={section}
                 filters={sections.filters}
+                tasks={sections.tasks}
                 activeFilterId={navigation.activeFilterId}
                 contextMenu={sections.contextMenu}
                 showFiltersSection={sections.showFiltersSection}

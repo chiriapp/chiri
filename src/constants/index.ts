@@ -2,6 +2,7 @@ import type { KeyboardShortcut } from '$types/shortcuts';
 import type {
   AccountSortMode,
   CalendarSortMode,
+  FilterSortMode,
   SortDirection,
   SortMode,
   TagSortMode,
@@ -88,6 +89,17 @@ export const DEFAULT_TAG_SORT_CONFIG = {
 };
 
 export const TAG_SORT_OPTIONS: Array<{ value: TagSortMode; label: string }> = [
+  { value: 'manual', label: 'Manual' },
+  { value: 'title', label: 'Title' },
+  { value: 'task-count', label: 'Task Count' },
+];
+
+export const DEFAULT_FILTER_SORT_CONFIG = {
+  mode: 'manual' as const satisfies FilterSortMode,
+  direction: 'asc' as const satisfies SortDirection,
+};
+
+export const FILTER_SORT_OPTIONS: Array<{ value: FilterSortMode; label: string }> = [
   { value: 'manual', label: 'Manual' },
   { value: 'title', label: 'Title' },
   { value: 'task-count', label: 'Task Count' },

@@ -7,12 +7,19 @@ import { SidebarCollapsedSortableItem } from '$components/sidebar/SidebarCollaps
 import { Tooltip } from '$components/Tooltip';
 import { getIconByName } from '$constants/icons';
 import { useReorderFilters } from '$hooks/queries/useFilters';
+import { useFilterSortConfig } from '$hooks/queries/useUIState';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { SidebarCollapsedSensors } from '$hooks/ui/useSidebarCollapsedDragState';
+import { matchesFilter } from '$lib/task/filtering';
 import type { Filter } from '$types/filter';
+import type { Task } from '$types/task/model';
+
+const isActiveTask = (task: Task) =>
+  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 interface SidebarCollapsedFiltersProps {
   filters: Filter[];
+  tasks: Task[];
   activeFilterId: string | null;
   contextMenu: { type: string; id: string } | null;
   showFiltersSection: boolean;
@@ -29,6 +36,7 @@ interface SidebarCollapsedFiltersProps {
 
 export const SidebarCollapsedFilters = ({
   filters,
+  tasks,
   activeFilterId,
   contextMenu,
   showFiltersSection,
@@ -45,7 +53,27 @@ export const SidebarCollapsedFilters = ({
   const resolveAccent = useAccentColorResolver();
   const resolvedAccentColor = useResolvedAccentColor();
   const reorderMutation = useReorderFilters();
-  const sortedFilters = [...filters].sort((a, b) => a.sortOrder - b.sortOrder);
+  const filterSortConfig = useFilterSortConfig();
+  const filterTaskCounts = new Map(
+    filters.map(
+      (filter) =>
+        [
+          filter.id,
+          tasks.filter((task) => isActiveTask(task) && matchesFilter(task, filter)).length,
+        ] as const,
+    ),
+  );
+  const sortedFilters = [...filters].sort((a, b) => {
+    let cmp = 0;
+    if (filterSortConfig.mode === 'title') {
+      cmp = a.name.localeCompare(b.name);
+    } else if (filterSortConfig.mode === 'task-count') {
+      cmp = (filterTaskCounts.get(a.id) ?? 0) - (filterTaskCounts.get(b.id) ?? 0);
+    } else {
+      cmp = a.sortOrder - b.sortOrder;
+    }
+    return filterSortConfig.direction === 'desc' ? -cmp : cmp;
+  });
 
   const handleDragEnd = (event: DragEndEvent) => {
     onDraggingChange(false);
@@ -107,7 +135,7 @@ export const SidebarCollapsedFilters = ({
                       >
                         <SidebarCollapsedSortableItem
                           id={filter.id}
-                          sortable
+                          sortable={filterSortConfig.mode === 'manual'}
                           isAnyDragging={isAnyDragging}
                         >
                           {(dragHandleProps) => (

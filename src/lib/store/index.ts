@@ -1,6 +1,7 @@
 import {
   DEFAULT_ACCOUNT_SORT_CONFIG,
   DEFAULT_CALENDAR_SORT_CONFIG,
+  DEFAULT_FILTER_SORT_CONFIG,
   DEFAULT_SORT_CONFIG,
   DEFAULT_TAG_SORT_CONFIG,
   DEFAULT_TASK_GROUP_CONFIG,
@@ -25,6 +26,7 @@ export const defaultUIState: UIState = {
   accountSortConfig: DEFAULT_ACCOUNT_SORT_CONFIG,
   calendarSortConfig: DEFAULT_CALENDAR_SORT_CONFIG,
   tagSortConfig: DEFAULT_TAG_SORT_CONFIG,
+  filterSortConfig: DEFAULT_FILTER_SORT_CONFIG,
   showCompletedTasks: true,
   moveCompletedTasksToBottom: false,
   showUnstartedTasks: true,

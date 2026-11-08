@@ -46,3 +46,9 @@ export interface TagSortConfig {
   mode: TagSortMode;
   direction: SortDirection;
 }
+
+export type FilterSortMode = 'manual' | 'title' | 'task-count';
+export interface FilterSortConfig {
+  mode: FilterSortMode;
+  direction: SortDirection;
+}

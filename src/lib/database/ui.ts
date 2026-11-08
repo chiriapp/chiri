@@ -2,6 +2,7 @@ import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import {
   DEFAULT_ACCOUNT_SORT_CONFIG,
   DEFAULT_CALENDAR_SORT_CONFIG,
+  DEFAULT_FILTER_SORT_CONFIG,
   DEFAULT_SORT_CONFIG,
   DEFAULT_TAG_SORT_CONFIG,
   DEFAULT_TASK_GROUP_CONFIG,
@@ -12,6 +13,8 @@ import type {
   AccountSortMode,
   CalendarSortConfig,
   CalendarSortMode,
+  FilterSortConfig,
+  FilterSortMode,
   SortConfig,
   SortDirection,
   SortMode,
@@ -34,6 +37,7 @@ export const DEFAULT_UI_STATE: UIState = {
   accountSortConfig: DEFAULT_ACCOUNT_SORT_CONFIG,
   calendarSortConfig: DEFAULT_CALENDAR_SORT_CONFIG,
   tagSortConfig: DEFAULT_TAG_SORT_CONFIG,
+  filterSortConfig: DEFAULT_FILTER_SORT_CONFIG,
   showCompletedTasks: true,
   moveCompletedTasksToBottom: false,
   showUnstartedTasks: true,
@@ -77,6 +81,11 @@ export const getUIState = async (conn: DatabasePlugin): Promise<UIState> => {
     tagSortConfig: {
       mode: (row.tag_sort_mode ?? 'manual') as TagSortMode,
       direction: (row.tag_sort_direction ?? 'asc') as SortDirection,
+    },
+    filterSortConfig: {
+      mode: (row.filter_sort_mode ?? DEFAULT_FILTER_SORT_CONFIG.mode) as FilterSortMode,
+      direction: (row.filter_sort_direction ??
+        DEFAULT_FILTER_SORT_CONFIG.direction) as SortDirection,
     },
     showCompletedTasks: row.show_completed_tasks === 1,
     moveCompletedTasksToBottom: row.move_completed_tasks_to_bottom === 1,
@@ -177,6 +186,13 @@ export const setCalendarSortConfig = async (conn: DatabasePlugin, config: Calend
 export const setTagSortConfig = async (conn: DatabasePlugin, config: TagSortConfig) => {
   await conn.execute(
     'UPDATE ui_state SET tag_sort_mode = $1, tag_sort_direction = $2 WHERE id = 1',
+    [config.mode, config.direction],
+  );
+};
+
+export const setFilterSortConfig = async (conn: DatabasePlugin, config: FilterSortConfig) => {
+  await conn.execute(
+    'UPDATE ui_state SET filter_sort_mode = $1, filter_sort_direction = $2 WHERE id = 1',
     [config.mode, config.direction],
   );
 };
