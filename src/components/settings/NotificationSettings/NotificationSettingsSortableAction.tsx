@@ -133,6 +133,7 @@ export const NotificationSettingsSortableAction = ({
       <div className="flex items-center justify-between gap-4 p-4">
         <button
           type="button"
+          disabled={disabled}
           className={`shrink-0 rounded-sm text-surface-500 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink dark:text-surface-500 ${disabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
           aria-label={`Reorder ${action.label}`}
           {...attributes}

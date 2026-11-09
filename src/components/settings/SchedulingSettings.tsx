@@ -137,10 +137,10 @@ export const SchedulingSettings = () => {
                   key={day}
                   onClick={() => toggleWorkingDay(day)}
                   aria-pressed={active}
-                  className={`h-9 flex-1 rounded-md font-medium text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+                  className={`h-9 flex-1 rounded-md font-medium text-sm outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-surface-800 ${
                     active
-                      ? 'bg-primary-500 text-primary-contrast'
-                      : 'bg-surface-100 text-surface-600 hover:bg-surface-200 dark:bg-surface-700 dark:text-surface-400 dark:hover:bg-surface-600'
+                      ? 'bg-primary-500 text-primary-contrast focus-visible:ring-primary-contrast dark:focus-visible:ring-white'
+                      : 'bg-surface-100 text-surface-600 hover:bg-surface-200 focus-visible:ring-primary-ink dark:bg-surface-700 dark:text-surface-400 dark:focus-visible:ring-white dark:hover:bg-surface-600'
                   }`}
                 >
                   {WORKING_DAY_META[day].shortLabel}

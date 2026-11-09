@@ -1,6 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import GripVertical from 'lucide-react/icons/grip-vertical';
+import X from 'lucide-react/icons/x';
 import type { CSSProperties } from 'react';
 import { Select } from '$components/Select';
 import { getMaxSnoozeDurationValue, SNOOZE_DURATION_UNITS } from '$lib/notifications/duration';
@@ -36,6 +37,7 @@ export const NotificationSettingsSnoozeDuration = ({
       <div className="flex min-w-0 items-center gap-2">
         <button
           type="button"
+          disabled={disabled}
           className={`shrink-0 rounded-sm text-surface-500 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink dark:text-surface-400 ${disabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
           aria-label={`Reorder snooze duration ${duration.value} ${duration.unit}`}
           {...attributes}
@@ -80,9 +82,11 @@ export const NotificationSettingsSnoozeDuration = ({
         type="button"
         onClick={() => onRemove(duration.id)}
         disabled={disabled}
-        className="shrink-0 text-sm text-surface-500 hover:text-red-500 disabled:cursor-not-allowed dark:text-surface-400 dark:hover:text-red-400"
+        title={`Remove ${duration.value} ${duration.unit} snooze duration`}
+        aria-label={`Remove snooze duration ${duration.value} ${duration.unit}`}
+        className="shrink-0 rounded-full p-1 text-surface-500 outline-hidden transition-colors hover:bg-surface-100 hover:text-semantic-error focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50 dark:text-surface-400 dark:hover:bg-surface-800 dark:hover:text-semantic-error"
       >
-        Remove
+        <X className="h-4 w-4" />
       </button>
     </div>
   );

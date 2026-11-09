@@ -93,10 +93,7 @@ export const NotificationSettings = () => {
   // on macOS the toggle is gated behind OS permission
   // must be granted or provisional before the user can enable/disable it in-app
   const macPermissionPending =
-    isMacPlatform() &&
-    permissionStatus !== null &&
-    permissionStatus !== 'granted' &&
-    permissionStatus !== 'provisional';
+    isMacPlatform() && permissionStatus !== 'granted' && permissionStatus !== 'provisional';
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const orderedActions = notificationActions.order
