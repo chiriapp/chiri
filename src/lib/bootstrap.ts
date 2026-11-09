@@ -5,7 +5,6 @@ import { BaseDirectory, exists, remove } from '@tauri-apps/plugin-fs';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { settingsStore } from '$context/settingsContext';
 import { preloadAutostartState } from '$hooks/system/useAutostart';
-import { db } from '$lib/database';
 import { initLogger, loggers } from '$lib/logger';
 import { flushTaskSnoozes, initializeTaskSnoozes } from '$lib/notifications/snoozes';
 import { LEGACY_PREFERENCES_KEYS } from '$lib/preferences/persistence';
@@ -13,6 +12,7 @@ import { preferencesRepository } from '$lib/preferences/repository';
 import { dataStore } from '$lib/store';
 import { setActiveFilter, setAllTasksView, setRecentlyDeletedView } from '$lib/store/ui';
 import { initAppMenu } from '$utils/menu';
+import { getActiveListKey, getCurrentListIndex, getOrderedListItems } from '$utils/navigation';
 import {
   getTrayHostAvailable,
   isLinuxPlatform,
@@ -156,27 +156,67 @@ export const initializeApp = async () => {
 
   await initializeTray();
 
-  log.debug('Getting UI state...');
-  const uiState = await db.getUIState();
-  const sortMode = uiState.sortConfig?.mode ?? 'manual';
-
+  // install the complete menu before the hidden startup window is shown
+  const startupData = dataStore.load();
+  const uiState = startupData.ui;
   const shortcuts = settingsStore.getState().keyboardShortcuts;
   log.debug('Loaded keyboard shortcuts');
+  const caldavAccounts = startupData.accounts.filter((account) => account.caldav);
+  const menuAccounts = caldavAccounts.map((account) => ({
+    id: account.id,
+    name: account.name,
+    calendars: account.calendars.map((calendar) => ({
+      id: calendar.id,
+      displayName: calendar.displayName,
+    })),
+  }));
+  const localCalendars = startupData.accounts
+    .filter((account) => !account.caldav)
+    .flatMap((account) =>
+      account.calendars.map((calendar) => ({
+        id: calendar.id,
+        displayName: calendar.displayName,
+        accountId: account.id,
+      })),
+    );
+  const navigationFilters = [...startupData.filters]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((filter) => ({ id: filter.id, label: filter.name }));
+  const navigationTags = [...startupData.tags]
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((tag) => ({ id: tag.id, label: tag.name }));
+  const orderedLists = getOrderedListItems(
+    startupData.accounts,
+    startupData.filters,
+    startupData.tags,
+  );
+  const currentListIndex = getCurrentListIndex(orderedLists, uiState);
 
-  // initialize app menu only on macOS
-  const isWindows = isWindowsPlatform();
-  const isMac = isMacPlatform();
-
-  if (isWindows) {
+  if (isWindowsPlatform()) {
     log.debug('Windows platform detected (WebView2 runtime); skipping app menu initialization');
-  } else if (!isMac) {
+  } else if (!isMacPlatform()) {
     log.debug('Non-macOS platform detected; skipping app menu initialization');
   } else {
     log.debug('macOS platform detected; initializing app menu');
-    await initAppMenu({
+    void initAppMenu({
       showCompleted: uiState.showCompletedTasks,
-      sortMode,
+      moveCompletedTasksToBottom: uiState.moveCompletedTasksToBottom,
+      showUnstarted: uiState.showUnstartedTasks,
+      sortMode: uiState.sortConfig.mode,
+      sortDirection: uiState.sortConfig.direction,
       shortcuts,
+      accounts: menuAccounts,
+      navigation: {
+        filters: navigationFilters,
+        localCalendars,
+        accountCalendars: menuAccounts,
+        tags: navigationTags,
+        activeListKey: getActiveListKey(uiState),
+        canGoPrevious: currentListIndex > 0,
+        canGoNext: currentListIndex < orderedLists.length - 1,
+      },
+      caldavAccountCount: caldavAccounts.length,
+      isSyncing: false,
     }).catch((error) => {
       log.error('Failed to initialize app menu:', error);
     });

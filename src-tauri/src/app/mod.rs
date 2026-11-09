@@ -58,6 +58,9 @@ pub fn run() {
     #[cfg(target_os = "linux")]
     let builder = builder.manage(push::kunifiedpush::UnifiedPushState::default());
 
+    #[cfg(target_os = "macos")]
+    let builder = builder.menu(macos::menu::startup_menu);
+
     builder
         .invoke_handler(tauri::generate_handler![
             commands::force_quit,

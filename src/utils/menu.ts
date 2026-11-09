@@ -33,6 +33,8 @@ const menuItemRefs: {
   sortDirectionAsc?: MenuItem;
   sortDirectionDesc?: MenuItem;
   sortDirectionSubmenu?: Submenu;
+  navPreviousList?: MenuItem;
+  navNextList?: MenuItem;
 } = {};
 
 const modalMenuItems: Array<{
@@ -40,6 +42,16 @@ const modalMenuItems: Array<{
   normallyEnabled: boolean;
 }> = [];
 let modalMenuOpen = false;
+let goSubmenuRef: Submenu | undefined;
+let accountsSubmenuRef: Submenu | undefined;
+const navigationMenuItems = new Map<string, CheckMenuItem>();
+let submenuMutationQueue: Promise<void> = Promise.resolve();
+
+const enqueueSubmenuMutation = (mutation: () => Promise<void>) => {
+  const next = submenuMutationQueue.then(mutation, mutation);
+  submenuMutationQueue = next.catch(() => {});
+  return next;
+};
 
 const collectModalMenuItems = async (submenu: Submenu) => {
   for (const item of await submenu.items()) {
@@ -51,6 +63,63 @@ const collectModalMenuItems = async (submenu: Submenu) => {
       if (item.id === 'quit' || item.id === 'select-all') continue;
       modalMenuItems.push({ item, normallyEnabled: await item.isEnabled() });
     }
+  }
+};
+
+const collectModalMenuItemIds = async (submenu: Submenu): Promise<Set<string>> => {
+  const ids = new Set<string>();
+  for (const item of await submenu.items()) {
+    if (item instanceof Submenu) {
+      ids.add(item.id);
+      for (const id of await collectModalMenuItemIds(item)) ids.add(id);
+    } else if (
+      (item instanceof MenuItem || item instanceof CheckMenuItem) &&
+      item.id !== 'quit' &&
+      item.id !== 'select-all'
+    ) {
+      ids.add(item.id);
+    }
+  }
+  return ids;
+};
+
+const closeMenuItemTree = async (
+  item: Submenu | MenuItem | CheckMenuItem | IconMenuItem | PredefinedMenuItem,
+) => {
+  if (item instanceof Submenu) {
+    for (const child of await item.items()) {
+      await item.remove(child);
+      await closeMenuItemTree(child);
+    }
+  }
+  await item.close();
+};
+
+const replaceSubmenuContents = async (target: Submenu, replacement: Submenu) => {
+  const oldIds = await collectModalMenuItemIds(target);
+  for (let index = modalMenuItems.length - 1; index >= 0; index--) {
+    if (oldIds.has(modalMenuItems[index].item.id)) modalMenuItems.splice(index, 1);
+  }
+
+  for (const item of await target.items()) {
+    await target.remove(item);
+    await closeMenuItemTree(item);
+  }
+
+  await collectModalMenuItems(replacement);
+  for (const item of await replacement.items()) {
+    await replacement.remove(item);
+    await target.append(item);
+  }
+  await replacement.close();
+
+  if (modalMenuOpen) {
+    const newIds = await collectModalMenuItemIds(target);
+    await Promise.all(
+      modalMenuItems
+        .filter(({ item }) => newIds.has(item.id))
+        .map(({ item }) => item.setEnabled(false)),
+    );
   }
 };
 
@@ -154,6 +223,7 @@ const createGoSubmenu = async ({
   shortcuts?: KeyboardShortcut[];
   isModalOpen: boolean;
 }) => {
+  navigationMenuItems.clear();
   const activeListKey = navigation?.activeListKey ?? 'all';
   const canGoPrevious = navigation?.canGoPrevious ?? false;
   const canGoNext = navigation?.canGoNext ?? false;
@@ -169,14 +239,17 @@ const createGoSubmenu = async ({
     text: string;
     listKey: string;
     action: () => void;
-  }) =>
-    CheckMenuItem.new({
+  }) => {
+    const item = await CheckMenuItem.new({
       id,
       text,
       checked: activeListKey === listKey,
       enabled: isAppActionEnabled(),
       action,
     });
+    navigationMenuItems.set(listKey, item);
+    return item;
+  };
 
   const allTasksItem = await createGoDestinationItem({
     id: 'go-all-tasks',
@@ -298,29 +371,181 @@ const createGoSubmenu = async ({
     destinationItems.push(await Submenu.new({ text: 'Tags', items: tagItems }));
   }
 
+  const previousListItem = await MenuItem.new({
+    id: 'nav-prev-list',
+    text: 'Previous List',
+    accelerator: getAcceleratorOrDefault(shortcuts, 'nav-prev-list', 'CmdOrCtrl+['),
+    enabled: isAppActionEnabled(canGoPrevious),
+    action: () => {
+      emit(MENU_EVENTS.NAV_PREV_LIST);
+    },
+  });
+  const nextListItem = await MenuItem.new({
+    id: 'nav-next-list',
+    text: 'Next List',
+    accelerator: getAcceleratorOrDefault(shortcuts, 'nav-next-list', 'CmdOrCtrl+]'),
+    enabled: isAppActionEnabled(canGoNext),
+    action: () => {
+      emit(MENU_EVENTS.NAV_NEXT_LIST);
+    },
+  });
+  menuItemRefs.navPreviousList = previousListItem;
+  menuItemRefs.navNextList = nextListItem;
+
   return Submenu.new({
     text: 'Go',
     items: [
-      await MenuItem.new({
-        id: 'nav-prev-list',
-        text: 'Previous List',
-        accelerator: getAcceleratorOrDefault(shortcuts, 'nav-prev-list', 'CmdOrCtrl+['),
-        enabled: isAppActionEnabled(canGoPrevious),
-        action: () => {
-          emit(MENU_EVENTS.NAV_PREV_LIST);
-        },
-      }),
-      await MenuItem.new({
-        id: 'nav-next-list',
-        text: 'Next List',
-        accelerator: getAcceleratorOrDefault(shortcuts, 'nav-next-list', 'CmdOrCtrl+]'),
-        enabled: isAppActionEnabled(canGoNext),
-        action: () => {
-          emit(MENU_EVENTS.NAV_NEXT_LIST);
-        },
-      }),
+      previousListItem,
+      nextListItem,
       await PredefinedMenuItem.new({ item: 'Separator' }),
       ...destinationItems,
+    ],
+  });
+};
+
+const createAccountsSubmenu = async ({
+  accounts,
+  shortcuts,
+  caldavAccountCount,
+  isSyncing,
+  isModalOpen,
+}: {
+  accounts: MenuAccount[];
+  shortcuts?: KeyboardShortcut[];
+  caldavAccountCount: number;
+  isSyncing: boolean;
+  isModalOpen: boolean;
+}) => {
+  const isAppActionEnabled = (enabled = true) => isEnabledOutsideModal(isModalOpen, enabled);
+  const syncItem = await MenuItem.new({
+    id: 'sync',
+    text: 'Sync',
+    accelerator: getAcceleratorOrDefault(shortcuts, 'sync', 'CmdOrCtrl+R'),
+    enabled: isAppActionEnabled(caldavAccountCount > 0 && !isSyncing),
+    action: () => {
+      emit(MENU_EVENTS.SYNC);
+    },
+  });
+  menuItemRefs.sync = syncItem;
+
+  const accountSubmenus = await Promise.all(
+    accounts.map(async (account) => {
+      const calendars = account.calendars ?? [];
+      const calendarSubmenus = await Promise.all(
+        calendars.map(async (calendar) =>
+          Submenu.new({
+            text: calendar.displayName,
+            items: [
+              await MenuItem.new({
+                text: 'Sync',
+                enabled: isAppActionEnabled(),
+                action: () => {
+                  emit(MENU_EVENTS.SYNC_CALENDAR, {
+                    calendarId: calendar.id,
+                    accountId: account.id,
+                  });
+                },
+              }),
+              await MenuItem.new({
+                text: 'Edit Calendar',
+                enabled: isAppActionEnabled(),
+                action: () => {
+                  emit(MENU_EVENTS.EDIT_CALENDAR, {
+                    calendarId: calendar.id,
+                    accountId: account.id,
+                  });
+                },
+              }),
+              await MenuItem.new({
+                text: 'Export Tasks',
+                enabled: isAppActionEnabled(),
+                action: () => {
+                  emit(MENU_EVENTS.EXPORT_CALENDAR, {
+                    calendarId: calendar.id,
+                    accountId: account.id,
+                  });
+                },
+              }),
+              await PredefinedMenuItem.new({ item: 'Separator' }),
+              await MenuItem.new({
+                text: 'Delete Calendar',
+                enabled: isAppActionEnabled(),
+                action: () => {
+                  emit(MENU_EVENTS.DELETE_CALENDAR, {
+                    calendarId: calendar.id,
+                    accountId: account.id,
+                  });
+                },
+              }),
+            ],
+          }),
+        ),
+      );
+
+      const calendarItems: (Submenu | MenuItem | PredefinedMenuItem)[] =
+        calendars.length > 0
+          ? [
+              await Submenu.new({ text: 'Calendars', items: calendarSubmenus }),
+              await PredefinedMenuItem.new({ item: 'Separator' }),
+            ]
+          : [];
+
+      return Submenu.new({
+        text: account.name,
+        items: [
+          ...calendarItems,
+          await MenuItem.new({
+            text: 'New Calendar...',
+            enabled: isAppActionEnabled(),
+            action: () => {
+              emit(MENU_EVENTS.ADD_CALENDAR, { accountId: account.id });
+            },
+          }),
+          await MenuItem.new({
+            text: 'Edit Account',
+            enabled: isAppActionEnabled(),
+            action: () => {
+              emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
+            },
+          }),
+          await MenuItem.new({
+            text: 'Remove Account',
+            enabled: isAppActionEnabled(),
+            action: () => {
+              emit(MENU_EVENTS.REMOVE_ACCOUNT, { accountId: account.id });
+            },
+          }),
+        ],
+      });
+    }),
+  );
+
+  const accountItems: (Submenu | MenuItem | PredefinedMenuItem)[] =
+    accounts.length > 0
+      ? [...accountSubmenus, await PredefinedMenuItem.new({ item: 'Separator' })]
+      : [
+          await MenuItem.new({
+            id: 'no-accounts-added',
+            text: 'No accounts added...',
+            enabled: false,
+          }),
+          await PredefinedMenuItem.new({ item: 'Separator' }),
+        ];
+
+  return Submenu.new({
+    text: 'Accounts',
+    items: [
+      syncItem,
+      await PredefinedMenuItem.new({ item: 'Separator' }),
+      ...accountItems,
+      await MenuItem.new({
+        id: 'add-account',
+        text: 'Add Account...',
+        enabled: isAppActionEnabled(),
+        action: () => {
+          emit(MENU_EVENTS.ADD_ACCOUNT);
+        },
+      }),
     ],
   });
 };
@@ -345,8 +570,6 @@ export const createMacMenu = async (options?: {
   const sortDirection = options?.sortDirection ?? 'asc';
   const shortcuts = options?.shortcuts;
   const accounts = options?.accounts ?? [];
-  const hasAccounts = accounts.length > 0;
-  const hasCaldavAccounts = (options?.caldavAccountCount ?? accounts.length) > 0;
   const isSyncing = options?.isSyncing ?? false;
   const navigation = options?.navigation;
   const isAppActionEnabled = (enabled = true) =>
@@ -692,138 +915,12 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  // accounts menu (CalDAV accounts and calendars)
-  const syncItem = await MenuItem.new({
-    id: 'sync',
-    text: 'Sync',
-    accelerator: getAcceleratorOrDefault(shortcuts, 'sync', 'CmdOrCtrl+R'),
-    enabled: isAppActionEnabled(hasCaldavAccounts && !isSyncing),
-    action: () => {
-      emit(MENU_EVENTS.SYNC);
-    },
-  });
-  menuItemRefs.sync = syncItem;
-
-  // one submenu per account with account-scoped actions
-  const accountSubmenus = await Promise.all(
-    accounts.map(async (account) => {
-      const calendars = account.calendars ?? [];
-
-      const calendarSubmenus = await Promise.all(
-        calendars.map(async (calendar) =>
-          Submenu.new({
-            text: calendar.displayName,
-            items: [
-              await MenuItem.new({
-                text: 'Sync',
-                enabled: isAppActionEnabled(),
-                action: () => {
-                  emit(MENU_EVENTS.SYNC_CALENDAR, {
-                    calendarId: calendar.id,
-                    accountId: account.id,
-                  });
-                },
-              }),
-              await MenuItem.new({
-                text: 'Edit Calendar',
-                enabled: isAppActionEnabled(),
-                action: () => {
-                  emit(MENU_EVENTS.EDIT_CALENDAR, {
-                    calendarId: calendar.id,
-                    accountId: account.id,
-                  });
-                },
-              }),
-              await MenuItem.new({
-                text: 'Export Tasks',
-                enabled: isAppActionEnabled(),
-                action: () => {
-                  emit(MENU_EVENTS.EXPORT_CALENDAR, {
-                    calendarId: calendar.id,
-                    accountId: account.id,
-                  });
-                },
-              }),
-              await PredefinedMenuItem.new({ item: 'Separator' }),
-              await MenuItem.new({
-                text: 'Delete Calendar',
-                enabled: isAppActionEnabled(),
-                action: () => {
-                  emit(MENU_EVENTS.DELETE_CALENDAR, {
-                    calendarId: calendar.id,
-                    accountId: account.id,
-                  });
-                },
-              }),
-            ],
-          }),
-        ),
-      );
-
-      const calendarItems: (Submenu | MenuItem | PredefinedMenuItem)[] =
-        calendars.length > 0
-          ? [
-              await Submenu.new({ text: 'Calendars', items: calendarSubmenus }),
-              await PredefinedMenuItem.new({ item: 'Separator' }),
-            ]
-          : [];
-
-      return Submenu.new({
-        text: account.name,
-        items: [
-          ...calendarItems,
-          await MenuItem.new({
-            text: 'New Calendar...',
-            enabled: isAppActionEnabled(),
-            action: () => {
-              emit(MENU_EVENTS.ADD_CALENDAR, { accountId: account.id });
-            },
-          }),
-          await MenuItem.new({
-            text: 'Edit Account',
-            enabled: isAppActionEnabled(),
-            action: () => {
-              emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });
-            },
-          }),
-          await MenuItem.new({
-            text: 'Remove Account',
-            enabled: isAppActionEnabled(),
-            action: () => {
-              emit(MENU_EVENTS.REMOVE_ACCOUNT, { accountId: account.id });
-            },
-          }),
-        ],
-      });
-    }),
-  );
-
-  const accountItems: (Submenu | MenuItem | PredefinedMenuItem)[] = hasAccounts
-    ? [...accountSubmenus, await PredefinedMenuItem.new({ item: 'Separator' })]
-    : [
-        await MenuItem.new({
-          id: 'no-accounts-added',
-          text: 'No accounts added...',
-          enabled: false,
-        }),
-        await PredefinedMenuItem.new({ item: 'Separator' }),
-      ];
-
-  const accountsSubmenu = await Submenu.new({
-    text: 'Accounts',
-    items: [
-      syncItem,
-      await PredefinedMenuItem.new({ item: 'Separator' }),
-      ...accountItems,
-      await MenuItem.new({
-        id: 'add-account',
-        text: 'Add Account...',
-        enabled: isAppActionEnabled(),
-        action: () => {
-          emit(MENU_EVENTS.ADD_ACCOUNT);
-        },
-      }),
-    ],
+  const accountsSubmenu = await createAccountsSubmenu({
+    accounts,
+    shortcuts,
+    caldavAccountCount: options?.caldavAccountCount ?? accounts.length,
+    isSyncing,
+    isModalOpen: options?.isModalOpen ?? false,
   });
 
   const goSubmenu = await createGoSubmenu({
@@ -899,7 +996,7 @@ export const createMacMenu = async (options?: {
     ],
   });
 
-  return { menu, windowSubmenu };
+  return { menu, windowSubmenu, goSubmenu, accountsSubmenu };
 };
 
 /**
@@ -909,6 +1006,7 @@ export const createMacMenu = async (options?: {
 export const initAppMenu = async (options?: {
   showCompleted?: boolean;
   moveCompletedTasksToBottom?: boolean;
+  showUnstarted?: boolean;
   sortMode?: SortMode;
   sortDirection?: SortDirection;
   shortcuts?: KeyboardShortcut[];
@@ -922,13 +1020,20 @@ export const initAppMenu = async (options?: {
   if (!isMacPlatform()) return;
 
   try {
-    const { menu, windowSubmenu } = await createMacMenu(options);
+    const shouldApplyModalState = options?.isModalOpen ?? modalMenuOpen;
+    const { menu, windowSubmenu, goSubmenu, accountsSubmenu } = await createMacMenu({
+      ...options,
+      isModalOpen: false,
+    });
     await menu.setAsAppMenu();
+    goSubmenuRef = goSubmenu;
+    accountsSubmenuRef = accountsSubmenu;
     modalMenuItems.length = 0;
     modalMenuOpen = false;
     for (const item of await menu.items()) {
       if (item instanceof Submenu) await collectModalMenuItems(item);
     }
+    if (shouldApplyModalState) await setModalMenuState(true);
     await windowSubmenu.setAsWindowsMenuForNSApp();
     // fix macOS Help menu search bar; muda's setAsHelpMenuForNSApp() is broken,
     // so we call NSApp.setHelpMenu() directly from Rust after the menu is live
@@ -969,7 +1074,63 @@ export const rebuildAppMenu = async (options?: {
   isSyncing?: boolean;
   isModalOpen?: boolean;
 }) => {
-  await initAppMenu(options);
+  await enqueueSubmenuMutation(() => initAppMenu(options));
+};
+
+/**
+ * refreshes the Go submenu in place so navigation changes don't replace NSApp's menu
+ */
+export const updateGoMenu = async (options: {
+  shortcuts?: KeyboardShortcut[];
+  navigation?: MenuNavigationOptions;
+}) => {
+  if (!isMacPlatform()) return;
+
+  try {
+    await enqueueSubmenuMutation(async () => {
+      const target = goSubmenuRef;
+      if (!target) return;
+
+      const replacement = await createGoSubmenu({
+        navigation: options.navigation,
+        shortcuts: options.shortcuts,
+        isModalOpen: false,
+      });
+      await replaceSubmenuContents(target, replacement);
+    });
+  } catch (error) {
+    log.error('Failed to update Go menu:', error);
+  }
+};
+
+/**
+ * refreshes account and calendar actions without replacing the application menu
+ */
+export const updateAccountsMenu = async (options: {
+  accounts: MenuAccount[];
+  shortcuts?: KeyboardShortcut[];
+  caldavAccountCount: number;
+  isSyncing?: boolean;
+}) => {
+  if (!isMacPlatform()) return;
+
+  try {
+    await enqueueSubmenuMutation(async () => {
+      const target = accountsSubmenuRef;
+      if (!target) return;
+
+      const replacement = await createAccountsSubmenu({
+        accounts: options.accounts,
+        shortcuts: options.shortcuts,
+        caldavAccountCount: options.caldavAccountCount,
+        isSyncing: options.isSyncing ?? false,
+        isModalOpen: false,
+      });
+      await replaceSubmenuContents(target, replacement);
+    });
+  } catch (error) {
+    log.error('Failed to update Accounts menu:', error);
+  }
 };
 
 /**
@@ -1030,6 +1191,12 @@ export const updateMenuItem = async (
       case 'sort-direction-submenu':
         item = menuItemRefs.sortDirectionSubmenu;
         break;
+      case 'nav-prev-list':
+        item = menuItemRefs.navPreviousList;
+        break;
+      case 'nav-next-list':
+        item = menuItemRefs.navNextList;
+        break;
     }
 
     if (!item) return;
@@ -1068,6 +1235,9 @@ export const updateMenuState = async (options: {
   sortDirection?: SortDirection;
   isSyncing?: boolean;
   isModalOpen?: boolean;
+  activeListKey?: string;
+  canGoPrevious?: boolean;
+  canGoNext?: boolean;
 }) => {
   if (options.isModalOpen === true) await setModalMenuState(true);
   // modal enablement is applied as an overlay by the registered menu items
@@ -1091,6 +1261,19 @@ export const updateMenuState = async (options: {
   }
   if (options.showUnstarted !== undefined) {
     await updateMenuItem('toggle-unstarted', { checked: options.showUnstarted });
+  }
+  if (options.activeListKey !== undefined) {
+    await Promise.all(
+      [...navigationMenuItems.entries()].map(([listKey, item]) =>
+        item.setChecked(listKey === options.activeListKey),
+      ),
+    );
+  }
+  if (options.canGoPrevious !== undefined) {
+    await updateMenuItem('nav-prev-list', { enabled: options.canGoPrevious });
+  }
+  if (options.canGoNext !== undefined) {
+    await updateMenuItem('nav-next-list', { enabled: options.canGoNext });
   }
   if (options.sortMode !== undefined) {
     // update sort menu items with checkmarks in text (radio button behavior)

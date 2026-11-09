@@ -12,6 +12,16 @@
 //! see: https://github.com/tauri-apps/muda/pull/322
 //!      https://github.com/tauri-apps/tauri/issues/12652
 
+/// we create an empty menu then the frontend installs the populated menu before showing the startup window
+pub fn startup_menu(
+    app: &tauri::AppHandle<tauri::Wry>,
+) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
+    use tauri::menu::{Menu, Submenu};
+
+    let app_menu = Submenu::with_items(app, "Chiri", true, &[])?;
+    Menu::with_items(app, &[&app_menu])
+}
+
 /// applies macOS menu fixes on the calling thread
 /// must be called on the main thread (use `AppHandle::run_on_main_thread`)
 #[cfg(target_os = "macos")]
