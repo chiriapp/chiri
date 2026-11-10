@@ -663,7 +663,6 @@ export const stopPushListening = (calendarId: string) => {
  */
 export const initializePushManager = (onPushMessage: PushMessageHandler) => {
   globalMessageHandler = onPushMessage;
-  log.info('Push manager initialized with message handler');
 };
 
 /**

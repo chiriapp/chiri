@@ -5,20 +5,15 @@ import { BaseDirectory, exists, remove } from '@tauri-apps/plugin-fs';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { settingsStore } from '$context/settingsContext';
 import { preloadAutostartState } from '$hooks/system/useAutostart';
-import { initLogger, loggers } from '$lib/logger';
+import { loggers } from '$lib/logger';
+import { initAppMenu } from '$lib/menu';
 import { flushTaskSnoozes, initializeTaskSnoozes } from '$lib/notifications/snoozes';
 import { LEGACY_PREFERENCES_KEYS } from '$lib/preferences/persistence';
 import { preferencesRepository } from '$lib/preferences/repository';
 import { dataStore } from '$lib/store';
 import { setActiveFilter, setAllTasksView, setRecentlyDeletedView } from '$lib/store/ui';
-import { initAppMenu } from '$utils/menu';
 import { getActiveListKey, getCurrentListIndex, getOrderedListItems } from '$utils/navigation';
-import {
-  getTrayHostAvailable,
-  isLinuxPlatform,
-  isMacPlatform,
-  isWindowsPlatform,
-} from '$utils/platform';
+import { getTrayHostAvailable, isLinuxPlatform, isMacPlatform } from '$utils/platform';
 
 const log = loggers.bootstrap;
 
@@ -126,26 +121,18 @@ export const applyTrayDefaultForGNOME = async () => {
 };
 
 export const initializeApp = async () => {
-  // initialize logger first so all subsequent logs are captured
-  await initLogger();
   log.info('Starting application initialization...');
 
   await settingsStore.initialize();
   await applyMacWindowDecorationPreference();
 
-  log.debug('Initializing data store...');
   await dataStore.initialize();
   await initializeTaskSnoozes();
-  log.debug('Data store initialized');
   applyDefaultLaunchViewPreference();
 
-  const autostartState = await preloadAutostartState().catch((error) => {
+  await preloadAutostartState().catch((error) => {
     log.warn('Failed to preload launch-at-login status:', error);
-    return null;
   });
-  log.debug(
-    `Launch-at-login status: enabled=${autostartState?.enabled ?? 'unknown'}, error=${autostartState?.error ?? 'none'}`,
-  );
 
   await applyMacDockIconPreference();
 
@@ -192,12 +179,7 @@ export const initializeApp = async () => {
   );
   const currentListIndex = getCurrentListIndex(orderedLists, uiState);
 
-  if (isWindowsPlatform()) {
-    log.debug('Windows platform detected (WebView2 runtime); skipping app menu initialization');
-  } else if (!isMacPlatform()) {
-    log.debug('Non-macOS platform detected; skipping app menu initialization');
-  } else {
-    log.debug('macOS platform detected; initializing app menu');
+  if (isMacPlatform()) {
     void initAppMenu({
       showCompleted: uiState.showCompletedTasks,
       moveCompletedTasksToBottom: uiState.moveCompletedTasksToBottom,
@@ -272,10 +254,7 @@ export const shouldShowWindowOnStartup = async () => {
         return false;
       });
 
-  if (!launchedAtLogin) {
-    log.debug('Showing window for normal app launch');
-    return true;
-  }
+  if (!launchedAtLogin || settingsStore.getState().showWindowOnLoginLaunch) return true;
 
   const enableSystemTray = settingsStore.getState().enableSystemTray;
   const trayHostAvailable =
@@ -288,12 +267,6 @@ export const shouldShowWindowOnStartup = async () => {
 
   if (!trayHostAvailable) {
     log.info('Showing window for login/autostart launch because no tray host is available');
-    return true;
-  }
-
-  const showWindowOnLoginLaunch = settingsStore.getState().showWindowOnLoginLaunch;
-  if (showWindowOnLoginLaunch) {
-    log.info('Showing window for login/autostart launch because startup window setting is enabled');
     return true;
   }
 

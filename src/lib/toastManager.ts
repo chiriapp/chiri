@@ -1,9 +1,6 @@
 import { createElement, type ReactNode } from 'react';
 import { type ToastT, toast } from 'sonner';
 import { ToastTitle, type ToastType } from '$components/ToastTitle';
-import { loggers } from '$lib/logger';
-
-const log = loggers.toastManager;
 
 interface ToastAction {
   label: string;
@@ -40,10 +37,6 @@ class ToastManager {
    */
   show(title: ReactNode, message: ReactNode, options: ShowToastOptions = {}) {
     const { type = 'info', groupKey, hint, action, closeButton = false, duration } = options;
-
-    log.debug(
-      `[${type.toUpperCase()}] Showing toast: "${title}" | "${message}" | groupKey: ${groupKey || 'none'}`,
-    );
 
     // if groupKey is provided, dismiss any existing toast for this group
     if (groupKey) {
