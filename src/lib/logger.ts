@@ -5,7 +5,6 @@
  */
 
 import {
-  attachConsole,
   debug as tauriDebug,
   error as tauriError,
   info as tauriInfo,
@@ -52,17 +51,24 @@ const forwardToTauri = (level: LogLevel, category: string, message: string) => {
   }
 };
 
-// attach console to receive logs from Rust side (for Webview target)
-let consoleAttached = false;
-export const initLogger = async () => {
-  if (consoleAttached) return;
-  try {
-    await attachConsole();
-    consoleAttached = true;
-  } catch (e) {
-    console.warn('Failed to attach console to Tauri logger:', e);
-  }
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !(value instanceof Error) && !Array.isArray(value);
+
+// a stack flattened into a single escaped line is unreadable and floods the
+// rotated log file, so only the message is carried into the forwarded line
+const formatLogValue = (value: unknown): string => {
+  if (value instanceof Error) return value.message;
+  if (Array.isArray(value)) return value.map(formatLogValue).join(', ');
+
+  return String(value);
 };
+
+const formatLogPairs = (value: Record<string, unknown>, prefix: string): string[] =>
+  Object.entries(value).flatMap(([key, entry]) =>
+    isRecord(entry) && Object.keys(entry).length > 0
+      ? formatLogPairs(entry, `${prefix}${key}.`)
+      : [`${prefix}${key}: ${formatLogValue(entry)}`],
+  );
 
 class Logger {
   private category: string;
@@ -82,10 +88,11 @@ class Logger {
     return LOG_LEVELS[level] >= LOG_LEVELS[this.options.minLevel];
   }
 
-  private formatPrefix(_level: LogLevel) {
+  private formatLine(text: string, includeTimestamp: boolean) {
     const parts: string[] = [];
+    const styles: string[] = [];
 
-    if (this.options.timestamps) {
+    if (includeTimestamp && this.options.timestamps) {
       const now = new Date();
       const time = now.toLocaleTimeString('en-US', {
         hour12: false,
@@ -94,30 +101,22 @@ class Logger {
         second: '2-digit',
       } as Intl.DateTimeFormatOptions);
       parts.push(`%c${time}`);
+      styles.push('color: #9ca3af; font-weight: normal;');
     }
 
     parts.push(`%c[${this.category}]`);
+    styles.push(`color: ${this.color}; font-weight: bold;`);
 
-    return parts;
-  }
+    parts.push(`%c${text}`);
+    styles.push('');
 
-  private getStyles(_level: LogLevel) {
-    const styles: string[] = [];
-
-    if (this.options.timestamps) {
-      styles.push('color: #9ca3af; font-weight: normal;'); // timestamp in gray
-    }
-
-    styles.push(`color: ${this.color}; font-weight: bold;`); // category
-
-    return styles;
+    return { line: parts.join(' '), styles };
   }
 
   private log(level: LogLevel, message: string, ...args: unknown[]) {
     if (!this.shouldLog(level)) return;
 
-    const prefix = this.formatPrefix(level);
-    const styles = this.getStyles(level);
+    const { line, styles } = this.formatLine(message, true);
 
     const logMethod =
       level === 'error'
@@ -128,33 +127,16 @@ class Logger {
             ? console.debug
             : console.log;
 
-    // format message with args for Tauri logging
-    const fullMessage =
-      args.length > 0
-        ? `${message} ${args
-            .map((a) => {
-              // handle Error objects specially since JSON.stringify returns {}
-              if (a instanceof Error) {
-                return JSON.stringify({
-                  ...a, // Include any custom properties
-                  name: a.name,
-                  message: a.message,
-                  stack: a.stack,
-                });
-              }
-              return JSON.stringify(a);
-            })
-            .join(' ')}`
-        : message;
+    // render args as prose rather than a JSON blob so forwarded lines stay readable
+    const context = args.flatMap((arg) =>
+      isRecord(arg) ? formatLogPairs(arg, '') : [formatLogValue(arg)],
+    );
+    const fullMessage = context.length > 0 ? `${message} (${context.join(', ')})` : message;
 
     // forward to Tauri for file persistence
     forwardToTauri(level, this.category, fullMessage);
 
-    if (args.length > 0) {
-      logMethod(`${prefix.join(' ')} ${message}`, ...styles, ...args);
-    } else {
-      logMethod(`${prefix.join(' ')} ${message}`, ...styles);
-    }
+    logMethod(line, ...styles, ...args);
   }
 
   debug(message: string, ...args: unknown[]) {
@@ -181,7 +163,8 @@ class Logger {
   /** log a group of related messages */
   group(label: string, fn: () => void) {
     if (!this.shouldLog('debug')) return;
-    console.group(`%c[${this.category}] ${label}`, `color: ${this.color}; font-weight: bold;`);
+    const { line, styles } = this.formatLine(label, false);
+    console.group(line, ...styles);
     fn();
     console.groupEnd();
   }

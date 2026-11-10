@@ -1,9 +1,7 @@
-// logging configuration for the application
-//
-// this module configures tauri-plugin-log with appropriate targets, filters,
-// and log levels for development and production builds
+use std::{fmt::Arguments, io::IsTerminal};
 
-use tauri_plugin_log::{Target, TargetKind, TimezoneStrategy};
+use log::Record;
+use tauri_plugin_log::{fern::FormatCallback, Target, TargetKind, TimezoneStrategy};
 
 // list of crates to exclude from logs to reduce noise
 const LOGGING_TARGET_IGNORE_LIST: [&str; 11] = [
@@ -33,55 +31,54 @@ fn should_ignore_message(message: &str) -> bool {
         .any(|ignored| message.starts_with(ignored))
 }
 
+fn write_line(out: FormatCallback, message: &Arguments, record: &Record, timestamps: bool) {
+    let message = message.to_string();
+
+    if should_ignore_message(&message) {
+        return;
+    }
+
+    let level = record.level();
+
+    if timestamps {
+        let now = TimezoneStrategy::UseLocal.get_now();
+        out.finish(format_args!(
+            "[{:04}-{:02}-{:02}:{:02}:{:02}:{:02}] [{level}] {message}",
+            now.year(),
+            now.month() as u8,
+            now.day(),
+            now.hour(),
+            now.minute(),
+            now.second()
+        ));
+    } else {
+        out.finish(format_args!("[{level}] {message}"));
+    }
+}
+
 #[cfg(target_os = "macos")]
 pub fn scoped_message(scope: &str, message: &str) -> String {
     format!("[{scope}] {message}")
 }
 
-/// build the configured logging plugin
-///
-/// logging targets:
-/// - Stdout: Console output for development
-/// - LogDir: Persistent log files (chiri.log)
-/// - Webview: Browser console for frontend debugging
-///
-/// log levels:
-/// - Debug builds: Debug level (verbose)
-/// - Release builds: Info level (less verbose)
 pub fn build_logging_plugin() -> tauri_plugin_log::Builder {
+    let stdout_timestamps = !std::io::stdout().is_terminal();
+
     tauri_plugin_log::Builder::new()
+        .format(|out, message, _| out.finish(format_args!("{message}")))
         .targets([
-            Target::new(TargetKind::Stdout),
+            Target::new(TargetKind::Stdout).format(move |out, message, record| {
+                write_line(out, message, record, stdout_timestamps)
+            }),
             Target::new(TargetKind::LogDir {
                 file_name: Some("chiri".to_string()),
-            }),
-            Target::new(TargetKind::Webview),
+            })
+            .format(|out, message, record| write_line(out, message, record, true)),
         ])
         .filter(|metadata| {
             !LOGGING_TARGET_IGNORE_LIST
                 .iter()
                 .any(|ignored| metadata.target().starts_with(ignored))
-        })
-        .format(|out, message, record| {
-            let now = TimezoneStrategy::UseLocal.get_now();
-            let date = format!(
-                "{:04}-{:02}-{:02}",
-                now.year(),
-                now.month() as u8,
-                now.day()
-            );
-            let time = format!("{:02}:{:02}:{:02}", now.hour(), now.minute(), now.second());
-            let message = message.to_string();
-
-            if should_ignore_message(&message) {
-                return;
-            }
-
-            out.finish(format_args!(
-                "[{date}:{time}] [{}] {}",
-                record.level(),
-                message
-            ));
         })
         .level(if cfg!(debug_assertions) {
             log::LevelFilter::Debug
