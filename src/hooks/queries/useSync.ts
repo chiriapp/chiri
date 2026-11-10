@@ -93,16 +93,20 @@ export const useSyncQuery = () => {
   const { isOffline, isOfflineRef, isReconnecting } = useOffline({
     onOnline: () => {
       log.info('Back online');
-      const { syncOnReconnect } = settingsStore.getState();
-      if (syncOnReconnect && syncAllRef.current) {
-        log.info('Auto-sync on reconnect enabled, triggering sync');
-        pendingSyncRef.current = true;
-        syncAllRef.current({
-          source: 'auto-reconnect',
-          reason: 'network became online and syncOnReconnect is enabled',
-          where: 'useOffline.onOnline',
-        });
-      }
+
+      const triggerSync = syncAllRef.current;
+      if (!triggerSync || !settingsStore.getState().syncOnReconnect) return;
+
+      // a local-only install has nothing to sync
+      if (!getAllAccounts().some((a) => a.caldav)) return;
+
+      log.info('Auto-sync on reconnect enabled, triggering sync');
+      pendingSyncRef.current = true;
+      triggerSync({
+        source: 'auto-reconnect',
+        reason: 'network became online and syncOnReconnect is enabled',
+        where: 'useOffline.onOnline',
+      });
     },
     onOffline: () => {
       log.info('Going offline');
