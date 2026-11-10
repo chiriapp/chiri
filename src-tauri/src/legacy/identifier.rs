@@ -60,21 +60,12 @@ fn legacy_path_for(new: &Path, old_id: &str, new_id: &str) -> Option<PathBuf> {
 /// non-destructive: old is left in place as an implicit backup
 /// idempotent: a populated target is always skipped
 fn migrate_path_pair(label: &str, old: &Path, new: &Path) -> MigrationOutcome {
-    log::info!(
-        "[Legacy] Evaluating {label}: source={} target={}",
-        old.display(),
-        new.display()
-    );
-    log_path_state(&format!("{label} source"), old);
-    log_path_state(&format!("{label} target"), new);
-
     if !old.exists() {
-        log::info!("[Legacy] Skipping {label}: source does not exist");
         return MigrationOutcome::SourceMissing;
     }
     if new.exists() && !is_dir_empty(new).unwrap_or(true) {
         log::info!(
-            "[Legacy] Skipping {label}: target already populated ({})",
+            "[Legacy] {label}: target already populated, leaving {} untouched",
             new.display()
         );
         return MigrationOutcome::TargetPopulated;
@@ -85,15 +76,16 @@ fn migrate_path_pair(label: &str, old: &Path, new: &Path) -> MigrationOutcome {
         new.display()
     );
     if let Err(e) = std::fs::create_dir_all(new) {
-        log::warn!("[Legacy] Failed to create target for {label}: {e}");
+        log::warn!(
+            "[Legacy] {label}: could not create target {}: {e}",
+            new.display()
+        );
         return MigrationOutcome::Failed;
     }
     if let Err(e) = copy_dir_recursive(old, new) {
-        log::warn!("[Legacy] Failed to copy {label}: {e}");
+        log::warn!("[Legacy] {label}: copy failed: {e}");
         MigrationOutcome::Failed
     } else {
-        log::info!("[Legacy] {label} migrated successfully");
-        log_path_state(&format!("{label} target after copy"), new);
         MigrationOutcome::Migrated
     }
 }
@@ -118,15 +110,14 @@ fn migrate_path_pair_from_identifiers(
                 }
             }
             Some(_) => {
-                log::info!(
-                    "[Legacy] Skipping {label}: old and new paths resolved identically for {old_identifier}"
+                log::debug!(
+                    "[Legacy] {label}: old and new paths resolved identically for {old_identifier}"
                 );
             }
             None => {
-                log::warn!(
-                    "[Legacy] Could not derive old {label} path from new path {} and identifier {}",
-                    new_path.display(),
-                    new_identifier
+                log::debug!(
+                    "[Legacy] {label}: could not derive old path from {} and identifier {new_identifier}",
+                    new_path.display()
                 );
             }
         }
@@ -136,30 +127,6 @@ fn migrate_path_pair_from_identifiers(
         MigrationOutcome::SourceMissing
     } else {
         MigrationOutcome::Failed
-    }
-}
-
-fn log_path_state(label: &str, path: &Path) {
-    match std::fs::metadata(path) {
-        Ok(metadata) => {
-            log::info!(
-                "[Legacy] {label}: exists path={} dir={} file={} size={} readonly={}",
-                path.display(),
-                metadata.is_dir(),
-                metadata.is_file(),
-                metadata.len(),
-                metadata.permissions().readonly()
-            );
-        }
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            log::info!("[Legacy] {label}: missing path={}", path.display());
-        }
-        Err(error) => {
-            log::warn!(
-                "[Legacy] {label}: could not inspect path={}: {error}",
-                path.display()
-            );
-        }
     }
 }
 
@@ -183,20 +150,12 @@ pub fn migrate_identifier<R: tauri::Runtime>(app: &tauri::App<R>) {
         .map(|d| d.join(MARKER_FILE));
 
     match marker_path.as_deref() {
-        Some(path) if path.exists() => {
-            log::info!(
-                "[Legacy] Identifier migration marker exists at {}; skipping migration",
-                path.display()
-            );
-            return;
-        }
+        Some(path) if path.exists() => return,
         Some(_) => {}
         None => {
             log::warn!("[Legacy] Could not resolve identifier migration marker path");
         }
     }
-
-    log::info!("[Legacy] Checking for old identifier data...");
 
     let path = app.path();
     let mut summary = MigrationSummary::default();
@@ -246,26 +205,27 @@ pub fn migrate_identifier<R: tauri::Runtime>(app: &tauri::App<R>) {
         }
     }
 
+    if summary.failed {
+        log::warn!("[Legacy] Identifier migration failed; will retry on next launch");
+        return;
+    }
+
     if !summary.should_write_marker() {
-        if summary.failed {
-            log::warn!("[Legacy] Identifier migration failed; marker will not be written");
-        } else {
-            log::info!("[Legacy] No old identifier data found; marker will not be written");
-        }
-    } else if let Some(marker) = marker_path {
+        return;
+    }
+
+    if let Some(marker) = marker_path {
         if let Err(e) = std::fs::create_dir_all(marker.parent().unwrap_or(&marker)) {
             log::warn!("[Legacy] Could not create data dir for marker: {e}");
         } else if let Err(e) = std::fs::write(&marker, "") {
             log::warn!("[Legacy] Could not write migration marker: {e}");
         } else {
             log::info!(
-                "[Legacy] Identifier migration marker written: {}",
+                "[Legacy] Identifier migration done; marker written to {}",
                 marker.display()
             );
         }
     }
-
-    log::info!("[Legacy] Identifier migration done.");
 }
 
 #[cfg(test)]
