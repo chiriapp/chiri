@@ -8,6 +8,7 @@ vi.mock('@tauri-apps/plugin-sql', () => ({
 vi.mock('$lib/logger', () => ({
   loggers: {
     settings: {
+      debug: vi.fn(),
       info: vi.fn(),
       error: vi.fn(),
     },

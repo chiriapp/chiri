@@ -5,7 +5,6 @@ import 'vitest-canvas-mock';
 // `$lib/logger` evaluates cleanly under Node
 // real logging only happens inside the Tauri webview anyway
 vi.mock('@tauri-apps/plugin-log', () => ({
-  attachConsole: vi.fn(),
   debug: vi.fn(),
   error: vi.fn(),
   info: vi.fn(),
