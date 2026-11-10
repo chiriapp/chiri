@@ -450,6 +450,7 @@ export const getNtfyProviderSubscriptionDiagnostics = (
 };
 
 export const stopAllNtfyProviderListeners = () => {
+  const stopped = activeNtfyProviderSubscriptions.size;
   for (const subscription of activeNtfyProviderSubscriptions.values()) {
     subscription.starting = false;
     subscription.listening = false;
@@ -460,5 +461,5 @@ export const stopAllNtfyProviderListeners = () => {
   void invoke('stop_all_ntfy_sse_listeners').catch((error) => {
     log.warn('Failed to stop native ntfy SSE listeners:', error);
   });
-  log.info('Stopped all ntfy subscriptions');
+  if (stopped > 0) log.info(`Stopped ${stopped} ntfy subscription(s)`);
 };
