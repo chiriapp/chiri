@@ -222,7 +222,7 @@ export const initializeTray = async () => {
 
   try {
     await invoke('initialize_tray', { enabled: true });
-    log.debug('System tray initialized for recovery');
+    log.debug('System tray initialized');
     settingsStore.setSystemTrayAppliedValue(true);
   } catch (error) {
     log.error('Failed to initialize system tray:', error);

@@ -50,6 +50,14 @@ let activeUpdateCheckTrigger: string | null = null;
 let isCheckInProgress = false;
 let startupUpdateCheckScheduled = false;
 
+const triggerLabels: Record<string, string> = {
+  'startup-auto': 'automatic startup check',
+  'menu-manual': 'check from the menu',
+  'settings-manual': 'check from settings',
+};
+
+const triggerLabel = (trigger: string) => triggerLabels[trigger] ?? trigger;
+
 const extractErrorMessage = (err: unknown) => {
   if (err instanceof Error) {
     return err.message;
@@ -157,9 +165,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
       const disableUpdates = await shouldDisableUpdates();
       if (disableUpdates) {
-        log.info('Update check skipped for managed installation', {
-          trigger,
-        });
+        log.info(`Update check skipped for managed installation (${triggerLabel(trigger)})`);
         queryClient.setQueryData(UPDATE_AVAILABLE_QUERY_KEY, null);
         if (isMenuCheck) {
           const installType = await getInstallType();
@@ -175,9 +181,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
       }
 
       const currentVersion = await getVersion();
-      log.info(`Starting update check... (Current version: ${currentVersion})`, {
-        trigger,
-      });
+      log.info(`Starting ${triggerLabel(trigger)} (current version ${currentVersion})`);
 
       const update = await check();
       if (update) {
@@ -274,10 +278,9 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
   const checkForUpdates = useCallback(
     async (trigger = 'unknown', onUpdateFound?: () => void) => {
       if (isCheckInProgress) {
-        log.info('Update check skipped - already in progress', {
-          requestedBy: trigger,
-          activeBy: activeUpdateCheckTrigger,
-        });
+        log.info(
+          `Update check skipped - ${triggerLabel(activeUpdateCheckTrigger ?? 'unknown')} already in progress`,
+        );
         return;
       }
 

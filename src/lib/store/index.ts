@@ -118,7 +118,7 @@ class Store {
       }
       await this.refreshCache();
       this.initialized = true;
-      log.info('Data store initialized with SQLite');
+      log.debug('Data store initialized');
     })();
 
     return this.initPromise;

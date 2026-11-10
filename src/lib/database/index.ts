@@ -44,9 +44,9 @@ class Database {
     if (this.connection) return;
     try {
       this.connection = await DatabasePlugin.load(DB_NAME);
-      this.log.info('Connected to SQLite database');
+      this.log.debug('Opened chiri.db');
     } catch (error) {
-      this.log.error('Failed to connect:', error);
+      this.log.error('Failed to open chiri.db:', error);
       throw error;
     }
   }

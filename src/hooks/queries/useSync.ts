@@ -112,7 +112,7 @@ export const useSyncQuery = () => {
   const syncCalendar = useCallback(
     (calendarId: string, trigger?: SyncTrigger) => {
       const syncTrigger = normalizeSyncTrigger(trigger);
-      log.info('Starting calendar sync...', { calendarId, trigger: syncTrigger });
+      log.info('Starting calendar sync...', { calendarId, source: syncTrigger.source });
       return syncCalendarTasks(calendarId, queryClient, setSyncingCalendarId);
     },
     [queryClient, setSyncingCalendarId],
@@ -124,7 +124,7 @@ export const useSyncQuery = () => {
 
       if (connectionStore.isAnyTesting()) {
         log.info('Sync request deferred - a connection test is in progress', {
-          requestedBy: syncTrigger,
+          requestedBy: syncTrigger.source,
         });
         pendingSyncRef.current = true;
         return;
@@ -133,7 +133,7 @@ export const useSyncQuery = () => {
       // skip if already syncing (shared across all hook instances)
       if (syncRunInProgress) {
         log.info('Sync request skipped - another sync is already running', {
-          requestedBy: syncTrigger,
+          requestedBy: syncTrigger.source,
           activeRun: activeSyncRun,
         });
         return;
@@ -141,13 +141,15 @@ export const useSyncQuery = () => {
 
       // skip if offline (use ref for immediate read, not state which may be stale)
       if (isOfflineRef.current) {
-        log.info('Skipping sync - offline', { requestedBy: syncTrigger });
+        log.info('Skipping sync - offline', { requestedBy: syncTrigger.source });
         setLastSyncError('You are offline. Changes will sync when you reconnect.');
         return;
       }
 
       if (!getAllAccounts().some((a) => a.caldav)) {
-        log.info('Skipping sync - no CalDAV accounts configured', { requestedBy: syncTrigger });
+        log.info('Skipping sync - no CalDAV accounts configured', {
+          requestedBy: syncTrigger.source,
+        });
         return;
       }
 
@@ -155,7 +157,7 @@ export const useSyncQuery = () => {
       pendingSyncRef.current = false;
       syncRunInProgress = true;
       activeSyncRun = { id: runId, source: syncTrigger.source };
-      log.info('Starting sync...', { runId, trigger: syncTrigger });
+      log.info('Starting sync...', { runId, source: syncTrigger.source });
       setIsSyncing(true);
       setLastSyncError(null);
 
