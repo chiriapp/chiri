@@ -149,3 +149,21 @@ export const formatStartDate = (date: Date, timeFormat?: TimeFormat) => {
 
   return { text: `${formatDate(d, true)}${timeStr}`, color };
 };
+
+/**
+ * render a minutes-since-midnight value as a time label
+ */
+export const minutesToTimeLabel = (minutes: number) => {
+  const date = new Date();
+  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+  return formatTime(date);
+};
+
+/**
+ * parse a `yyyy-mm-dd` date input value into a local date
+ */
+export const parseDateInputValue = (value: string) => {
+  if (!value) return undefined;
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};

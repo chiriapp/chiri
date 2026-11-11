@@ -2,6 +2,12 @@ import type { Status, Task } from '$types/task/model';
 
 type CurrentTaskState = Pick<Task, 'percentComplete' | 'completedAt'>;
 
+/**
+ * a task that still shows up as work to do: not deleted, completed or cancelled
+ */
+export const isActiveTask = (task: Pick<Task, 'deletedAt' | 'status'>) =>
+  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
+
 export const getPercentCompleteForStatus = (
   status: Status,
   currentPercentComplete?: number,

@@ -3,6 +3,7 @@
  */
 
 import type { HttpResponse } from '$lib/http';
+import { base64UrlEncode, isRecord, stripHtmlTags } from '$utils/misc';
 
 export interface OAuthTokens {
   accessToken: string;
@@ -50,11 +51,6 @@ export class OAuthTokenEndpointError extends Error {
   }
 }
 
-export const base64UrlEncode = (buf: Uint8Array): string => {
-  const bytes = Array.from(buf, (b) => String.fromCharCode(b));
-  return btoa(bytes.join('')).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-};
-
 export const generateVerifier = (): string => {
   const buf = new Uint8Array(32);
   crypto.getRandomValues(buf);
@@ -68,9 +64,6 @@ export const generateChallenge = async (verifier: string): Promise<string> => {
 };
 
 export const generateState = (): string => generateVerifier();
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const readTokenResponse = (data: unknown): OAuthTokenResponse => {
   if (!isRecord(data)) {
@@ -127,12 +120,6 @@ export const parseTokenResponse = (
   const tokenExpiry = new Date(Date.now() + expiresIn * 1000).toISOString();
   return { accessToken: response.access_token, refreshToken, tokenExpiry };
 };
-
-const HTML_TAG_RE = /<[^>]+>/g;
-const WHITESPACE_RE = /\s+/g;
-
-const stripHtmlTags = (value: string): string =>
-  value.replace(HTML_TAG_RE, ' ').replace(WHITESPACE_RE, ' ').trim();
 
 export const assertTokenResponseOk = (res: HttpResponse, context: string): void => {
   if (res.status < 200 || res.status >= 300) {

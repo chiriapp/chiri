@@ -15,6 +15,27 @@ export const hasHttpUrlScheme = (url: string) => {
   return /^https?:\/\//i.test(url.trim());
 };
 
+/**
+ * normalize a server URL that is required to carry an explicit http(s) scheme
+ */
+export const normalizeHttpServerUrl = (url: string) => {
+  const trimmed = url.trim();
+  if (!hasHttpUrlScheme(trimmed)) {
+    throw new Error('Server URL must start with http:// or https://.');
+  }
+
+  return normalizeUrl(trimmed);
+};
+
+/**
+ * extract the account identifier (usually the email) from a CalDAV principal URL,
+ * which ends in that identifier, e.g.
+ *   https://caldav.fastmail.com/dav/principals/user/user@fastmail.com/
+ */
+export const usernameFromPrincipalUrl = (principalUrl: string) => {
+  return normalizeUrl(principalUrl).split('/').pop() ?? '';
+};
+
 const getExplicitPort = (value: string) => {
   const authorityMatch = value.match(/^[a-z][a-z\d+.-]*:\/\/([^/?#]*)/i);
   const authority = authorityMatch?.[1];

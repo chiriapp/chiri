@@ -1,4 +1,5 @@
 import type { WebPushKeyPair } from '$types/push/webdav';
+import { base64UrlEncode } from '$utils/misc';
 
 /**
  * generate a Web Push key pair using the Web Crypto API
@@ -27,11 +28,6 @@ export const generateWebPushKeyPair = async (): Promise<WebPushKeyPair> => {
     privateKey,
     authSecret,
   };
-};
-
-export const base64UrlEncode = (data: Uint8Array) => {
-  const base64 = btoa(String.fromCharCode(...data));
-  return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
 
 export const base64UrlDecode = (str: string): Uint8Array => {

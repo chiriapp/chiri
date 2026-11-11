@@ -20,6 +20,7 @@ import {
   DEFAULT_TASK_GROUP_CONFIG,
   JUST_NOW_SYNC_TEXT_MS_THRESHOLD,
 } from '$constants';
+import { SYNC_SOURCE_LABELS } from '$constants/sync';
 import { useModalState } from '$context/modalStateContext';
 import { useTaskSelection } from '$context/taskSelectionContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
@@ -38,18 +39,6 @@ import { useVisibleTasks } from '$hooks/queries/useVisibleTasks';
 import type { SortDirection, SortMode, TaskGroupMode } from '$types/sort';
 import { getMetaKeyLabel, getModifierJoiner } from '$utils/keyboard';
 import { pluralize } from '$utils/misc';
-
-const SYNC_SOURCE_LABELS: Record<string, string> = {
-  'header-sync-button': 'manually',
-  'tray-sync': 'manually',
-  'keyboard-shortcut': 'manually',
-  'app-menu': 'manually',
-  'settings-sync-button': 'manually',
-  'auto-interval': 'automatically',
-  'startup-initial': 'on startup',
-  'auto-reconnect': 'on reconnect',
-  'webdav-push': 'from WebDAV Push',
-};
 
 // extracted helper: get sync button tooltip content
 const getSyncTooltip = (

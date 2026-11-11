@@ -18,6 +18,7 @@ import { Tooltip } from '$components/Tooltip';
 import { useReorderFilters } from '$hooks/queries/useFilters';
 import { useFilterSortConfig } from '$hooks/queries/useUIState';
 import { matchesFilter } from '$lib/task/filtering';
+import { isActiveTask } from '$lib/task/status';
 import type { Filter } from '$types/filter';
 import type { Task } from '$types/task/model';
 
@@ -34,9 +35,6 @@ interface SidebarFiltersListProps {
   onAddFilter: () => void;
   onContextMenu: (e: MouseEvent, type: 'filter', id: string) => void;
 }
-
-const isActiveTask = (task: Task) =>
-  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 export const SidebarFiltersList = ({
   filters,

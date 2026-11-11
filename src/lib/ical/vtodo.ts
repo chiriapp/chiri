@@ -11,6 +11,7 @@ import {
 import { loggers } from '$lib/logger';
 import { getAllTags } from '$lib/store/tags';
 import type { Priority, Reminder, Status, Task } from '$types/task/model';
+import { normalizeTagColor } from '$utils/color/tag';
 import { generateUUID } from '$utils/misc';
 
 const log = loggers.iCal;
@@ -147,14 +148,6 @@ const icalToPriority = (priority: number): Priority => {
   if (priority >= 1 && priority <= 4) return 'high';
   if (priority === 5) return 'medium';
   return 'low';
-};
-
-const HEX_COLOR_PATTERN = /^[0-9A-F]{6}$/i;
-
-const normalizeTagColor = (value: string) => {
-  const normalized = value.trim().replace(/^#/, '').toUpperCase();
-  if (!HEX_COLOR_PATTERN.test(normalized)) return undefined;
-  return `#${normalized}`;
 };
 
 const toIcalHexColor = (value: string) => {

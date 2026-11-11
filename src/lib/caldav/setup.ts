@@ -3,6 +3,7 @@ import type { CalendarDiscoveryDiagnostics } from '$lib/caldav/calendars';
 import type { HttpRequestContext } from '$lib/http';
 import { DetailedError, getErrorMessage, isCertError } from '$lib/http';
 import type { ServerType } from '$types/account';
+import { stripHtmlTags } from '$utils/misc';
 
 export interface CalDAVSetupError {
   title: string;
@@ -17,12 +18,6 @@ export interface CalDAVSetupNotice {
 }
 
 export type CalDAVErrorContext = 'setup' | 'account-sync' | 'calendar-sync';
-
-const HTML_TAG_RE = /<[^>]+>/g;
-const WHITESPACE_RE = /\s+/g;
-
-const stripHtmlTags = (value: string): string =>
-  value.replace(HTML_TAG_RE, ' ').replace(WHITESPACE_RE, ' ').trim();
 
 const isErrorLike = (value: unknown): value is { message: string } =>
   value !== null &&

@@ -2,6 +2,17 @@ import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color';
 import type { AccentColor } from '$types/color';
 import { getColorSchemeColorPresets } from '$utils/color/scheme';
 
+const HEX_COLOR_PATTERN = /^[0-9A-F]{6}$/;
+
+/**
+ * normalize a hex color coming from a server (e.g. a CATEGORIES parameter) to `#RRGGBB`
+ */
+export const normalizeTagColor = (value: string) => {
+  const normalized = value.trim().replace(/^#/, '').toUpperCase();
+  if (!HEX_COLOR_PATTERN.test(normalized)) return undefined;
+  return `#${normalized}`;
+};
+
 /**
  * generate a consistent color for a tag based on its name
  */

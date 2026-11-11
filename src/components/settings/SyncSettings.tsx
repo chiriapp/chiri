@@ -5,29 +5,16 @@ import XCircle from 'lucide-react/icons/x-circle';
 import { LoadingSpinner } from '$components/LoadingSpinner';
 import { Select } from '$components/Select';
 import { SYNC_INTERVAL_OPTIONS } from '$constants/settings';
+import { SYNC_SOURCE_LABELS } from '$constants/sync';
 import { useSettingsStore } from '$context/settingsContext';
 import { useSyncStore } from '$context/syncContext';
 import { useAccounts } from '$hooks/queries/useAccounts';
 import type { DateFormat, TimeFormat } from '$types/settings/categories/region';
 import { formatDate, formatTime } from '$utils/date';
-
-const SYNC_SOURCE_LABELS: Record<string, string> = {
-  'header-sync-button': 'manually',
-  'tray-sync': 'manually',
-  'keyboard-shortcut': 'manually',
-  'app-menu': 'manually',
-  'settings-sync-button': 'manually',
-  'auto-interval': 'automatically',
-  'startup-initial': 'on startup',
-  'auto-reconnect': 'on reconnect',
-  'webdav-push': 'from WebDAV Push',
-};
+import { pluralize } from '$utils/misc';
 
 const formatSyncDate = (date: Date, dateFormat: DateFormat, timeFormat: TimeFormat) =>
   `${formatDate(date, true, dateFormat)} ${formatTime(date, timeFormat)}`;
-
-const pluralize = (count: number, singular: string, plural = `${singular}s`) =>
-  `${count} ${count === 1 ? singular : plural}`;
 
 const SyncEmptyState = ({ hasCalDAVAccounts }: { hasCalDAVAccounts: boolean }) => {
   const Icon = hasCalDAVAccounts ? RefreshCw : TriangleAlert;
@@ -101,7 +88,7 @@ export const SyncSettings = () => {
               <p className="text-sm text-surface-700 dark:text-surface-300">Sync status</p>
               <p className="text-surface-500 text-xs dark:text-surface-400">
                 {hasCalDAVAccounts
-                  ? `${pluralize(caldavAccounts.length, 'CalDAV account')} configured`
+                  ? `${caldavAccounts.length} ${pluralize(caldavAccounts.length, 'CalDAV account')} configured`
                   : 'No CalDAV accounts configured'}
               </p>
             </div>

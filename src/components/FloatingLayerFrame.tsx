@@ -9,6 +9,7 @@ import {
   resetStaleCursorOnLayerClose,
   useResetStaleCursorOnLayerOpen,
 } from '$hooks/ui/useStaleCursorReset';
+import { clamp } from '$utils/misc';
 
 type FloatingLayerAnchor =
   | {
@@ -51,9 +52,6 @@ const DEFAULT_FALLBACK_HEIGHT = 260;
 const LAYER_BASE_CLASS =
   'fixed bg-white dark:bg-surface-800 rounded-lg shadow-lg border border-surface-300 dark:border-surface-700 motion-safe:animate-scale-in';
 const Z_INDEX_CLASS_PATTERN = /\bz-(\d+)\b/;
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), Math.max(min, max));
 
 const getLayerPriority = (...classNames: string[]) => {
   for (const className of classNames) {

@@ -15,7 +15,7 @@ import type { ComponentType } from 'react';
 import { TimePickerModal } from '$components/modals/TimePickerModal';
 import type { DateTimePickerDraft } from '$hooks/ui/useDateTimePickerDraft';
 import type { QuickTimePresets } from '$types/settings/categories/scheduling';
-import { formatMonthYear, formatTime } from '$utils/date';
+import { formatMonthYear, minutesToTimeLabel } from '$utils/date';
 
 interface DateTimePickerBodyProps {
   draft: DateTimePickerDraft;
@@ -47,12 +47,6 @@ const quickDateBtnClass = (matches: boolean, active: boolean, multipleMatches: b
         ? 'bg-primary-500/15 text-primary-ink dark:bg-primary-500/20 dark:text-primary-400'
         : 'text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-700 hover:bg-surface-200 dark:hover:bg-surface-600'
   }`;
-
-const minutesToTimeLabel = (minutes: number) => {
-  const date = new Date();
-  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-  return formatTime(date);
-};
 
 const getDayButtonClass = (selected: boolean, today: boolean, currentMonth: boolean): string => {
   if (selected) return 'bg-primary-500 text-primary-contrast';

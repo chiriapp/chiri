@@ -7,6 +7,7 @@ import { ModalWrapper } from '$components/ModalWrapper';
 import { useSettingsStore } from '$context/settingsContext';
 import { formatDate } from '$utils/date';
 import { cleanChangelog } from '$utils/meta';
+import { handleExternalLinkClick } from '$utils/misc';
 
 interface ChangelogModalProps {
   version: string;
@@ -14,15 +15,6 @@ interface ChangelogModalProps {
   date?: string;
   onClose: () => void;
 }
-
-const handleLinkClick = (e: MouseEvent) => {
-  const target = e.target as HTMLElement;
-  const anchor = target.closest('a');
-  if (anchor?.href) {
-    e.preventDefault();
-    openUrl(anchor.href);
-  }
-};
 
 export const ChangelogModal = ({ version, changelog, date, onClose }: ChangelogModalProps) => {
   const { dateFormat } = useSettingsStore();
@@ -55,8 +47,8 @@ export const ChangelogModal = ({ version, changelog, date, onClose }: ChangelogM
     const el = contentRef.current;
     if (!el) return;
 
-    el.addEventListener('click', handleLinkClick);
-    return () => el.removeEventListener('click', handleLinkClick);
+    el.addEventListener('click', handleExternalLinkClick);
+    return () => el.removeEventListener('click', handleExternalLinkClick);
   }, []);
 
   return (

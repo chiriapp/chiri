@@ -4,8 +4,10 @@ import {
   hasHttpUrlScheme,
   isValidPrincipalUrlOverride,
   makeAbsoluteUrl,
+  normalizeHttpServerUrl,
   normalizeUrl,
   parseCalDAVServerUrl,
+  usernameFromPrincipalUrl,
 } from '$lib/caldav/utils';
 
 describe('cleanEtag', () => {
@@ -200,5 +202,43 @@ describe('isValidPrincipalUrlOverride', () => {
 
   it('rejects values that cannot resolve against the server URL', () => {
     expect(isValidPrincipalUrlOverride('/principals/alice/', 'not a url')).toBe(false);
+  });
+});
+
+describe('normalizeHttpServerUrl', () => {
+  it('preserves explicit http and https schemes', () => {
+    expect(normalizeHttpServerUrl('http://localhost:8080')).toBe('http://localhost:8080');
+    expect(normalizeHttpServerUrl('https://cloud.example.com')).toBe('https://cloud.example.com');
+  });
+
+  it('trims whitespace and strips one trailing slash', () => {
+    expect(normalizeHttpServerUrl('  https://cloud.example.com/  ')).toBe(
+      'https://cloud.example.com',
+    );
+  });
+
+  it('rejects scheme-less urls', () => {
+    expect(() => normalizeHttpServerUrl('cloud.example.com')).toThrow(
+      /must start with http:\/\/ or https:\/\//i,
+    );
+  });
+});
+
+describe('usernameFromPrincipalUrl', () => {
+  it('extracts the account identifier from a principal URL', () => {
+    expect(
+      usernameFromPrincipalUrl(
+        'https://caldav.fastmail.com/dav/principals/user/user@fastmail.com/',
+      ),
+    ).toBe('user@fastmail.com');
+    expect(usernameFromPrincipalUrl('http://localhost:8083/dav/pal/unit-tests@example.test/')).toBe(
+      'unit-tests@example.test',
+    );
+  });
+
+  it('returns the last path segment when it is not an email', () => {
+    expect(usernameFromPrincipalUrl('https://caldav.example.com/dav/principals/alice')).toBe(
+      'alice',
+    );
   });
 });

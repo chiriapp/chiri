@@ -10,10 +10,8 @@ import { RRuleTemporal } from 'rrule-temporal';
 import type { DateFormat } from '$types/settings/categories/region';
 import type { WorkingDay } from '$types/settings/categories/scheduling';
 import type { RecurrenceFrequency } from '$types/task/recurrence';
-import { WORKING_DAY_META } from '$utils/calendar';
+import { DEFAULT_WORKING_DAYS, WORKING_DAY_META } from '$utils/calendar';
 import { formatDate } from '$utils/date';
-
-export const DEFAULT_WORKING_DAYS: WorkingDay[] = ['mo', 'tu', 'we', 'th', 'fr'];
 
 const BYDAY_LABEL: Record<string, string> = Object.fromEntries(
   Object.values(WORKING_DAY_META).map((meta) => [meta.rruleByday, meta.shortLabel]),

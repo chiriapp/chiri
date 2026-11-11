@@ -12,6 +12,7 @@ import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import { SidebarCalendarItem } from '$components/sidebar/SidebarCalendarItem';
 import { useReorderCalendars } from '$hooks/queries/useAccounts';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
+import { isActiveTask } from '$lib/task/status';
 import type { Account } from '$types/account';
 import type { Calendar } from '$types/calendar';
 import type { CalendarSortConfig } from '$types/sort';
@@ -29,9 +30,6 @@ interface SidebarCalendarListProps {
   onContextMenu: (e: MouseEvent, type: 'calendar', id: string, accountId: string) => void;
   onSelectCalendar: (accountId: string, calendarId: string) => void;
 }
-
-const isActiveTask = (task: Task) =>
-  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 export const SidebarCalendarList = ({
   account,

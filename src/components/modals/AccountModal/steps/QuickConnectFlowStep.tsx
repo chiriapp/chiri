@@ -11,12 +11,12 @@ import { fetchTasksForCalendar } from '$lib/account/setup';
 import {
   cancelNextcloudLogin,
   initiateNextcloudLogin,
-  normalizeNextcloudUrl,
   validateNextcloudServer,
 } from '$lib/auth/nextcloud';
-import { normalizeRusticalUrl, validateRusticalServer } from '$lib/auth/rustical';
+import { validateRusticalServer } from '$lib/auth/rustical';
 import { CalDAVClient } from '$lib/caldav';
 import { toCalDAVSetupError } from '$lib/caldav/setup';
+import { normalizeHttpServerUrl } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
 import { queryKeys } from '$lib/queryClient';
 import { generateUUID } from '$utils/misc';
@@ -42,14 +42,14 @@ const CONFIG = {
     label: 'Nextcloud',
     urlLabel: 'Nextcloud Server URL',
     urlPlaceholder: 'https://cloud.example.com',
-    normalize: normalizeNextcloudUrl,
+    normalize: normalizeHttpServerUrl,
     validate: validateNextcloudServer,
   },
   rustical: {
     label: 'RustiCal',
     urlLabel: 'RustiCal Server URL',
     urlPlaceholder: 'https://rust.example.com',
-    normalize: normalizeRusticalUrl,
+    normalize: normalizeHttpServerUrl,
     validate: validateRusticalServer,
   },
 };
@@ -106,8 +106,6 @@ export const QuickConnectFlowStep = forwardRef<
     setPhase: (phase: 'browser' | 'connecting') => void;
   }) => {
     const normalizedUrl = config.normalize(rawUrl);
-    const loginUrl =
-      serverType === 'rustical' ? normalizeNextcloudUrl(normalizedUrl) : normalizedUrl;
 
     const onAbort = () => {
       cancelNextcloudLogin();
@@ -121,7 +119,7 @@ export const QuickConnectFlowStep = forwardRef<
 
       log.info('Server validated, starting login flow');
       setPhase('browser');
-      const credentials = await initiateNextcloudLogin(loginUrl);
+      const credentials = await initiateNextcloudLogin(normalizedUrl);
 
       if (signal.aborted) {
         throw new DOMException('Login flow cancelled', 'AbortError');

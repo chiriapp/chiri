@@ -17,6 +17,7 @@ import { SidebarTagsSortMenu } from '$components/sidebar/SidebarTagsSortMenu';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderTags } from '$hooks/queries/useTags';
 import { useTagSortConfig } from '$hooks/queries/useUIState';
+import { isActiveTask } from '$lib/task/status';
 import type { Tag } from '$types/tag';
 import type { Task } from '$types/task/model';
 
@@ -38,9 +39,6 @@ interface SidebarTagsListProps {
   ) => void;
   onAddTag: () => void;
 }
-
-const isActiveTask = (task: Task) =>
-  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 export const SidebarTagsList = ({
   tags,

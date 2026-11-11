@@ -1,5 +1,4 @@
 import {
-  DEFAULT_WORKING_DAYS,
   frequencyToRRule,
   mergeRRuleParts,
   parseRRule,
@@ -7,7 +6,7 @@ import {
 } from '$lib/task/recurrence';
 import type { WorkingDay } from '$types/settings/categories/scheduling';
 import type { RecurrenceFrequency } from '$types/task/recurrence';
-import { WORKING_DAY_META } from '$utils/calendar';
+import { DEFAULT_WORKING_DAYS, WORKING_DAY_META } from '$utils/calendar';
 
 export type EndMode = 'never' | 'count' | 'until';
 export type CustomPeriod = 'MINUTELY' | 'HOURLY' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';

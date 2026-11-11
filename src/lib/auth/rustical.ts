@@ -1,22 +1,9 @@
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
-import { hasHttpUrlScheme } from '$lib/caldav/utils';
+import { normalizeHttpServerUrl } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
 import type { ServerValidationResult } from '$types/account';
 
 const log = loggers.http;
-
-/**
- * normalizes a RustiCal server URL
- * requires an explicit http/https scheme and removes trailing slashes
- */
-export const normalizeRusticalUrl = (url: string) => {
-  const normalized = url.trim();
-  if (!hasHttpUrlScheme(normalized)) {
-    throw new Error('Server URL must start with http:// or https://.');
-  }
-
-  return normalized.replace(/\/$/, '');
-};
 
 /**
  * validates a RustiCal server by checking the /ping endpoint
@@ -28,7 +15,7 @@ export const validateRusticalServer = async (
   signal?: AbortSignal,
   timeoutMs = 15_000,
 ): Promise<ServerValidationResult> => {
-  const normalizedUrl = normalizeRusticalUrl(serverUrl);
+  const normalizedUrl = normalizeHttpServerUrl(serverUrl);
   const controller = new AbortController();
   let timedOut = false;
   const timeoutId = setTimeout(() => {

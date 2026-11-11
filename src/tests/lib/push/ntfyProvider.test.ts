@@ -35,7 +35,6 @@ vi.mock('@tauri-apps/api/event', () => ({
 }));
 
 vi.mock('$lib/push/keys', () => ({
-  base64UrlEncode: () => 'abc123abc123',
   generateWebPushKeyPair: vi.fn(() =>
     Promise.resolve({
       publicKey: 'public-key',

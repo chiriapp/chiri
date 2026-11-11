@@ -12,11 +12,11 @@ import { fetchTasksForCalendar } from '$lib/account/setup';
 import {
   type StalwartTokens,
   startStalwartOAuth,
-  usernameFromPrincipalUrl,
   validateStalwartServer,
 } from '$lib/auth/stalwart';
 import { CalDAVClient } from '$lib/caldav';
 import { toCalDAVSetupError } from '$lib/caldav/setup';
+import { usernameFromPrincipalUrl } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
 import { queryKeys } from '$lib/queryClient';
 

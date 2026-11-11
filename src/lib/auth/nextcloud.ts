@@ -1,6 +1,6 @@
 import { fetch as tauriFetch } from '@tauri-apps/plugin-http';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import { hasHttpUrlScheme } from '$lib/caldav/utils';
+import { normalizeHttpServerUrl } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
 import type { ServerValidationResult } from '$types/account';
 
@@ -24,25 +24,12 @@ interface LoginCredentials {
 }
 
 /**
- * normalizes a Nextcloud server URL
- * requires an explicit http/https scheme and removes trailing slashes
- */
-export const normalizeNextcloudUrl = (url: string) => {
-  const normalized = url.trim();
-  if (!hasHttpUrlScheme(normalized)) {
-    throw new Error('Server URL must start with http:// or https://.');
-  }
-
-  return normalized.replace(/\/$/, '');
-};
-
-/**
  * initiates Nextcloud Login Flow v2
  * @param serverUrl the Nextcloud server URL
  * @returns promise that resolves with login credentials
  */
 export const initiateNextcloudLogin = async (serverUrl: string) => {
-  const normalizedUrl = normalizeNextcloudUrl(serverUrl);
+  const normalizedUrl = normalizeHttpServerUrl(serverUrl);
 
   log.info('Initiating Nextcloud Login Flow v2', { serverUrl: normalizedUrl });
 
@@ -232,7 +219,7 @@ export const validateNextcloudServer = async (
   signal?: AbortSignal,
   timeoutMs = 15_000,
 ): Promise<ServerValidationResult> => {
-  const normalizedUrl = normalizeNextcloudUrl(serverUrl);
+  const normalizedUrl = normalizeHttpServerUrl(serverUrl);
   const controller = new AbortController();
   let timedOut = false;
   const timeoutId = setTimeout(() => {
@@ -286,7 +273,7 @@ export const deleteAppPassword = async (
   username: string,
   appPassword: string,
 ) => {
-  const normalizedUrl = normalizeNextcloudUrl(serverUrl);
+  const normalizedUrl = normalizeHttpServerUrl(serverUrl);
 
   try {
     await tauriFetch(`${normalizedUrl}/ocs/v2.php/core/apppassword`, {

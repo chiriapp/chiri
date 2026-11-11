@@ -1,29 +1,3 @@
-/**
- * task CRUD against a CalDAV server
- *
- * cross-server quirks observed via the integration suite (src/tests/integration):
- *
- * - Nextcloud / SabreDAV: returns 412 Precondition Failed (not 409) for
- *   `If-None-Match: *` failures. createTask() handles both. see the recovery
- *   branch below
- *
- * - RustiCal, Radicale: do NOT enforce `If-Match` on PUT. a stale-etag
- *   update silently succeeds with a fresh etag. this means lost-update conflicts
- *   are not surfaced as 412. Chiri relies on the next syncCalendar pass to
- *   reconcile via etag comparison
- *
- * - Xandikos: uses a 2-level URL layout (/{principal}/calendars/{cal}/) that
- *   doesn't match any builtin Chiri serverType. users must pass `calendarHomeUrl`
- *   to `connect()` to point directly at the calendar collection. also serializes
- *   writes through dulwich/git and returns 423 Locked on concurrent updates to
- *   the same collection. Chiri's sync is sequential per task so this never
- *   trips production code, but parallel push attempts will fail
- *
- * - all servers: respond differently to depth-1 PROPFIND on the principal
- *   some list calendars under it (Nextcloud/Baikal), some don't (Xandikos)
- *   Chiri queries `calendarHome`, not the principal, to enumerate
- */
-
 import type { Connection } from '$lib/caldav/connection';
 import type { TaskWithCalDAVObject } from '$lib/caldav/types';
 import { cleanEtag, log, makeAbsoluteUrl, normalizeUrl } from '$lib/caldav/utils';

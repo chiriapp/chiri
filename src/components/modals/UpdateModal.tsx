@@ -1,5 +1,4 @@
 import { invoke } from '@tauri-apps/api/core';
-import { openUrl } from '@tauri-apps/plugin-opener';
 import ArrowRight from 'lucide-react/icons/arrow-right';
 import Download from 'lucide-react/icons/download';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
@@ -9,6 +8,7 @@ import { ModalWrapper } from '$components/ModalWrapper';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import type { UpdateError, UpdateInfo } from '$hooks/system/useUpdateChecker';
 import { cleanChangelog, getChangelogPreview } from '$utils/meta';
+import { handleExternalLinkClick } from '$utils/misc';
 
 interface UpdateModalProps {
   updateInfo: UpdateInfo;
@@ -19,15 +19,6 @@ interface UpdateModalProps {
   downloadProgress: number;
   error: UpdateError | null;
 }
-
-const handleLinkClick = (e: MouseEvent) => {
-  const target = e.target as HTMLElement;
-  const anchor = target.closest('a');
-  if (anchor?.href) {
-    e.preventDefault();
-    openUrl(anchor.href);
-  }
-};
 
 export const UpdateModal = ({
   updateInfo,
@@ -71,8 +62,8 @@ export const UpdateModal = ({
     const el = contentRef.current;
     if (!el) return;
 
-    el.addEventListener('click', handleLinkClick);
-    return () => el.removeEventListener('click', handleLinkClick);
+    el.addEventListener('click', handleExternalLinkClick);
+    return () => el.removeEventListener('click', handleExternalLinkClick);
   }, []);
 
   const releaseDate = useMemo(() => {

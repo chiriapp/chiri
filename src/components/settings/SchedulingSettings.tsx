@@ -9,7 +9,7 @@ import { useSettingsStore } from '$context/settingsContext';
 import { defaultState } from '$context/settingsDefaults';
 import type { QuickTimePresets, WorkingDay } from '$types/settings/categories/scheduling';
 import { getOrderedWorkingDays, WORKING_DAY_META } from '$utils/calendar';
-import { formatTime } from '$utils/date';
+import { minutesToTimeLabel } from '$utils/date';
 
 const TIME_CATEGORIES = [
   { id: 'morning' as const, label: 'Morning', Icon: Sunrise },
@@ -17,12 +17,6 @@ const TIME_CATEGORIES = [
   { id: 'evening' as const, label: 'Evening', Icon: Sunset },
   { id: 'night' as const, label: 'Night', Icon: Moon },
 ] as const;
-
-const minutesToTimeLabel = (minutes: number) => {
-  const d = new Date();
-  d.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-  return formatTime(d);
-};
 
 const presetsEqual = (a: QuickTimePresets, b: QuickTimePresets) =>
   TIME_CATEGORIES.every(({ id }) => a[id] === b[id]);

@@ -4,6 +4,7 @@ import { DatePickerModal } from '$components/modals/DatePickerModal';
 import { RepeatRuleEditor } from '$components/modals/RepeatModal/RepeatRuleEditor';
 import { useSettingsStore } from '$context/settingsContext';
 import { useRepeatDraft } from '$hooks/ui/useRepeatDraft';
+import { parseDateInputValue } from '$utils/date';
 
 interface RepeatModalProps {
   isOpen: boolean;
@@ -14,12 +15,6 @@ interface RepeatModalProps {
   initialCustom?: boolean;
   onSave: (rrule: string | undefined, repeatFrom: number) => void;
 }
-
-const toDateInputValue = (value: string) => {
-  if (!value) return undefined;
-  const [year, month, day] = value.split('-').map(Number);
-  return new Date(year, month - 1, day);
-};
 
 export const RepeatModal = ({
   isOpen,
@@ -95,7 +90,7 @@ export const RepeatModal = ({
         <DatePickerModal
           isOpen
           onClose={() => draft.setShowUntilPicker(false)}
-          value={toDateInputValue(draft.ui.until)}
+          value={parseDateInputValue(draft.ui.until)}
           onChange={(date) => {
             if (date) {
               const year = date.getFullYear();

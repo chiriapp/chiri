@@ -1,7 +1,3 @@
-/**
- * UI state operations
- */
-
 import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';

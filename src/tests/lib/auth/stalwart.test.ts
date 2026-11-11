@@ -31,7 +31,6 @@ import {
   STALWART_OAUTH_PATH,
   STALWART_REDIRECT_URI,
   startStalwartOAuth,
-  usernameFromPrincipalUrl,
 } from '$lib/auth/stalwart';
 
 // provide atob/btoa for JWT decoding in the test environment
@@ -153,14 +152,6 @@ describe('refreshStalwartToken', () => {
       expect.objectContaining({
         body: expect.not.stringContaining('client_id='),
       }),
-    );
-  });
-});
-
-describe('usernameFromPrincipalUrl', () => {
-  it('extracts the email from a Stalwart principal URL', () => {
-    expect(usernameFromPrincipalUrl('http://localhost:8083/dav/pal/unit-tests@example.test/')).toBe(
-      'unit-tests@example.test',
     );
   });
 });

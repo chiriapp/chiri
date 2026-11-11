@@ -11,6 +11,7 @@ import { useReorderCalendars } from '$hooks/queries/useAccounts';
 import { useAccountSortConfig, useCalendarSortConfig } from '$hooks/queries/useUIState';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { SidebarCollapsedSensors } from '$hooks/ui/useSidebarCollapsedDragState';
+import { isActiveTask } from '$lib/task/status';
 import type { Account } from '$types/account';
 import type { Task } from '$types/task/model';
 
@@ -32,9 +33,6 @@ interface SidebarCollapsedCalendarSectionProps {
   onSelectCalendar: (accountId: string, calendarId: string) => void;
   onContextMenu: (event: MouseEvent, type: 'calendar', id: string, accountId?: string) => void;
 }
-
-const isActiveTask = (task: Task) =>
-  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 export const SidebarCollapsedCalendarSection = ({
   accounts,

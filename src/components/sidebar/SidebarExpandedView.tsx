@@ -2,6 +2,7 @@ import Inbox from 'lucide-react/icons/inbox';
 import Trash2 from 'lucide-react/icons/trash-2';
 import { SidebarFooter } from '$components/sidebar/SidebarFooter';
 import { SidebarSections, type SidebarSectionsProps } from '$components/sidebar/SidebarSections';
+import { isActiveTask } from '$lib/task/status';
 
 interface SidebarExpandedNavigationProps {
   activeView: 'tasks' | 'recently-deleted' | 'filter';
@@ -25,9 +26,6 @@ interface SidebarExpandedViewProps {
   sections: SidebarSectionsProps;
   footer: SidebarExpandedFooterProps;
 }
-
-const isActiveTask = (task: SidebarSectionsProps['tasks'][number]) =>
-  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 export const SidebarExpandedView = ({
   showExpandedContent,

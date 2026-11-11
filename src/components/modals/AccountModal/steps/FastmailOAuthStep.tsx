@@ -9,12 +9,9 @@ import { useSettingsStore } from '$context/settingsContext';
 import { useAddCalendar, useCreateAccount } from '$hooks/queries/useAccounts';
 import { useSyncQuery } from '$hooks/queries/useSync';
 import { fetchTasksForCalendar } from '$lib/account/setup';
-import {
-  FASTMAIL_CALDAV_URL,
-  startFastmailOAuth,
-  usernameFromPrincipalUrl,
-} from '$lib/auth/fastmail';
+import { FASTMAIL_CALDAV_URL, startFastmailOAuth } from '$lib/auth/fastmail';
 import { CalDAVClient } from '$lib/caldav';
+import { usernameFromPrincipalUrl } from '$lib/caldav/utils';
 import { queryKeys } from '$lib/queryClient';
 import { replaceOAuthAccountAuthorization } from '$lib/store/accounts';
 import type { Account } from '$types/account';

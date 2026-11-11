@@ -19,7 +19,7 @@ export const WORKING_DAY_META: Record<
 
 export const getWorkingDayMeta = (day: WorkingDay) => WORKING_DAY_META[day];
 
-const DEFAULT_WORKING_DAYS: WorkingDay[] = ['mo', 'tu', 'we', 'th', 'fr'];
+export const DEFAULT_WORKING_DAYS: WorkingDay[] = ['mo', 'tu', 'we', 'th', 'fr'];
 
 /**
  * check whether a date falls on one of the configured working days

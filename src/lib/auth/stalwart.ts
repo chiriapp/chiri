@@ -436,14 +436,3 @@ const decodeJwtPayload = (token: string): string => {
   const padding = '='.repeat((4 - (rawPayload.length % 4)) % 4);
   return atob((rawPayload + padding).replace(/-/g, '+').replace(/_/g, '/'));
 };
-
-/**
- * extract the username (email) from a Stalwart CalDAV principal URL
- * Stalwart principal URLs look like:
- *   http://localhost:8082/dav/pal/unit-tests@example.test/
- */
-export const usernameFromPrincipalUrl = (principalUrl: string) => {
-  const segment = principalUrl.replace(/\/$/, '').split('/').pop() ?? '';
-  if (segment.includes('@')) return segment;
-  return segment;
-};

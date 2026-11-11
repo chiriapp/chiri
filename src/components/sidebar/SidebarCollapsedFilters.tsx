@@ -11,11 +11,9 @@ import { useFilterSortConfig } from '$hooks/queries/useUIState';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { SidebarCollapsedSensors } from '$hooks/ui/useSidebarCollapsedDragState';
 import { matchesFilter } from '$lib/task/filtering';
+import { isActiveTask } from '$lib/task/status';
 import type { Filter } from '$types/filter';
 import type { Task } from '$types/task/model';
-
-const isActiveTask = (task: Task) =>
-  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 interface SidebarCollapsedFiltersProps {
   filters: Filter[];

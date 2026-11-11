@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { classifyRRule, DEFAULT_WORKING_DAYS } from '$lib/task/recurrence';
+import { classifyRRule } from '$lib/task/recurrence';
 import {
   buildRepeatRRule,
   type CustomPeriod,
@@ -10,6 +10,7 @@ import {
 } from '$lib/task/recurrence/editor';
 import type { StartOfWeek } from '$types/settings/categories/region';
 import type { WorkingDay } from '$types/settings/categories/scheduling';
+import { DEFAULT_WORKING_DAYS } from '$utils/calendar';
 
 interface UseRepeatDraftOptions {
   isOpen: boolean;

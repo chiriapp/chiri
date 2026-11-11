@@ -8,7 +8,7 @@ import type { RepeatDraft } from '$hooks/ui/useRepeatDraft';
 import type { CustomPeriod, EndMode, MonthlyMode } from '$lib/task/recurrence/editor';
 import { CUSTOM_PERIOD_OPTIONS, WEEKDAY_OPTIONS } from '$lib/task/recurrence/editor';
 import type { DateFormat } from '$types/settings/categories/region';
-import { formatDate } from '$utils/date';
+import { formatDate, parseDateInputValue } from '$utils/date';
 
 interface RepeatRuleEditorProps {
   draft: RepeatDraft;
@@ -39,12 +39,6 @@ const btnActive =
 const btnInactive =
   'border-surface-200 dark:border-surface-700 hover:border-surface-300 hover:bg-surface-50 ' +
   'dark:hover:bg-surface-700 text-surface-600 dark:text-surface-400';
-
-const toDateInputValue = (value: string) => {
-  if (!value) return undefined;
-  const [year, month, day] = value.split('-').map(Number);
-  return new Date(year, month - 1, day);
-};
 
 export const RepeatRuleEditor = ({
   draft,
@@ -262,7 +256,7 @@ export const RepeatRuleEditor = ({
                   }
                 >
                   {ui.until
-                    ? formatDate(toDateInputValue(ui.until) as Date, true, dateFormat)
+                    ? formatDate(parseDateInputValue(ui.until) as Date, true, dateFormat)
                     : 'Set end date...'}
                 </span>
               </button>

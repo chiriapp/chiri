@@ -31,7 +31,7 @@ import type { Calendar } from '$types/calendar';
 import type { PendingDeletion } from '$types/store/sync';
 import type { Task } from '$types/task/model';
 import { getColorSchemeColorPresets } from '$utils/color/scheme';
-import { generateTagColor } from '$utils/color/tag';
+import { generateTagColor, normalizeTagColor } from '$utils/color/tag';
 import { resolveEffectiveTheme } from '$utils/color/theme';
 
 const log = loggers.dataStore;
@@ -446,12 +446,6 @@ export const ensureTagExists = (tagName: string) => {
   });
 
   return newTag.id;
-};
-
-const normalizeTagColor = (value: string) => {
-  const normalized = value.trim().replace(/^#/, '').toUpperCase();
-  if (!/^[0-9A-F]{6}$/.test(normalized)) return undefined;
-  return `#${normalized}`;
 };
 
 const getRemoteCategoryNames = (remoteTask: Task) => {

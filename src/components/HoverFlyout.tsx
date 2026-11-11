@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { clamp } from '$utils/misc';
 
 const HOVER_FLYOUT_OPEN_EVENT = 'chiri:hover-flyout-open';
 const HOVER_CLOSE_DELAY_MS = 180;
@@ -22,9 +23,6 @@ interface HoverFlyoutContextValue {
 }
 
 const HoverFlyoutContext = createContext<HoverFlyoutContextValue | null>(null);
-
-const clamp = (value: number, min: number, max: number) =>
-  Math.min(Math.max(value, min), Math.max(min, max));
 
 interface HoverFlyoutGroupProps {
   children: ReactNode;

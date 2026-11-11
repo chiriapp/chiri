@@ -1,14 +1,3 @@
-/**
- * Fastmail OAuth 2.0 + PKCE authentication
- *
- * flow:
- *  1. generate PKCE verifier + S256 challenge + random state
- *  2. open browser to Fastmail's auth endpoint
- *  3. Fastmail redirects to garden.chiri:/oauth/fastmail?code=...&state=...
- *  4. exchange code + verifier for access + refresh tokens
- *  5. derive username from CalDAV principal URL
- */
-
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import {
@@ -36,16 +25,11 @@ const REVOKE_URL = 'https://api.fastmail.com/oauth/revoke';
 
 const OAUTH_PATH = '/oauth/fastmail';
 
-// public types
-export type FastmailTokens = OAuthTokens;
-
-// main oauth flow: returns a Promise that resolves when the callback fires
-
-export const startFastmailOAuth = (): { promise: Promise<FastmailTokens>; cancel: () => void } => {
+export const startFastmailOAuth = (): { promise: Promise<OAuthTokens>; cancel: () => void } => {
   const verifier = generateVerifier();
   const state = generateState();
 
-  const { promise, resolve, reject } = Promise.withResolvers<FastmailTokens>();
+  const { promise, resolve, reject } = Promise.withResolvers<OAuthTokens>();
   let cancelled = false;
 
   const cancel = () => {
@@ -120,7 +104,6 @@ export const startFastmailOAuth = (): { promise: Promise<FastmailTokens>; cancel
   return { promise, cancel };
 };
 
-// token exchange
 const exchangeCodeForTokens = async (code: string, verifier: string) => {
   const body = new URLSearchParams({
     grant_type: 'authorization_code',
@@ -146,7 +129,7 @@ const exchangeCodeForTokens = async (code: string, verifier: string) => {
   return parseTokenResponse(data);
 };
 
-export const refreshFastmailToken = async (refreshToken: string): Promise<FastmailTokens> => {
+export const refreshFastmailToken = async (refreshToken: string): Promise<OAuthTokens> => {
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
     client_id: FASTMAIL_CLIENT_ID,
@@ -215,17 +198,4 @@ export const revokeFastmailAuthorization = async ({
     const fresh = await refreshFastmailToken(refreshToken);
     await revokeWithAccessToken(fresh.accessToken);
   }
-};
-
-/**
- * extract the username (email) from a Fastmail CalDAV principal URL
- * Fastmail principal URLs look like:
- *   https://caldav.fastmail.com/dav/principals/user/user@fastmail.com/
- */
-export const usernameFromPrincipalUrl = (principalUrl: string) => {
-  const segment = principalUrl.replace(/\/$/, '').split('/').pop() ?? '';
-  // principal path segments use the email address; return it if it looks like one
-  if (segment.includes('@')) return segment;
-  // fall back to the raw segment (shouldn't happen with Fastmail)
-  return segment;
 };

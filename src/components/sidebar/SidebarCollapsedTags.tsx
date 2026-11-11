@@ -10,6 +10,7 @@ import { useReorderTags } from '$hooks/queries/useTags';
 import { useTagSortConfig } from '$hooks/queries/useUIState';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import type { SidebarCollapsedSensors } from '$hooks/ui/useSidebarCollapsedDragState';
+import { isActiveTask } from '$lib/task/status';
 import type { Tag } from '$types/tag';
 import type { Task } from '$types/task/model';
 
@@ -29,9 +30,6 @@ interface SidebarCollapsedTagsProps {
   onSelectTag: (tagId: string) => void;
   onContextMenu: (event: MouseEvent, type: 'tag', id: string) => void;
 }
-
-const isActiveTask = (task: Task) =>
-  !task.deletedAt && task.status !== 'completed' && task.status !== 'cancelled';
 
 export const SidebarCollapsedTags = ({
   tags,

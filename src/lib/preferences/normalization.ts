@@ -13,7 +13,7 @@ import { isProgressIncrement } from '$types/settings/categories/statusProgress';
 import type { SettingsState } from '$types/settings/state';
 import type { KeyboardShortcut } from '$types/shortcuts';
 import { getShortcutSignature, isReservedShortcut } from '$utils/keyboard';
-import { normalizeProxyPort } from '$utils/misc';
+import { isRecord, normalizeProxyPort } from '$utils/misc';
 
 interface ShortcutMigration {
   originalLength: number;
@@ -96,9 +96,6 @@ export const clampSnoozeDurations = (actions: NotificationActionSettings) => {
 
 const isWorkingDay = (value: unknown): value is WorkingDay =>
   typeof value === 'string' && ['mo', 'tu', 'we', 'th', 'fr', 'sa', 'su'].includes(value);
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const valuesEqual = (left: unknown, right: unknown) =>
   JSON.stringify(left) === JSON.stringify(right);
