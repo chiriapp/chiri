@@ -6,12 +6,12 @@ import { relaunch } from '@tauri-apps/plugin-process';
 import { settingsStore } from '$context/settingsContext';
 import { preloadAutostartState } from '$hooks/system/useAutostart';
 import { loggers } from '$lib/logger';
+import { initAppMenu } from '$lib/menu';
 import { flushTaskSnoozes, initializeTaskSnoozes } from '$lib/notifications/snoozes';
 import { LEGACY_PREFERENCES_KEYS } from '$lib/preferences/persistence';
 import { preferencesRepository } from '$lib/preferences/repository';
 import { dataStore } from '$lib/store';
 import { setActiveFilter, setAllTasksView, setRecentlyDeletedView } from '$lib/store/ui';
-import { initAppMenu } from '$utils/menu';
 import { getActiveListKey, getCurrentListIndex, getOrderedListItems } from '$utils/navigation';
 import { getTrayHostAvailable, isLinuxPlatform, isMacPlatform } from '$utils/platform';
 

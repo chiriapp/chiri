@@ -5,14 +5,14 @@ import { useAccounts } from '$hooks/queries/useAccounts';
 import { useFilters } from '$hooks/queries/useFilters';
 import { useTags } from '$hooks/queries/useTags';
 import { useUIState } from '$hooks/queries/useUIState';
-import { dataStore } from '$lib/store';
+import { rebuildAppMenu } from '$lib/menu';
 import {
-  rebuildAppMenu,
   updateAccountsMenu,
   updateDockMenu,
   updateGoMenu,
   updateMenuState,
-} from '$utils/menu';
+} from '$lib/menu/update';
+import { dataStore } from '$lib/store';
 import { getActiveListKey, getCurrentListIndex, getOrderedListItems } from '$utils/navigation';
 
 /**
