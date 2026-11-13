@@ -1,19 +1,18 @@
 import type { Priority } from '$types/task/model';
 
+interface PriorityConfig {
+  value: Priority;
+  label: string;
+  color: string;
+  borderColor: string;
+  hoverBorderColor: string;
+  bgColor: string;
+}
+
 /**
  * priority configuration with labels and styling
  */
-export const PRIORITY_CONFIG: Record<
-  Priority,
-  {
-    value: Priority;
-    label: string;
-    color: string;
-    borderColor: string;
-    hoverBorderColor: string;
-    bgColor: string;
-  }
-> = {
+export const PRIORITY_CONFIG: Record<Priority, PriorityConfig> = {
   high: {
     value: 'high',
     label: 'High',

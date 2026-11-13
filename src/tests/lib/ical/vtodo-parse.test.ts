@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest';
 
 // cut transitive chain at store/tags. logger mocks come from setup.ts
 vi.mock('$lib/store/tags', () => ({ getAllTags: () => [] }));
-vi.mock('$utils/misc', () => ({ generateUUID: () => 'test-uuid' }));
 
 import { extractVTodos, parseVTodo } from '$lib/ical/vtodo';
 

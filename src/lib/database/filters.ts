@@ -4,7 +4,6 @@ import { rowToFilter } from '$lib/database/converters';
 import type { AppMetadataRow, FilterRow } from '$lib/database/types';
 import { setAllTasksView } from '$lib/database/ui';
 import type { Filter } from '$types/filter';
-import { generateUUID } from '$utils/misc';
 
 const DEFAULT_FILTERS_CREATED_KEY = 'default_filters_created';
 
@@ -40,7 +39,7 @@ export const createFilter = async (conn: DatabasePlugin, filterData: Partial<Fil
   const now = new Date();
 
   const filter: Filter = {
-    id: filterData.id ?? generateUUID(),
+    id: filterData.id ?? crypto.randomUUID(),
     presetId: filterData.presetId,
     name: filterData.name ?? 'New Filter',
     icon: filterData.icon,

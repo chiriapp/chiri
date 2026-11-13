@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('$lib/store/tags', () => ({ getAllTags: () => [] }));
-let uuidCounter = 0;
-vi.mock('$utils/misc', () => ({
-  generateUUID: () => `uuid-${++uuidCounter}`,
-}));
 
 import {
   createImportedTask,

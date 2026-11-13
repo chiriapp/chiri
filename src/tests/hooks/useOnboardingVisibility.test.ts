@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { shouldShowOnboarding } from '$hooks/useOnboardingVisibility';
 import type { Account } from '$types/account';
-import { shouldShowOnboarding } from '$utils/onboarding';
 import { makeCalendar, makeTask } from '../fixtures';
 
 const makeAccount = (overrides: Partial<Account> = {}): Account => ({

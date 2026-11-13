@@ -7,7 +7,6 @@ import type { PushProviderSubscriptionDiagnostics } from '$types/push/diagnostic
 import type { PushMessageHandler } from '$types/push/providers';
 import { KUNIFIED_PUSH_PROVIDER_ID } from '$types/push/providers';
 import type { PushEndpointSubscription, PushSubscription } from '$types/push/webdav';
-import { generateUUID } from '$utils/misc';
 
 interface KUnifiedPushProviderRegistration {
   endpoint: string;
@@ -155,7 +154,7 @@ export const createKUnifiedPushProviderSubscription = async (
   calendar: Calendar,
 ): Promise<PushEndpointSubscription | null> => {
   try {
-    const token = generateUUID();
+    const token = crypto.randomUUID();
     const registration = await invoke<KUnifiedPushProviderRegistration>('kunifiedpush_register', {
       token,
       distributor: null,

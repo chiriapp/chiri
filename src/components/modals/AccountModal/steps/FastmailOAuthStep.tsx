@@ -12,7 +12,7 @@ import { fetchTasksForCalendar } from '$lib/account/setup';
 import { FASTMAIL_CALDAV_URL, startFastmailOAuth } from '$lib/auth/fastmail';
 import { CalDAVClient } from '$lib/caldav';
 import { usernameFromPrincipalUrl } from '$lib/caldav/utils';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import { replaceOAuthAccountAuthorization } from '$lib/store/accounts';
 import type { Account } from '$types/account';
 

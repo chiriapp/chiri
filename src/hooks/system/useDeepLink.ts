@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { initDeepLink } from '$lib/deepLink';
+import { initDeepLink } from '$lib/deep-link';
 import { loggers } from '$lib/logger';
 
 const log = loggers.http;

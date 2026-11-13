@@ -13,7 +13,7 @@ import {
   getMobileConfigExportEligibility,
 } from '$lib/mobileconfig/generate';
 import { shareMobileConfig } from '$lib/mobileconfig/share';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { Account } from '$types/account';
 import { isMacPlatform } from '$utils/platform';
 

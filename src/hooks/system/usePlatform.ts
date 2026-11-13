@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import { isLinuxPlatform } from '$utils/platform';
 
 export const usePlatform = () => {

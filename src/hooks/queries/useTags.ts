@@ -4,7 +4,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import { dataStore } from '$lib/store';
 import { moveItem } from '$lib/store/reorder';
 import { reorderTags } from '$lib/store/reorder/tags';

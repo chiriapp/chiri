@@ -24,7 +24,7 @@ import { useSidebarResize } from '$hooks/ui/useSidebarResize';
 import { useSidebarModals } from '$hooks/useSidebarModals';
 import { getCalDAVErrorInfo } from '$lib/caldav/setup';
 import { exportMobileConfigFile } from '$lib/mobileconfig/export';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { Account } from '$types/account';
 import type { KeyboardShortcut } from '$types/shortcuts';
 import { formatShortcut, getModifierJoiner } from '$utils/keyboard';

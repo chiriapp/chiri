@@ -12,8 +12,7 @@ import { fetchTasksForCalendar } from '$lib/account/setup';
 import { cancelNextcloudLogin, initiateNextcloudLogin } from '$lib/auth/nextcloud';
 import { CalDAVClient } from '$lib/caldav';
 import { loggers } from '$lib/logger';
-import { queryKeys } from '$lib/queryClient';
-import { generateUUID } from '$utils/misc';
+import { queryKeys } from '$lib/query-client';
 
 const log = loggers.account;
 
@@ -82,7 +81,7 @@ export const DisrootCloudBrowserLoginStep = forwardRef<
 
       setPhase('connecting');
 
-      const accountId = generateUUID();
+      const accountId = crypto.randomUUID();
       await CalDAVClient.connect(
         accountId,
         credentials.server,

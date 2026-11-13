@@ -4,7 +4,6 @@ import { createImportedTask } from '$lib/ical/import';
 import { loggers } from '$lib/logger';
 import type { Calendar } from '$types/calendar';
 import type { ParsedTaskWithStatus } from '$types/task/import';
-import { generateUUID } from '$utils/misc';
 
 const log = loggers.import;
 
@@ -53,7 +52,7 @@ export const useImportExecution = ({
       const uidMap = new Map<string, string>();
       for (const task of parsedTasks) {
         if (task.uid) {
-          uidMap.set(task.uid, `${generateUUID()}@chiri`);
+          uidMap.set(task.uid, `${crypto.randomUUID()}@chiri`);
         }
       }
 

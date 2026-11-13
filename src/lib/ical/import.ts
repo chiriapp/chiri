@@ -1,8 +1,7 @@
+import { extractVTodos, parsedVTodoToTask, parseVTodo } from '$lib/ical/vtodo';
 import { loggers } from '$lib/logger';
 import type { ParsedTaskWithStatus } from '$types/task/import';
 import type { Task } from '$types/task/model';
-import { generateUUID } from '$utils/misc';
-import { extractVTodos, parsedVTodoToTask, parseVTodo } from './vtodo';
 
 const log = loggers.iCal;
 
@@ -30,8 +29,8 @@ export const createImportedTask = (
 
   return {
     ...imported,
-    id: generateUUID(),
-    uid: uid || `${generateUUID()}@chiri`,
+    id: crypto.randomUUID(),
+    uid: uid || `${crypto.randomUUID()}@chiri`,
     title: partialTask.title || 'Untitled Task',
     description: partialTask.description || '',
     status: partialTask.status || 'needs-action',
@@ -124,7 +123,7 @@ export const parseJsonTasksFile = (jsonContent: string): Partial<Task>[] => {
     if (Array.isArray(data)) {
       return data.map((task) => ({
         ...task,
-        id: generateUUID(), // Always generate new IDs
+        id: crypto.randomUUID(), // Always generate new IDs
         synced: false,
       }));
     }

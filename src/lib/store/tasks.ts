@@ -14,14 +14,13 @@ import {
   getNewTaskPercentComplete,
   getTaskStatusAfterCompletionToggle,
 } from '$lib/task/status';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { DefaultDateOffset, DefaultReminderOffset } from '$types/settings/categories/defaults';
 import type { WorkingDay } from '$types/settings/categories/scheduling';
 import type { SortConfig } from '$types/sort';
 import type { TaskCreationOptions } from '$types/task/creation';
 import type { Reminder, Task } from '$types/task/model';
 import { getNextWorkingDay } from '$utils/calendar';
-import { generateUUID } from '$utils/misc';
 
 const resolveReminderOffsets = (
   offsets: DefaultReminderOffset[],
@@ -50,7 +49,7 @@ const resolveReminderOffsets = (
     else if (offset === '2days-before-due')
       trigger = setHours(subDays(startOfDay(due.date), 2), allDayHour);
     else trigger = setHours(subDays(startOfDay(due.date), 7), allDayHour); // '1week-before-due'
-    return { id: generateUUID(), trigger };
+    return { id: crypto.randomUUID(), trigger };
   });
 };
 
@@ -316,8 +315,8 @@ const buildTask = (
       : undefined;
 
   const task: Task = {
-    id: generateUUID(),
-    uid: generateUUID(),
+    id: crypto.randomUUID(),
+    uid: crypto.randomUUID(),
     title: taskData.title ?? 'New Task',
     description: taskData.description ?? '',
     status: taskStatus,

@@ -19,7 +19,7 @@ import {
   getPushProviderForSubscription,
   stopAllPushProviderListeners,
 } from '$lib/push/providers';
-import { queryClient, queryKeys } from '$lib/queryClient';
+import { queryClient, queryKeys } from '$lib/query-client';
 import type { Account } from '$types/account';
 import type { Calendar } from '$types/calendar';
 import type { WebDAVPushAccountDiagnostics } from '$types/push/diagnostics';
@@ -35,7 +35,6 @@ import type {
   PushSubscription,
   PushTrigger,
 } from '$types/push/webdav';
-import { generateUUID } from '$utils/misc';
 
 const DEFAULT_PUSH_PROVIDER_CONFIG: PushProviderConfig = {
   providerId: NTFY_DIRECT_PROVIDER_ID,
@@ -377,7 +376,7 @@ const createRegisteredPushSubscription = async (
   }
 
   const subscription: PushSubscription = {
-    id: generateUUID(),
+    id: crypto.randomUUID(),
     calendarId: calendar.id,
     accountId,
     registrationUrl: registration.registrationUrl,

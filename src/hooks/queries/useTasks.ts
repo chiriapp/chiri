@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { settingsStore } from '$context/settingsContext';
 import { requestSelectedTaskTitleAutofocus } from '$hooks/queries/useUIState';
 import { db } from '$lib/database';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import { dataStore } from '$lib/store';
 import { addReminder, removeReminder, updateReminder } from '$lib/store/reminders';
 import { reorderTaskList, reorderTasks } from '$lib/store/reorder/tasks';

@@ -11,7 +11,7 @@ import {
   sendSimpleNotification,
 } from '$lib/notifications';
 import { flushLocalState } from '$lib/shutdown';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import { isMacPlatform } from '$utils/platform';
 
 type NotificationPermission = 'granted' | 'denied' | 'unknown';

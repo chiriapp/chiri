@@ -197,7 +197,7 @@ import { OAuthReauthorizationRequiredError } from '$lib/auth/refresh';
 import { taskToVTodo } from '$lib/ical/vtodo';
 // import AFTER mocks are set up
 import { reconnectAccounts, syncCalendarsForAccount, syncCalendarTasks } from '$lib/store/sync';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '~/lib/toast-manager';
 
 const testCalendar = makeCalendar({
   id: 'cal-1',

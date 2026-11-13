@@ -3,7 +3,6 @@ import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import type { Tag } from '$types/tag';
 import { getFallbackItemColor } from '$utils/color/scheme';
-import { generateUUID } from '$utils/misc';
 
 const log = loggers.dataStore;
 
@@ -21,7 +20,7 @@ export const createTag = (tagData: Partial<Tag>) => {
   const maxExistingOrder = data.tags.reduce((max, t) => Math.max(max, t.sortOrder), 0);
 
   const tag: Tag = {
-    id: generateUUID(),
+    id: crypto.randomUUID(),
     name: tagData.name ?? 'New Tag',
     color: tagData.color ?? getFallbackItemColor(),
     icon: tagData.icon,

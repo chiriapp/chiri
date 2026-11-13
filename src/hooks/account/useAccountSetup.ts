@@ -10,7 +10,7 @@ import {
   getCalDAVErrorInfo,
 } from '$lib/caldav/setup';
 import { loggers } from '$lib/logger';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import type { Account, AccountDraft } from '$types/account';
 import type { Calendar } from '$types/calendar';
 

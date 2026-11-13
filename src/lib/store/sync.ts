@@ -11,7 +11,7 @@ import { getErrorMessage } from '$lib/http';
 import { taskToVTodo, vtodoToTask } from '$lib/ical/vtodo';
 import { loggers } from '$lib/logger';
 import { disablePushForCalendar } from '$lib/push';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import { dataStore } from '$lib/store';
 import { getAccountById, getAllAccounts, updateAccount } from '$lib/store/accounts';
 import { addCalendar, deleteCalendar, updateCalendar } from '$lib/store/calendars';
@@ -25,7 +25,7 @@ import {
   updateTask,
 } from '$lib/store/tasks';
 import { getUIState, setAllTasksView } from '$lib/store/ui';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { Account } from '$types/account';
 import type { Calendar } from '$types/calendar';
 import type { PendingDeletion } from '$types/store/sync';

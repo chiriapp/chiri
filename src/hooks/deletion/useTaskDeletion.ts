@@ -4,7 +4,7 @@ import { useSettingsStore } from '$context/settingsContext';
 import { useDeleteTask, usePermanentDeleteTask, useTasks } from '$hooks/queries/useTasks';
 import { useSetRecentlyDeletedView } from '$hooks/queries/useUIState';
 import { isDiscardableUntitledLocalDraft } from '$lib/task/deletion';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { Task } from '$types/task/model';
 import { pluralize } from '$utils/misc';
 

@@ -16,7 +16,7 @@ export const SidebarHeader = ({
 }: SidebarHeaderProps) => (
   <div
     data-tauri-drag-region
-    className="app-sidebar-header flex h-13 shrink-0 items-center justify-center pr-[9px] pl-2"
+    className="app-sidebar-header flex h-13 shrink-0 items-center justify-center pr-2.25 pl-2"
   >
     <div data-tauri-drag-region className="app-sidebar-header-layers">
       <div

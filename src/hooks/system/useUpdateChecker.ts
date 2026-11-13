@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { settingsStore } from '$context/settingsContext';
 import { loggers } from '$lib/logger';
 import { flushLocalState } from '$lib/shutdown';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import { fetchReleaseNotes } from '$utils/meta';
 import { getInstallType, getPackageManagerName, shouldDisableUpdates } from '$utils/platform';
 

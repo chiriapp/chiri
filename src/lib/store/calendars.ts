@@ -6,7 +6,6 @@ import { dataStore } from '$lib/store';
 import type { Account } from '$types/account';
 import type { Calendar } from '$types/calendar';
 import type { Task } from '$types/task/model';
-import { generateUUID } from '$utils/misc';
 
 const log = loggers.dataStore;
 
@@ -59,7 +58,7 @@ export const addCalendar = async (accountId: string, calendarData: Partial<Calen
 
   const calendar: Calendar = {
     ...calendarData,
-    id: calendarData.id ?? generateUUID(),
+    id: calendarData.id ?? crypto.randomUUID(),
     displayName: calendarData.displayName ?? DEFAULT_CALENDAR_NAME,
     url: calendarData.url ?? '',
     accountId,

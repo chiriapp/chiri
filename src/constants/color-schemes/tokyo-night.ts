@@ -8,18 +8,17 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
       id: 'light',
       name: 'Light',
       mode: 'light',
-      // 50–100: light content bg; 200–300: sidebar/panel bg + hover; 400–600: muted text; 700–900: text
       surfaces: {
-        50: '#f0f1f5', // lightest bg (inputs, cards)
-        100: '#e6e7ed', // editor bg (editor.background)
-        200: '#d6d8df', // sidebar bg / hover / borders (sideBar.background)
-        300: '#c8cad3', // slightly stronger border
-        400: '#9da0ab', // line numbers / very muted (editorLineNumber.foreground)
-        500: '#888b94', // comment text
-        600: '#73767d', // placeholder / ghost text
-        700: '#4a5069', // medium text
-        800: '#363c4d', // UI foreground (editor.foreground adjusted)
-        900: '#343b59', // primary text (editor.foreground)
+        50: '#f0f1f5',
+        100: '#e6e7ed',
+        200: '#d6d8df',
+        300: '#c8cad3',
+        400: '#9da0ab',
+        500: '#888b94',
+        600: '#73767d',
+        700: '#4a5069',
+        800: '#363c4d',
+        900: '#343b59',
       },
       accentColors: [
         { name: 'Red', value: '#8c4351' },
@@ -52,18 +51,17 @@ export const tokyoNightColorScheme: ColorSchemeDefinition = {
       id: 'night',
       name: 'Night',
       mode: 'dark',
-      // 50–200: fg (primary); 300: fg_dark (secondary text); 400+: mid/dark surfaces and bg
       surfaces: {
-        50: '#c0caf5', // fg
-        100: '#c0caf5', // fg             ← selected/highlighted text
-        200: '#c0caf5', // fg             ← primary text (dark:text-surface-200)
-        300: '#a9b1d6', // fg_dark
-        400: '#737aa2', // dark5          ← secondary text
-        500: '#545c7e', // dark3
-        600: '#414868', // terminal_black
-        700: '#292e42', // bg_highlight   ← borders / hover
-        800: '#1a1b26', // bg             ← main bg
-        900: '#16161e', // bg_dark
+        50: '#c0caf5',
+        100: '#c0caf5',
+        200: '#c0caf5',
+        300: '#a9b1d6',
+        400: '#737aa2',
+        500: '#545c7e',
+        600: '#414868',
+        700: '#292e42',
+        800: '#1a1b26',
+        900: '#16161e',
       },
       accentColors: [
         { name: 'Red', value: '#f7768e' },

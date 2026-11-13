@@ -17,7 +17,7 @@ import {
   removeTaskFromServer,
   syncCalendarTasks,
 } from '$lib/store/sync';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { Task } from '$types/task/model';
 
 const log = loggers.sync;

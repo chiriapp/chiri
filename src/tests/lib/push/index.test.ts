@@ -4,6 +4,7 @@ import type { Calendar } from '$types/calendar';
 import type { PushProviderSubscriptionDiagnostics } from '$types/push/diagnostics';
 import { NTFY_DIRECT_PROVIDER_ID } from '$types/push/providers';
 import type { PushEndpointSubscription, PushSubscription } from '$types/push/webdav';
+import { stubRandomUUID } from '../../uuid';
 
 const mocks = vi.hoisted(() => {
   let subscriptions: PushSubscription[] = [];
@@ -117,7 +118,7 @@ vi.mock('$lib/queryClient', () => ({
     },
   },
 }));
-vi.mock('$utils/misc', () => ({ generateUUID: mocks.nextUuid }));
+stubRandomUUID(mocks.nextUuid);
 
 import {
   disableAllPushSubscriptions,

@@ -5,7 +5,6 @@ import { rowToCalendar } from '$lib/database/converters';
 import type { CalendarRow } from '$lib/database/types';
 import { getUIState } from '$lib/database/ui';
 import type { Calendar } from '$types/calendar';
-import { generateUUID } from '$utils/misc';
 
 export const addCalendar = async (
   conn: DatabasePlugin,
@@ -21,7 +20,7 @@ export const addCalendar = async (
     sortOrder = (maxRows[0]?.max_order ?? 0) + 100;
   }
 
-  const calendarId = calendarData.id ?? generateUUID();
+  const calendarId = calendarData.id ?? crypto.randomUUID();
   const displayName = calendarData.displayName ?? DEFAULT_CALENDAR_NAME;
   const url = calendarData.url ?? '';
 

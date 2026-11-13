@@ -8,18 +8,17 @@ export const gruvboxColorScheme: ColorSchemeDefinition = {
       id: 'dark',
       name: 'Dark',
       mode: 'dark',
-      // 50: light0 (highlight); 100–200: light1 fg; 300–400: light2–3 secondary; 500+: dark surfaces/bg
       surfaces: {
-        50: '#fbf1c7', // light0 (brightest fg)
-        100: '#ebdbb2', // light1 (fg)
-        200: '#ebdbb2', // light1 (fg)   ← primary text
-        300: '#d5c4a1', // light2
-        400: '#bdae93', // light3        ← secondary text
-        500: '#a89984', // light4
-        600: '#665c54', // dark3
-        700: '#3c3836', // dark1         ← borders / hover
-        800: '#282828', // dark0         ← main bg
-        900: '#1d2021', // dark0_hard
+        50: '#fbf1c7',
+        100: '#ebdbb2',
+        200: '#ebdbb2',
+        300: '#d5c4a1',
+        400: '#bdae93',
+        500: '#a89984',
+        600: '#665c54',
+        700: '#3c3836',
+        800: '#282828',
+        900: '#1d2021',
       },
       accentColors: [
         { name: 'Red', value: '#fb4934' },
@@ -50,18 +49,17 @@ export const gruvboxColorScheme: ColorSchemeDefinition = {
       id: 'light',
       name: 'Light',
       mode: 'light',
-      // light → dark: light0_hard (bg) → dark0 (darkest text)
       surfaces: {
-        50: '#f9f5d7', // light0_hard   ← hover tint
-        100: '#f2e5bc', // light0_soft
-        200: '#d5c4a1', // light2        ← borders (skipping light1 for more contrast)
-        300: '#bdae93', // light3
-        400: '#a89984', // light4
-        500: '#7c6f64', // dark4         ← secondary text
-        600: '#665c54', // dark3
-        700: '#504945', // dark2
-        800: '#3c3836', // dark1         ← primary text
-        900: '#282828', // dark0
+        50: '#f9f5d7',
+        100: '#f2e5bc',
+        200: '#d5c4a1',
+        300: '#bdae93',
+        400: '#a89984',
+        500: '#7c6f64',
+        600: '#665c54',
+        700: '#504945',
+        800: '#3c3836',
+        900: '#282828',
       },
       accentColors: [
         { name: 'Red', value: '#cc241d' },

@@ -2,7 +2,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import { useCallback, useState } from 'react';
 import { useUpdateChecker } from '$hooks/system/useUpdateChecker';
 import { useChangelog } from '$hooks/useChangelog';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 
 export const useAppUpdates = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);

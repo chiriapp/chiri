@@ -18,7 +18,7 @@ import { CalDAVClient } from '$lib/caldav';
 import { toCalDAVSetupError } from '$lib/caldav/setup';
 import { usernameFromPrincipalUrl } from '$lib/caldav/utils';
 import { loggers } from '$lib/logger';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 
 const log = loggers.account;
 

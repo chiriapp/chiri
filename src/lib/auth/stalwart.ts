@@ -20,7 +20,7 @@ import {
   type OAuthTokens,
   parseTokenResponse,
 } from '$lib/auth/oauth';
-import { registerDeepLinkHandler, unregisterDeepLinkHandler } from '$lib/deepLink';
+import { registerDeepLinkHandler, unregisterDeepLinkHandler } from '$lib/deep-link';
 import type { HttpResponse } from '$lib/http';
 import { loggers } from '$lib/logger';
 import type { ServerValidationResult } from '$types/account';

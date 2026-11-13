@@ -9,7 +9,7 @@ import { usePushProviderAvailability } from '$hooks/push/usePushProviderAvailabi
 import { getWebDAVPushAccountDiagnostics } from '$lib/push';
 import { getPushProviderConfigKey, getPushProviderLabel } from '$lib/push/providers';
 import { getWebDAVPushStatus, webdavPushToneClass } from '$lib/push/status';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import type { Account } from '$types/account';
 import type { WebDAVPushAccountDiagnostics } from '$types/push/diagnostics';
 import type { PushProviderConfig } from '$types/push/providers';

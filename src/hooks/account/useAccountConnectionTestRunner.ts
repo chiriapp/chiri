@@ -3,7 +3,6 @@ import { connectionStore } from '$context/connectionContext';
 import { type AccountConnectionTestResult, testAccountConnection } from '$lib/caldav/test';
 import type { HttpRequestContext } from '$lib/http';
 import type { Account } from '$types/account';
-import { generateUUID } from '$utils/misc';
 
 interface UseAccountConnectionTestRunnerOptions {
   enforceVapid: boolean;
@@ -42,7 +41,7 @@ export const useAccountConnectionTestRunner = ({
   const runTest = useCallback(
     async (account: Account): Promise<AccountConnectionTestResult> => {
       const controller = new AbortController();
-      const operationId = `${operationIdPrefix}:${account.id}:${generateUUID()}`;
+      const operationId = `${operationIdPrefix}:${account.id}:${crypto.randomUUID()}`;
       const context: HttpRequestContext = {
         operationId,
         signal: controller.signal,

@@ -1,10 +1,6 @@
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { DEFAULT_HTTP_PROXY_PORT, DEFAULT_SOCKS_PROXY_PORT } from '$constants/settings';
 
-export const generateUUID = () => {
-  return crypto.randomUUID();
-};
-
 /**
  * intercept clicks on links inside rendered HTML and open them in the system browser
  */

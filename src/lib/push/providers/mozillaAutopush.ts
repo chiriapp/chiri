@@ -7,7 +7,6 @@ import type { PushProviderSubscriptionDiagnostics } from '$types/push/diagnostic
 import type { MozillaAutopushProviderConfig, PushMessageHandler } from '$types/push/providers';
 import { MOZILLA_AUTOPUSH_PROVIDER_ID } from '$types/push/providers';
 import type { PushEndpointSubscription, PushSubscription } from '$types/push/webdav';
-import { generateUUID } from '$utils/misc';
 
 export const DEFAULT_MOZILLA_AUTOPUSH_WEBSOCKET_URL = 'wss://push.services.mozilla.com/';
 export const DEFAULT_MOZILLA_AUTOPUSH_ENDPOINT_URL = 'https://updates.push.services.mozilla.com';
@@ -241,7 +240,7 @@ export const createMozillaAutopushProviderSubscription = async (
   const resolvedConfig = getConfig(config);
 
   try {
-    const channelId = generateUUID();
+    const channelId = crypto.randomUUID();
     const registration = await invoke<MozillaAutopushRegistration>('mozilla_autopush_register', {
       websocketUrl: resolvedConfig.websocketUrl,
       uaid: null,

@@ -2,7 +2,6 @@ import type DatabasePlugin from '@tauri-apps/plugin-sql';
 import type { TaskHistoryRow } from '$lib/database/types';
 import type { TaskHistoryEntry } from '$types/task/history';
 import type { Task } from '$types/task/model';
-import { generateUUID } from '$utils/misc';
 
 const HISTORY_FIELDS = [
   'title',
@@ -74,7 +73,7 @@ export const logHistoryForTaskUpdates = async (
       if (oldValue === newValue) continue;
 
       changes.push({
-        id: generateUUID(),
+        id: crypto.randomUUID(),
         taskUid,
         changedAt,
         field,
@@ -126,7 +125,7 @@ export const logTaskChange = async (
   await conn.execute(
     `INSERT INTO task_history (id, task_uid, changed_at, field, old_value, new_value)
      VALUES ($1, $2, $3, $4, $5, $6)`,
-    [generateUUID(), taskUid, new Date().toISOString(), field, oldValue, newValue],
+    [crypto.randomUUID(), taskUid, new Date().toISOString(), field, oldValue, newValue],
   );
 };
 

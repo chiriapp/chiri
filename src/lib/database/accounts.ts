@@ -4,7 +4,6 @@ import { rowToAccount, rowToCalendar } from '$lib/database/converters';
 import type { AccountRow, CalDAVConfigRow, CalendarRow } from '$lib/database/types';
 import { getUIState } from '$lib/database/ui';
 import type { Account } from '$types/account';
-import { generateUUID } from '$utils/misc';
 
 export const getAllAccounts = async (conn: DatabasePlugin) => {
   const accountRows = await conn.select<AccountRow[]>(
@@ -33,7 +32,7 @@ export const createAccount = async (conn: DatabasePlugin, accountData: Partial<A
   const maxOrder = maxOrderRow[0]?.max_order ?? 0;
 
   const account: Account = {
-    id: accountData.id ?? generateUUID(),
+    id: accountData.id ?? crypto.randomUUID(),
     name: accountData.name ?? 'New Account',
     icon: accountData.icon,
     emoji: accountData.emoji,

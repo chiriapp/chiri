@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('$lib/store/tags', () => ({ getAllTags: () => [] }));
-// generateUUID is non-deterministic; pin it so id/uid checks stay simple
-let uuidCounter = 0;
-vi.mock('$utils/misc', () => ({
-  generateUUID: () => `uuid-${++uuidCounter}`,
-}));
 
 import {
   generateVCalendar,
@@ -42,7 +37,9 @@ describe('parsedVTodoToTask', () => {
   it('generates a uid when parsed VTODO has none', () => {
     const result = parsedVTodoToTask({}, { accountId: 'a', calendarId: 'c', synced: false });
 
-    expect(result.uid).toMatch(/^uuid-/);
+    expect(result.uid).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
   });
 
   it('maps iCal STATUS to Status', () => {

@@ -4,7 +4,6 @@ import type { CalendarDiscoveryDiagnostics } from '$lib/caldav/calendars';
 import { getSetupNotice, probeSetupVtodoCreationIfNeeded } from '$lib/caldav/setup';
 import type { HttpRequestContext } from '$lib/http';
 import type { Account } from '$types/account';
-import { generateUUID } from '$utils/misc';
 
 export interface AccountConnectionTestResult {
   calendars: Awaited<ReturnType<CalDAVClient['discoverCalendars']>>['calendars'];
@@ -21,7 +20,7 @@ export const testAccountConnection = async (
     throw new Error('A connection test is already in progress for this account.');
   }
 
-  const testConnectionId = `connection-test-${generateUUID()}`;
+  const testConnectionId = `connection-test-${crypto.randomUUID()}`;
 
   try {
     await CalDAVClient.reconnect(account, context, testConnectionId);

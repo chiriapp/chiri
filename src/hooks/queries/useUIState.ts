@@ -12,7 +12,7 @@ import {
   DEFAULT_TAG_SORT_CONFIG,
   DEFAULT_TASK_GROUP_CONFIG,
 } from '$constants';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import { dataStore } from '$lib/store';
 import {
   getUIState,

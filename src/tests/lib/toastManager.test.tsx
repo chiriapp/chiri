@@ -26,7 +26,7 @@ vi.mock('sonner', () => ({
   },
 }));
 
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 
 type ToastTitleProps = ComponentProps<typeof ToastTitle>;
 

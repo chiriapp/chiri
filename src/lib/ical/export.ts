@@ -1,6 +1,6 @@
+import { generateVCalendar, generateVTodo } from '$lib/ical/vtodo';
 import type { Task } from '$types/task/model';
 import { formatDate } from '$utils/date';
-import { generateVCalendar, generateVTodo } from './vtodo';
 
 /**
  * export a single task as iCalendar format with all its child tasks

@@ -8,6 +8,7 @@ import {
 import type { Calendar } from '$types/calendar';
 import { KUNIFIED_PUSH_PROVIDER_ID } from '$types/push/providers';
 import type { PushSubscription } from '$types/push/webdav';
+import { stubRandomUUID } from '../../uuid';
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: vi.fn() }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn() }));
@@ -21,7 +22,7 @@ vi.mock('$lib/push/keys', () => ({
     authSecret: 'auth-secret',
   })),
 }));
-vi.mock('$utils/misc', () => ({ generateUUID: () => 'provider-token' }));
+stubRandomUUID('provider-token');
 
 const calendar = {
   id: 'calendar-id',

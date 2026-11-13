@@ -12,7 +12,6 @@ import { loggers } from '$lib/logger';
 import { getAllTags } from '$lib/store/tags';
 import type { Priority, Reminder, Status, Task } from '$types/task/model';
 import { normalizeTagColor } from '$utils/color/tag';
-import { generateUUID } from '$utils/misc';
 
 const log = loggers.iCal;
 
@@ -684,7 +683,7 @@ export const parsedVTodoToTask = (
     reminders = parsed.alarms
       .filter((a) => a.trigger)
       .map((a) => ({
-        id: generateUUID(),
+        id: crypto.randomUUID(),
         trigger: a.trigger!,
         relativeOffset: a.relativeOffset,
         relatedTo: a.relatedTo,
@@ -705,8 +704,8 @@ export const parsedVTodoToTask = (
   const taskStatus = icalStatusToTaskStatus(parsed.status);
 
   return {
-    id: generateUUID(),
-    uid: parsed.uid ?? generateUUID(),
+    id: crypto.randomUUID(),
+    uid: parsed.uid ?? crypto.randomUUID(),
     etag: overrides.etag,
     href: overrides.href,
     title: parsed.summary ?? 'Untitled Task',
@@ -771,5 +770,5 @@ export const vtodoToTask = (
  * generate a unique iCalendar UID
  */
 export const generateICalUid = () => {
-  return `${generateUUID()}@chiri`;
+  return `${crypto.randomUUID()}@chiri`;
 };

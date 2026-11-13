@@ -5,7 +5,7 @@ import { isPushProviderAvailable } from '$lib/push';
 import { getPushProviderConfigKey } from '$lib/push/providers';
 import { createMozillaAutopushProviderConfig } from '$lib/push/providers/mozillaAutopush';
 import { createNtfyProviderConfig } from '$lib/push/providers/ntfy';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import type { PushProviderId } from '$types/push/providers';
 import {
   KUNIFIED_PUSH_PROVIDER_ID,

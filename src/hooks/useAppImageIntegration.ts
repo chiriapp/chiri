@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import {
   installAppImageDesktopIntegration,
   isAppImageDesktopIntegrationNeeded,

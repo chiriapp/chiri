@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { loggers } from '$lib/logger';
-import { queryKeys } from '$lib/queryClient';
+import { queryKeys } from '$lib/query-client';
 import { getInstallType, shouldDisableUpdates } from '$utils/platform';
 
 const log = loggers.platform;

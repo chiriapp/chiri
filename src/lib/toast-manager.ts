@@ -38,7 +38,6 @@ class ToastManager {
   show(title: ReactNode, message: ReactNode, options: ShowToastOptions = {}) {
     const { type = 'info', groupKey, hint, action, closeButton = false, duration } = options;
 
-    // if groupKey is provided, dismiss any existing toast for this group
     if (groupKey) {
       const existingToastId = this.activeToastIds.get(groupKey);
       if (existingToastId) {
@@ -92,7 +91,6 @@ class ToastManager {
         : {}),
     });
 
-    // track the toast ID if groupKey is provided
     if (groupKey && toastId) {
       this.activeToastIds.set(groupKey, toastId);
     }
@@ -120,9 +118,6 @@ class ToastManager {
     return this.show(title, message, { ...options, type: 'success' });
   }
 
-  /**
-   * dismiss a toast by its group key
-   */
   dismiss(groupKey: string) {
     const toastId = this.activeToastIds.get(groupKey);
     if (toastId) {

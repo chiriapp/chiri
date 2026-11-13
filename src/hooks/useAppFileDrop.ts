@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { type FileDropResult, useFileDrop } from '$hooks/system/useFileDrop';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type {
   MobileConfigCalDAVSettings,
   MobileConfigImportProfile,

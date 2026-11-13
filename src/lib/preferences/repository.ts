@@ -29,9 +29,9 @@ export class PreferencesRepository {
 
     try {
       this.connection = await DatabasePlugin.load(PREFERENCES_DATABASE_URL);
-      this.log.info('Connected to preferences database');
+      this.log.debug('Opened preferences.db');
     } catch (error) {
-      this.log.error('Failed to connect to preferences database:', error);
+      this.log.error('Failed to open preferences.db:', error);
       throw error;
     }
   }

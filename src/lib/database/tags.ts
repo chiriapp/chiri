@@ -5,7 +5,6 @@ import type { TagRow } from '$lib/database/types';
 import { setActiveTag } from '$lib/database/ui';
 import type { Tag } from '$types/tag';
 import { getFallbackItemColor } from '$utils/color/scheme';
-import { generateUUID } from '$utils/misc';
 
 export const getAllTags = async (conn: DatabasePlugin) => {
   const rows = await conn.select<TagRow[]>('SELECT * FROM tags ORDER BY sort_order ASC');
@@ -24,7 +23,7 @@ export const createTag = async (conn: DatabasePlugin, tagData: Partial<Tag>) => 
   const maxOrder = maxOrderRow[0]?.max_order ?? 0;
 
   const tag: Tag = {
-    id: tagData.id ?? generateUUID(),
+    id: tagData.id ?? crypto.randomUUID(),
     name: tagData.name ?? 'New Tag',
     color: tagData.color ?? getFallbackItemColor(),
     icon: tagData.icon,

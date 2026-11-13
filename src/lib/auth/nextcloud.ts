@@ -41,7 +41,6 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
   }
 
   try {
-    // step 1: initiate login flow
     const initResponse = await tauriFetch(`${normalizedUrl}/index.php/login/v2`, {
       method: 'POST',
       headers: {
@@ -58,18 +57,14 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
 
     log.debug('Login flow initiated', { loginUrl: flowData.login });
 
-    // step 2: open browser for user authentication
     await openUrl(flowData.login);
-
     log.info('Opened browser for authentication');
 
-    // step 3: create new abort controller for this polling operation
     const controller = new AbortController();
     activePollingController = controller;
 
     const credentials = await pollForCredentials(flowData.poll, controller.signal);
 
-    // clear the controller on success
     if (activePollingController === controller) {
       activePollingController = null;
     }
@@ -81,7 +76,6 @@ export const initiateNextcloudLogin = async (serverUrl: string) => {
     const errorMessage = error instanceof Error ? error.message : String(error);
     const errorStack = error instanceof Error ? error.stack : undefined;
 
-    // clear the controller on error
     if (activePollingController) {
       activePollingController = null;
     }
@@ -114,8 +108,8 @@ const pollForCredentials = async (
   },
   signal: AbortSignal,
 ) => {
-  const maxAttempts = 600; // 20 minutes (2s intervals)
-  const pollInterval = 2000; // 2 seconds
+  const maxAttempts = 600;
+  const pollInterval = 2000;
   let attempts = 0;
 
   log.debug('Starting to poll for credentials', {
@@ -124,7 +118,6 @@ const pollForCredentials = async (
   });
 
   while (attempts < maxAttempts) {
-    // check if polling was cancelled
     if (signal.aborted) {
       log.info('Polling cancelled');
       throw new Error('Login flow cancelled');
@@ -144,14 +137,12 @@ const pollForCredentials = async (
 
       log.debug('Poll response received', { status: response.status });
 
-      // status 200 means authentication successful
       if (response.status === 200) {
         const credentials: LoginCredentials = await response.json();
         log.info('Credentials received');
         return credentials;
       }
 
-      // status 404 means still waiting for user to authenticate
       if (response.status === 404) {
         attempts++;
         log.debug('Still waiting for authentication', {
@@ -159,7 +150,6 @@ const pollForCredentials = async (
           maxAttempts,
         });
 
-        // check for cancellation before waiting
         if (signal.aborted) {
           log.info('Polling cancelled during wait');
           throw new Error('Login flow cancelled');
@@ -169,11 +159,9 @@ const pollForCredentials = async (
         continue;
       }
 
-      // any other status is an error
       const errorText = await response.text();
       throw new Error(`Unexpected polling status: ${response.status}. Response: ${errorText}`);
     } catch (error) {
-      // if polling was cancelled, don't retry
       if (error instanceof Error && error.message === 'Login flow cancelled') {
         throw error;
       }

@@ -5,6 +5,7 @@ import AlertTriangle from 'lucide-react/icons/alert-triangle';
 import { useEffect, useState } from 'react';
 import { TrayHostWarningBanner } from '$components/banners/TrayHostWarningBanner';
 import { LoadingSpinner } from '$components/LoadingSpinner';
+import { Select } from '$components/Select';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAutostart } from '$hooks/system/useAutostart';
 import { useTrayHostAvailability } from '$hooks/system/useTrayHostAvailability';
@@ -17,7 +18,6 @@ import {
   isMacPlatform,
   removeAppImageDesktopIntegration,
 } from '$utils/platform';
-import { Select } from '../Select';
 
 const formatRestartReasons = (reasons: string[]) => {
   if (reasons.length <= 1) return reasons[0] ?? 'changes';

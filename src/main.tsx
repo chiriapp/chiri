@@ -15,7 +15,7 @@ import {
   showWindow,
 } from '$lib/bootstrap';
 import { loggers } from '$lib/logger';
-import { queryClient } from '$lib/queryClient';
+import { queryClient } from '$lib/query-client';
 import { initializeShutdownHandler } from '$lib/shutdown';
 import { ConfirmDialogProvider } from '$providers/ConfirmDialogProvider';
 import { ConnectionProvider } from '$providers/ConnectionProvider';

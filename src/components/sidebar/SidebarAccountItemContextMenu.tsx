@@ -10,7 +10,7 @@ import type { SyncTrigger } from '$hooks/queries/useSync';
 import { getCalDAVErrorInfo } from '$lib/caldav/setup';
 import { getErrorMessage } from '$lib/http';
 import { ensureAccountConnected } from '$lib/store/sync';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { Account } from '$types/account';
 
 interface SidebarAccountItemContextMenuProps {

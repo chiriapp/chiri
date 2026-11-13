@@ -15,7 +15,6 @@ import type { HttpRequestContext } from '$lib/http';
 import { loggers } from '$lib/logger';
 import type { Account, AccountDraft } from '$types/account';
 import type { Calendar } from '$types/calendar';
-import { generateUUID } from '$utils/misc';
 
 const log = loggers.account;
 
@@ -181,7 +180,7 @@ export const useAccountConnectionTest = ({
 
   const testConnection = useCallback(async () => {
     cancelTestConnection();
-    const probeConnectionId = generateUUID();
+    const probeConnectionId = crypto.randomUUID();
     const testStateId = account?.id ?? probeConnectionId;
     const isTestStarted = beginTesting(testStateId);
 

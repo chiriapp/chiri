@@ -5,7 +5,6 @@ import { db } from '$lib/database';
 import { loggers } from '$lib/logger';
 import { dataStore } from '$lib/store';
 import type { Account } from '$types/account';
-import { generateUUID } from '$utils/misc';
 
 const log = loggers.dataStore;
 
@@ -37,7 +36,7 @@ export const createAccount = async (accountData: Partial<Account>) => {
   const maxExistingOrder = data.accounts.reduce((max, a) => Math.max(max, a.sortOrder), 0);
 
   const account: Account = {
-    id: accountData.id ?? generateUUID(),
+    id: accountData.id ?? crypto.randomUUID(),
     name: accountData.name ?? 'New Account',
     icon: accountData.icon,
     emoji: accountData.emoji,

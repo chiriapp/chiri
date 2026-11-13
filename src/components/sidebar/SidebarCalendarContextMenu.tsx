@@ -4,7 +4,7 @@ import Share2 from 'lucide-react/icons/share-2';
 import Trash2 from 'lucide-react/icons/trash-2';
 import type { SyncTrigger } from '$hooks/queries/useSync';
 import { getErrorMessage } from '$lib/http';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { Account } from '$types/account';
 
 interface SidebarCalendarContextMenuProps {

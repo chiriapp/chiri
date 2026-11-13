@@ -8,19 +8,17 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       id: 'latte',
       name: 'Latte',
       mode: 'light',
-      // mapped so surface-200 is a visible border on Base, and surface-800 is readable primary text
-      // light → dark: Base → … → Text
       surfaces: {
-        50: '#eff1f5', // Base (main bg / hover tint)
-        100: '#e6e9ef', // Mantle
-        200: '#dce0e8', // Crust         ← borders (visible on #eff1f5)
-        300: '#ccd0da', // Surface 0
-        400: '#acb0be', // Surface 2
-        500: '#7c7f93', // Overlay 2     ← secondary text
-        600: '#6c6f85', // Subtext 0
-        700: '#5c5f77', // Subtext 1
-        800: '#4c4f69', // Text          ← primary text
-        900: '#3d3f5a', // derived darker
+        50: '#eff1f5',
+        100: '#e6e9ef',
+        200: '#dce0e8',
+        300: '#ccd0da',
+        400: '#acb0be',
+        500: '#7c7f93',
+        600: '#6c6f85',
+        700: '#5c5f77',
+        800: '#4c4f69',
+        900: '#3d3f5a',
       },
       accentColors: [
         { name: 'Red', value: '#d20f39' },
@@ -54,18 +52,17 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       id: 'frappe',
       name: 'Frappé',
       mode: 'dark',
-      // 50–200: Text (primary fg); 300–400: Subtext (secondary fg); 500–600: mid surfaces; 700: borders; 800–900: backgrounds
       surfaces: {
-        50: '#c6d0f5', // Text
-        100: '#c6d0f5', // Text          ← selected/highlighted text
-        200: '#c6d0f5', // Text          ← primary text (dark:text-surface-200)
-        300: '#b5bfe2', // Subtext 1
-        400: '#a5adce', // Subtext 0     ← secondary text (dark:text-surface-400)
-        500: '#737994', // Overlay 0
-        600: '#51576d', // Surface 1
-        700: '#414559', // Surface 0     ← borders / hover (dark:border-surface-700)
-        800: '#303446', // Base          ← main bg (dark:bg-surface-800)
-        900: '#292c3c', // Mantle        ← deeper bg
+        50: '#c6d0f5',
+        100: '#c6d0f5',
+        200: '#c6d0f5',
+        300: '#b5bfe2',
+        400: '#a5adce',
+        500: '#737994',
+        600: '#51576d',
+        700: '#414559',
+        800: '#303446',
+        900: '#292c3c',
       },
       accentColors: [
         { name: 'Red', value: '#e78284' },
@@ -100,16 +97,16 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       name: 'Macchiato',
       mode: 'dark',
       surfaces: {
-        50: '#cad3f5', // Text
-        100: '#cad3f5', // Text          ← selected/highlighted text
-        200: '#cad3f5', // Text          ← primary text
-        300: '#b8c0e0', // Subtext 1
-        400: '#a5adcb', // Subtext 0     ← secondary text
-        500: '#6e738d', // Overlay 0
-        600: '#494d64', // Surface 1
-        700: '#363a4f', // Surface 0     ← borders / hover
-        800: '#24273a', // Base          ← main bg
-        900: '#1e2030', // Mantle
+        50: '#cad3f5',
+        100: '#cad3f5',
+        200: '#cad3f5',
+        300: '#b8c0e0',
+        400: '#a5adcb',
+        500: '#6e738d',
+        600: '#494d64',
+        700: '#363a4f',
+        800: '#24273a',
+        900: '#1e2030',
       },
       accentColors: [
         { name: 'Red', value: '#ed8796' },
@@ -144,16 +141,16 @@ export const catppuccinColorScheme: ColorSchemeDefinition = {
       name: 'Mocha',
       mode: 'dark',
       surfaces: {
-        50: '#cdd6f4', // Text
-        100: '#cdd6f4', // Text          ← selected/highlighted text
-        200: '#cdd6f4', // Text          ← primary text
-        300: '#bac2de', // Subtext 1
-        400: '#a6adc8', // Subtext 0     ← secondary text
-        500: '#6c7086', // Overlay 0
-        600: '#45475a', // Surface 1
-        700: '#313244', // Surface 0     ← borders / hover
-        800: '#1e1e2e', // Base          ← main bg
-        900: '#181825', // Mantle
+        50: '#cdd6f4',
+        100: '#cdd6f4',
+        200: '#cdd6f4',
+        300: '#bac2de',
+        400: '#a6adc8',
+        500: '#6c7086',
+        600: '#45475a',
+        700: '#313244',
+        800: '#1e1e2e',
+        900: '#181825',
       },
       accentColors: [
         { name: 'Red', value: '#f38ba8' },

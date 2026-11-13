@@ -10,7 +10,6 @@ import { getRecentlyDeletedRetentionCutoff } from '$lib/task/deletion';
 import { buildStatusUpdates, getTaskStatusAfterCompletionToggle } from '$lib/task/status';
 import type { TaskCreationOptions } from '$types/task/creation';
 import type { Task } from '$types/task/model';
-import { generateUUID } from '$utils/misc';
 
 export const getAllTasks = async (conn: DatabasePlugin) => {
   const rows = await conn.select<TaskRow[]>('SELECT * FROM tasks');
@@ -190,8 +189,8 @@ export const createTask = async (
   const maxSortOrder = maxOrderRows[0]?.max_order ?? toAppleEpoch(now.getTime()) - 1;
 
   const task: Task = {
-    id: generateUUID(),
-    uid: generateUUID(),
+    id: crypto.randomUUID(),
+    uid: crypto.randomUUID(),
     title: taskData.title ?? 'New Task',
     description: taskData.description ?? '',
     status: 'needs-action',

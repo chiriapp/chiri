@@ -4,7 +4,7 @@ import {
   DEFAULT_SHORTCUTS,
   DEFAULT_SIDEBAR_WIDTH,
 } from '$constants';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color-schemes';
 import { NTFY_DIRECT_PROVIDER_ID } from '$types/push/providers';
 import type { SettingsState } from '$types/settings/state';
 import { getDefaultAccentColor } from '$utils/color/scheme';

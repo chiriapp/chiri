@@ -2,7 +2,6 @@ import { settingsStore } from '$context/settingsContext';
 import { db } from '$lib/database';
 import { dataStore } from '$lib/store';
 import type { Filter } from '$types/filter';
-import { generateUUID } from '$utils/misc';
 
 export const getAllFilters = () => {
   return dataStore.load().filters;
@@ -18,7 +17,7 @@ export const createFilter = (filterData: Partial<Filter>) => {
   const maxOrder = data.filters.reduce((max, filter) => Math.max(max, filter.sortOrder), 0);
 
   const filter: Filter = {
-    id: filterData.id ?? generateUUID(),
+    id: filterData.id ?? crypto.randomUUID(),
     presetId: filterData.presetId,
     name: filterData.name ?? 'New Filter',
     icon: filterData.icon,

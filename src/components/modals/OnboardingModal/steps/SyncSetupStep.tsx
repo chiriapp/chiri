@@ -1,6 +1,6 @@
 import Cloud from 'lucide-react/icons/cloud';
 import HardDrive from 'lucide-react/icons/hard-drive';
-import { ActionCard } from '../ActionCard';
+import { ActionCard } from '$components/modals/OnboardingModal/ActionCard';
 
 export type TaskHome = 'local' | 'caldav';
 

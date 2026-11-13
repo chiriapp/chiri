@@ -16,7 +16,7 @@ const REDIRECT_STATUS_CODES = new Set([301, 302, 307, 308]);
 const SENSITIVE_HEADERS = new Set(['authorization', 'cookie', 'proxy-authorization']);
 
 // tracks which server hosts require Digest auth so we can skip the wasted
-// basic-auth attempt on the first round-trip. Cleared on app restart (intentionally)
+// basic-auth attempt on the first round-trip
 const digestHosts = new Set<string>();
 
 const getHostname = (url: string) => {

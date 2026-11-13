@@ -21,7 +21,7 @@ import { useNotificationContext } from '$context/notificationContext';
 import { useSettingsStore } from '$context/settingsContext';
 import { useAutostart } from '$hooks/system/useAutostart';
 import { useTrayHostAvailability } from '$hooks/system/useTrayHostAvailability';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import { isMacPlatform } from '$utils/platform';
 
 interface OnboardingModalProps {

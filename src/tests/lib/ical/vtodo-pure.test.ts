@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from 'vitest';
 // cut the chain at $lib/store/tags so the module evaluates in plain Node
 // (logger mocks come from src/tests/setup.ts)
 vi.mock('$lib/store/tags', () => ({ getAllTags: () => [] }));
-vi.mock('$utils/misc', () => ({ generateUUID: () => 'test-uuid' }));
 
 import {
   APPLE_EPOCH,

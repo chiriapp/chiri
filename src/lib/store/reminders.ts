@@ -1,13 +1,12 @@
 import { getTaskById, updateTask } from '$lib/store/tasks';
 import type { Reminder } from '$types/task/model';
-import { generateUUID } from '$utils/misc';
 
 export const addReminder = (taskId: string, trigger: Date) => {
   const task = getTaskById(taskId);
   if (!task) return undefined;
 
   const reminder: Reminder = {
-    id: generateUUID(),
+    id: crypto.randomUUID(),
     trigger,
   };
 

@@ -9,13 +9,12 @@ import { getAllTasks } from '$lib/database/tasks';
 import { getUIState, setAllTasksView } from '$lib/database/ui';
 import { loggers } from '$lib/logger';
 import type { DataStore } from '$types/store/state';
-import { generateUUID } from '$utils/misc';
 
 const log = loggers.database;
 
 const bootstrapLocalAccount = async (conn: DatabasePlugin) => {
-  const accountId = generateUUID();
-  const calendarId = generateUUID();
+  const accountId = crypto.randomUUID();
+  const calendarId = crypto.randomUUID();
   const account = await createAccount(conn, {
     id: accountId,
     name: 'Local',

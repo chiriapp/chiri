@@ -3,8 +3,8 @@ import { QueryClient } from '@tanstack/react-query';
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 30, // 30 minutes (formerly cacheTime)
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30,
       refetchOnWindowFocus: false,
       retry: 1,
       networkMode: 'always',
@@ -21,8 +21,8 @@ export const queryKeys = {
   tasks: {
     all: ['tasks'] as const,
     byCalendar: (calendarId: string) => ['tasks', 'calendar', calendarId] as const,
-    byTag: (tagId: string) => ['tasks', 'tag', tagId] as const,
     byId: (id: string) => ['tasks', 'id', id] as const,
+    byTag: (tagId: string) => ['tasks', 'tag', tagId] as const,
     children: (parentUid: string, filter: string) =>
       ['tasks', 'children', parentUid, filter] as const,
   },
@@ -46,11 +46,11 @@ export const queryKeys = {
   },
   pushDiagnostics: {
     all: ['pushDiagnostics'] as const,
-    byConfig: (providerKey: string, accountKey: string) =>
-      ['pushDiagnostics', providerKey, accountKey] as const,
     byAccount: (accountId: string) => ['pushDiagnostics', 'account', accountId] as const,
     byAccountAndConfig: (accountId: string, providerKey: string) =>
       ['pushDiagnostics', 'account', accountId, providerKey] as const,
+    byConfig: (providerKey: string, accountKey: string) =>
+      ['pushDiagnostics', providerKey, accountKey] as const,
   },
   pushProviderAvailability: {
     byConfig: (providerConfigKey: string) =>
@@ -62,11 +62,11 @@ export const queryKeys = {
     byTask: (taskUid: string) => ['taskHistory', taskUid] as const,
   },
   platform: {
+    installType: ['platform', 'installType'] as const,
     isGnomeDesktop: ['platform', 'isGnomeDesktop'] as const,
     isKdeDesktop: ['platform', 'isKdeDesktop'] as const,
-    trayHostAvailable: ['platform', 'trayHostAvailable'] as const,
-    installType: ['platform', 'installType'] as const,
     shouldDisableUpdates: ['platform', 'shouldDisableUpdates'] as const,
+    trayHostAvailable: ['platform', 'trayHostAvailable'] as const,
   },
   pendingDeletions: ['pendingDeletions'] as const,
   uiState: {

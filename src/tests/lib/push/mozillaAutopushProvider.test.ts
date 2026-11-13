@@ -11,6 +11,7 @@ import {
 import type { Calendar } from '$types/calendar';
 import { MOZILLA_AUTOPUSH_PROVIDER_ID } from '$types/push/providers';
 import type { PushSubscription } from '$types/push/webdav';
+import { stubRandomUUID } from '../../uuid';
 
 const tauriMocks = vi.hoisted(() => {
   const handlers = new Map<string, (event: { payload: unknown }) => void>();
@@ -46,8 +47,6 @@ vi.mock('$lib/push/keys', () => ({
   ),
 }));
 
-vi.mock('$utils/misc', () => ({ generateUUID: () => '123e4567-e89b-12d3-a456-426614174000' }));
-
 const calendar = {
   id: 'calendar-1',
   displayName: 'Work',
@@ -64,6 +63,8 @@ const registration = {
   channelId: '123e4567-e89b-12d3-a456-426614174000',
   endpoint: 'https://updates.example.test/wpush/abc',
 };
+
+stubRandomUUID(() => registration.channelId);
 
 const createStoredSubscription = (): PushSubscription => ({
   id: 'push-1',

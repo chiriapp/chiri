@@ -2,7 +2,6 @@ import { settingsStore } from '$context/settingsContext';
 import { db } from '$lib/database';
 import { buildStatusUpdates } from '$lib/task/status';
 import type { Task } from '$types/task/model';
-import { generateUUID } from '$utils/misc';
 
 /**
  * add a subtask by creating a new child Task
@@ -17,7 +16,7 @@ export const addSubtask = async (parentTaskId: string, title: string) => {
 
   const now = new Date();
   const childTask: Partial<Task> = {
-    uid: generateUUID(),
+    uid: crypto.randomUUID(),
     parentUid: parentTask.uid,
     title,
     description: '',

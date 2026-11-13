@@ -1,9 +1,9 @@
-import { catppuccinColorScheme } from '$constants/color/catppuccin';
-import { everforestColorScheme } from '$constants/color/everforest';
-import { githubColorScheme } from '$constants/color/github';
-import { gruvboxColorScheme } from '$constants/color/gruvbox';
-import { nordColorScheme } from '$constants/color/nord';
-import { tokyoNightColorScheme } from '$constants/color/tokyoNight';
+import { catppuccinColorScheme } from '$constants/color-schemes/catppuccin';
+import { everforestColorScheme } from '$constants/color-schemes/everforest';
+import { githubColorScheme } from '$constants/color-schemes/github';
+import { gruvboxColorScheme } from '$constants/color-schemes/gruvbox';
+import { nordColorScheme } from '$constants/color-schemes/nord';
+import { tokyoNightColorScheme } from '$constants/color-schemes/tokyo-night';
 import type { ColorSchemeAccent, ColorSchemeDefinition } from '$types/color';
 
 export const DEFAULT_COLOR_SCHEME_ID = 'default';

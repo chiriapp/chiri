@@ -7,7 +7,6 @@ import { ensureTagExists } from '$lib/store/sync';
 import { createTasks } from '$lib/store/tasks';
 import type { AccountDraft } from '$types/account';
 import type { Calendar } from '$types/calendar';
-import { generateUUID } from '$utils/misc';
 
 const log = loggers.account;
 
@@ -92,7 +91,7 @@ export const discoverAccountCalendars = async ({
     };
   }
 
-  const probeConnectionId = generateUUID();
+  const probeConnectionId = crypto.randomUUID();
   log.debug(`Connecting to ${trimmedServerUrl}...`);
   const proceedWithUrl = await confirmServerUrlWarning(trimmedServerUrl);
   if (!proceedWithUrl) return null;

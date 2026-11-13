@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import { DEFAULT_SHORTCUTS } from '$constants';
-import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color';
+import { DEFAULT_COLOR_SCHEME_ID } from '$constants/color-schemes';
+import { defaultState } from '$context/settingsDefaults';
 import { loggers } from '$lib/logger';
 import { mergeShortcuts } from '$lib/preferences/normalization';
 import { preferencesPersistence } from '$lib/preferences/persistence';
@@ -30,7 +31,6 @@ import { applyAccentColor, applySchemeAccentColor, resolveAccentColor } from '$u
 import { applyColorScheme, getColorSchemeFlavor } from '$utils/color/scheme';
 import { applyTheme, resolveEffectiveTheme } from '$utils/color/theme';
 import { getShortcutSignature } from '$utils/keyboard';
-import { defaultState } from './settingsDefaults';
 
 const log = loggers.settings;
 

@@ -13,7 +13,7 @@ import {
   exportTasksAsMarkdown,
 } from '$lib/ical/export';
 import { loggers } from '$lib/logger';
-import { toastManager } from '$lib/toastManager';
+import { toastManager } from '$lib/toast-manager';
 import type { Calendar } from '$types/calendar';
 import type { Task } from '$types/task/model';
 import { saveTextFile } from '$utils/fs';

@@ -32,7 +32,6 @@ vi.mock('$context/connectionContext', () => ({
 
 vi.mock('$lib/store/tags', () => ({ getAllTags: () => [] }));
 vi.mock('$utils/misc', () => ({
-  generateUUID: () => `${Date.now()}-${Math.random().toString(36).slice(2)}`,
   isVikunjaServer: (path: string) => path.includes('/dav/projects'),
   pluralize: (count: number, singular: string, plural?: string) =>
     count === 1 ? singular : (plural ?? `${singular}s`),
