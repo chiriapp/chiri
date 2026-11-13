@@ -19,7 +19,7 @@ vi.mock('$context/settingsContext', () => ({
   },
 }));
 
-vi.mock('$lib/toastManager', () => ({
+vi.mock('$lib/toast-manager', () => ({
   toastManager: { success: vi.fn(), error: vi.fn() },
 }));
 

@@ -15,7 +15,7 @@ vi.mock('@tauri-apps/plugin-opener', () => ({
   openUrl: mocks.openUrl,
 }));
 
-vi.mock('$lib/deepLink', () => ({
+vi.mock('$lib/deep-link', () => ({
   registerDeepLinkHandler: (path: string, handler: (url: URL) => void) => {
     mocks.deepLinkHandlers.set(path, handler);
   },

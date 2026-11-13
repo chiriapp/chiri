@@ -12,7 +12,7 @@ vi.mock('@tauri-apps/plugin-opener', () => ({
   openUrl: vi.fn(),
 }));
 
-vi.mock('$lib/deepLink', () => ({
+vi.mock('$lib/deep-link', () => ({
   registerDeepLinkHandler: vi.fn(),
   unregisterDeepLinkHandler: vi.fn(),
 }));

@@ -105,7 +105,7 @@ vi.mock('$lib/push/providers/ntfy', () => ({
   stopAllNtfyProviderListeners: mocks.stopAllNtfyProviderListeners,
   stopNtfyProviderListening: mocks.stopNtfyProviderListening,
 }));
-vi.mock('$lib/queryClient', () => ({
+vi.mock('$lib/query-client', () => ({
   queryClient: mocks.queryClient,
   queryKeys: {
     pushSubscriptions: {

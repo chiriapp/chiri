@@ -44,7 +44,7 @@ vi.mock('$hooks/queries/useUIState', () => ({
   useSetRecentlyDeletedView: () => ({ mutate: setRecentlyDeletedViewMutate }),
 }));
 
-vi.mock('$lib/toastManager', () => ({
+vi.mock('$lib/toast-manager', () => ({
   toastManager: { info: toastInfo },
 }));
 

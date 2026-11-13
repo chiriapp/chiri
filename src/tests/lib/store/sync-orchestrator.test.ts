@@ -140,7 +140,7 @@ vi.mock('$context/settingsContext', () => ({
   settingsStore: { getState: vi.fn(() => ({})) },
 }));
 
-vi.mock('$lib/toastManager', () => ({
+vi.mock('$lib/toast-manager', () => ({
   toastManager: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() },
 }));
 
@@ -173,7 +173,7 @@ vi.mock('$utils/color/scheme', () => ({
 
 vi.mock('$constants/menu', () => ({ MENU_EVENTS: { EDIT_ACCOUNT: 'menu:edit-account' } }));
 
-vi.mock('$lib/queryClient', () => ({
+vi.mock('$lib/query-client', () => ({
   queryKeys: {
     tasks: { all: ['tasks'] },
     accounts: { all: ['accounts'] },
@@ -197,7 +197,7 @@ import { OAuthReauthorizationRequiredError } from '$lib/auth/refresh';
 import { taskToVTodo } from '$lib/ical/vtodo';
 // import AFTER mocks are set up
 import { reconnectAccounts, syncCalendarsForAccount, syncCalendarTasks } from '$lib/store/sync';
-import { toastManager } from '~/lib/toast-manager';
+import { toastManager } from '$lib/toast-manager';
 
 const testCalendar = makeCalendar({
   id: 'cal-1',
