@@ -74,23 +74,10 @@ impl Tray for LinuxTray {
     }
 
     fn menu(&self) -> Vec<MenuItem<Self>> {
-        let show_app = self.app_handle.clone();
         let sync_app = self.app_handle.clone();
         let quit_app = self.app_handle.clone();
 
         vec![
-            StandardItem {
-                label: "Show Window".into(),
-                activate: Box::new(move |_| {
-                    if let Some(window) = show_app.get_webview_window("main") {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                }),
-                ..Default::default()
-            }
-            .into(),
-            MenuItem::Separator,
             StandardItem {
                 label: self.last_sync.clone(),
                 enabled: false,
@@ -108,6 +95,21 @@ impl Tray for LinuxTray {
             }
             .into(),
             MenuItem::Separator,
+            StandardItem {
+                label: "Open Chiri".into(),
+                activate: Box::new(|tray: &mut Self| tray.show_window()),
+                ..Default::default()
+            }
+            .into(),
+            StandardItem {
+                label: "Settings".into(),
+                activate: Box::new(|tray: &mut Self| {
+                    tray.show_window();
+                    let _ = tray.app_handle.emit("tray-settings", ());
+                }),
+                ..Default::default()
+            }
+            .into(),
             StandardItem {
                 label: "Quit".into(),
                 activate: Box::new(move |_| {

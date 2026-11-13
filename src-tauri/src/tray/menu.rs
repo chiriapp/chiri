@@ -57,10 +57,11 @@ pub(in crate::tray) fn initialize(
         return Ok(());
     }
 
-    let show_item = MenuItem::with_id(&app_handle, "show", "Show Window", true, None::<&str>)
+    let show_item = MenuItem::with_id(&app_handle, "show", "Open Chiri", true, None::<&str>)
         .map_err(|e| e.to_string())?;
-
-    let separator_item1 = PredefinedMenuItem::separator(&app_handle).map_err(|e| e.to_string())?;
+    let settings_item =
+        MenuItem::with_id(&app_handle, "tray-settings", "Settings", true, None::<&str>)
+            .map_err(|e| e.to_string())?;
 
     let last_sync_item = MenuItem::with_id(
         &app_handle,
@@ -79,18 +80,18 @@ pub(in crate::tray) fn initialize(
     }))?;
     state.set_sync_item(sync_item.clone())?;
 
-    let separator_item2 = PredefinedMenuItem::separator(&app_handle).map_err(|e| e.to_string())?;
+    let separator_item = PredefinedMenuItem::separator(&app_handle).map_err(|e| e.to_string())?;
     let quit_item = MenuItem::with_id(&app_handle, "tray-quit", "Quit", true, None::<&str>)
         .map_err(|e| e.to_string())?;
 
     let menu = Menu::with_items(
         &app_handle,
         &[
-            &show_item,
-            &separator_item1,
             &last_sync_item,
             &sync_item,
-            &separator_item2,
+            &separator_item,
+            &show_item,
+            &settings_item,
             &quit_item,
         ],
     )
@@ -118,6 +119,12 @@ pub(in crate::tray) fn initialize(
         .on_menu_event(|app, event| match event.id.as_ref() {
             "show" => {
                 show_main_window(app);
+            }
+            "tray-settings" => {
+                show_main_window(app);
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.emit("tray-settings", ());
+                }
             }
             "sync" => {
                 if let Some(window) = app.get_webview_window("main") {

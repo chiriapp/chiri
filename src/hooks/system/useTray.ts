@@ -9,9 +9,15 @@ interface UseTrayOptions {
   isSyncing: boolean;
   lastSyncTime: Date | null;
   onSyncRequest: () => void;
+  onOpenSettings: () => void;
 }
 
-export const useTray = ({ isSyncing, lastSyncTime, onSyncRequest }: UseTrayOptions) => {
+export const useTray = ({
+  isSyncing,
+  lastSyncTime,
+  onSyncRequest,
+  onOpenSettings,
+}: UseTrayOptions) => {
   const { data: accounts = [] } = useAccounts();
   const { enableSystemTray, setSystemTrayAppliedValue, timeFormat } = useSettingsStore();
 
@@ -34,6 +40,16 @@ export const useTray = ({ isSyncing, lastSyncTime, onSyncRequest }: UseTrayOptio
       unlisten.then((fn) => fn());
     };
   }, [onSyncRequest]);
+
+  useEffect(() => {
+    const unlisten = listen('tray-settings', () => {
+      onOpenSettings();
+    });
+
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, [onOpenSettings]);
 
   useEffect(() => {
     if (!enableSystemTray) return;

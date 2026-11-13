@@ -81,7 +81,7 @@ const App = () => {
     showChangelogFromMenu,
     syncCalendarFromMenu,
   );
-  const { showImport } = modals;
+  const { showImport, showSettings } = modals;
   const { openSettings, toggleSettings, openImport, closeImport, closeSettings, openAccount } =
     modalActions;
 
@@ -106,6 +106,9 @@ const App = () => {
     onOpenSettings: () => toggleSettings(),
     onSyncCalendar: syncCalendar,
     onTraySync: syncFromTray,
+    onTrayOpenSettings: () => {
+      if (!showSettings) openSettings();
+    },
   });
 
   return (
