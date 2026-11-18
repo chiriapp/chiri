@@ -1,4 +1,5 @@
 import type { Connection } from '$lib/caldav/connection';
+import type { Account } from '$types/account';
 import type { Calendar } from '$types/calendar';
 import type { FlattenedTask } from '$types/store/tasks';
 import type { Task } from '$types/task/model';
@@ -47,6 +48,16 @@ export const makeConnection = (overrides: Partial<Connection> = {}): Connection 
   principalUrl: 'https://cal.example.com/principals/user/',
   calendarHome: 'https://cal.example.com/calendars/user/',
   serverType: 'generic',
+  ...overrides,
+});
+
+export const makeAccount = (overrides: Partial<Account> = {}): Account => ({
+  id: 'test-account',
+  name: 'Test Account',
+  calendars: [],
+  isActive: true,
+  sortOrder: 100,
+  caldav: null,
   ...overrides,
 });
 
