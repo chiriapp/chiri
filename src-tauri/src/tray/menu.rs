@@ -13,7 +13,9 @@ use tauri::{
 #[cfg(target_os = "linux")]
 use ksni::TrayMethods;
 
-use super::{icon, sync_label, AppRuntime, TrayState, LAST_SYNC_NEVER};
+#[cfg(not(target_os = "linux"))]
+use super::sync_label;
+use super::{icon, AppRuntime, TrayState, LAST_SYNC_NEVER};
 #[cfg(not(target_os = "linux"))]
 use crate::app::events::request_frontend_quit;
 
