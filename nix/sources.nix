@@ -14,6 +14,8 @@ let
     "tsconfig.json"
     "tsconfig.node.json"
     "vite.config.ts"
+    # type-checked by tsc (which includes src/tests) to validate mock aliases
+    "vitest.config.ts"
   ];
 
   appDirs = [
