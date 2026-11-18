@@ -64,14 +64,14 @@ pub async fn update_tray_sync_time(
     state.update_sync_time(time_str)
 }
 
-/// enable/disable the tray sync button based on account availability
+/// point the tray sync entry at account setup while no account can sync
 #[tauri::command]
-pub async fn update_tray_sync_enabled(
+pub async fn update_tray_accounts(
     _app_handle: tauri::AppHandle<AppRuntime>,
     state: State<'_, TrayState>,
-    enabled: bool,
+    has_caldav_account: bool,
 ) -> Result<(), String> {
-    state.update_sync_enabled(enabled)
+    state.update_accounts(has_caldav_account)
 }
 
 /// set the system tray visibility

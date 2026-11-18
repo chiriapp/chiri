@@ -7,6 +7,7 @@ mod state;
 mod linux;
 
 pub use state::TrayState;
+pub(crate) use state::{sync_label, LAST_SYNC_NEVER};
 
 type AppRuntime = tauri::Wry;
 

@@ -83,6 +83,7 @@ export const useAppController = (
       closeMobileConfigExport,
     },
     commands: {
+      openAccount: commands.openAccount,
       openSettings: commands.openSettings,
     },
   };

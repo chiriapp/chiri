@@ -109,6 +109,7 @@ const App = () => {
     onTrayOpenSettings: () => {
       if (!showSettings) openSettings();
     },
+    onTrayAddAccount: commands.openAccount,
   });
 
   return (

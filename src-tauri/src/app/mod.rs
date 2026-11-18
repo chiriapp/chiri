@@ -128,7 +128,7 @@ pub fn run() {
             tray::commands::get_tray_host_available,
             tray::commands::initialize_tray,
             tray::commands::set_tray_visible,
-            tray::commands::update_tray_sync_enabled,
+            tray::commands::update_tray_accounts,
             tray::commands::update_tray_sync_time,
             utils::fs::read_file_bytes,
             utils::markdown::parse_and_sanitize_markdown,

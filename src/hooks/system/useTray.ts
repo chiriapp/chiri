@@ -10,6 +10,7 @@ interface UseTrayOptions {
   lastSyncTime: Date | null;
   onSyncRequest: () => void;
   onOpenSettings: () => void;
+  onAddAccount: () => void;
 }
 
 export const useTray = ({
@@ -17,9 +18,11 @@ export const useTray = ({
   lastSyncTime,
   onSyncRequest,
   onOpenSettings,
+  onAddAccount,
 }: UseTrayOptions) => {
   const { data: accounts = [] } = useAccounts();
   const { enableSystemTray, setSystemTrayAppliedValue, timeFormat } = useSettingsStore();
+  const hasCaldavAccount = accounts.some((account) => account.caldav);
 
   useEffect(() => {
     invoke('set_tray_visible', { visible: enableSystemTray })
@@ -32,47 +35,44 @@ export const useTray = ({
   }, [enableSystemTray, setSystemTrayAppliedValue]);
 
   useEffect(() => {
-    const unlisten = listen('tray-sync', () => {
-      onSyncRequest();
-    });
+    const listeners = [
+      listen('tray-sync', () => {
+        onSyncRequest();
+      }),
+      listen('tray-settings', () => {
+        onOpenSettings();
+      }),
+      listen('tray-add-account', () => {
+        onAddAccount();
+      }),
+    ];
 
     return () => {
-      unlisten.then((fn) => fn());
+      for (const listener of listeners) {
+        listener.then((unlisten) => unlisten());
+      }
     };
-  }, [onSyncRequest]);
-
-  useEffect(() => {
-    const unlisten = listen('tray-settings', () => {
-      onOpenSettings();
-    });
-
-    return () => {
-      unlisten.then((fn) => fn());
-    };
-  }, [onOpenSettings]);
+  }, [onAddAccount, onOpenSettings, onSyncRequest]);
 
   useEffect(() => {
     if (!enableSystemTray) return;
 
-    if (isSyncing) {
-      invoke('update_tray_sync_time', { timeStr: 'Last sync: Syncing...' }).catch((err) => {
-        console.error('Failed to update sync status:', err);
-      });
-    } else if (lastSyncTime) {
-      const timeStr = formatTime(lastSyncTime, timeFormat);
+    const label = !hasCaldavAccount
+      ? 'No accounts to sync'
+      : isSyncing
+        ? 'Last sync: Syncing...'
+        : `Last sync: ${lastSyncTime ? formatTime(lastSyncTime, timeFormat) : 'Never'}`;
 
-      invoke('update_tray_sync_time', { timeStr: `Last sync: ${timeStr}` }).catch((err) => {
-        console.error('Failed to update sync time:', err);
-      });
-    }
-  }, [enableSystemTray, isSyncing, lastSyncTime, timeFormat]);
+    invoke('update_tray_sync_time', { timeStr: label }).catch((err) => {
+      console.error('Failed to update sync status:', err);
+    });
+  }, [enableSystemTray, hasCaldavAccount, isSyncing, lastSyncTime, timeFormat]);
 
   useEffect(() => {
     if (!enableSystemTray) return;
 
-    const hasCaldav = accounts.some((a) => a.caldav);
-    invoke('update_tray_sync_enabled', { enabled: hasCaldav }).catch((err) => {
-      console.error('Failed to update sync button state:', err);
+    invoke('update_tray_accounts', { hasCaldavAccount }).catch((err) => {
+      console.error('Failed to update the tray sync entry:', err);
     });
-  }, [accounts, enableSystemTray]);
+  }, [enableSystemTray, hasCaldavAccount]);
 };

@@ -1,19 +1,24 @@
 use ksni::{menu::MenuItem, menu::StandardItem, ToolTip, Tray};
 use tauri::{image::Image, AppHandle, Emitter, Manager};
 
-use super::AppRuntime;
+use super::{sync_label, AppRuntime};
 use crate::app::events::request_frontend_quit;
 
 pub struct LinuxTray {
     app_handle: AppHandle<AppRuntime>,
     icon: ksni::Icon,
     pub(crate) last_sync: String,
-    pub(crate) sync_enabled: bool,
+    pub(crate) has_caldav_account: bool,
     pub(crate) visible: bool,
 }
 
 impl LinuxTray {
-    pub(crate) fn new(app_handle: AppHandle<AppRuntime>, image: Image<'static>) -> Self {
+    pub(crate) fn new(
+        app_handle: AppHandle<AppRuntime>,
+        image: Image<'static>,
+        has_caldav_account: bool,
+        last_sync: String,
+    ) -> Self {
         let mut data = image.rgba().to_vec();
         for pixel in data.chunks_exact_mut(4) {
             pixel.rotate_right(1);
@@ -26,8 +31,8 @@ impl LinuxTray {
                 height: image.height() as i32,
                 data,
             },
-            last_sync: "Last sync: Never".into(),
-            sync_enabled: true,
+            last_sync,
+            has_caldav_account,
             visible: true,
         }
     }
@@ -86,11 +91,17 @@ impl Tray for LinuxTray {
             }
             .into(),
             StandardItem {
-                label: "Sync Now".into(),
-                enabled: self.sync_enabled,
-                activate: Box::new(move |_| {
-                    let _ = sync_app.emit("tray-sync", ());
-                }),
+                label: sync_label(self.has_caldav_account).into(),
+                activate: if self.has_caldav_account {
+                    Box::new(move |_| {
+                        let _ = sync_app.emit("tray-sync", ());
+                    })
+                } else {
+                    Box::new(|tray: &mut Self| {
+                        tray.show_window();
+                        let _ = tray.app_handle.emit("tray-add-account", ());
+                    })
+                },
                 ..Default::default()
             }
             .into(),

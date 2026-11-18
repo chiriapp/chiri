@@ -20,6 +20,7 @@ interface UseAppLifecycleOptions {
   onSyncCalendar: SyncQuery['syncCalendar'];
   onTraySync: () => void;
   onTrayOpenSettings: () => void;
+  onTrayAddAccount: () => void;
   onKeyboardSync: () => void;
   onOpenSettings: () => void;
   onOpenKeyboardShortcuts: () => void;
@@ -32,6 +33,7 @@ export const useAppLifecycle = ({
   onSyncCalendar,
   onTraySync,
   onTrayOpenSettings,
+  onTrayAddAccount,
   onKeyboardSync,
   onOpenSettings,
   onOpenKeyboardShortcuts,
@@ -43,6 +45,7 @@ export const useAppLifecycle = ({
     lastSyncTime,
     onSyncRequest: onTraySync,
     onOpenSettings: onTrayOpenSettings,
+    onAddAccount: onTrayAddAccount,
   });
   useAppMenu(isSyncInProgress);
   useTheme();

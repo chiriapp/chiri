@@ -9,15 +9,28 @@ use super::AppRuntime;
 #[cfg(not(target_os = "linux"))]
 type MenuUpdater = Box<dyn Fn(String) + Send>;
 
+pub(crate) const LAST_SYNC_NEVER: &str = "Last sync: Never";
+
+/// label for the tray's sync entry; without a syncable account it points at account setup instead
+pub(crate) const fn sync_label(has_caldav_account: bool) -> &'static str {
+    if has_caldav_account {
+        "Sync Now"
+    } else {
+        "Add Account..."
+    }
+}
+
 pub struct TrayState {
     #[cfg(not(target_os = "linux"))]
     menu_updater: Mutex<Option<MenuUpdater>>,
     #[cfg(not(target_os = "linux"))]
     sync_item: Mutex<Option<MenuItem<AppRuntime>>>,
     enabled: Mutex<bool>,
+    /// whether any account can sync; decides what the tray's sync item offers
+    has_caldav_account: Mutex<bool>,
+    /// kept here so a tray created after the frontend's first update still renders the right text
+    last_sync_text: Mutex<String>,
     /// true if the current desktop session actually has a tray host available
-    /// (e.g., SNI/AppIndicator on Linux). on Linux this defaults to false and is
-    /// updated once we detect the host; on macOS/Windows it's always true
     host_available: Mutex<bool>,
     #[cfg(target_os = "linux")]
     linux_tray: Mutex<Option<ksni::Handle<super::linux::LinuxTray>>>,
@@ -31,6 +44,8 @@ impl Default for TrayState {
             #[cfg(not(target_os = "linux"))]
             sync_item: Mutex::new(None),
             enabled: Mutex::new(true),
+            has_caldav_account: Mutex::new(true),
+            last_sync_text: Mutex::new(LAST_SYNC_NEVER.into()),
             #[cfg(target_os = "linux")]
             host_available: Mutex::new(false),
             #[cfg(not(target_os = "linux"))]
@@ -55,6 +70,20 @@ impl TrayState {
             .lock()
             .map_err(|e| format!("Failed to lock tray enabled state: {e}"))? = enabled;
         Ok(())
+    }
+
+    pub(in crate::tray) fn has_caldav_account(&self) -> Result<bool, String> {
+        self.has_caldav_account
+            .lock()
+            .map(|has| *has)
+            .map_err(|e| format!("Failed to lock tray account state: {e}"))
+    }
+
+    pub(in crate::tray) fn last_sync_text(&self) -> Result<String, String> {
+        self.last_sync_text
+            .lock()
+            .map(|text| text.clone())
+            .map_err(|e| format!("Failed to lock tray last sync text: {e}"))
     }
 
     pub fn is_host_available(&self) -> Result<bool, String> {
@@ -117,6 +146,11 @@ impl TrayState {
     }
 
     pub(in crate::tray) fn update_sync_time(&self, time_str: String) -> Result<(), String> {
+        *self
+            .last_sync_text
+            .lock()
+            .map_err(|e| format!("Failed to lock tray last sync text: {e}"))? = time_str.clone();
+
         #[cfg(target_os = "linux")]
         {
             let handle = self.linux_tray_handle()?;
@@ -146,7 +180,12 @@ impl TrayState {
         Ok(())
     }
 
-    pub(in crate::tray) fn update_sync_enabled(&self, enabled: bool) -> Result<(), String> {
+    pub(in crate::tray) fn update_accounts(&self, has_caldav_account: bool) -> Result<(), String> {
+        *self
+            .has_caldav_account
+            .lock()
+            .map_err(|e| format!("Failed to lock tray account state: {e}"))? = has_caldav_account;
+
         #[cfg(target_os = "linux")]
         {
             let handle = self.linux_tray_handle()?;
@@ -154,7 +193,7 @@ impl TrayState {
                 if let Some(handle) = handle {
                     let _ = handle
                         .update(|tray| {
-                            tray.sync_enabled = enabled;
+                            tray.has_caldav_account = has_caldav_account;
                         })
                         .await;
                 }
@@ -169,7 +208,9 @@ impl TrayState {
                 .map_err(|e| format!("Failed to lock tray sync item: {e}"))?
                 .as_ref()
             {
-                sync_item.set_enabled(enabled).map_err(|e| e.to_string())?;
+                sync_item
+                    .set_text(sync_label(has_caldav_account))
+                    .map_err(|e| e.to_string())?;
             }
         }
 

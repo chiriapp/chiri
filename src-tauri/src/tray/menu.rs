@@ -13,7 +13,7 @@ use tauri::{
 #[cfg(target_os = "linux")]
 use ksni::TrayMethods;
 
-use super::{icon, AppRuntime, TrayState};
+use super::{icon, sync_label, AppRuntime, TrayState, LAST_SYNC_NEVER};
 #[cfg(not(target_os = "linux"))]
 use crate::app::events::request_frontend_quit;
 
@@ -66,13 +66,21 @@ pub(in crate::tray) fn initialize(
     let last_sync_item = MenuItem::with_id(
         &app_handle,
         "last_sync",
-        "Last sync: Never",
+        state
+            .last_sync_text()
+            .unwrap_or_else(|_| LAST_SYNC_NEVER.into()),
         false,
         None::<&str>,
     )
     .map_err(|e| e.to_string())?;
-    let sync_item = MenuItem::with_id(&app_handle, "sync", "Sync Now", true, None::<&str>)
-        .map_err(|e| e.to_string())?;
+    let sync_item = MenuItem::with_id(
+        &app_handle,
+        "sync",
+        sync_label(state.has_caldav_account().unwrap_or(true)),
+        true,
+        None::<&str>,
+    )
+    .map_err(|e| e.to_string())?;
 
     let item_clone = last_sync_item.clone();
     state.set_menu_updater(Box::new(move |text: String| {
@@ -127,8 +135,19 @@ pub(in crate::tray) fn initialize(
                 }
             }
             "sync" => {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.emit("tray-sync", ());
+                if app
+                    .state::<TrayState>()
+                    .has_caldav_account()
+                    .unwrap_or(true)
+                {
+                    if let Some(window) = app.get_webview_window("main") {
+                        let _ = window.emit("tray-sync", ());
+                    }
+                } else {
+                    show_main_window(app);
+                    if let Some(window) = app.get_webview_window("main") {
+                        let _ = window.emit("tray-add-account", ());
+                    }
                 }
             }
             "quit" => {
@@ -201,7 +220,14 @@ pub(in crate::tray) async fn initialize(
         icon_label, theme
     );
 
-    let tray = super::linux::LinuxTray::new(app_handle, tray_icon);
+    let tray = super::linux::LinuxTray::new(
+        app_handle,
+        tray_icon,
+        state.has_caldav_account().unwrap_or(true),
+        state
+            .last_sync_text()
+            .unwrap_or_else(|_| LAST_SYNC_NEVER.into()),
+    );
     let handle = tray
         .assume_sni_available(true)
         .spawn()
