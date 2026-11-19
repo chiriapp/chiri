@@ -17,18 +17,19 @@ const BYDAY_LABEL: Record<string, string> = Object.fromEntries(
   Object.values(WORKING_DAY_META).map((meta) => [meta.rruleByday, meta.shortLabel]),
 );
 
-/** format a JS Date as a UTC iCal datetime string (YYYYMMDDTHHMMSSZ) */
-const toICalUTC = (date: Date) => {
+/** format a JS Date as a local iCal datetime string (YYYYMMDDTHHMMSS) */
+const toICalLocal = (date: Date) => {
   const pad = (n: number) => String(n).padStart(2, '0');
   return (
-    `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}` +
-    `T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`
+    `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
+    `T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
   );
 };
 
-/** build a complete rrule string (DTSTART + RRULE) for rrule-temporal */
+/** build a complete rrule string (DTSTART + RRULE) for rrule-temporal, in local time like the editor's BYDAY */
 const buildRuleString = (rruleValue: string, dtstart: Date) => {
-  return `DTSTART:${toICalUTC(dtstart)}\nRRULE:${rruleValue}`;
+  const tzid = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return `DTSTART;TZID=${tzid}:${toICalLocal(dtstart)}\nRRULE:${rruleValue}`;
 };
 
 /**
