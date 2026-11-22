@@ -13,7 +13,7 @@ export const ToastProvider = () => {
       toastOptions={{
         classNames: {
           toast:
-            'group bg-white! dark:bg-surface-800! border! border-surface-200! dark:border-surface-700! shadow-lg! rounded-lg!',
+            'group bg-white! dark:bg-surface-800! border! border-surface-200! dark:border-surface-700! shadow-lg! dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_40px_-12px_rgba(0,0,0,0.9)]! rounded-lg!',
           title: 'text-surface-900! dark:text-surface-100! font-semibold!',
           description: 'text-surface-600! dark:text-surface-400!',
           actionButton:
