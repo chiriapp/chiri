@@ -75,7 +75,7 @@ export const createAccountsSubmenu = async ({
               }),
               await separator(),
               await MenuItem.new({
-                text: 'Delete Calendar',
+                text: 'Delete Calendar…',
                 enabled: isAppActionEnabled(),
                 action: () => {
                   emit(MENU_EVENTS.DELETE_CALENDAR, {
@@ -99,7 +99,7 @@ export const createAccountsSubmenu = async ({
         items: [
           ...calendarItems,
           await MenuItem.new({
-            text: 'New Calendar...',
+            text: 'New Calendar…',
             enabled: isAppActionEnabled(),
             action: () => {
               emit(MENU_EVENTS.ADD_CALENDAR, { accountId: account.id });
@@ -113,7 +113,7 @@ export const createAccountsSubmenu = async ({
             },
           }),
           await MenuItem.new({
-            text: 'Remove Account',
+            text: 'Remove Account…',
             enabled: isAppActionEnabled(),
             action: () => {
               emit(MENU_EVENTS.REMOVE_ACCOUNT, { accountId: account.id });
@@ -130,7 +130,7 @@ export const createAccountsSubmenu = async ({
       : [
           await MenuItem.new({
             id: 'no-accounts-added',
-            text: 'No accounts added...',
+            text: 'No accounts added',
             enabled: false,
           }),
           await separator(),
@@ -144,7 +144,7 @@ export const createAccountsSubmenu = async ({
       ...accountItems,
       await MenuItem.new({
         id: 'add-account',
-        text: 'Add Account...',
+        text: 'Add Account…',
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.ADD_ACCOUNT);

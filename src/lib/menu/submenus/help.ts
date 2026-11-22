@@ -36,14 +36,6 @@ export const createHelpSubmenu = async ({
           emit(MENU_EVENTS.SHOW_CHANGELOG);
         },
       }),
-      await MenuItem.new({
-        id: 'check-for-updates',
-        text: 'Check for Updates',
-        enabled: isAppActionEnabled(),
-        action: () => {
-          emit(MENU_EVENTS.CHECK_FOR_UPDATES);
-        },
-      }),
     ],
   });
 };

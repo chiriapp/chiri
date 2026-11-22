@@ -26,10 +26,18 @@ export const createAppSubmenu = async ({
           emit(MENU_EVENTS.ABOUT);
         },
       }),
+      await MenuItem.new({
+        id: 'check-for-updates',
+        text: 'Check for Updates…',
+        enabled: isAppActionEnabled(),
+        action: () => {
+          emit(MENU_EVENTS.CHECK_FOR_UPDATES);
+        },
+      }),
       await separator(),
       await MenuItem.new({
         id: 'preferences',
-        text: 'Settings...',
+        text: 'Settings…',
         accelerator: getAcceleratorOrDefault(shortcuts, 'settings', 'CmdOrCtrl+,'),
         enabled: isAppActionEnabled(),
         action: () => {

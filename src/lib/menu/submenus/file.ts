@@ -30,7 +30,7 @@ export const createFileSubmenu = async ({
       await separator(),
       await MenuItem.new({
         id: 'import',
-        text: 'Import Tasks...',
+        text: 'Import Tasks…',
         accelerator: getAcceleratorOrDefault(shortcuts, 'import-tasks', 'CmdOrCtrl+I'),
         enabled: isAppActionEnabled(),
         action: () => {
