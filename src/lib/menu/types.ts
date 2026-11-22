@@ -1,5 +1,5 @@
 import type { KeyboardShortcut } from '$types/shortcuts';
-import type { SortDirection, SortMode } from '$types/sort';
+import type { SortDirection, SortMode, TaskGroupMode } from '$types/sort';
 
 export interface MenuCalendar {
   id: string;
@@ -43,6 +43,9 @@ export interface AppMenuOptions {
   showUnstarted?: boolean;
   sortMode?: SortMode;
   sortDirection?: SortDirection;
+  taskGroupMode?: TaskGroupMode;
+  taskGroupDirection?: SortDirection;
+  activeCalendarId?: string | null;
   shortcuts?: KeyboardShortcut[];
   accounts?: MenuAccount[];
   navigation?: MenuNavigationOptions;

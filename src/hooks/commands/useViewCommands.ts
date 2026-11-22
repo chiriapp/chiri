@@ -13,9 +13,10 @@ import {
   useSetShowCompletedTasks,
   useSetShowUnstartedTasks,
   useSetSortConfig,
+  useSetTaskGroupConfig,
 } from '$hooks/queries/useUIState';
 import type { AppModals } from '$types/modals';
-import type { SortDirection, SortMode } from '$types/sort';
+import type { SortDirection, SortMode, TaskGroupMode } from '$types/sort';
 
 interface UseViewCommandsOptions {
   modals: AppModals;
@@ -26,6 +27,7 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
   const setMoveCompletedTasksToBottomMutation = useSetMoveCompletedTasksToBottom();
   const setShowUnstartedMutation = useSetShowUnstartedTasks();
   const setSortConfigMutation = useSetSortConfig();
+  const setTaskGroupConfigMutation = useSetTaskGroupConfig();
   const setActiveFilterMutation = useSetActiveFilter();
   const setActiveAccountMutation = useSetActiveAccount();
   const setActiveCalendarMutation = useSetActiveCalendar();
@@ -104,6 +106,20 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
     [setSortConfigMutation],
   );
 
+  const setTaskGroupMode = useCallback(
+    (mode: TaskGroupMode, _currentMode: TaskGroupMode, currentDirection: SortDirection) => {
+      setTaskGroupConfigMutation.mutate({ mode, direction: currentDirection });
+    },
+    [setTaskGroupConfigMutation],
+  );
+
+  const setTaskGroupDirection = useCallback(
+    (direction: SortDirection, currentMode: TaskGroupMode) => {
+      setTaskGroupConfigMutation.mutate({ mode: currentMode, direction });
+    },
+    [setTaskGroupConfigMutation],
+  );
+
   const toggleSidebar = useCallback(() => {
     toggleSidebarCollapsed();
   }, [toggleSidebarCollapsed]);
@@ -155,6 +171,8 @@ export const useViewCommands = ({ modals }: UseViewCommandsOptions) => {
     toggleUnstarted,
     setSortMode,
     setSortDirection,
+    setTaskGroupMode,
+    setTaskGroupDirection,
     allTasks,
     recentlyDeleted,
     selectFilter,

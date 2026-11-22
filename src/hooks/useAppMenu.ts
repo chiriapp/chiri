@@ -103,6 +103,9 @@ export const useAppMenu = (isSyncing?: boolean) => {
     showUnstarted: uiState?.showUnstartedTasks ?? true,
     sortMode: uiState?.sortConfig?.mode ?? 'manual',
     sortDirection: uiState?.sortConfig?.direction ?? 'asc',
+    taskGroupMode: uiState?.taskGroupConfig?.mode ?? 'none',
+    taskGroupDirection: uiState?.taskGroupConfig?.direction ?? 'asc',
+    activeCalendarId: uiState?.activeCalendarId ?? null,
     shortcuts: keyboardShortcuts,
     accounts: menuAccounts,
     navigation: {
@@ -126,6 +129,9 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
     uiState?.sortConfig?.direction,
+    uiState?.taskGroupConfig?.mode,
+    uiState?.taskGroupConfig?.direction,
+    uiState?.activeCalendarId,
     isSyncing ?? false,
     isAnyModalOpen,
     activeListKey,
@@ -149,6 +155,8 @@ export const useAppMenu = (isSyncing?: boolean) => {
 
     const sortMode = uiState?.sortConfig?.mode ?? 'manual';
     const sortDirection = uiState?.sortConfig?.direction ?? 'asc';
+    const taskGroupMode = uiState?.taskGroupConfig?.mode ?? 'none';
+    const taskGroupDirection = uiState?.taskGroupConfig?.direction ?? 'asc';
 
     updateMenuState({
       accountCount: caldavAccountCount,
@@ -157,6 +165,9 @@ export const useAppMenu = (isSyncing?: boolean) => {
       showUnstarted: uiState?.showUnstartedTasks ?? true,
       sortMode,
       sortDirection,
+      taskGroupMode,
+      taskGroupDirection,
+      activeCalendarId: uiState?.activeCalendarId ?? null,
       isSyncing: isSyncing ?? false,
       isModalOpen: isAnyModalOpen,
       activeListKey,
@@ -170,6 +181,9 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.showUnstartedTasks,
     uiState?.sortConfig?.mode,
     uiState?.sortConfig?.direction,
+    uiState?.taskGroupConfig?.mode,
+    uiState?.taskGroupConfig?.direction,
+    uiState?.activeCalendarId,
     isSyncing,
     isAnyModalOpen,
     activeListKey,

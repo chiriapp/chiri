@@ -13,6 +13,3 @@ export const SORT_LABELS: Record<MenuSortMode, string> = {
   created: 'Date Created',
   modified: 'Date Modified',
 };
-
-/** the active sort mode is marked with a leading checkmark (radio button behavior) */
-export const withCheckmark = (label: string, checked: boolean) => (checked ? `✓ ${label}` : label);

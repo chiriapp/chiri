@@ -1,7 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import { loggers } from '$lib/logger';
+import { GROUP_MENU_OPTIONS, isGroupDirectionEnabled, isGroupModeEnabled } from '$lib/menu/group';
+import { withCheckmark } from '$lib/menu/items';
 import { isModalMenuOpen, replaceSubmenuContents, setModalMenuState } from '$lib/menu/modal';
-import { SORT_LABELS, withCheckmark } from '$lib/menu/sort';
+import { SORT_LABELS } from '$lib/menu/sort';
 import {
   enqueueSubmenuMutation,
   findModalMenuItem,
@@ -13,7 +15,7 @@ import { createAccountsSubmenu } from '$lib/menu/submenus/accounts';
 import { createGoSubmenu } from '$lib/menu/submenus/go';
 import type { DockMenuFilter, MenuAccount, MenuNavigationOptions } from '$lib/menu/types';
 import type { KeyboardShortcut } from '$types/shortcuts';
-import type { SortDirection, SortMode } from '$types/sort';
+import type { SortDirection, SortMode, TaskGroupMode } from '$types/sort';
 import { isMacPlatform } from '$utils/platform';
 
 const log = loggers.menu;
@@ -135,6 +137,9 @@ export const updateMenuState = async (options: {
   showUnstarted?: boolean;
   sortMode?: SortMode;
   sortDirection?: SortDirection;
+  taskGroupMode?: TaskGroupMode;
+  taskGroupDirection?: SortDirection;
+  activeCalendarId?: string | null;
   isSyncing?: boolean;
   isModalOpen?: boolean;
   activeListKey?: string;
@@ -198,6 +203,30 @@ export const updateMenuState = async (options: {
     });
     await updateMenuItem('sort-direction-desc', {
       text: withCheckmark('Descending', options.sortDirection === 'desc'),
+    });
+  }
+  if (options.taskGroupMode !== undefined) {
+    // update group menu items with checkmarks in text (radio button behavior)
+    const { taskGroupMode } = options;
+    const activeCalendarId = options.activeCalendarId ?? null;
+    for (const option of GROUP_MENU_OPTIONS) {
+      await updateMenuItem(option.id, {
+        text: withCheckmark(option.label, option.mode === taskGroupMode),
+        enabled: isGroupModeEnabled(option.mode, activeCalendarId),
+      });
+    }
+
+    const directionSubmenuEnabled = isGroupDirectionEnabled(taskGroupMode, activeCalendarId);
+    await updateMenuItem('group-direction-submenu', { enabled: directionSubmenuEnabled });
+    await updateMenuItem('group-direction-asc', { enabled: directionSubmenuEnabled });
+    await updateMenuItem('group-direction-desc', { enabled: directionSubmenuEnabled });
+  }
+  if (options.taskGroupDirection !== undefined) {
+    await updateMenuItem('group-direction-asc', {
+      text: withCheckmark('Ascending', options.taskGroupDirection === 'asc'),
+    });
+    await updateMenuItem('group-direction-desc', {
+      text: withCheckmark('Descending', options.taskGroupDirection === 'desc'),
     });
   }
   if (options.isModalOpen === false) await setModalMenuState(false);

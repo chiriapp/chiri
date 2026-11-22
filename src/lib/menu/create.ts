@@ -15,6 +15,9 @@ export const createMacMenu = async (options: AppMenuOptions = {}) => {
   const showUnstarted = options.showUnstarted ?? true;
   const sortMode = options.sortMode ?? 'manual';
   const sortDirection = options.sortDirection ?? 'asc';
+  const taskGroupMode = options.taskGroupMode ?? 'none';
+  const taskGroupDirection = options.taskGroupDirection ?? 'asc';
+  const activeCalendarId = options.activeCalendarId ?? null;
   const shortcuts = options.shortcuts;
   const accounts = options.accounts ?? [];
   const isSyncing = options.isSyncing ?? false;
@@ -29,6 +32,9 @@ export const createMacMenu = async (options: AppMenuOptions = {}) => {
     showUnstarted,
     sortMode,
     sortDirection,
+    taskGroupMode,
+    taskGroupDirection,
+    activeCalendarId,
     shortcuts,
     isModalOpen,
   });

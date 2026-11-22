@@ -186,6 +186,9 @@ export const initializeApp = async () => {
       showUnstarted: uiState.showUnstartedTasks,
       sortMode: uiState.sortConfig.mode,
       sortDirection: uiState.sortConfig.direction,
+      taskGroupMode: uiState.taskGroupConfig.mode,
+      taskGroupDirection: uiState.taskGroupConfig.direction,
+      activeCalendarId: uiState.activeCalendarId,
       shortcuts,
       accounts: menuAccounts,
       navigation: {

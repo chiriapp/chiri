@@ -2,12 +2,13 @@ import { emit } from '@tauri-apps/api/event';
 import { CheckMenuItem, MenuItem, PredefinedMenuItem, Submenu } from '@tauri-apps/api/menu';
 import { MENU_EVENTS } from '$constants/menu';
 import { getAcceleratorOrDefault } from '$lib/menu/accelerators';
-import { separator } from '$lib/menu/items';
+import { GROUP_MENU_OPTIONS, isGroupDirectionEnabled, isGroupModeEnabled } from '$lib/menu/group';
+import { separator, withCheckmark } from '$lib/menu/items';
 import { isEnabledOutsideModal } from '$lib/menu/modal';
-import { SORT_LABELS, withCheckmark } from '$lib/menu/sort';
+import { SORT_LABELS } from '$lib/menu/sort';
 import { trackMenuItem } from '$lib/menu/state';
 import type { KeyboardShortcut } from '$types/shortcuts';
-import type { SortDirection, SortMode } from '$types/sort';
+import type { SortDirection, SortMode, TaskGroupMode } from '$types/sort';
 
 export const createViewSubmenu = async ({
   showCompleted,
@@ -15,6 +16,9 @@ export const createViewSubmenu = async ({
   showUnstarted,
   sortMode,
   sortDirection,
+  taskGroupMode,
+  taskGroupDirection,
+  activeCalendarId,
   shortcuts,
   isModalOpen,
 }: {
@@ -23,6 +27,9 @@ export const createViewSubmenu = async ({
   showUnstarted: boolean;
   sortMode: SortMode;
   sortDirection: SortDirection;
+  taskGroupMode: TaskGroupMode;
+  taskGroupDirection: SortDirection;
+  activeCalendarId: string | null;
   shortcuts?: KeyboardShortcut[];
   isModalOpen: boolean;
 }) => {
@@ -196,6 +203,54 @@ export const createViewSubmenu = async ({
     }),
   );
 
+  const groupItems = await Promise.all(
+    GROUP_MENU_OPTIONS.map(async (option) =>
+      trackMenuItem(
+        await MenuItem.new({
+          id: option.id,
+          text: withCheckmark(option.label, taskGroupMode === option.mode),
+          enabled: isAppActionEnabled(isGroupModeEnabled(option.mode, activeCalendarId)),
+          action: () => {
+            emit(option.event);
+          },
+        }),
+      ),
+    ),
+  );
+
+  const groupDirectionEnabled = isGroupDirectionEnabled(taskGroupMode, activeCalendarId);
+
+  const groupDirectionAscItem = trackMenuItem(
+    await MenuItem.new({
+      id: 'group-direction-asc',
+      text: withCheckmark('Ascending', taskGroupDirection === 'asc'),
+      enabled: isAppActionEnabled(groupDirectionEnabled),
+      action: () => {
+        emit(MENU_EVENTS.GROUP_DIRECTION_ASC);
+      },
+    }),
+  );
+
+  const groupDirectionDescItem = trackMenuItem(
+    await MenuItem.new({
+      id: 'group-direction-desc',
+      text: withCheckmark('Descending', taskGroupDirection === 'desc'),
+      enabled: isAppActionEnabled(groupDirectionEnabled),
+      action: () => {
+        emit(MENU_EVENTS.GROUP_DIRECTION_DESC);
+      },
+    }),
+  );
+
+  const groupDirectionSubmenu = trackMenuItem(
+    await Submenu.new({
+      id: 'group-direction-submenu',
+      text: 'Group Direction',
+      enabled: groupDirectionEnabled,
+      items: [groupDirectionAscItem, groupDirectionDescItem],
+    }),
+  );
+
   return Submenu.new({
     text: 'View',
     items: [
@@ -218,6 +273,8 @@ export const createViewSubmenu = async ({
         ],
       }),
       sortDirectionSubmenu,
+      await Submenu.new({ text: 'Group By', items: groupItems }),
+      groupDirectionSubmenu,
       await separator(),
       await MenuItem.new({
         id: 'toggle-sidebar',

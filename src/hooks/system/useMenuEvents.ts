@@ -1,11 +1,11 @@
 import { listen } from '@tauri-apps/api/event';
 import { type RefObject, useEffect } from 'react';
-import { DEFAULT_SORT_CONFIG } from '$constants';
+import { DEFAULT_SORT_CONFIG, DEFAULT_TASK_GROUP_CONFIG } from '$constants';
 import { MENU_EVENTS } from '$constants/menu';
 import { useModalState } from '$context/modalStateContext';
 import { useUIState } from '$hooks/queries/useUIState';
 import { loggers } from '$lib/logger';
-import type { SortDirection, SortMode } from '$types/sort';
+import type { SortDirection, SortMode, TaskGroupMode } from '$types/sort';
 
 const log = loggers.menu;
 
@@ -30,6 +30,12 @@ interface MenuCallbacks {
   >;
   onSetSortDirection?: RefObject<
     ((direction: SortDirection, currentMode: SortMode) => void) | null
+  >;
+  onSetTaskGroupMode?: RefObject<
+    (mode: TaskGroupMode, currentMode: TaskGroupMode, currentDirection: SortDirection) => void
+  >;
+  onSetTaskGroupDirection?: RefObject<
+    ((direction: SortDirection, currentMode: TaskGroupMode) => void) | null
   >;
   onSelectFilter?: RefObject<((filterId: string) => void) | null>;
   onSelectCalendar?: RefObject<((accountId: string, calendarId: string) => void) | null>;
@@ -159,6 +165,17 @@ const SORT_MODE_MAP: Record<string, SortMode> = {
   [MENU_EVENTS.SORT_MODIFIED]: 'modified',
 };
 
+const TASK_GROUP_MODE_MAP: Record<string, TaskGroupMode> = {
+  [MENU_EVENTS.GROUP_NONE]: 'none',
+  [MENU_EVENTS.GROUP_STATUS]: 'status',
+  [MENU_EVENTS.GROUP_CALENDAR]: 'calendar',
+  [MENU_EVENTS.GROUP_START_DATE]: 'start-date',
+  [MENU_EVENTS.GROUP_DUE_DATE]: 'due-date',
+  [MENU_EVENTS.GROUP_PRIORITY]: 'priority',
+  [MENU_EVENTS.GROUP_MODIFIED]: 'modified',
+  [MENU_EVENTS.GROUP_CREATED]: 'created',
+};
+
 const MODAL_BLOCKED_MENU_EVENTS = new Set<string>([
   MENU_EVENTS.NEW_TASK,
   MENU_EVENTS.SYNC,
@@ -184,6 +201,16 @@ const MODAL_BLOCKED_MENU_EVENTS = new Set<string>([
   MENU_EVENTS.SORT_MODIFIED,
   MENU_EVENTS.SORT_DIRECTION_ASC,
   MENU_EVENTS.SORT_DIRECTION_DESC,
+  MENU_EVENTS.GROUP_NONE,
+  MENU_EVENTS.GROUP_STATUS,
+  MENU_EVENTS.GROUP_CALENDAR,
+  MENU_EVENTS.GROUP_START_DATE,
+  MENU_EVENTS.GROUP_DUE_DATE,
+  MENU_EVENTS.GROUP_PRIORITY,
+  MENU_EVENTS.GROUP_MODIFIED,
+  MENU_EVENTS.GROUP_CREATED,
+  MENU_EVENTS.GROUP_DIRECTION_ASC,
+  MENU_EVENTS.GROUP_DIRECTION_DESC,
   MENU_EVENTS.SELECT_FILTER,
   MENU_EVENTS.SELECT_CALENDAR,
   MENU_EVENTS.SELECT_TAG,
@@ -275,23 +302,31 @@ const registerParamEvents = async (
   return true;
 };
 
-// helper: register sort mode events
-const registerSortModeEvents = async (
-  callbacks: MenuCallbacks,
-  uiState: ReturnType<typeof useUIState>['data'],
-  unlistenCallbacks: (() => void)[],
-  isActiveRef: { current: boolean },
-  isBlocked: MenuEventBlocker,
-) => {
-  for (const [event, mode] of Object.entries(SORT_MODE_MAP)) {
+// helper: register events that pick a mode out of a radio group (sort, grouping)
+const registerModeEvents = async <TMode extends string>({
+  modeEvents,
+  label,
+  currentConfig,
+  onSelect,
+  unlistenCallbacks,
+  isActiveRef,
+  isBlocked,
+}: {
+  modeEvents: Record<string, TMode>;
+  label: string;
+  currentConfig: { mode: TMode; direction: SortDirection };
+  onSelect: (mode: TMode, currentMode: TMode, currentDirection: SortDirection) => void;
+  unlistenCallbacks: (() => void)[];
+  isActiveRef: { current: boolean };
+  isBlocked: MenuEventBlocker;
+}) => {
+  for (const [event, mode] of Object.entries(modeEvents)) {
     const success = await registerListener(
       event,
       () => {
-        if (isBlocked(event, `Sort ${mode}`)) return;
-        log.debug(`Sort ${mode} triggered`);
-        const currentMode = uiState?.sortConfig?.mode ?? DEFAULT_SORT_CONFIG.mode;
-        const currentDirection = uiState?.sortConfig?.direction ?? DEFAULT_SORT_CONFIG.direction;
-        callbacks.onSetSortMode?.current?.(mode, currentMode, currentDirection);
+        if (isBlocked(event, `${label} ${mode}`)) return;
+        log.debug(`${label} ${mode} triggered`);
+        onSelect(mode, currentConfig.mode, currentConfig.direction);
       },
       unlistenCallbacks,
       isActiveRef,
@@ -301,27 +336,38 @@ const registerSortModeEvents = async (
   return true;
 };
 
-// helper: register sort direction events
-const registerSortDirectionEvents = async (
-  callbacks: MenuCallbacks,
-  uiState: ReturnType<typeof useUIState>['data'],
-  unlistenCallbacks: (() => void)[],
-  isActiveRef: { current: boolean },
-  isBlocked: MenuEventBlocker,
-) => {
-  const sortDirections: Array<{ event: string; direction: SortDirection; label: string }> = [
-    { event: MENU_EVENTS.SORT_DIRECTION_ASC, direction: 'asc', label: 'Ascending' },
-    { event: MENU_EVENTS.SORT_DIRECTION_DESC, direction: 'desc', label: 'Descending' },
+// helper: register direction events for a config that has a mode and a direction
+const registerDirectionEvents = async <TMode extends string>({
+  ascendingEvent,
+  descendingEvent,
+  label,
+  currentMode,
+  onSelect,
+  unlistenCallbacks,
+  isActiveRef,
+  isBlocked,
+}: {
+  ascendingEvent: string;
+  descendingEvent: string;
+  label: string;
+  currentMode: TMode;
+  onSelect: (direction: SortDirection, currentMode: TMode) => void;
+  unlistenCallbacks: (() => void)[];
+  isActiveRef: { current: boolean };
+  isBlocked: MenuEventBlocker;
+}) => {
+  const directions = [
+    { event: ascendingEvent, direction: 'asc' as const, name: 'Ascending' },
+    { event: descendingEvent, direction: 'desc' as const, name: 'Descending' },
   ];
 
-  for (const { event, direction, label } of sortDirections) {
+  for (const { event, direction, name } of directions) {
     const success = await registerListener(
       event,
       () => {
-        if (isBlocked(event, `Sort Direction ${label}`)) return;
-        log.debug(`Sort Direction ${label} triggered`);
-        const currentMode = uiState?.sortConfig?.mode ?? DEFAULT_SORT_CONFIG.mode;
-        callbacks.onSetSortDirection?.current?.(direction, currentMode);
+        if (isBlocked(event, `${label} ${name}`)) return;
+        log.debug(`${label} ${name} triggered`);
+        onSelect(direction, currentMode);
       },
       unlistenCallbacks,
       isActiveRef,
@@ -397,27 +443,68 @@ export const useMenuEvents = (callbacks: MenuCallbacks) => {
       if (!(await registerParamEvents(callbacks, unlistenCallbacks, isActiveRef, isBlocked)))
         return;
 
+      const sortConfig = uiState?.sortConfig ?? DEFAULT_SORT_CONFIG;
+      const taskGroupConfig = uiState?.taskGroupConfig ?? DEFAULT_TASK_GROUP_CONFIG;
+
       // register sort mode events
       if (
-        !(await registerSortModeEvents(
-          callbacks,
-          uiState,
+        !(await registerModeEvents({
+          modeEvents: SORT_MODE_MAP,
+          label: 'Sort',
+          currentConfig: sortConfig,
+          onSelect: (mode, currentMode, currentDirection) =>
+            callbacks.onSetSortMode?.current?.(mode, currentMode, currentDirection),
           unlistenCallbacks,
           isActiveRef,
           isBlocked,
-        ))
+        }))
       )
         return;
 
       // register sort direction events
       if (
-        !(await registerSortDirectionEvents(
-          callbacks,
-          uiState,
+        !(await registerDirectionEvents({
+          ascendingEvent: MENU_EVENTS.SORT_DIRECTION_ASC,
+          descendingEvent: MENU_EVENTS.SORT_DIRECTION_DESC,
+          label: 'Sort Direction',
+          currentMode: sortConfig.mode,
+          onSelect: (direction, currentMode) =>
+            callbacks.onSetSortDirection?.current?.(direction, currentMode),
           unlistenCallbacks,
           isActiveRef,
           isBlocked,
-        ))
+        }))
+      )
+        return;
+
+      // register group mode events
+      if (
+        !(await registerModeEvents({
+          modeEvents: TASK_GROUP_MODE_MAP,
+          label: 'Group',
+          currentConfig: taskGroupConfig,
+          onSelect: (mode, currentMode, currentDirection) =>
+            callbacks.onSetTaskGroupMode?.current?.(mode, currentMode, currentDirection),
+          unlistenCallbacks,
+          isActiveRef,
+          isBlocked,
+        }))
+      )
+        return;
+
+      // register group direction events
+      if (
+        !(await registerDirectionEvents({
+          ascendingEvent: MENU_EVENTS.GROUP_DIRECTION_ASC,
+          descendingEvent: MENU_EVENTS.GROUP_DIRECTION_DESC,
+          label: 'Group Direction',
+          currentMode: taskGroupConfig.mode,
+          onSelect: (direction, currentMode) =>
+            callbacks.onSetTaskGroupDirection?.current?.(direction, currentMode),
+          unlistenCallbacks,
+          isActiveRef,
+          isBlocked,
+        }))
       )
         return;
     };
