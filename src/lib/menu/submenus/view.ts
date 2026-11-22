@@ -71,6 +71,12 @@ export const createViewSubmenu = async ({
     }),
   );
 
+  const tasksHeaderItem = await MenuItem.new({
+    id: 'view-tasks-header',
+    text: 'Tasks',
+    enabled: false,
+  });
+
   const sortManualItem = trackMenuItem(
     await MenuItem.new({
       id: 'sort-manual',
@@ -197,16 +203,15 @@ export const createViewSubmenu = async ({
       toggleUnstartedItem,
       toggleCompletedToBottomItem,
       await separator(),
+      tasksHeaderItem,
       await Submenu.new({
         text: 'Sort By',
         items: [
           sortManualItem,
           sortSmartItem,
-          await separator(),
           sortPriorityItem,
           sortStartDateItem,
           sortDueDateItem,
-          await separator(),
           sortTitleItem,
           sortCreatedItem,
           sortModifiedItem,

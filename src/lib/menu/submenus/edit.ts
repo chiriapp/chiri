@@ -72,7 +72,7 @@ export const createEditSubmenu = async ({
       await separator(),
       await MenuItem.new({
         id: 'search',
-        text: 'Search Tasks...',
+        text: 'Search Tasks',
         accelerator: getAcceleratorOrDefault(shortcuts, 'search', 'CmdOrCtrl+F'),
         enabled: isAppActionEnabled(),
         action: () => {
