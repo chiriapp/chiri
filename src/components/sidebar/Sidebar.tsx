@@ -265,7 +265,7 @@ export const Sidebar = ({
           <div
             ref={resizeHandleRef}
             onMouseDown={handleResizeStart}
-            className={`absolute top-0 right-0 z-10 h-full w-1 cursor-col-resize transition-colors ${isResizing ? 'bg-primary-400 dark:bg-primary-600' : 'hover:bg-primary-400 dark:hover:bg-primary-600'}`}
+            className={`app-sidebar-resize-handle absolute top-0 right-0 z-10 h-full w-1 cursor-col-resize transition-colors ${isResizing ? 'bg-primary-400 dark:bg-primary-600' : 'hover:bg-primary-400 dark:hover:bg-primary-600'}`}
           />
         )}
 

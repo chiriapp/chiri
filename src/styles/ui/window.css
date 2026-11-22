@@ -41,6 +41,11 @@
   background: var(--surface-50, #fafafa);
 }
 
+/* the titlebar row stacks above the sidebar body */
+.app-shell[data-platform="macos"] .app-sidebar-resize-handle {
+  z-index: 25;
+}
+
 .dark .app-shell[data-platform="macos"] .app-sidebar-header {
   background: var(--surface-900, #18181b);
 }
