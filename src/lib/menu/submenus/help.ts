@@ -41,7 +41,7 @@ export const createHelpSubmenu = async ({
       await separator(),
       await MenuItem.new({
         id: 'keyboard-shortcuts',
-        text: 'Keyboard Shortcuts',
+        text: 'Keyboard Shortcuts…',
         accelerator: getAcceleratorOrDefault(shortcuts, 'keyboard-shortcuts', 'CmdOrCtrl+/'),
         enabled: isAppActionEnabled(),
         action: () => {
@@ -50,7 +50,7 @@ export const createHelpSubmenu = async ({
       }),
       await MenuItem.new({
         id: 'whats-new',
-        text: "What's New",
+        text: "What's New…",
         enabled: isAppActionEnabled(),
         action: () => {
           emit(MENU_EVENTS.SHOW_CHANGELOG);
