@@ -1,5 +1,5 @@
 import X from 'lucide-react/icons/x';
-import type { CSSProperties, DragEventHandler, ReactNode } from 'react';
+import type { CSSProperties, DragEventHandler, ReactNode, Ref } from 'react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ModalBackdrop } from '$components/ModalBackdrop';
@@ -36,6 +36,8 @@ interface ModalWrapperProps {
   zIndex?: 'z-50' | 'z-60' | 'z-70';
   contentPadding?: boolean;
   contentOverflow?: 'hidden' | 'auto';
+  /** ref for the scrolling content element, e.g. to save and restore its scroll position */
+  contentRef?: Ref<HTMLDivElement>;
   initialFocus?: 'first-focusable' | 'dialog';
   handleEscapeKey?: boolean;
   onEscape?: () => void;
@@ -67,6 +69,7 @@ export const ModalWrapper = ({
   zIndex = 'z-60',
   contentPadding = true,
   contentOverflow = contentPadding ? 'auto' : 'hidden',
+  contentRef,
   initialFocus = 'first-focusable',
   handleEscapeKey = true,
   onEscape,
@@ -195,6 +198,7 @@ export const ModalWrapper = ({
         )}
 
         <div
+          ref={contentRef}
           className={`${contentPadding ? 'space-y-4 p-4' : ''} ${contentOverflow === 'auto' ? 'overflow-y-auto overflow-x-hidden overscroll-contain' : 'overflow-hidden'} min-h-0 flex-auto ${!title ? 'rounded-t-xl' : ''}`}
         >
           {children}

@@ -4,7 +4,7 @@ import ChevronRight from 'lucide-react/icons/chevron-right';
 import ExternalLink from 'lucide-react/icons/external-link';
 import Search from 'lucide-react/icons/search';
 import X from 'lucide-react/icons/x';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { LoadingSpinner } from '$components/LoadingSpinner';
 import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
@@ -33,6 +33,8 @@ export const ThirdPartyLicensesModal = ({ onClose }: ThirdPartyLicensesModalProp
   const [onlyDirect, setOnlyDirect] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLicense, setSelectedLicense] = useState<ThirdPartyLicense | null>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const listScrollTopRef = useRef(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -73,51 +75,60 @@ export const ThirdPartyLicensesModal = ({ onClose }: ThirdPartyLicensesModalProp
     ? manifest?.licenseTexts[selectedLicense.licenseTextId]
     : undefined;
 
+  // the modal content element is shared between both views, and collapses to scrollTop 0
+  // when the detail view replaces the list, so save and restore it across navigation
+  useLayoutEffect(() => {
+    if (selectedLicense || !contentRef.current) return;
+    contentRef.current.scrollTop = listScrollTopRef.current;
+  }, [selectedLicense]);
+
+  const footerLeft = (
+    <ModalButton
+      variant="secondary"
+      onClick={() => setSelectedLicense(null)}
+      className={`h-9 ${selectedLicense ? '' : 'pointer-events-none invisible'}`}
+      aria-hidden={!selectedLicense}
+      tabIndex={selectedLicense ? undefined : -1}
+    >
+      <ArrowLeft className="h-4 w-4" />
+      Back
+    </ModalButton>
+  );
+
   return (
     <ModalWrapper
       onClose={onClose}
       title="Third-party licenses"
-      description="Licenses for software shipped with Chiri"
-      headerLeft={
-        selectedLicense ? (
-          <ModalButton
-            variant="secondary"
-            size="sm"
-            onClick={() => setSelectedLicense(null)}
-            aria-label="Back"
-            title="Back"
-            className="h-10! w-10! p-0!"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </ModalButton>
-        ) : undefined
-      }
       className="h-[80vh] max-h-[80vh] max-w-2xl"
       contentOverflow={selectedLicense ? 'hidden' : 'auto'}
-      footerLeft={
-        selectedLicense ? (
-          <ModalButton variant="secondary" onClick={() => openUrl(selectedLicense.url)}>
-            <ExternalLink className="h-4 w-4" />
-            Open upstream project
-          </ModalButton>
-        ) : undefined
-      }
+      contentRef={contentRef}
+      footerLeft={footerLeft}
       footer={<ModalButton onClick={onClose}>Close</ModalButton>}
     >
       {selectedLicense ? (
         <div className="flex h-full min-h-0 flex-col gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-mono font-semibold text-lg text-surface-900 dark:text-surface-100">
-                {selectedLicense.name}
-              </h3>
-              <span className="text-surface-500 text-xs dark:text-surface-400">
-                ({selectedLicense.ecosystem})
-              </span>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-mono font-semibold text-lg text-surface-900 dark:text-surface-100">
+                  {selectedLicense.name}
+                </h3>
+                <span className="text-surface-500 text-xs dark:text-surface-400">
+                  ({selectedLicense.ecosystem})
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-surface-500 dark:text-surface-400">
+                v{selectedLicense.version} · {selectedLicense.license}
+              </p>
             </div>
-            <p className="mt-1 text-sm text-surface-500 dark:text-surface-400">
-              v{selectedLicense.version} · {selectedLicense.license}
-            </p>
+            <ModalButton
+              variant="secondary"
+              onClick={() => openUrl(selectedLicense.url)}
+              className="shrink-0"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open library
+            </ModalButton>
           </div>
 
           {selectedLicenseText ? (
@@ -176,7 +187,10 @@ export const ThirdPartyLicensesModal = ({ onClose }: ThirdPartyLicensesModalProp
                 <button
                   type="button"
                   key={`${license.ecosystem}:${license.name}:${license.version}`}
-                  onClick={() => setSelectedLicense(license)}
+                  onClick={() => {
+                    listScrollTopRef.current = contentRef.current?.scrollTop ?? 0;
+                    setSelectedLicense(license);
+                  }}
                   className="group flex w-full items-center gap-2 px-4 py-3 text-left outline-hidden transition-colors hover:bg-surface-100 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:hover:bg-surface-700/60"
                 >
                   <div className="min-w-0 flex-1">
