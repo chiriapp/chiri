@@ -1,4 +1,4 @@
-import CheckCircle2 from 'lucide-react/icons/check-circle-2';
+import CheckCheck from 'lucide-react/icons/check-check';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import type { MouseEvent } from 'react';
@@ -22,9 +22,9 @@ export const TaskItemSubtaskBadge = ({
     ariaLabel={isCollapsed ? 'Expand subtasks' : 'Collapse subtasks'}
     tooltip={`${completed} of ${total} ${pluralize(total, 'subtask')} complete, click to ${isCollapsed ? 'expand' : 'collapse'}`}
   >
-    <CheckCircle2 className="h-3 w-3" />
+    <CheckCheck className="h-3 w-3" />
     <span>
-      {completed}/{total} {pluralize(total, 'subtask')}
+      {completed}/{total}
     </span>
     {isCollapsed ? <ChevronRight className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
   </TaskItemBadge>

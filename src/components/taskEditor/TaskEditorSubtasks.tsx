@@ -1,7 +1,7 @@
 import { closestCenter, DndContext, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import ArrowRight from 'lucide-react/icons/arrow-right';
-import CheckCircle2 from 'lucide-react/icons/check-circle-2';
+import CheckCheck from 'lucide-react/icons/check-check';
 import ListX from 'lucide-react/icons/list-x';
 import Plus from 'lucide-react/icons/plus';
 import { type KeyboardEvent, type MouseEvent, useMemo, useRef, useState } from 'react';
@@ -126,7 +126,7 @@ export const TaskEditorSubtasks = ({
         id="subtasks-label"
         className="mb-2 flex items-center gap-2 font-medium text-sm text-surface-600 dark:text-surface-400"
       >
-        <CheckCircle2 className="h-4 w-4" />
+        <CheckCheck className="h-4 w-4" />
         Subtasks
         {childCount > 0 && (
           <span className="rounded-full bg-surface-100 px-1.5 py-0.5 font-normal text-surface-500 text-xs tabular-nums dark:bg-surface-800 dark:text-surface-400">

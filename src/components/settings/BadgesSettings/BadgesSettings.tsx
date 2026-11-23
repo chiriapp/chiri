@@ -10,7 +10,7 @@ import {
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import BellOff from 'lucide-react/icons/bell-off';
 import CalendarClock from 'lucide-react/icons/calendar-clock';
-import CheckCircle2 from 'lucide-react/icons/check-circle-2';
+import CheckCheck from 'lucide-react/icons/check-check';
 import Clock from 'lucide-react/icons/clock';
 import FolderSync from 'lucide-react/icons/folder-sync';
 import Link from 'lucide-react/icons/link';
@@ -81,7 +81,7 @@ const BADGES: BadgeConfig[] = [
     key: 'subtasks',
     label: 'Subtasks',
     description: 'Subtask progress count and collapse toggle',
-    icon: <CheckCircle2 className="h-4 w-4" />,
+    icon: <CheckCheck className="h-4 w-4" />,
   },
 ];
 

@@ -139,7 +139,7 @@ describe('TaskItemBadges snooze badge', () => {
     await renderBadges(subtasksVisibility, ['subtasks'], onToggleCollapsed);
 
     const badge = container.querySelector('button');
-    expect(badge?.textContent).toBe('1/2 subtasks');
+    expect(badge?.textContent).toBe('1/2');
     expect(badge?.getAttribute('aria-label')).toBe('Collapse subtasks');
 
     await act(async () => badge?.click());
@@ -154,7 +154,7 @@ describe('TaskItemBadges snooze badge', () => {
     await renderBadges(subtasksVisibility, ['subtasks'], vi.fn(), { isCollapsed: true });
 
     const badge = container.querySelector('button');
-    expect(badge?.textContent).toBe('0/1 subtask');
+    expect(badge?.textContent).toBe('0/1');
     expect(badge?.getAttribute('aria-label')).toBe('Expand subtasks');
   });
 

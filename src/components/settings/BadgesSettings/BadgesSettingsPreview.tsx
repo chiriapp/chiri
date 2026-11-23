@@ -1,6 +1,6 @@
 import BellOff from 'lucide-react/icons/bell-off';
 import CalendarClock from 'lucide-react/icons/calendar-clock';
-import CheckCircle2 from 'lucide-react/icons/check-circle-2';
+import CheckCheck from 'lucide-react/icons/check-check';
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Clock from 'lucide-react/icons/clock';
@@ -65,8 +65,8 @@ const PREVIEW_BADGE_RENDERERS: Record<TaskBadgeKey, () => ReactNode> = {
   ),
   subtasks: () => (
     <TaskItemBadge className="gap-0.5">
-      <CheckCircle2 className="h-3 w-3 shrink-0" />
-      <span>2/5 subtasks</span>
+      <CheckCheck className="h-3 w-3 shrink-0" />
+      <span>2/5</span>
       <ChevronDown className="h-3 w-3 shrink-0" />
     </TaskItemBadge>
   ),
