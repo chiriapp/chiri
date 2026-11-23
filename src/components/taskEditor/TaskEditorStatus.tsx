@@ -1,8 +1,8 @@
 import Activity from 'lucide-react/icons/activity';
-import Ban from 'lucide-react/icons/ban';
 import Check from 'lucide-react/icons/check';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Timer from 'lucide-react/icons/timer';
+import X from 'lucide-react/icons/x';
 import type { Status, Task } from '$types/task/model';
 
 interface TaskEditorStatusProps {
@@ -58,7 +58,7 @@ export const TaskEditorStatus = ({
             {
               value: 'cancelled',
               label: 'Cancelled',
-              icon: Ban,
+              icon: X,
               borderColor: 'border-status-cancelled',
               hoverBorderColor: 'hover:border-status-cancelled/70',
               bgColor: 'bg-status-cancelled/15',

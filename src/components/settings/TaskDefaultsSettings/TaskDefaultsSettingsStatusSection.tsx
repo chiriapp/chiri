@@ -1,7 +1,7 @@
-import Ban from 'lucide-react/icons/ban';
 import Check from 'lucide-react/icons/check';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Timer from 'lucide-react/icons/timer';
+import X from 'lucide-react/icons/x';
 import { useSettingsStore } from '$context/settingsContext';
 import { defaultState } from '$context/settingsDefaults';
 import { buildProgressUpdates, buildStatusUpdates } from '$lib/task/status';
@@ -35,7 +35,7 @@ const STATUS_OPTIONS = [
   {
     value: 'cancelled',
     label: 'Cancelled',
-    Icon: Ban,
+    Icon: X,
     hoverBorderColor: 'hover:border-status-cancelled/70',
     activeClass:
       'border-status-cancelled bg-status-cancelled/15 text-surface-900 dark:text-surface-100',

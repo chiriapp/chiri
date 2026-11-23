@@ -1,8 +1,8 @@
-import Ban from 'lucide-react/icons/ban';
 import Check from 'lucide-react/icons/check';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import RotateCcw from 'lucide-react/icons/rotate-ccw';
 import Timer from 'lucide-react/icons/timer';
+import X from 'lucide-react/icons/x';
 import type { RefObject } from 'react';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { PRIORITIES } from '$constants/priority';
@@ -13,7 +13,7 @@ const STATUS_OPTIONS = [
   { value: 'needs-action' as const, label: 'Needs Action', Icon: RotateCcw },
   { value: 'in-process' as const, label: 'In Process', Icon: Timer },
   { value: 'completed' as const, label: 'Completed', Icon: CheckCircle2 },
-  { value: 'cancelled' as const, label: 'Cancelled', Icon: Ban },
+  { value: 'cancelled' as const, label: 'Cancelled', Icon: X },
 ];
 
 const getMenuItemClass = (index: number, itemCount: number) => {

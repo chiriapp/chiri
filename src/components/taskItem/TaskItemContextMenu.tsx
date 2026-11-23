@@ -1,4 +1,3 @@
-import Ban from 'lucide-react/icons/ban';
 import Check from 'lucide-react/icons/check';
 import CheckCircle2 from 'lucide-react/icons/check-circle-2';
 import ChevronRight from 'lucide-react/icons/chevron-right';
@@ -11,6 +10,7 @@ import Share2 from 'lucide-react/icons/share-2';
 import Tag from 'lucide-react/icons/tag';
 import Timer from 'lucide-react/icons/timer';
 import Trash2 from 'lucide-react/icons/trash-2';
+import X from 'lucide-react/icons/x';
 import { type MouseEvent, useEffect, useRef, useState } from 'react';
 import { FloatingLayerFrame } from '$components/FloatingLayerFrame';
 import { BatchTaskTagsModal } from '$components/modals/BatchTaskTagsModal';
@@ -189,7 +189,7 @@ export const TaskItemContextMenu = ({
     { value: 'needs-action' as const, label: 'Needs Action', Icon: RotateCcw },
     { value: 'in-process' as const, label: 'In Process', Icon: Timer },
     { value: 'completed' as const, label: 'Completed', Icon: CheckCircle2 },
-    { value: 'cancelled' as const, label: 'Cancelled', Icon: Ban },
+    { value: 'cancelled' as const, label: 'Cancelled', Icon: X },
   ];
 
   const handleStatusMouseEnter = (e: MouseEvent<HTMLButtonElement>) => {
