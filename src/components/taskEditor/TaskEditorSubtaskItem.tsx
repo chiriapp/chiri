@@ -2,6 +2,7 @@ import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import Check from 'lucide-react/icons/check';
 import ChevronRight from 'lucide-react/icons/chevron-right';
+import Minus from 'lucide-react/icons/minus';
 import X from 'lucide-react/icons/x';
 import {
   type CSSProperties,
@@ -15,7 +16,11 @@ import {
 import { useSettingsStore } from '$context/settingsContext';
 import { useChildTasks } from '$hooks/queries/useTasks';
 import { usePrefersReducedMotion } from '$hooks/ui/usePrefersReducedMotion';
-import { buildStatusUpdates, getCompletionToggleLabel } from '$lib/task/status';
+import {
+  buildStatusUpdates,
+  getCompletionToggleLabel,
+  getTaskStatusAfterCompletionToggle,
+} from '$lib/task/status';
 import type { Task } from '$types/task/model';
 import { getSortableItemDisabled, getSortableItemId } from '$utils/sortable';
 
@@ -44,16 +49,19 @@ const getStatusButtonClassName = (
   useAccentColorForCheckboxes: boolean,
   readOnly: boolean,
 ) => {
-  const statusClass =
-    task.status === 'completed'
-      ? useAccentColorForCheckboxes
-        ? 'bg-primary-500 border-primary-500'
-        : 'bg-status-completed border-status-completed'
-      : task.status === 'cancelled'
-        ? 'bg-status-cancelled border-status-cancelled'
-        : `border-surface-400 dark:border-surface-600 ${readOnly ? '' : 'hover:border-primary-ink dark:hover:border-primary-500'}`;
+  let statusClass = `border-surface-400 dark:border-surface-600 ${readOnly ? '' : 'hover:border-primary-ink dark:hover:border-primary-500'}`;
 
-  return `w-4 h-4 rounded border-[1.5px] flex items-center justify-center shrink-0 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-1 ${statusClass} ${
+  if (task.status === 'completed') {
+    statusClass = useAccentColorForCheckboxes
+      ? 'bg-primary-500 border-primary-500'
+      : 'bg-status-completed border-status-completed';
+  } else if (task.status === 'cancelled') {
+    statusClass = 'bg-status-cancelled border-status-cancelled';
+  } else if (task.status === 'in-process') {
+    statusClass = 'bg-status-in-process border-status-in-process';
+  }
+
+  return `w-4 h-4 rounded border-[1.5px] flex items-center justify-center shrink-0 transition-colors outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-1 dark:focus-visible:ring-offset-surface-900 ${statusClass} ${
     readOnly ? 'cursor-not-allowed' : 'cursor-pointer'
   }`;
 };
@@ -110,7 +118,7 @@ export const TaskEditorSubtaskItem = ({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const prefersReducedMotion = usePrefersReducedMotion();
-  const { syncStatusProgress } = useSettingsStore();
+  const { syncStatusProgress, completeInProcessTasks } = useSettingsStore();
 
   const sortableId = getSortableItemId(task.id, isOverlay);
   const sortableDisabled = getSortableItemDisabled(isDragEnabled, isOverlay);
@@ -140,6 +148,7 @@ export const TaskEditorSubtaskItem = ({
       return next;
     });
   };
+
   const handleStartEdit = () => {
     if (readOnly) return;
     setEditValue(task.title);
@@ -222,7 +231,10 @@ export const TaskEditorSubtaskItem = ({
           aria-label={readOnly ? 'Subtask status' : getCompletionToggleLabel(task.status)}
           onClick={() => {
             if (readOnly) return;
-            const newStatus = task.status === 'needs-action' ? 'completed' : 'needs-action';
+            const newStatus = getTaskStatusAfterCompletionToggle(
+              task.status,
+              completeInProcessTasks,
+            );
             updateTask(
               task.id,
               buildStatusUpdates(newStatus, task, new Date(), syncStatusProgress),
@@ -236,6 +248,12 @@ export const TaskEditorSubtaskItem = ({
               style={useAccentColorForCheckboxes ? { color: checkmarkColor } : undefined}
               strokeWidth={3}
             />
+          )}
+          {task.status === 'cancelled' && (
+            <X className="h-2.5 w-2.5 text-primary-contrast" strokeWidth={3} />
+          )}
+          {task.status === 'in-process' && (
+            <Minus className="h-2.5 w-2.5 dark:text-primary-contrast" strokeWidth={3} />
           )}
         </button>
 
