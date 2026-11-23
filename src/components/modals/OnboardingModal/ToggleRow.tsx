@@ -41,7 +41,7 @@ export const ToggleRow = ({
         checked={checked}
         disabled={disabled}
         onChange={(event) => onChange(event.target.checked)}
-        className="h-5 w-5 shrink-0 cursor-pointer rounded-sm border-surface-300 focus:ring-2 focus:ring-primary-ink disabled:cursor-not-allowed dark:border-surface-600"
+        className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
       />
     </label>
   );

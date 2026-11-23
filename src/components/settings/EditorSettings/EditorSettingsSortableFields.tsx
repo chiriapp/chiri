@@ -59,7 +59,7 @@ export const EditorSettingsSortableFields = ({
           type="checkbox"
           checked={checked}
           onChange={(e) => onToggle(field.key, e.target.checked)}
-          className="shrink-0 rounded-sm border-surface-400 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2"
+          className="shrink-0 rounded-sm border-surface-400 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
         />
       </div>
     </div>

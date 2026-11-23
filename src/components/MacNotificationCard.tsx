@@ -141,7 +141,7 @@ export const MacNotificationCard = ({
             type="button"
             onClick={handleRequestPermission}
             disabled={isCheckingPermission}
-            className="flex items-center gap-2 rounded-lg bg-primary-500 px-3 py-1.5 text-primary-contrast text-sm outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-2 rounded-lg bg-primary-500 px-3 py-1.5 text-primary-contrast text-sm outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:ring-offset-surface-800"
           >
             {isCheckingPermission ? 'Waiting for permission...' : 'Request permission'}
           </button>

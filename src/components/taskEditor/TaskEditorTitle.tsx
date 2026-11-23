@@ -120,7 +120,7 @@ export const TaskEditorTitle = ({
           onClick={handleCheckboxClick}
           disabled={readOnly}
           aria-label={getCheckboxAriaLabel(task, readOnly)}
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 outline-hidden transition-all focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset disabled:cursor-not-allowed ${checkboxStateClass}
+          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 outline-hidden transition-all focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed dark:ring-offset-surface-800 ${checkboxStateClass}
           `}
         >
           {task.status === 'completed' && (

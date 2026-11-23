@@ -152,7 +152,7 @@ export const MobileConfigExportModal = ({
               type="checkbox"
               checked={includePassword}
               onChange={(e) => setIncludePassword(e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 dark:border-surface-600"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 dark:border-surface-600"
             />
             <div>
               <p className="flex items-center gap-1.5 font-medium text-sm text-surface-700 dark:text-surface-300">

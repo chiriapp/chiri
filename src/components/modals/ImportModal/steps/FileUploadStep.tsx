@@ -98,7 +98,7 @@ export const FileUploadStep = ({
         }}
         onDragEnter={onDragEnter}
         onDragLeave={handleDragLeave}
-        className={`relative cursor-pointer rounded-xl border-2 border-dashed p-6 text-center outline-hidden transition-all focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 ${
+        className={`relative cursor-pointer rounded-xl border-2 border-dashed p-6 text-center outline-hidden transition-all focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 dark:focus-visible:ring-offset-surface-800 ${
           isDraggingOver
             ? 'scale-[1.02] border-primary-ink bg-primary-500/10'
             : fileName

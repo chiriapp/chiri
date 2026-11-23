@@ -99,7 +99,7 @@ export const UpdateSettings = () => {
                 type="checkbox"
                 checked={checkForUpdatesAutomatically}
                 onChange={(e) => setCheckForUpdatesAutomatically(e.target.checked)}
-                className="rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2"
+                className="rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
               />
             </label>
 

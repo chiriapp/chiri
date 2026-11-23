@@ -157,7 +157,7 @@ export const SystemSettings = () => {
             checked={autostart.enabled ?? false}
             disabled={launchAtLoginBusy}
             onChange={(e) => autostart.setEnabled(e.target.checked)}
-            className={`shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${launchAtLoginBusy ? 'checkbox-busy' : ''}`}
+            className={`shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${launchAtLoginBusy ? 'checkbox-busy' : ''}`}
           />
         </label>
 
@@ -179,7 +179,7 @@ export const SystemSettings = () => {
                 checked={!showWindowOnLoginLaunch}
                 disabled={startQuietlyAtLoginDisabled}
                 onChange={(e) => setShowWindowOnLoginLaunch(!e.target.checked)}
-                className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+                className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
               />
             </label>
           </div>
@@ -223,7 +223,7 @@ export const SystemSettings = () => {
             type="checkbox"
             checked={enableSystemTray}
             onChange={(e) => handleSystemTrayChange(e.target.checked)}
-            className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2"
+            className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
           />
         </label>
 
@@ -244,7 +244,7 @@ export const SystemSettings = () => {
                   checked={hideDockIconWhenWindowClosed}
                   disabled={!enableSystemTray}
                   onChange={(e) => handleHideDockIconWhenWindowClosedChange(e.target.checked)}
-                  className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:opacity-50"
+                  className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:opacity-50"
                 />
               </label>
             </div>
@@ -300,7 +300,7 @@ export const SystemSettings = () => {
               type="checkbox"
               checked={confirmBeforeQuit}
               onChange={(e) => setConfirmBeforeQuit(e.target.checked)}
-              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2"
+              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
             />
           </label>
         </div>
@@ -338,7 +338,7 @@ export const SystemSettings = () => {
               checked={isDesktopFileInstalled === true}
               disabled={isDesktopFileInstalled === null || isTogglingIntegration}
               onChange={() => void handleToggleDesktopIntegration()}
-              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </label>
         </div>

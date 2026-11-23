@@ -80,7 +80,7 @@ export const TaskItemBadge = ({
       {...sharedProps}
       onClick={onClick}
       aria-label={ariaLabel}
-      className={`${sharedProps.className} ${color ? '' : TONE_HOVER_CLASS_NAMES[tone]} task-item-badge-interactive cursor-pointer outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset`}
+      className={`${sharedProps.className} ${color ? '' : TONE_HOVER_CLASS_NAMES[tone]} task-item-badge-interactive cursor-pointer outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 dark:ring-offset-surface-800`}
     >
       {children}
     </button>

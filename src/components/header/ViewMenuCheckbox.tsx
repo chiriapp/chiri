@@ -22,7 +22,7 @@ export const ViewMenuCheckbox = ({
       checked={checked}
       disabled={disabled}
       onChange={onClick}
-      className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-inset dark:border-surface-600"
+      className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:border-surface-600"
     />
   </label>
 );

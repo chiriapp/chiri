@@ -178,7 +178,7 @@ export const NotificationSettings = () => {
               checked={notifications}
               onChange={(e) => setNotifications(e.target.checked)}
               disabled={macPermissionPending}
-              className="rounded-sm border-surface-400 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed"
+              className="rounded-sm border-surface-400 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed"
             />
           </label>
           {macPermissionPending && (
@@ -208,7 +208,7 @@ export const NotificationSettings = () => {
                   checked={notifyReminders}
                   onChange={(e) => setNotifyReminders(e.target.checked)}
                   disabled={macPermissionPending}
-                  className="rounded-sm border-surface-400 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed"
+                  className="rounded-sm border-surface-400 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed"
                 />
               </label>
 
@@ -226,7 +226,7 @@ export const NotificationSettings = () => {
                   checked={notifyOverdue}
                   onChange={(e) => setNotifyOverdue(e.target.checked)}
                   disabled={macPermissionPending}
-                  className="rounded-sm border-surface-400 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed"
+                  className="rounded-sm border-surface-400 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed"
                 />
               </label>
             </div>
@@ -246,7 +246,7 @@ export const NotificationSettings = () => {
             type="checkbox"
             checked={showAppIconBadge}
             onChange={(e) => setShowAppIconBadge(e.target.checked)}
-            className="rounded-sm border-surface-400 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed"
+            className="rounded-sm border-surface-400 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed"
           />
         </label>
       </div>
@@ -263,7 +263,7 @@ export const NotificationSettings = () => {
             type="checkbox"
             checked={quietHoursEnabled}
             onChange={(e) => setQuietHoursEnabled(e.target.checked)}
-            className="rounded-sm border-surface-400 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2"
+            className="rounded-sm border-surface-400 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
           />
         </label>
 
@@ -308,7 +308,7 @@ export const NotificationSettings = () => {
             type="checkbox"
             checked={allDayReminderNotificationsEnabled}
             onChange={(e) => setAllDayReminderNotificationsEnabled(e.target.checked)}
-            className="rounded-sm border-surface-400 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2"
+            className="rounded-sm border-surface-400 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
           />
         </label>
 

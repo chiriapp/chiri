@@ -17,7 +17,7 @@ interface TaskItemCheckboxProps {
 }
 
 const checkboxBaseClass =
-  'w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset';
+  'w-5 h-5 rounded-sm border-2 flex items-center justify-center transition-all outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 dark:ring-offset-surface-800';
 
 const getSelectionClass = (selected: boolean) =>
   selected

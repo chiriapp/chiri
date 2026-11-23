@@ -144,7 +144,7 @@ export const NetworkSettings = () => {
             type="checkbox"
             checked={connectivityCheckEnabled}
             onChange={(e) => setConnectivityCheckEnabled(e.target.checked)}
-            className="shrink-0 rounded border-surface-300 outline-none focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 dark:border-surface-600"
+            className="shrink-0 rounded border-surface-300 outline-none focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 dark:border-surface-600"
           />
         </label>
 

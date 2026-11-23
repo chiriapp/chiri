@@ -130,6 +130,8 @@ input[type="range"] {
 .dark input[type="checkbox"] {
   border-color: rgb(var(--primary-rgb-500, 59 130 246));
 
+  --tw-ring-offset-color: var(--surface-800, #27272a);
+
   &:hover {
     background-color: rgb(var(--primary-rgb-900, 30 58 138) / 0.3);
   }

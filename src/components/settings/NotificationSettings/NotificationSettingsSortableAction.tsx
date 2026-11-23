@@ -157,7 +157,7 @@ export const NotificationSettingsSortableAction = ({
           checked={checked}
           onChange={(e) => onToggle(action.key, e.target.checked)}
           disabled={disabled}
-          className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed"
+          className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed"
         />
       </div>
       {isSnooze && checked && !isOverlay && (

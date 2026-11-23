@@ -202,7 +202,7 @@ export const PushSettings = () => {
             checked={enablePush}
             disabled={pushGated}
             onChange={(e) => setEnablePush(e.target.checked)}
-            className="rounded border-surface-300 outline-none focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 disabled:cursor-not-allowed dark:border-surface-600"
+            className="rounded border-surface-300 outline-none focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed dark:border-surface-600"
           />
         </label>
 
@@ -387,7 +387,7 @@ export const PushSettings = () => {
               type="checkbox"
               checked={enforceVapid}
               onChange={(e) => setEnforceVapid(e.target.checked)}
-              className="rounded border-surface-300 outline-none focus:ring-2 focus:ring-primary-ink focus:ring-offset-2 dark:border-surface-600"
+              className="rounded border-surface-300 outline-none focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2 dark:border-surface-600"
             />
           </label>
 

@@ -56,7 +56,7 @@ export const SafetySettings = () => {
               type="checkbox"
               checked={confirmBeforeMoveToRecentlyDeleted}
               onChange={(event) => setConfirmBeforeMoveToRecentlyDeleted(event.target.checked)}
-              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2"
+              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
             />
           </label>
 
@@ -92,7 +92,7 @@ export const SafetySettings = () => {
               type="checkbox"
               checked={autoEmptyRecentlyDeleted}
               onChange={(event) => setAutoEmptyRecentlyDeleted(event.target.checked)}
-              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus:ring-2 focus:ring-primary-ink focus:ring-offset-2"
+              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
             />
           </label>
 
