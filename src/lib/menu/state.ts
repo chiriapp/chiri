@@ -17,6 +17,11 @@ export const trackMenuItem = <T extends TrackedMenuItem>(item: T) => {
 
 export const getTrackedMenuItem = (id: string) => trackedItems.get(id);
 
+/** a rebuild replaces every tracked item, so the handles to the old ones go with them */
+export const resetTrackedItems = () => {
+  trackedItems.clear();
+};
+
 export const modalMenuItems: ModalMenuItem[] = [];
 
 export const findModalMenuItem = (id: string) =>

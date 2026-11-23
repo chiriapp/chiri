@@ -106,6 +106,53 @@ void chiri_macos_fix_select_all_menu_item(void) {
   }
 }
 
+static void ChiriApplySectionHeader(NSString *submenuTitle, NSString *headerTitle)
+    API_AVAILABLE(macos(14.0)) {
+  NSMenu *mainMenu = [NSApplication sharedApplication].mainMenu;
+  NSMenu *submenu = [mainMenu itemWithTitle:submenuTitle].submenu;
+  if (submenu == nil) {
+    return;
+  }
+
+  // submenu contents are replaced in place, so drop the header inserted last
+  // time before looking for its placeholder
+  for (NSMenuItem *item in submenu.itemArray) {
+    if (item.isSectionHeader && [submenu indexOfItem:item] != -1) {
+      [submenu removeItem:item];
+    }
+  }
+
+  // muda has no section header item type, so the frontend ships a disabled
+  // placeholder. its slot gets a real header and the placeholder is hidden
+  // rather than removed, because muda still expects to find it in the menu
+  for (NSMenuItem *item in submenu.itemArray) {
+    if (item.submenu != nil || item.isSectionHeader) {
+      continue;
+    }
+    if (![item.title isEqualToString:headerTitle]) {
+      continue;
+    }
+
+    [item setHidden:YES];
+    [submenu insertItem:[NSMenuItem sectionHeaderWithTitle:headerTitle]
+                atIndex:[submenu indexOfItem:item]];
+    return;
+  }
+}
+
+void chiri_macos_apply_section_headers(void) {
+  if (![NSThread isMainThread]) {
+    return;
+  }
+
+  // section header items only exist from macOS 14; older systems keep the
+  // disabled placeholders the frontend creates
+  if (@available(macOS 14.0, *)) {
+    ChiriApplySectionHeader(@"View", @"Tasks");
+    ChiriApplySectionHeader(@"Go", @"Views");
+  }
+}
+
 void chiri_macos_fix_help_menu(void) {
   if (![NSThread isMainThread]) {
     return;

@@ -8,11 +8,19 @@ import {
   resetModalMenuState,
   setModalMenuState,
 } from '$lib/menu/modal';
-import { enqueueSubmenuMutation, modalMenuItems, submenuRefs } from '$lib/menu/state';
+import {
+  enqueueSubmenuMutation,
+  modalMenuItems,
+  resetTrackedItems,
+  submenuRefs,
+} from '$lib/menu/state';
 import type { AppMenuOptions } from '$lib/menu/types';
 import { isMacPlatform } from '$utils/platform';
 
 const log = loggers.menu;
+
+/** native fixes that can only run once the menu is live; safe to re-run after in-place submenu changes */
+export const applyMacMenuFixes = () => invoke('apply_macos_menu_fixes').catch(() => {});
 
 export const initAppMenu = async (options?: AppMenuOptions) => {
   // only create menu on macOS. we might bother with app menus later on linux but i cba
@@ -20,6 +28,7 @@ export const initAppMenu = async (options?: AppMenuOptions) => {
 
   try {
     const shouldApplyModalState = options?.isModalOpen ?? isModalMenuOpen();
+    resetTrackedItems();
     const { menu, windowSubmenu, goSubmenu, accountsSubmenu } = await createMacMenu({
       ...options,
       isModalOpen: false,
@@ -36,7 +45,7 @@ export const initAppMenu = async (options?: AppMenuOptions) => {
     await windowSubmenu.setAsWindowsMenuForNSApp();
     // fix macOS Help menu search bar; tauri's setAsHelpMenuForNSApp() implementation is broken,
     // so we call NSApp.setHelpMenu() directly from Rust after the menu is live
-    await invoke('apply_macos_menu_fixes').catch(() => {});
+    await applyMacMenuFixes();
   } catch (error) {
     log.error('Failed to initialize menu:', error);
   }

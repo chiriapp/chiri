@@ -25,9 +25,10 @@ pub fn startup_menu(
 /// applies macOS menu fixes on the calling thread
 /// must be called on the main thread (use `AppHandle::run_on_main_thread`)
 #[cfg(target_os = "macos")]
-fn fix_help_menu() {
+fn apply_menu_fixes() {
     unsafe {
         chiri_macos_fix_select_all_menu_item();
+        chiri_macos_apply_section_headers();
         chiri_macos_fix_help_menu();
     }
 }
@@ -35,16 +36,17 @@ fn fix_help_menu() {
 #[cfg(target_os = "macos")]
 extern "C" {
     fn chiri_macos_fix_select_all_menu_item();
+    fn chiri_macos_apply_section_headers();
     fn chiri_macos_fix_help_menu();
 }
 
 /// Tauri command; call from JS after every `menu.setAsAppMenu()`
 ///
-/// schedules `fix_help_menu` on the main thread and returns immediately
+/// schedules `apply_menu_fixes` on the main thread and returns immediately
 /// on non-macOS platforms this is a no-op
 #[tauri::command]
 #[allow(unused_variables)]
 pub fn apply_macos_menu_fixes(app: tauri::AppHandle<impl tauri::Runtime>) {
     #[cfg(target_os = "macos")]
-    let _ = app.run_on_main_thread(fix_help_menu);
+    let _ = app.run_on_main_thread(apply_menu_fixes);
 }

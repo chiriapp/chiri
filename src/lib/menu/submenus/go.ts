@@ -1,8 +1,13 @@
 import { emit } from '@tauri-apps/api/event';
-import { CheckMenuItem, MenuItem, type PredefinedMenuItem, Submenu } from '@tauri-apps/api/menu';
+import {
+  type CheckMenuItem,
+  MenuItem,
+  type PredefinedMenuItem,
+  Submenu,
+} from '@tauri-apps/api/menu';
 import { MENU_EVENTS } from '$constants/menu';
 import { getAcceleratorOrDefault } from '$lib/menu/accelerators';
-import { separator } from '$lib/menu/items';
+import { radioItem, sectionHeader, separator } from '$lib/menu/items';
 import { isEnabledOutsideModal } from '$lib/menu/modal';
 import { navigationMenuItems, trackMenuItem } from '$lib/menu/state';
 import type { MenuNavigationOptions } from '$lib/menu/types';
@@ -34,7 +39,7 @@ export const createGoSubmenu = async ({
     listKey: string;
     action: () => void;
   }) => {
-    const item = await CheckMenuItem.new({
+    const item = await radioItem({
       id,
       text,
       checked: activeListKey === listKey,
@@ -139,11 +144,7 @@ export const createGoSubmenu = async ({
     ),
   );
 
-  const viewsHeaderItem = await MenuItem.new({
-    id: 'go-views-header',
-    text: 'Views',
-    enabled: false,
-  });
+  const viewsHeaderItem = await sectionHeader('go-views-header', 'Views');
 
   const destinationItems: Array<Submenu | MenuItem | CheckMenuItem | PredefinedMenuItem> = [
     viewsHeaderItem,

@@ -1,7 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import { loggers } from '$lib/logger';
+import { applyMacMenuFixes } from '$lib/menu';
 import { GROUP_MENU_OPTIONS, isGroupDirectionEnabled, isGroupModeEnabled } from '$lib/menu/group';
-import { withCheckmark } from '$lib/menu/items';
 import { isModalMenuOpen, replaceSubmenuContents, setModalMenuState } from '$lib/menu/modal';
 import { SORT_LABELS } from '$lib/menu/sort';
 import {
@@ -54,6 +54,8 @@ export const updateGoMenu = async (options: {
         isModalOpen: false,
       });
       await replaceSubmenuContents(target, replacement);
+      // the replacement dropped the native section header, so put it back
+      await applyMacMenuFixes();
     });
   } catch (error) {
     log.error('Failed to update Go menu:', error);
@@ -184,11 +186,8 @@ export const updateMenuState = async (options: {
     await updateMenuItem('nav-next-list', { enabled: options.canGoNext });
   }
   if (options.sortMode !== undefined) {
-    // update sort menu items with checkmarks in text (radio button behavior)
-    for (const [mode, label] of Object.entries(SORT_LABELS)) {
-      await updateMenuItem(`sort-${mode}`, {
-        text: withCheckmark(label, mode === options.sortMode),
-      });
+    for (const mode of Object.keys(SORT_LABELS)) {
+      await updateMenuItem(`sort-${mode}`, { checked: mode === options.sortMode });
     }
 
     // enable/disable sort direction submenu and items based on sort mode
@@ -198,20 +197,15 @@ export const updateMenuState = async (options: {
     await updateMenuItem('sort-direction-desc', { enabled: directionSubmenuEnabled });
   }
   if (options.sortDirection !== undefined) {
-    await updateMenuItem('sort-direction-asc', {
-      text: withCheckmark('Ascending', options.sortDirection === 'asc'),
-    });
-    await updateMenuItem('sort-direction-desc', {
-      text: withCheckmark('Descending', options.sortDirection === 'desc'),
-    });
+    await updateMenuItem('sort-direction-asc', { checked: options.sortDirection === 'asc' });
+    await updateMenuItem('sort-direction-desc', { checked: options.sortDirection === 'desc' });
   }
   if (options.taskGroupMode !== undefined) {
-    // update group menu items with checkmarks in text (radio button behavior)
     const { taskGroupMode } = options;
     const activeCalendarId = options.activeCalendarId ?? null;
     for (const option of GROUP_MENU_OPTIONS) {
       await updateMenuItem(option.id, {
-        text: withCheckmark(option.label, option.mode === taskGroupMode),
+        checked: option.mode === taskGroupMode,
         enabled: isGroupModeEnabled(option.mode, activeCalendarId),
       });
     }
@@ -223,10 +217,10 @@ export const updateMenuState = async (options: {
   }
   if (options.taskGroupDirection !== undefined) {
     await updateMenuItem('group-direction-asc', {
-      text: withCheckmark('Ascending', options.taskGroupDirection === 'asc'),
+      checked: options.taskGroupDirection === 'asc',
     });
     await updateMenuItem('group-direction-desc', {
-      text: withCheckmark('Descending', options.taskGroupDirection === 'desc'),
+      checked: options.taskGroupDirection === 'desc',
     });
   }
   if (options.isModalOpen === false) await setModalMenuState(false);
