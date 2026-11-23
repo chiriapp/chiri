@@ -176,7 +176,7 @@ export const ThirdPartyLicensesModal = ({ onClose }: ThirdPartyLicensesModalProp
               type="checkbox"
               checked={onlyDirect}
               onChange={(event) => setOnlyDirect(event.target.checked)}
-              className="h-4 w-4 rounded border-surface-300 text-primary-ink focus:ring-primary-ink dark:border-surface-600"
+              className="shrink-0 rounded-sm border-surface-300 outline-hidden focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-offset-2"
             />
             Show direct dependencies only
           </label>
