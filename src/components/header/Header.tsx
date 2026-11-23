@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from 'date-fns';
 
 import RefreshCw from 'lucide-react/icons/refresh-cw';
+import RefreshCwOff from 'lucide-react/icons/refresh-cw-off';
 import Search from 'lucide-react/icons/search';
 import X from 'lucide-react/icons/x';
 import {
@@ -158,6 +159,7 @@ export const Header = ({
   const searchToggleRef = useRef<HTMLButtonElement>(null);
 
   const calendars = accounts.flatMap((account) => account.calendars);
+  const isSyncUnavailable = isOffline || disableSync || isConnectionTesting;
   const searchContextTitle = getHeaderContextTitle({
     activeView,
     activeCalendarId,
@@ -347,9 +349,13 @@ export const Header = ({
                       isAnyModalOpen,
                     )}
                   >
-                    <RefreshCw
-                      className={`h-4 w-4 shrink-0 ${isSyncing ? 'motion-safe:animate-spin' : ''}`}
-                    />
+                    {isSyncUnavailable ? (
+                      <RefreshCwOff className="h-4 w-4 shrink-0" />
+                    ) : (
+                      <RefreshCw
+                        className={`h-4 w-4 shrink-0 ${isSyncing ? 'motion-safe:animate-spin' : ''}`}
+                      />
+                    )}
                   </button>
                 </Tooltip>
               )}
