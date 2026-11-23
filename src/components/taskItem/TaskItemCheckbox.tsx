@@ -2,6 +2,7 @@ import Check from 'lucide-react/icons/check';
 import Minus from 'lucide-react/icons/minus';
 import X from 'lucide-react/icons/x';
 import type { MouseEvent } from 'react';
+import { getCompletionToggleLabel } from '$lib/task/status';
 import type { Status } from '$types/task/model';
 
 interface TaskItemCheckboxProps {
@@ -44,12 +45,9 @@ export const TaskItemCheckbox = ({
   const isCancelled = status === 'cancelled';
   const isInProcess = status === 'in-process';
 
-  const getTitle = () => {
+  const getAriaLabel = () => {
     if (selectionMode) return selected ? 'Remove from selection' : 'Select task';
-    if (isCancelled) return 'Cancelled';
-    if (isInProcess) return 'In Progress';
-    if (status === 'completed') return 'Completed, click to reopen';
-    return 'Mark complete';
+    return getCompletionToggleLabel(status);
   };
 
   const getClassName = () => {
@@ -75,7 +73,7 @@ export const TaskItemCheckbox = ({
     <button
       type="button"
       onClick={onClick}
-      aria-label={disabled && !selectionMode ? 'Unavailable for deleted task' : getTitle()}
+      aria-label={disabled && !selectionMode ? 'Unavailable for deleted task' : getAriaLabel()}
       className={getClassName()}
       disabled={nativeDisabled}
       aria-disabled={disabled && !selectionMode}

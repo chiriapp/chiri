@@ -15,7 +15,7 @@ import {
 import { useSettingsStore } from '$context/settingsContext';
 import { useChildTasks } from '$hooks/queries/useTasks';
 import { usePrefersReducedMotion } from '$hooks/ui/usePrefersReducedMotion';
-import { buildStatusUpdates } from '$lib/task/status';
+import { buildStatusUpdates, getCompletionToggleLabel } from '$lib/task/status';
 import type { Task } from '$types/task/model';
 import { getSortableItemDisabled, getSortableItemId } from '$utils/sortable';
 
@@ -140,7 +140,6 @@ export const TaskEditorSubtaskItem = ({
       return next;
     });
   };
-
   const handleStartEdit = () => {
     if (readOnly) return;
     setEditValue(task.title);
@@ -220,6 +219,7 @@ export const TaskEditorSubtaskItem = ({
         <button
           type="button"
           disabled={readOnly}
+          aria-label={readOnly ? 'Subtask status' : getCompletionToggleLabel(task.status)}
           onClick={() => {
             if (readOnly) return;
             const newStatus = task.status === 'needs-action' ? 'completed' : 'needs-action';

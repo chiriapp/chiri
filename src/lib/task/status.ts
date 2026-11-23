@@ -35,6 +35,18 @@ export const getTaskStatusAfterCompletionToggle = (
   return 'completed';
 };
 
+const completionToggleLabels: Record<Status, string> = {
+  'needs-action': 'Mark complete',
+  'in-process': 'In Progress',
+  completed: 'Completed, click to reopen',
+  cancelled: 'Cancelled',
+};
+
+/**
+ * accessible name for a checkbox that toggles a task's completion
+ */
+export const getCompletionToggleLabel = (status: Status) => completionToggleLabels[status];
+
 export const getNewTaskPercentComplete = (
   taskStatus: Status | undefined,
   taskPercentComplete: number | undefined,

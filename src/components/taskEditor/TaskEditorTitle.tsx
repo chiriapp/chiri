@@ -7,6 +7,7 @@ import { ComposedTextarea } from '$components/ComposedTextarea';
 import { useToggleTaskComplete } from '$hooks/queries/useTasks';
 import { consumeSelectedTaskTitleAutofocus } from '$hooks/queries/useUIState';
 import { useDebouncedTaskUpdate } from '$hooks/ui/useDebouncedTaskUpdate';
+import { getCompletionToggleLabel } from '$lib/task/status';
 import type { Task } from '$types/task/model';
 
 interface TaskEditorTitleProps {
@@ -34,13 +35,8 @@ const getCheckboxStateClass = (
   }`;
 };
 
-const getCheckboxAriaLabel = (task: Task, readOnly: boolean) => {
-  if (readOnly) return 'Task status';
-  if (task.status === 'cancelled') return 'Cancelled';
-  if (task.status === 'in-process') return 'In Progress';
-  if (task.status === 'completed') return 'Completed, click to reopen';
-  return 'Mark complete';
-};
+const getCheckboxAriaLabel = (task: Task, readOnly: boolean) =>
+  readOnly ? 'Task status' : getCompletionToggleLabel(task.status);
 
 export const TaskEditorTitle = ({
   task,
