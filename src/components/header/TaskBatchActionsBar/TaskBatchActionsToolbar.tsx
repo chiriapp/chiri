@@ -100,14 +100,14 @@ export const TaskBatchActionsToolbar = ({
     <div className="ml-auto flex min-w-0 items-center gap-2 overflow-hidden">
       {mode === 'deleted' ? (
         <>
-          <TaskBatchActionTooltip content="Restore selected tasks">
+          <TaskBatchActionTooltip content="Restore tasks">
             <button type="button" onClick={onRestore} className={getActionButtonClass()}>
               <RotateCcw className="h-4 w-4" />
               <span className="sr-only">Restore</span>
             </button>
           </TaskBatchActionTooltip>
 
-          <TaskBatchActionTooltip content="Delete selected tasks permanently">
+          <TaskBatchActionTooltip content="Delete tasks permanently">
             <button type="button" onClick={onPermanentDelete} className={destructiveButtonClass}>
               <Trash2 className="h-4 w-4" />
               <span className="sr-only">Delete permanently</span>

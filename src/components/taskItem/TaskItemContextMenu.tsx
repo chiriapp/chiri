@@ -242,7 +242,7 @@ export const TaskItemContextMenu = ({
                 className={`${menuItemClass} rounded-t-md`}
               >
                 <RotateCcw className="h-4 w-4" />
-                {isMultiTaskContext ? 'Restore selected tasks' : 'Restore'}
+                {isMultiTaskContext ? 'Restore tasks' : 'Restore'}
               </button>
 
               <div className="border-surface-300 border-t dark:border-surface-700" />
@@ -252,7 +252,7 @@ export const TaskItemContextMenu = ({
                 className="flex w-full items-center gap-2 rounded-b-md px-3 py-2 text-semantic-error text-sm outline-hidden hover:bg-semantic-error/15 focus-visible:ring-2 focus-visible:ring-semantic-error focus-visible:ring-inset"
               >
                 <Trash2 className="h-4 w-4" />
-                {isMultiTaskContext ? 'Delete selected tasks permanently' : 'Delete permanently'}
+                {isMultiTaskContext ? 'Delete tasks permanently' : 'Delete permanently'}
               </button>
             </>
           ) : (
