@@ -79,6 +79,11 @@ int chiri_macos_was_launched_as_login_item(void) {
   return ChiriParentProcessPathContainsLoginWindow() ? 1 : 0;
 }
 
+// SMAppService arrived in macOS 13 and the guards below are runtime checks,
+// which the compiler can't see through
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunguarded-availability-new"
+
 int chiri_macos_login_item_status(void) {
   if (ChiriIsOperatingSystemAtLeast(13, 0)) {
     return ChiriLoginItemStatusFromServiceStatus([SMAppService mainAppService].status);
@@ -128,3 +133,5 @@ int chiri_macos_login_item_disable(char **outputError) {
   ChiriSetError(outputError, @"Launch at login requires macOS 13 or later.");
   return 0;
 }
+
+#pragma clang diagnostic pop

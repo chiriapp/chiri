@@ -28,7 +28,10 @@ pub fn compile() {
         .flag("-fblocks")
         .flag("-fmodules")
         .flag("-mmacosx-version-min=12.0")
-        .flag("-Wno-unguarded-availability-new")
+        // the app runs on 12.0, where an unguarded call into a newer API is a
+        // crash; the two sources that do it behind runtime checks carry a
+        // local diagnostic pragma instead of a blanket suppression here
+        .flag("-Werror=unguarded-availability-new")
         .compile("chiri_macos_objc_bridge");
 
     for framework in FRAMEWORKS {

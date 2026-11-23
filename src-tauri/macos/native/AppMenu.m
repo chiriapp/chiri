@@ -106,8 +106,20 @@ void chiri_macos_fix_select_all_menu_item(void) {
   }
 }
 
-static void ChiriApplySectionHeader(NSString *submenuTitle, NSString *headerTitle)
-    API_AVAILABLE(macos(14.0)) {
+// `@available` would have clang emit a call to compiler-rt's
+// `__isPlatformVersionAtLeast`, which rustc never links (`-nodefaultlibs`),
+// so the deployment target check comes from AppKit instead
+static BOOL ChiriHasSectionHeaderItems(void) {
+  NSOperatingSystemVersion version = {14, 0, 0};
+  return [[NSProcessInfo processInfo] isOperatingSystemAtLeastVersion:version];
+}
+
+// AppKit only grew section header items in macOS 14, and `ChiriHasSectionHeaderItems`
+// is a runtime check the compiler can't see through
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunguarded-availability-new"
+
+static void ChiriApplySectionHeader(NSString *submenuTitle, NSString *headerTitle) {
   NSMenu *mainMenu = [NSApplication sharedApplication].mainMenu;
   NSMenu *submenu = [mainMenu itemWithTitle:submenuTitle].submenu;
   if (submenu == nil) {
@@ -140,6 +152,8 @@ static void ChiriApplySectionHeader(NSString *submenuTitle, NSString *headerTitl
   }
 }
 
+#pragma clang diagnostic pop
+
 void chiri_macos_apply_section_headers(void) {
   if (![NSThread isMainThread]) {
     return;
@@ -147,10 +161,12 @@ void chiri_macos_apply_section_headers(void) {
 
   // section header items only exist from macOS 14; older systems keep the
   // disabled placeholders the frontend creates
-  if (@available(macOS 14.0, *)) {
-    ChiriApplySectionHeader(@"View", @"Tasks");
-    ChiriApplySectionHeader(@"Go", @"Views");
+  if (!ChiriHasSectionHeaderItems()) {
+    return;
   }
+
+  ChiriApplySectionHeader(@"View", @"Tasks");
+  ChiriApplySectionHeader(@"Go", @"Views");
 }
 
 void chiri_macos_fix_help_menu(void) {
