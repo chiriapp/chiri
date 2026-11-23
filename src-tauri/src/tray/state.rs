@@ -16,7 +16,7 @@ pub(crate) const fn sync_label(has_caldav_account: bool) -> &'static str {
     if has_caldav_account {
         "Sync Now"
     } else {
-        "Add Account..."
+        "Add Account…"
     }
 }
 
