@@ -186,10 +186,14 @@ export const createViewSubmenu = async ({
       toggleCompletedToBottomItem,
       await separator(),
       tasksHeaderItem,
-      await Submenu.new({ text: 'Sort By', items: sortItems }),
-      sortDirectionSubmenu,
-      await Submenu.new({ text: 'Group By', items: groupItems }),
-      groupDirectionSubmenu,
+      await Submenu.new({
+        text: 'Sort By',
+        items: [...sortItems, await separator(), sortDirectionSubmenu],
+      }),
+      await Submenu.new({
+        text: 'Group By',
+        items: [...groupItems, await separator(), groupDirectionSubmenu],
+      }),
       await separator(),
       await MenuItem.new({
         id: 'toggle-sidebar',
