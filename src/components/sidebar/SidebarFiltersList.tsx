@@ -9,11 +9,12 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
-import ChevronDown from 'lucide-react/icons/chevron-down';
+import Funnel from 'lucide-react/icons/funnel';
 import Plus from 'lucide-react/icons/plus';
 import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import { SidebarFilterItem } from '$components/sidebar/SidebarFilterItem';
 import { SidebarFiltersSortMenu } from '$components/sidebar/SidebarFiltersSortMenu';
+import { SidebarSectionHeader } from '$components/sidebar/SidebarSectionHeader';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderFilters } from '$hooks/queries/useFilters';
 import { useFilterSortConfig } from '$hooks/queries/useUIState';
@@ -101,49 +102,41 @@ export const SidebarFiltersList = ({
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={onToggle}
-          aria-expanded={!collapsed}
-          className="flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-lg px-2.5 text-left outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:hover:bg-surface-700"
-        >
-          <ChevronDown
-            className={`h-4 w-4 text-surface-500 motion-safe:transition-transform motion-safe:duration-200 dark:text-surface-400 ${collapsed ? '-rotate-90' : 'rotate-0'}`}
-          />
-          <span className="font-semibold text-sm text-surface-500 dark:text-surface-400">
-            Filters
-          </span>
-        </button>
+      <SidebarSectionHeader
+        label="Filters"
+        icon={Funnel}
+        collapsed={collapsed}
+        onToggle={onToggle}
+        actions={
+          <>
+            <Tooltip content="Filter order" position="top">
+              <button
+                ref={sortButtonRef}
+                type="button"
+                onClick={() => setShowSortMenu((value) => !value)}
+                aria-label="Sort filters"
+                className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+                  showSortMenu
+                    ? 'bg-surface-300 text-surface-700 dark:bg-surface-600 dark:text-surface-200'
+                    : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''}`
+                }`}
+              >
+                <ArrowUpDown className="h-4 w-4" />
+              </button>
+            </Tooltip>
 
-        <div className="flex shrink-0 items-center gap-1">
-          <Tooltip content="Filter order" position="top">
-            <button
-              ref={sortButtonRef}
-              type="button"
-              onClick={() => setShowSortMenu((value) => !value)}
-              aria-label="Sort filters"
-              className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
-                showSortMenu
-                  ? 'bg-surface-300 text-surface-700 dark:bg-surface-600 dark:text-surface-200'
-                  : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''}`
-              }`}
-            >
-              <ArrowUpDown className="h-4 w-4" />
-            </button>
-          </Tooltip>
-
-          <Tooltip content="Add filter" position="top" triggerClassName="shrink-0">
-            <button
-              type="button"
-              onClick={() => onAddFilter()}
-              className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''} text-surface-500 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400`}
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </Tooltip>
-        </div>
-      </div>
+            <Tooltip content="Add filter" position="top" triggerClassName="shrink-0">
+              <button
+                type="button"
+                onClick={() => onAddFilter()}
+                className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''} text-surface-500 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400`}
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </Tooltip>
+          </>
+        }
+      />
 
       {showSortMenu && (
         <SidebarFiltersSortMenu

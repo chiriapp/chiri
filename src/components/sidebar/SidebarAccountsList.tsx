@@ -9,11 +9,12 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
-import ChevronDown from 'lucide-react/icons/chevron-down';
 import Plus from 'lucide-react/icons/plus';
+import Users from 'lucide-react/icons/users';
 import { type MouseEvent, useCallback, useRef, useState } from 'react';
 import { SidebarAccountItem } from '$components/sidebar/SidebarAccountItem';
 import { SidebarAccountsSortMenu } from '$components/sidebar/SidebarAccountsSortMenu';
+import { SidebarSectionHeader } from '$components/sidebar/SidebarSectionHeader';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderAccounts } from '$hooks/queries/useAccounts';
 import { useAccountSortConfig, useCalendarSortConfig } from '$hooks/queries/useUIState';
@@ -152,53 +153,45 @@ export const SidebarAccountsList = ({
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-1">
-        <button
-          type="button"
-          onClick={onToggleAccountsSection}
-          onContextMenu={(e) => onContextMenu(e, 'accounts-section', 'accounts')}
-          aria-expanded={!accountsSectionCollapsed}
-          className="flex h-9 min-w-0 flex-1 cursor-pointer items-center gap-1.5 rounded-lg px-2.5 text-left outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:hover:bg-surface-700"
-        >
-          <ChevronDown
-            className={`h-4 w-4 text-surface-500 motion-safe:transition-transform motion-safe:duration-200 dark:text-surface-400 ${accountsSectionCollapsed ? '-rotate-90' : 'rotate-0'}`}
-          />
-          <span className="font-semibold text-sm text-surface-500 dark:text-surface-400">
-            Accounts
-          </span>
-        </button>
+      <SidebarSectionHeader
+        label="Accounts"
+        icon={Users}
+        collapsed={accountsSectionCollapsed}
+        onToggle={onToggleAccountsSection}
+        onContextMenu={(e) => onContextMenu(e, 'accounts-section', 'accounts')}
+        actions={
+          <>
+            <Tooltip content="List order" position="top">
+              <button
+                ref={sortButtonRef}
+                type="button"
+                onClick={() => {
+                  setShowSortMenu((v) => !v);
+                }}
+                className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+                  showSortMenu
+                    ? 'bg-surface-300 text-surface-700 dark:bg-surface-600 dark:text-surface-200'
+                    : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''}`
+                }`}
+              >
+                <ArrowUpDown className="h-4 w-4" />
+              </button>
+            </Tooltip>
 
-        <div className="flex shrink-0 items-center gap-1">
-          <Tooltip content="List order" position="top">
-            <button
-              ref={sortButtonRef}
-              type="button"
-              onClick={() => {
-                setShowSortMenu((v) => !v);
-              }}
-              className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
-                showSortMenu
-                  ? 'bg-surface-300 text-surface-700 dark:bg-surface-600 dark:text-surface-200'
-                  : `text-surface-500 dark:text-surface-400 ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''}`
-              }`}
-            >
-              <ArrowUpDown className="h-4 w-4" />
-            </button>
-          </Tooltip>
-
-          <Tooltip content="Add account" position="top">
-            <button
-              type="button"
-              onClick={() => {
-                onAddAccount();
-              }}
-              className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''} text-surface-500 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400`}
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </Tooltip>
-        </div>
-      </div>
+            <Tooltip content="Add account" position="top">
+              <button
+                type="button"
+                onClick={() => {
+                  onAddAccount();
+                }}
+                className={`flex h-9 w-8 shrink-0 items-center justify-center rounded-lg ${!isAnyModalOpen ? 'hover:bg-surface-300 hover:text-surface-700 dark:hover:bg-surface-600 dark:hover:text-surface-300' : ''} text-surface-500 outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400`}
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </Tooltip>
+          </>
+        }
+      />
 
       {showSortMenu && (
         <SidebarAccountsSortMenu
