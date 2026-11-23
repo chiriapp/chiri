@@ -26,7 +26,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
   const tags = tagData ?? dataStore.load().tags;
   const { data: uiState } = useUIState();
   const { isAnyModalOpen } = useModalState();
-  const { keyboardShortcuts } = useSettingsStore();
+  const { keyboardShortcuts, sidebarCollapsed } = useSettingsStore();
   const hasMountedGoMenuEffect = useRef(false);
   const lastRebuiltShortcuts = useRef(keyboardShortcuts);
 
@@ -106,6 +106,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
     taskGroupMode: uiState?.taskGroupConfig?.mode ?? 'none',
     taskGroupDirection: uiState?.taskGroupConfig?.direction ?? 'asc',
     activeCalendarId: uiState?.activeCalendarId ?? null,
+    sidebarCollapsed,
     shortcuts: keyboardShortcuts,
     accounts: menuAccounts,
     navigation: {
@@ -134,6 +135,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.activeCalendarId,
     isSyncing ?? false,
     isAnyModalOpen,
+    sidebarCollapsed,
     activeListKey,
     canGoPrevious,
     canGoNext,
@@ -170,6 +172,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
       activeCalendarId: uiState?.activeCalendarId ?? null,
       isSyncing: isSyncing ?? false,
       isModalOpen: isAnyModalOpen,
+      sidebarCollapsed,
       activeListKey,
       canGoPrevious,
       canGoNext,
@@ -186,6 +189,7 @@ export const useAppMenu = (isSyncing?: boolean) => {
     uiState?.activeCalendarId,
     isSyncing,
     isAnyModalOpen,
+    sidebarCollapsed,
     activeListKey,
     canGoPrevious,
     canGoNext,

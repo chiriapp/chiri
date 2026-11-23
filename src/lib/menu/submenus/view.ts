@@ -59,6 +59,7 @@ export const createViewSubmenu = async ({
   taskGroupMode,
   taskGroupDirection,
   activeCalendarId,
+  sidebarCollapsed,
   shortcuts,
   isModalOpen,
 }: {
@@ -70,6 +71,7 @@ export const createViewSubmenu = async ({
   taskGroupMode: TaskGroupMode;
   taskGroupDirection: SortDirection;
   activeCalendarId: string | null;
+  sidebarCollapsed: boolean;
   shortcuts?: KeyboardShortcut[];
   isModalOpen: boolean;
 }) => {
@@ -181,11 +183,23 @@ export const createViewSubmenu = async ({
   return Submenu.new({
     text: 'View',
     items: [
+      trackMenuItem(
+        await MenuItem.new({
+          id: 'toggle-sidebar',
+          text: sidebarCollapsed ? 'Show Sidebar' : 'Hide Sidebar',
+          accelerator: getAcceleratorOrDefault(shortcuts, 'toggle-sidebar', 'CmdOrCtrl+E'),
+          enabled: isAppActionEnabled(),
+          action: () => {
+            emit(MENU_EVENTS.TOGGLE_SIDEBAR);
+          },
+        }),
+      ),
+      await separator(),
+      tasksHeaderItem,
       toggleCompletedItem,
       toggleUnstartedItem,
       toggleCompletedToBottomItem,
       await separator(),
-      tasksHeaderItem,
       await Submenu.new({
         text: 'Sort By',
         items: [...sortItems, await separator(), sortDirectionSubmenu],
@@ -193,16 +207,6 @@ export const createViewSubmenu = async ({
       await Submenu.new({
         text: 'Group By',
         items: [...groupItems, await separator(), groupDirectionSubmenu],
-      }),
-      await separator(),
-      await MenuItem.new({
-        id: 'toggle-sidebar',
-        text: 'Toggle Sidebar',
-        accelerator: getAcceleratorOrDefault(shortcuts, 'toggle-sidebar', 'CmdOrCtrl+E'),
-        enabled: isAppActionEnabled(),
-        action: () => {
-          emit(MENU_EVENTS.TOGGLE_SIDEBAR);
-        },
       }),
       await separator(),
       await PredefinedMenuItem.new({

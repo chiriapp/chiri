@@ -35,6 +35,7 @@ export const createMacMenu = async (options: AppMenuOptions = {}) => {
     taskGroupMode,
     taskGroupDirection,
     activeCalendarId,
+    sidebarCollapsed: options.sidebarCollapsed ?? false,
     shortcuts,
     isModalOpen,
   });

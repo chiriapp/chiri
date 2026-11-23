@@ -142,6 +142,7 @@ export const updateMenuState = async (options: {
   taskGroupMode?: TaskGroupMode;
   taskGroupDirection?: SortDirection;
   activeCalendarId?: string | null;
+  sidebarCollapsed?: boolean;
   isSyncing?: boolean;
   isModalOpen?: boolean;
   activeListKey?: string;
@@ -170,6 +171,11 @@ export const updateMenuState = async (options: {
   }
   if (options.showUnstarted !== undefined) {
     await updateMenuItem('toggle-unstarted', { checked: options.showUnstarted });
+  }
+  if (options.sidebarCollapsed !== undefined) {
+    await updateMenuItem('toggle-sidebar', {
+      text: options.sidebarCollapsed ? 'Show Sidebar' : 'Hide Sidebar',
+    });
   }
   if (options.activeListKey !== undefined) {
     const activeListKey = options.activeListKey;

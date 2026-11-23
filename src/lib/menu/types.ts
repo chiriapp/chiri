@@ -46,6 +46,7 @@ export interface AppMenuOptions {
   taskGroupMode?: TaskGroupMode;
   taskGroupDirection?: SortDirection;
   activeCalendarId?: string | null;
+  sidebarCollapsed?: boolean;
   shortcuts?: KeyboardShortcut[];
   accounts?: MenuAccount[];
   navigation?: MenuNavigationOptions;
