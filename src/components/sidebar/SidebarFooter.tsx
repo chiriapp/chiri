@@ -22,7 +22,7 @@ export const SidebarFooter = ({
   isAnyModalOpen,
 }: SidebarFooterProps) => {
   return (
-    <div className="app-sidebar-footer relative flex flex-col justify-between border-surface-300 border-t bg-surface-100 px-2.25 pt-2.25 pb-2 dark:border-surface-700 dark:bg-surface-900">
+    <div className="app-sidebar-footer relative flex flex-col justify-between gap-1 border-surface-300 border-t bg-surface-100 px-2.25 pt-2.25 pb-2 dark:border-surface-700 dark:bg-surface-900">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-linear-to-t from-surface-100 to-transparent dark:from-surface-900"
@@ -41,7 +41,7 @@ export const SidebarFooter = ({
           Update available!
         </button>
       )}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <button
           type="button"
           onClick={() => onOpenImport?.()}

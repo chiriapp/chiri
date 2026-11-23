@@ -33,7 +33,7 @@ export const SidebarCollapsedSectionButton = ({
       aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${label} section`}
       aria-expanded={!collapsed}
       onClick={onToggle}
-      className={`flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-200/50 outline-hidden transition-colors hover:bg-surface-300/70 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:bg-surface-800/50 dark:hover:bg-surface-700/70 ${
+      className={`flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-200/50 outline-hidden transition-colors hover:bg-surface-300/70 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:bg-surface-800/50 dark:hover:bg-surface-700/70 ${
         collapsed
           ? 'text-surface-500 dark:text-surface-400'
           : 'text-surface-900 dark:text-surface-100'

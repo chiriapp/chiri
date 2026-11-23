@@ -143,7 +143,7 @@ export const SidebarCollapsedFilters = ({
                               aria-label={`${filter.name} filter`}
                               onClick={() => onSelectFilter(filter.id)}
                               onContextMenu={(event) => onContextMenu(event, 'filter', filter.id)}
-                              className={`flex size-10 shrink-0 items-center justify-center rounded-xl outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+                              className={`flex size-9 shrink-0 items-center justify-center rounded-xl outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
                                 isActive
                                   ? 'bg-surface-200 dark:bg-surface-700'
                                   : contextMenu?.type === 'filter' && contextMenu.id === filter.id

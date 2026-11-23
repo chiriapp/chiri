@@ -122,7 +122,7 @@ export const SidebarCollapsedView = ({
       className={`flex min-h-0 flex-1 flex-col items-center motion-safe:transition-opacity motion-safe:duration-150 ${showCollapsedContent ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
     >
       <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1 overflow-y-auto overscroll-contain py-2">
-        <div className="flex shrink-0 flex-col items-center gap-2">
+        <div className="flex shrink-0 flex-col items-center gap-1">
           <Tooltip
             content={
               <span className="flex flex-col whitespace-nowrap leading-tight">
@@ -136,7 +136,7 @@ export const SidebarCollapsedView = ({
             <button
               type="button"
               onClick={navigation.onAllTasks}
-              className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+              className={`flex size-9 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
                 navigation.activeView === 'tasks' &&
                 navigation.activeCalendarId === null &&
                 navigation.activeTagId === null
@@ -161,7 +161,7 @@ export const SidebarCollapsedView = ({
             <button
               type="button"
               onClick={navigation.onRecentlyDeleted}
-              className={`flex size-10 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
+              className={`flex size-9 shrink-0 items-center justify-center rounded-lg outline-hidden transition-colors focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset ${
                 navigation.activeView === 'recently-deleted'
                   ? 'bg-surface-200 text-surface-900 dark:bg-surface-700 dark:text-surface-100'
                   : 'text-surface-500 hover:bg-surface-200 dark:text-surface-400 dark:hover:bg-surface-700'
@@ -257,12 +257,15 @@ export const SidebarCollapsedView = ({
         })}
       </div>
 
-      <div className="relative flex w-full shrink-0 flex-col items-center gap-2 bg-surface-100 px-1 py-2 dark:bg-surface-900">
+      <div className="relative flex w-full shrink-0 flex-col items-center gap-1 bg-surface-100 px-1 py-2 dark:bg-surface-900">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-x-0 -top-8 h-8 bg-linear-to-t from-surface-100 to-transparent dark:from-surface-900"
         />
-        <div aria-hidden="true" className="h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700" />
+        <div
+          aria-hidden="true"
+          className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700"
+        />
         {footer.updateAvailable && (
           <Tooltip
             content="Update available!"
@@ -272,18 +275,18 @@ export const SidebarCollapsedView = ({
             <button
               type="button"
               onClick={() => footer.onUpdateClick?.()}
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
             >
               <Download className="h-5 w-5 text-primary-ink" />
             </button>
           </Tooltip>
         )}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-1">
           <Tooltip content={importTooltip} position="right" disabled={isAnyCollapsedItemDragging}>
             <button
               type="button"
               onClick={() => footer.onOpenImport?.()}
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
             >
               <Import className="h-5 w-5" />
             </button>
@@ -292,7 +295,7 @@ export const SidebarCollapsedView = ({
             <button
               type="button"
               onClick={() => footer.onOpenSettings?.()}
-              className="flex size-10 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
             >
               <Settings className="h-5 w-5" />
             </button>

@@ -40,7 +40,7 @@ export const SidebarExpandedView = ({
     <div
       className={`flex min-h-0 flex-1 flex-col motion-safe:transition-opacity motion-safe:duration-150 ${showExpandedContent ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
     >
-      <div className="flex flex-1 flex-col gap-2 overflow-y-auto overscroll-contain px-2.25 py-2">
+      <div className="flex flex-1 flex-col gap-1 overflow-y-auto overscroll-contain px-2.25 py-2">
         <button
           type="button"
           onClick={navigation.onAllTasks}
@@ -73,7 +73,7 @@ export const SidebarExpandedView = ({
 
         <div
           aria-hidden="true"
-          className="-mx-2.25 h-px w-[calc(100%+18px)] shrink-0 bg-surface-200 dark:bg-surface-700"
+          className="-mx-2.25 my-1 h-px w-[calc(100%+18px)] shrink-0 bg-surface-200 dark:bg-surface-700"
         />
 
         <SidebarSections {...sections} />
