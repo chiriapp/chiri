@@ -26,7 +26,7 @@ export const createAccountsSubmenu = async ({
   const syncItem = trackMenuItem(
     await MenuItem.new({
       id: 'sync',
-      text: 'Sync',
+      text: isSyncing ? 'Syncing…' : 'Sync',
       accelerator: getAcceleratorOrDefault(shortcuts, 'sync', 'CmdOrCtrl+R'),
       enabled: isAppActionEnabled(caldavAccountCount > 0 && !isSyncing),
       action: () => {
@@ -54,7 +54,7 @@ export const createAccountsSubmenu = async ({
                 },
               }),
               await MenuItem.new({
-                text: 'Edit Calendar',
+                text: 'Edit Calendar…',
                 enabled: isAppActionEnabled(),
                 action: () => {
                   emit(MENU_EVENTS.EDIT_CALENDAR, {
@@ -64,7 +64,7 @@ export const createAccountsSubmenu = async ({
                 },
               }),
               await MenuItem.new({
-                text: 'Export Tasks',
+                text: 'Export Tasks…',
                 enabled: isAppActionEnabled(),
                 action: () => {
                   emit(MENU_EVENTS.EXPORT_CALENDAR, {
@@ -106,7 +106,7 @@ export const createAccountsSubmenu = async ({
             },
           }),
           await MenuItem.new({
-            text: 'Edit Account',
+            text: 'Edit Account…',
             enabled: isAppActionEnabled(),
             action: () => {
               emit(MENU_EVENTS.EDIT_ACCOUNT, { accountId: account.id });

@@ -156,7 +156,10 @@ export const updateMenuState = async (options: {
   if (options.accountCount !== undefined || options.isSyncing !== undefined) {
     const hasAccounts = (options.accountCount ?? 1) > 0;
     const isSyncing = options.isSyncing ?? false;
-    await updateMenuItem('sync', { enabled: hasAccounts && !isSyncing });
+    await updateMenuItem('sync', {
+      text: isSyncing ? 'Syncing…' : 'Sync',
+      enabled: hasAccounts && !isSyncing,
+    });
   }
   if (options.showCompleted !== undefined) {
     await updateMenuItem('toggle-completed', { checked: options.showCompleted });
