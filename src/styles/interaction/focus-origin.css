@@ -1,0 +1,18 @@
+/* focus rings follow how the focused element got focus, as tracked by useFocusOrigin, rather
+   than the webview's `:focus-visible` heuristic: the UA reports programmatic focus as visible
+   whenever the last event it saw was a key press (Esc dismissing search, Cmd+, reopening
+   settings) or when the pointer never reached the webview (native menu invoking a command)
+
+   text entry is excluded because a focused field must always look focused; the ring variables
+   are cleared instead of box-shadow so resting shadows survive */
+html[data-focus-origin="pointer"] :focus-visible:not(:is(:read-write, [readonly])) {
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+  outline: none;
+}
+
+html[data-focus-origin="pointer"] :focus-visible:not(:is(:read-write, [readonly]))::before,
+html[data-focus-origin="pointer"] :focus-visible:not(:is(:read-write, [readonly]))::after {
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+}

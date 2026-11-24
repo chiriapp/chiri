@@ -87,6 +87,7 @@ describe('Tooltip', () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    delete document.documentElement.dataset.focusOrigin;
     vi.unstubAllGlobals();
     vi.useRealTimers();
   });
@@ -131,6 +132,23 @@ describe('Tooltip', () => {
     act(() => {
       pressEscape();
     });
+    expect(tooltip.classList.contains('invisible')).toBe(true);
+  });
+
+  it('stays hidden when the pointer produced the focus', () => {
+    act(() => {
+      root.render(renderTooltip({ content: 'Pointer focus tooltip' }));
+    });
+
+    const button = getButton(container);
+    const tooltip = getDescribedTooltip(button);
+
+    // the app hands focus back to a trigger after a dismissal (Esc closing search)
+    document.documentElement.dataset.focusOrigin = 'pointer';
+    act(() => {
+      button.focus();
+    });
+
     expect(tooltip.classList.contains('invisible')).toBe(true);
   });
 

@@ -347,6 +347,10 @@ export const Tooltip = ({
 
   const handleFocus = useCallback(() => {
     isFocusInsideRef.current = true;
+    // focus that the pointer produced (a click, or the app handing focus back after a dismissal)
+    // is not a request for the tooltip; the pointer already shows it via hover. see useFocusOrigin
+    if (document.documentElement.dataset.focusOrigin === 'pointer') return;
+
     if (
       !isOverlayOpenRef.current &&
       (!isInteractionSuppressedRef.current ||

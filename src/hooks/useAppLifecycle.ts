@@ -7,6 +7,7 @@ import { useDeepLink } from '$hooks/system/useDeepLink';
 import { useNotifications } from '$hooks/system/useNotifications';
 import { useTray } from '$hooks/system/useTray';
 import { useCursorPointers } from '$hooks/ui/useCursorPointers';
+import { useFocusOrigin } from '$hooks/ui/useFocusOrigin';
 import { useKeyboardShortcuts } from '$hooks/ui/useKeyboardShortcuts';
 import { useRefreshStaleCursorAfterPointerMutation } from '$hooks/ui/useStaleCursorReset';
 import { useTheme } from '$hooks/ui/useTheme';
@@ -50,6 +51,7 @@ export const useAppLifecycle = ({
   useAppMenu(isSyncInProgress);
   useTheme();
   useCursorPointers();
+  useFocusOrigin();
   useRefreshStaleCursorAfterPointerMutation();
   useConfirmQuit();
   useDeepLink();
