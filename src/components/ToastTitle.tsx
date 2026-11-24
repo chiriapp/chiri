@@ -21,10 +21,6 @@ interface ToastTitleProps {
   children?: ReactNode;
 }
 
-/**
- * standardized toast title: the type icon rendered inline with the title text
- * pairs with `icon: null` on the sonner toast so the default type icon is suppressed
- */
 export const ToastTitle = ({ type, children }: ToastTitleProps) => {
   const { icon: Icon, colorClass } = TYPE_ICONS[type];
 
