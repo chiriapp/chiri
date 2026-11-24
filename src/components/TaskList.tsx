@@ -25,6 +25,7 @@ import { useTaskHighlight } from '$context/taskHighlightContext';
 import { useCreateTask } from '$hooks/queries/useTasks';
 import { useUIState } from '$hooks/queries/useUIState';
 import { useVisibleTaskGroups, type VisibleTaskGroup } from '$hooks/queries/useVisibleTasks';
+import { useSelectedTaskScroll } from '$hooks/ui/useSelectedTaskScroll';
 import { truncateName, useSortableDrag } from '$hooks/ui/useSortableDrag';
 import { useTaskListSelection } from '$hooks/ui/useTaskListSelection';
 import { getEffectiveTaskGroupConfig } from '$lib/task/grouping';
@@ -258,13 +259,18 @@ export const TaskList = () => {
     [taskListVirtualizer],
   );
 
-  useEffect(() => {
-    const taskId = highlightedTaskId ?? uiState?.selectedTaskId;
-    if (!taskId) return;
-    const rowIndex = taskRowIndexById.get(taskId);
-    if (rowIndex === undefined) return;
-    taskListVirtualizer.scrollToIndex(rowIndex, { align: 'auto' });
-  }, [highlightedTaskId, taskListVirtualizer, taskRowIndexById, uiState?.selectedTaskId]);
+  const highlightedOrSelectedTaskId = highlightedTaskId ?? uiState?.selectedTaskId ?? null;
+  useSelectedTaskScroll({
+    taskId: highlightedOrSelectedTaskId,
+    rowIndex:
+      highlightedOrSelectedTaskId === null
+        ? undefined
+        : taskRowIndexById.get(highlightedOrSelectedTaskId),
+    lastRowIndex: taskListRows.length - 1,
+    virtualizer: taskListVirtualizer,
+    scrollElementRef: taskListRef,
+    contentRef: taskVirtualContentRef,
+  });
 
   const restrictTaskDragToGroup = useCallback<Modifier>(
     ({ draggingNodeRect, transform }) => {
