@@ -1,4 +1,3 @@
-import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { FILTER_PRESET_DEFINITIONS } from '$constants/filters';
 import { getIconByName } from '$constants/icons';
@@ -33,11 +32,6 @@ export const FilterPresetModal = ({
       zIndex="z-60"
       contentPadding={false}
       contentOverflow="auto"
-      footer={
-        <ModalButton variant="secondary" onClick={onClose}>
-          Cancel
-        </ModalButton>
-      }
     >
       <div className="space-y-3 p-2">
         {PRESET_CATEGORY_ORDER.map((category) => {
