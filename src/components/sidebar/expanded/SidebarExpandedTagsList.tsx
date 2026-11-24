@@ -12,9 +12,9 @@ import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import Plus from 'lucide-react/icons/plus';
 import Tags from 'lucide-react/icons/tags';
 import { type MouseEvent, useCallback, useRef, useState } from 'react';
-import { SidebarSectionHeader } from '$components/sidebar/SidebarSectionHeader';
-import { SidebarTagItem } from '$components/sidebar/SidebarTagItem';
-import { SidebarTagsSortMenu } from '$components/sidebar/SidebarTagsSortMenu';
+import { SidebarExpandedSectionHeader } from '$components/sidebar/expanded/SidebarExpandedSectionHeader';
+import { SidebarExpandedTagItem } from '$components/sidebar/expanded/SidebarExpandedTagItem';
+import { SidebarExpandedTagsSortMenu } from '$components/sidebar/expanded/SidebarExpandedTagsSortMenu';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderTags } from '$hooks/queries/useTags';
 import { useTagSortConfig } from '$hooks/queries/useUIState';
@@ -41,7 +41,7 @@ interface SidebarTagsListProps {
   onAddTag: () => void;
 }
 
-export const SidebarTagsList = ({
+export const SidebarExpandedTagsList = ({
   tags,
   tasks,
   activeTagId,
@@ -131,7 +131,7 @@ export const SidebarTagsList = ({
   return (
     <div>
       <div className="relative">
-        <SidebarSectionHeader
+        <SidebarExpandedSectionHeader
           label="Tags"
           icon={Tags}
           collapsed={tagsSectionCollapsed}
@@ -171,7 +171,7 @@ export const SidebarTagsList = ({
         />
 
         {showSortMenu && (
-          <SidebarTagsSortMenu
+          <SidebarExpandedTagsSortMenu
             anchorRef={sortButtonRef}
             tagSortConfig={tagSortConfig}
             onClose={closeSortMenu}
@@ -207,7 +207,7 @@ export const SidebarTagsList = ({
                     strategy={verticalListSortingStrategy}
                   >
                     {sortedTags.map((tag) => (
-                      <SidebarTagItem key={tag.id} {...sharedItemProps(tag)} sortable />
+                      <SidebarExpandedTagItem key={tag.id} {...sharedItemProps(tag)} sortable />
                     ))}
                   </SortableContext>
                 </div>
@@ -216,7 +216,7 @@ export const SidebarTagsList = ({
           ) : (
             <div ref={tagsDragBoundsRef} className="space-y-1">
               {sortedTags.map((tag) => (
-                <SidebarTagItem key={tag.id} {...sharedItemProps(tag)} />
+                <SidebarExpandedTagItem key={tag.id} {...sharedItemProps(tag)} />
               ))}
             </div>
           )}

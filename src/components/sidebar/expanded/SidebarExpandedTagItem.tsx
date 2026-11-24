@@ -2,41 +2,41 @@ import { useSortable } from '@dnd-kit/sortable';
 import type { HTMLAttributes, MouseEvent } from 'react';
 import { getIconByName } from '$constants/icons';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
-import type { Filter } from '$types/filter';
+import type { Tag } from '$types/tag';
 
-interface SidebarFilterItemProps {
-  filter: Filter;
+interface SidebarTagItemProps {
+  tag: Tag;
   isActive: boolean;
   isContextMenuOpen: boolean;
   isAnyModalOpen: boolean;
-  isAnyFilterDragging?: boolean;
   taskCount: number;
   showTaskCount: boolean;
+  isAnyTagDragging?: boolean;
   sortable?: boolean;
   onSelect: () => void;
   onContextMenu: (e: MouseEvent) => void;
 }
 
-export const SidebarFilterItem = ({
-  filter,
+export const SidebarExpandedTagItem = ({
+  tag,
   isActive,
   isContextMenuOpen,
   isAnyModalOpen,
-  isAnyFilterDragging,
   taskCount,
   showTaskCount,
+  isAnyTagDragging,
   sortable = false,
   onSelect,
   onContextMenu,
-}: SidebarFilterItemProps) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
-    id: filter.id,
-    disabled: !sortable,
-  });
-  const FilterIcon = getIconByName(filter.icon ?? 'list-todo');
+}: SidebarTagItemProps) => {
   const resolveAccent = useAccentColorResolver();
   const resolvedAccentColor = useResolvedAccentColor();
-  const filterColor = filter.color ? resolveAccent(filter.color) : resolvedAccentColor;
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useSortable({
+    id: tag.id,
+    disabled: !sortable,
+  });
+  const TagIcon = getIconByName(tag.icon ?? 'tag');
+  const tagColor = tag.color ? resolveAccent(tag.color) : resolvedAccentColor;
   const transformStr =
     sortable && transform
       ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX}) scaleY(${transform.scaleY})`
@@ -57,21 +57,21 @@ export const SidebarFilterItem = ({
           : `text-surface-600 dark:text-surface-400 ${
               isContextMenuOpen
                 ? 'bg-surface-200 dark:bg-surface-700'
-                : !isAnyModalOpen && !isAnyFilterDragging
+                : !isAnyModalOpen && !isAnyTagDragging
                   ? 'hover:bg-surface-200 dark:hover:bg-surface-700'
                   : ''
             }`
-      } ${isDragging ? 'opacity-50' : ''} ${isAnyFilterDragging && !isDragging ? 'pointer-events-none' : ''}`}
+      } ${isDragging ? 'opacity-50' : ''} ${isAnyTagDragging && !isDragging ? 'pointer-events-none' : ''}`}
       {...dragHandleProps}
     >
-      {filter.emoji ? (
-        <span className="text-xs leading-none" style={{ color: filterColor }}>
-          {filter.emoji}
+      {tag.emoji ? (
+        <span className="text-xs leading-none" style={{ color: tagColor }}>
+          {tag.emoji}
         </span>
       ) : (
-        <FilterIcon className="h-3.5 w-3.5" style={{ color: filterColor }} />
+        <TagIcon className="h-3.5 w-3.5" style={{ color: tagColor }} />
       )}
-      <span className="flex-1 truncate text-left">{filter.name}</span>
+      <span className="flex-1 truncate text-left">{tag.name}</span>
       {showTaskCount && <span className="text-xs">{taskCount}</span>}
     </button>
   );

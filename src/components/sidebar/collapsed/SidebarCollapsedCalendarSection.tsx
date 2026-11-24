@@ -3,8 +3,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import CalendarDays from 'lucide-react/icons/calendar-days';
 import Users from 'lucide-react/icons/users';
 import type { MouseEvent, RefObject } from 'react';
-import { SidebarCollapsedSectionButton } from '$components/sidebar/SidebarCollapsedSectionButton';
-import { SidebarCollapsedSortableItem } from '$components/sidebar/SidebarCollapsedSortableItem';
+import { SidebarCollapsedSectionButton } from '$components/sidebar/collapsed/SidebarCollapsedSectionButton';
+import { SidebarCollapsedSortableItem } from '$components/sidebar/collapsed/SidebarCollapsedSortableItem';
 import { Tooltip } from '$components/Tooltip';
 import { getIconByName } from '$constants/icons';
 import { useReorderCalendars } from '$hooks/queries/useAccounts';

@@ -1,17 +1,17 @@
 import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 
-interface SidebarAccountsContextMenuProps {
+interface SidebarAccountsSectionContextMenuProps {
   onClose: () => void;
   onExpandAll: () => void;
   onCollapseAll: () => void;
 }
 
-export const SidebarAccountsContextMenu = ({
+export const SidebarAccountsSectionContextMenu = ({
   onClose,
   onExpandAll,
   onCollapseAll,
-}: SidebarAccountsContextMenuProps) => (
+}: SidebarAccountsSectionContextMenuProps) => (
   <>
     <button
       type="button"

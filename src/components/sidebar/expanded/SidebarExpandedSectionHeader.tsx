@@ -11,7 +11,7 @@ interface SidebarSectionHeaderProps {
   onContextMenu?: (e: MouseEvent) => void;
 }
 
-export const SidebarSectionHeader = ({
+export const SidebarExpandedSectionHeader = ({
   label,
   icon: Icon,
   collapsed,

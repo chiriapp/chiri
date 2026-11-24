@@ -9,7 +9,7 @@ import {
 } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { type MouseEvent, useCallback, useRef, useState } from 'react';
-import { SidebarCalendarItem } from '$components/sidebar/SidebarCalendarItem';
+import { SidebarExpandedCalendarItem } from '$components/sidebar/expanded/SidebarExpandedCalendarItem';
 import { useReorderCalendars } from '$hooks/queries/useAccounts';
 import { useAccentColorResolver, useResolvedAccentColor } from '$hooks/ui/useResolvedAccentColor';
 import { isActiveTask } from '$lib/task/status';
@@ -31,7 +31,7 @@ interface SidebarCalendarListProps {
   onSelectCalendar: (accountId: string, calendarId: string) => void;
 }
 
-export const SidebarCalendarList = ({
+export const SidebarExpandedCalendarList = ({
   account,
   tasks,
   activeCalendarId,
@@ -145,7 +145,11 @@ export const SidebarCalendarList = ({
               strategy={verticalListSortingStrategy}
             >
               {sortedCalendars.map((calendar) => (
-                <SidebarCalendarItem key={calendar.id} {...sharedItemProps(calendar)} sortable />
+                <SidebarExpandedCalendarItem
+                  key={calendar.id}
+                  {...sharedItemProps(calendar)}
+                  sortable
+                />
               ))}
             </SortableContext>
           </div>
@@ -157,7 +161,7 @@ export const SidebarCalendarList = ({
   return (
     <div ref={calendarDragBoundsRef} className="space-y-1">
       {sortedCalendars.map((calendar) => (
-        <SidebarCalendarItem key={calendar.id} {...sharedItemProps(calendar)} />
+        <SidebarExpandedCalendarItem key={calendar.id} {...sharedItemProps(calendar)} />
       ))}
     </div>
   );

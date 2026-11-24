@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SidebarCollapsedView } from '$components/sidebar/SidebarCollapsedView';
-import { SidebarExpandedView } from '$components/sidebar/SidebarExpandedView';
+import { SidebarCollapsedView } from '$components/sidebar/collapsed/SidebarCollapsedView';
+import { SidebarExpandedView } from '$components/sidebar/expanded/SidebarExpandedView';
 import { SidebarHeader } from '$components/sidebar/SidebarHeader';
 import { SidebarOverlays } from '$components/sidebar/SidebarOverlays';
 import { getFilterPresetId } from '$constants/filters';

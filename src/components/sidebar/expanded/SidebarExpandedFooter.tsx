@@ -12,7 +12,7 @@ interface SidebarFooterProps {
   isAnyModalOpen: boolean;
 }
 
-export const SidebarFooter = ({
+export const SidebarExpandedFooter = ({
   updateAvailable,
   onUpdateClick,
   onOpenImport,

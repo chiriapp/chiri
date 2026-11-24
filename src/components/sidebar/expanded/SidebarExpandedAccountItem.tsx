@@ -3,8 +3,8 @@ import ChevronDown from 'lucide-react/icons/chevron-down';
 import MoreVertical from 'lucide-react/icons/more-vertical';
 import Plus from 'lucide-react/icons/plus';
 import type { HTMLAttributes, MouseEvent } from 'react';
-import { SidebarAccountItemDisconnectedIndicator } from '$components/sidebar/SidebarAccountItemDisconnectedIndicator';
-import { SidebarCalendarList } from '$components/sidebar/SidebarCalendarList';
+import { SidebarExpandedAccountItemDisconnectedIndicator } from '$components/sidebar/expanded/SidebarExpandedAccountItemDisconnectedIndicator';
+import { SidebarExpandedCalendarList } from '$components/sidebar/expanded/SidebarExpandedCalendarList';
 import { Tooltip } from '$components/Tooltip';
 import { getIconByName } from '$constants/icons';
 import type { Account } from '$types/account';
@@ -54,7 +54,7 @@ const accountButtonBackgroundClass = (
   return '';
 };
 
-export const SidebarAccountItem = ({
+export const SidebarExpandedAccountItem = ({
   account,
   tasks,
   expandedAccounts,
@@ -139,7 +139,7 @@ export const SidebarAccountItem = ({
             <span className="truncate pr-2 text-left text-sm text-surface-600 dark:text-surface-400">
               {account.name}
             </span>
-            <SidebarAccountItemDisconnectedIndicator
+            <SidebarExpandedAccountItemDisconnectedIndicator
               accountId={account.id}
               isCalDAV={!!account.caldav}
             />
@@ -188,7 +188,7 @@ export const SidebarAccountItem = ({
           className={`grid pt-1 motion-safe:transition-[grid-template-rows] motion-safe:duration-200 motion-safe:ease-in-out ${isExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
         >
           <div className="min-h-0 overflow-hidden" aria-hidden={!isExpanded} inert={!isExpanded}>
-            <SidebarCalendarList
+            <SidebarExpandedCalendarList
               account={account}
               tasks={tasks}
               activeCalendarId={activeCalendarId}

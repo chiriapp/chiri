@@ -3,7 +3,7 @@ import { LoadingSpinner } from '$components/LoadingSpinner';
 import { Tooltip } from '$components/Tooltip';
 import { useConnectionStore } from '$context/connectionContext';
 
-export const SidebarAccountItemDisconnectedIndicator = ({
+export const SidebarExpandedAccountItemDisconnectedIndicator = ({
   accountId,
   isCalDAV,
 }: {

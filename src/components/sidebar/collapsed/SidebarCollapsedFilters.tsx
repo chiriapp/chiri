@@ -2,8 +2,8 @@ import { closestCenter, DndContext, type DragEndEvent, type Modifier } from '@dn
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Funnel from 'lucide-react/icons/funnel';
 import type { MouseEvent, RefObject } from 'react';
-import { SidebarCollapsedSectionButton } from '$components/sidebar/SidebarCollapsedSectionButton';
-import { SidebarCollapsedSortableItem } from '$components/sidebar/SidebarCollapsedSortableItem';
+import { SidebarCollapsedSectionButton } from '$components/sidebar/collapsed/SidebarCollapsedSectionButton';
+import { SidebarCollapsedSortableItem } from '$components/sidebar/collapsed/SidebarCollapsedSortableItem';
 import { Tooltip } from '$components/Tooltip';
 import { getIconByName } from '$constants/icons';
 import { useReorderFilters } from '$hooks/queries/useFilters';

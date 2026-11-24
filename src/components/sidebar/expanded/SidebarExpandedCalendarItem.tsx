@@ -18,7 +18,7 @@ interface SidebarCalendarItemProps {
   onContextMenu: (e: MouseEvent) => void;
 }
 
-export const SidebarCalendarItem = ({
+export const SidebarExpandedCalendarItem = ({
   calendar,
   isActive,
   isContextMenuOpen,

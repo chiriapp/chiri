@@ -1,7 +1,10 @@
 import Inbox from 'lucide-react/icons/inbox';
 import Trash2 from 'lucide-react/icons/trash-2';
-import { SidebarFooter } from '$components/sidebar/SidebarFooter';
-import { SidebarSections, type SidebarSectionsProps } from '$components/sidebar/SidebarSections';
+import { SidebarExpandedFooter } from '$components/sidebar/expanded/SidebarExpandedFooter';
+import {
+  SidebarExpandedSections,
+  type SidebarExpandedSectionsProps,
+} from '$components/sidebar/expanded/SidebarExpandedSections';
 import { isActiveTask } from '$lib/task/status';
 
 interface SidebarExpandedNavigationProps {
@@ -23,7 +26,7 @@ interface SidebarExpandedFooterProps {
 interface SidebarExpandedViewProps {
   showExpandedContent: boolean;
   navigation: SidebarExpandedNavigationProps;
-  sections: SidebarSectionsProps;
+  sections: SidebarExpandedSectionsProps;
   footer: SidebarExpandedFooterProps;
 }
 
@@ -76,10 +79,10 @@ export const SidebarExpandedView = ({
           className="-mx-2.25 my-1 h-px w-[calc(100%+18px)] shrink-0 bg-surface-200 dark:bg-surface-700"
         />
 
-        <SidebarSections {...sections} />
+        <SidebarExpandedSections {...sections} />
       </div>
 
-      <SidebarFooter {...footer} />
+      <SidebarExpandedFooter {...footer} />
     </div>
   );
 };

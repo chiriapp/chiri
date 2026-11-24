@@ -1,7 +1,7 @@
 import type { MouseEventHandler } from 'react';
 import { FloatingLayerFrame } from '$components/FloatingLayerFrame';
 import { SidebarAccountItemContextMenu } from '$components/sidebar/SidebarAccountItemContextMenu';
-import { SidebarAccountsContextMenu } from '$components/sidebar/SidebarAccountsContextMenu';
+import { SidebarAccountsSectionContextMenu } from '$components/sidebar/SidebarAccountsSectionContextMenu';
 import { SidebarCalendarContextMenu } from '$components/sidebar/SidebarCalendarContextMenu';
 import { SidebarFilterItemContextMenu } from '$components/sidebar/SidebarFilterItemContextMenu';
 import { SidebarTagItemContextMenu } from '$components/sidebar/SidebarTagItemContextMenu';
@@ -108,7 +108,7 @@ export const SidebarContextMenu = ({
       )}
 
       {contextMenu.type === 'accounts-section' && (
-        <SidebarAccountsContextMenu
+        <SidebarAccountsSectionContextMenu
           onClose={onClose}
           onExpandAll={onExpandAll}
           onCollapseAll={onCollapseAll}

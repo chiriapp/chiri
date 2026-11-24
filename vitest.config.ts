@@ -79,6 +79,7 @@ export default defineConfig({
             'src/tests/components/TaskBatchActionsBar.test.tsx',
             'src/tests/components/TaskItemContextMenu.test.tsx',
             'src/tests/components/HeaderViewMenu.test.tsx',
+            'src/tests/components/SidebarOverlays.test.tsx',
             'src/tests/hooks/ui/useTaskEditorActions.test.tsx',
             'src/tests/lib/toastManager.test.tsx',
             'src/tests/hooks/ui/useFocusOrigin.test.ts',

@@ -9,7 +9,7 @@ interface SidebarSortDirectionButtonProps {
   onToggle: () => void;
 }
 
-export const SidebarSortDirectionButton = ({
+export const SidebarExpandedSortDirectionButton = ({
   direction,
   disabled,
   onToggle,

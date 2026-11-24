@@ -2,8 +2,8 @@ import { closestCenter, DndContext, type DragEndEvent, type Modifier } from '@dn
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import Tags from 'lucide-react/icons/tags';
 import type { MouseEvent, RefObject } from 'react';
-import { SidebarCollapsedSectionButton } from '$components/sidebar/SidebarCollapsedSectionButton';
-import { SidebarCollapsedSortableItem } from '$components/sidebar/SidebarCollapsedSortableItem';
+import { SidebarCollapsedSectionButton } from '$components/sidebar/collapsed/SidebarCollapsedSectionButton';
+import { SidebarCollapsedSortableItem } from '$components/sidebar/collapsed/SidebarCollapsedSortableItem';
 import { Tooltip } from '$components/Tooltip';
 import { getIconByName } from '$constants/icons';
 import { useReorderTags } from '$hooks/queries/useTags';

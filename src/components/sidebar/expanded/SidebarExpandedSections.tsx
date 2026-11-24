@@ -1,21 +1,21 @@
 import type { MouseEvent } from 'react';
-import { SidebarAccountsList } from '$components/sidebar/SidebarAccountsList';
-import { SidebarFiltersList } from '$components/sidebar/SidebarFiltersList';
-import { SidebarLocalList } from '$components/sidebar/SidebarLocalList';
-import { SidebarTagsList } from '$components/sidebar/SidebarTagsList';
+import { SidebarExpandedAccountsList } from '$components/sidebar/expanded/SidebarExpandedAccountsList';
+import { SidebarExpandedFiltersList } from '$components/sidebar/expanded/SidebarExpandedFiltersList';
+import { SidebarExpandedLocalList } from '$components/sidebar/expanded/SidebarExpandedLocalList';
+import { SidebarExpandedTagsList } from '$components/sidebar/expanded/SidebarExpandedTagsList';
 import type { Account } from '$types/account';
 import type { Filter } from '$types/filter';
 import type { SidebarSectionKey } from '$types/settings/categories/navigation';
 import type { Tag } from '$types/tag';
 import type { Task } from '$types/task/model';
 
-export type SidebarContextMenuState = {
+export type SidebarExpandedContextMenuState = {
   type: 'account' | 'calendar' | 'tag' | 'filter' | 'accounts-section';
   id: string;
   accountId?: string;
 } | null;
 
-export interface SidebarSectionsProps {
+export interface SidebarExpandedSectionsProps {
   activeCalendarId: string | null;
   activeTagId: string | null;
   activeFilterId: string | null;
@@ -25,7 +25,7 @@ export interface SidebarSectionsProps {
   filters: Filter[];
   tasks: Task[];
   expandedAccounts: Set<string>;
-  contextMenu: SidebarContextMenuState;
+  contextMenu: SidebarExpandedContextMenuState;
   isAnyModalOpen: boolean;
   activeAccountMenuTriggerId: string | null;
   showSidebarTaskCounts: boolean;
@@ -59,7 +59,7 @@ export interface SidebarSectionsProps {
   onAddTag: () => void;
 }
 
-export const SidebarSections = ({
+export const SidebarExpandedSections = ({
   activeCalendarId,
   activeTagId,
   activeFilterId,
@@ -96,11 +96,11 @@ export const SidebarSections = ({
   onAddAccount,
   onAddFilter,
   onAddTag,
-}: SidebarSectionsProps) => {
+}: SidebarExpandedSectionsProps) => {
   const renderSection = (section: SidebarSectionKey) => {
     if (section === 'filters') {
       return showFiltersSection ? (
-        <SidebarFiltersList
+        <SidebarExpandedFiltersList
           key={section}
           filters={filters}
           tasks={tasks}
@@ -119,7 +119,7 @@ export const SidebarSections = ({
 
     if (section === 'local') {
       return showLocalSection ? (
-        <SidebarLocalList
+        <SidebarExpandedLocalList
           key={section}
           accounts={localAccounts}
           tasks={tasks}
@@ -138,7 +138,7 @@ export const SidebarSections = ({
 
     if (section === 'accounts') {
       return showAccountsSection ? (
-        <SidebarAccountsList
+        <SidebarExpandedAccountsList
           key={section}
           accounts={caldavAccounts}
           tasks={tasks}
@@ -160,7 +160,7 @@ export const SidebarSections = ({
     }
 
     return showTagsSection ? (
-      <SidebarTagsList
+      <SidebarExpandedTagsList
         key={section}
         tags={tags}
         tasks={tasks}

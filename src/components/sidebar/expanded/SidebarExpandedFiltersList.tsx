@@ -12,9 +12,9 @@ import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import Funnel from 'lucide-react/icons/funnel';
 import Plus from 'lucide-react/icons/plus';
 import { type MouseEvent, useCallback, useRef, useState } from 'react';
-import { SidebarFilterItem } from '$components/sidebar/SidebarFilterItem';
-import { SidebarFiltersSortMenu } from '$components/sidebar/SidebarFiltersSortMenu';
-import { SidebarSectionHeader } from '$components/sidebar/SidebarSectionHeader';
+import { SidebarExpandedFilterItem } from '$components/sidebar/expanded/SidebarExpandedFilterItem';
+import { SidebarExpandedFiltersSortMenu } from '$components/sidebar/expanded/SidebarExpandedFiltersSortMenu';
+import { SidebarExpandedSectionHeader } from '$components/sidebar/expanded/SidebarExpandedSectionHeader';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderFilters } from '$hooks/queries/useFilters';
 import { useFilterSortConfig } from '$hooks/queries/useUIState';
@@ -37,7 +37,7 @@ interface SidebarFiltersListProps {
   onContextMenu: (e: MouseEvent, type: 'filter', id: string) => void;
 }
 
-export const SidebarFiltersList = ({
+export const SidebarExpandedFiltersList = ({
   filters,
   tasks,
   activeFilterId,
@@ -102,7 +102,7 @@ export const SidebarFiltersList = ({
 
   return (
     <div className="relative">
-      <SidebarSectionHeader
+      <SidebarExpandedSectionHeader
         label="Filters"
         icon={Funnel}
         collapsed={collapsed}
@@ -139,7 +139,7 @@ export const SidebarFiltersList = ({
       />
 
       {showSortMenu && (
-        <SidebarFiltersSortMenu
+        <SidebarExpandedFiltersSortMenu
           anchorRef={sortButtonRef}
           filterSortConfig={filterSortConfig}
           onClose={() => setShowSortMenu(false)}
@@ -170,7 +170,7 @@ export const SidebarFiltersList = ({
                     strategy={verticalListSortingStrategy}
                   >
                     {sortedFilters.map((filter) => (
-                      <SidebarFilterItem
+                      <SidebarExpandedFilterItem
                         key={filter.id}
                         filter={filter}
                         isActive={activeFilterId === filter.id}

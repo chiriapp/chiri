@@ -2,7 +2,7 @@ import ChevronRight from 'lucide-react/icons/chevron-right';
 import type { RefObject } from 'react';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { HoverFlyout, HoverFlyoutGroup } from '$components/HoverFlyout';
-import { SidebarSortDirectionButton } from '$components/sidebar/SidebarSortDirectionButton';
+import { SidebarExpandedSortDirectionButton } from '$components/sidebar/expanded/SidebarExpandedSortDirectionButton';
 import { ACCOUNT_SORT_OPTIONS, CALENDAR_SORT_OPTIONS } from '$constants';
 import { useSetAccountSortConfig, useSetCalendarSortConfig } from '$hooks/queries/useUIState';
 import type { AccountSortConfig, CalendarSortConfig } from '$types/sort';
@@ -14,7 +14,7 @@ interface SidebarAccountsSortMenuProps {
   onClose: () => void;
 }
 
-export const SidebarAccountsSortMenu = ({
+export const SidebarExpandedAccountsSortMenu = ({
   anchorRef,
   accountSortConfig,
   calendarSortConfig,
@@ -78,7 +78,7 @@ export const SidebarAccountsSortMenu = ({
           <HoverFlyout side="right" gap={8}>
             <div className="flex items-center justify-between px-3 pb-1 font-medium text-sm text-surface-500 dark:text-surface-400">
               <span>Sort By</span>
-              <SidebarSortDirectionButton
+              <SidebarExpandedSortDirectionButton
                 direction={accountSortConfig.direction}
                 disabled={accountSortConfig.mode === 'manual'}
                 onToggle={toggleAccountSortDirection}
@@ -127,7 +127,7 @@ export const SidebarAccountsSortMenu = ({
           <HoverFlyout side="right" gap={8}>
             <div className="flex items-center justify-between px-3 pb-1 font-medium text-sm text-surface-500 dark:text-surface-400">
               <span>Sort By</span>
-              <SidebarSortDirectionButton
+              <SidebarExpandedSortDirectionButton
                 direction={calendarSortConfig.direction}
                 disabled={calendarSortConfig.mode === 'manual'}
                 onToggle={toggleCalendarSortDirection}

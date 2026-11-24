@@ -2,9 +2,9 @@ import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import CalendarDays from 'lucide-react/icons/calendar-days';
 import Plus from 'lucide-react/icons/plus';
 import { type MouseEvent, useRef, useState } from 'react';
-import { SidebarCalendarList } from '$components/sidebar/SidebarCalendarList';
-import { SidebarLocalSortMenu } from '$components/sidebar/SidebarLocalSortMenu';
-import { SidebarSectionHeader } from '$components/sidebar/SidebarSectionHeader';
+import { SidebarExpandedCalendarList } from '$components/sidebar/expanded/SidebarExpandedCalendarList';
+import { SidebarExpandedLocalSortMenu } from '$components/sidebar/expanded/SidebarExpandedLocalSortMenu';
+import { SidebarExpandedSectionHeader } from '$components/sidebar/expanded/SidebarExpandedSectionHeader';
 import { Tooltip } from '$components/Tooltip';
 import { useCalendarSortConfig } from '$hooks/queries/useUIState';
 import type { Account } from '$types/account';
@@ -29,7 +29,7 @@ interface SidebarLocalListProps {
   onAddCalendar: () => void;
 }
 
-export const SidebarLocalList = ({
+export const SidebarExpandedLocalList = ({
   accounts,
   tasks,
   activeCalendarId,
@@ -52,7 +52,7 @@ export const SidebarLocalList = ({
 
   return (
     <div className="relative">
-      <SidebarSectionHeader
+      <SidebarExpandedSectionHeader
         label="Local"
         icon={CalendarDays}
         collapsed={collapsed}
@@ -92,7 +92,7 @@ export const SidebarLocalList = ({
       />
 
       {showSortMenu && (
-        <SidebarLocalSortMenu
+        <SidebarExpandedLocalSortMenu
           anchorRef={sortButtonRef}
           calendarSortConfig={calendarSortConfig}
           onClose={closeSortMenu}
@@ -104,7 +104,7 @@ export const SidebarLocalList = ({
       >
         <div className="overflow-hidden" aria-hidden={collapsed} inert={collapsed}>
           {accounts.map((account) => (
-            <SidebarCalendarList
+            <SidebarExpandedCalendarList
               key={account.id}
               account={account}
               tasks={tasks}

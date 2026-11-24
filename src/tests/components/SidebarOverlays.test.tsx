@@ -6,6 +6,12 @@ import type { SidebarModalOverlaysProps } from '$components/sidebar/SidebarModal
 import { SidebarOverlays } from '$components/sidebar/SidebarOverlays';
 import type { Account } from '$types/account';
 
+// react-dom test renders need act() to batch/flushing behavior; flag checked by React at runtime
+const globalWithActEnvironment = globalThis as typeof globalThis & {
+  IS_REACT_ACT_ENVIRONMENT?: boolean;
+};
+globalWithActEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
+
 vi.mock('$components/sidebar/SidebarContextMenu', () => ({
   SidebarContextMenu: ({ contextMenu }: { contextMenu: { type: string } }) => (
     <output data-overlay="context-menu" data-type={contextMenu.type} />
@@ -30,7 +36,8 @@ vi.mock('$components/modals/FilterPresetModal', () => ({
   FilterPresetModal: () => <output data-overlay="filter-preset-modal" />,
 }));
 vi.mock('$components/modals/SidebarMobileConfigExportModal', () => ({
-  SidebarMobileConfigExportModal: () => <output data-overlay="mobile-config-modal" />,
+  SidebarMobileConfigExportModal: ({ accountId }: { accountId: string | null }) =>
+    accountId ? <output data-overlay="mobile-config-modal" /> : null,
 }));
 vi.mock('$components/modals/TagModal', () => ({
   TagModal: () => <output data-overlay="tag-modal" />,
@@ -86,7 +93,7 @@ const modalOverlays: SidebarModalOverlaysProps = {
     showFilterPresetModal: false,
     editingFilterId: null,
     exportTarget: null,
-    mobileConfigAccountId: null,
+    mobileConfigAccountId: 'account-1',
     openAccount: noop,
     closeAccount: noop,
     openTag: noop,

@@ -2,7 +2,7 @@ import ChevronRight from 'lucide-react/icons/chevron-right';
 import type { RefObject } from 'react';
 import { FloatingDropdownFrame } from '$components/FloatingDropdownFrame';
 import { HoverFlyout, HoverFlyoutGroup } from '$components/HoverFlyout';
-import { SidebarSortDirectionButton } from '$components/sidebar/SidebarSortDirectionButton';
+import { SidebarExpandedSortDirectionButton } from '$components/sidebar/expanded/SidebarExpandedSortDirectionButton';
 import { TAG_SORT_OPTIONS } from '$constants';
 import { useSetTagSortConfig } from '$hooks/queries/useUIState';
 import type { TagSortConfig } from '$types/sort';
@@ -13,7 +13,7 @@ interface SidebarTagsSortMenuProps {
   onClose: () => void;
 }
 
-export const SidebarTagsSortMenu = ({
+export const SidebarExpandedTagsSortMenu = ({
   anchorRef,
   tagSortConfig,
   onClose,
@@ -61,7 +61,7 @@ export const SidebarTagsSortMenu = ({
           <HoverFlyout side="right" gap={8}>
             <div className="flex items-center justify-between px-3 pb-1 font-medium text-sm text-surface-500 dark:text-surface-400">
               <span>Sort By</span>
-              <SidebarSortDirectionButton
+              <SidebarExpandedSortDirectionButton
                 direction={tagSortConfig.direction}
                 disabled={tagSortConfig.mode === 'manual'}
                 onToggle={toggleSortDirection}

@@ -12,9 +12,9 @@ import ArrowUpDown from 'lucide-react/icons/arrow-up-down';
 import Plus from 'lucide-react/icons/plus';
 import Users from 'lucide-react/icons/users';
 import { type MouseEvent, useCallback, useRef, useState } from 'react';
-import { SidebarAccountItem } from '$components/sidebar/SidebarAccountItem';
-import { SidebarAccountsSortMenu } from '$components/sidebar/SidebarAccountsSortMenu';
-import { SidebarSectionHeader } from '$components/sidebar/SidebarSectionHeader';
+import { SidebarExpandedAccountItem } from '$components/sidebar/expanded/SidebarExpandedAccountItem';
+import { SidebarExpandedAccountsSortMenu } from '$components/sidebar/expanded/SidebarExpandedAccountsSortMenu';
+import { SidebarExpandedSectionHeader } from '$components/sidebar/expanded/SidebarExpandedSectionHeader';
 import { Tooltip } from '$components/Tooltip';
 import { useReorderAccounts } from '$hooks/queries/useAccounts';
 import { useAccountSortConfig, useCalendarSortConfig } from '$hooks/queries/useUIState';
@@ -44,7 +44,7 @@ interface SidebarAccountsListProps {
   onAddAccount: () => void;
 }
 
-export const SidebarAccountsList = ({
+export const SidebarExpandedAccountsList = ({
   accounts,
   tasks,
   expandedAccounts,
@@ -153,7 +153,7 @@ export const SidebarAccountsList = ({
 
   return (
     <div className="relative">
-      <SidebarSectionHeader
+      <SidebarExpandedSectionHeader
         label="Accounts"
         icon={Users}
         collapsed={accountsSectionCollapsed}
@@ -194,7 +194,7 @@ export const SidebarAccountsList = ({
       />
 
       {showSortMenu && (
-        <SidebarAccountsSortMenu
+        <SidebarExpandedAccountsSortMenu
           anchorRef={sortButtonRef}
           accountSortConfig={accountSortConfig}
           calendarSortConfig={calendarSortConfig}
@@ -229,7 +229,7 @@ export const SidebarAccountsList = ({
                   strategy={verticalListSortingStrategy}
                 >
                   {sortedAccounts.map((account) => (
-                    <SidebarAccountItem
+                    <SidebarExpandedAccountItem
                       key={account.id}
                       {...sharedAccountProps(account)}
                       sortable
@@ -241,7 +241,7 @@ export const SidebarAccountsList = ({
           ) : (
             <div ref={accountsDragBoundsRef}>
               {sortedAccounts.map((account) => (
-                <SidebarAccountItem key={account.id} {...sharedAccountProps(account)} />
+                <SidebarExpandedAccountItem key={account.id} {...sharedAccountProps(account)} />
               ))}
             </div>
           )}
