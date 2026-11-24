@@ -2,12 +2,17 @@ import { act, createElement, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TaskEditorSubtasks } from '$components/taskEditor/TaskEditorSubtasks';
+import type { Task } from '$types/task/model';
 import { makeTask } from '../fixtures';
 
-const { sortMode, getSortedTasksMock } = vi.hoisted(() => ({
-  sortMode: { current: 'manual' as 'manual' | 'title' },
-  getSortedTasksMock: vi.fn((tasks: ReturnType<typeof makeTask>[]) => tasks),
-}));
+const { sortMode, getSortedTasksMock, getTaskByIdMock, toggleTaskCollapsedMock, children } =
+  vi.hoisted(() => ({
+    sortMode: { current: 'manual' as 'manual' | 'title' },
+    getSortedTasksMock: vi.fn((tasks: ReturnType<typeof makeTask>[]) => tasks),
+    getTaskByIdMock: vi.fn(),
+    toggleTaskCollapsedMock: vi.fn(),
+    children: { current: [] as ReturnType<typeof makeTask>[] },
+  }));
 
 vi.mock('@dnd-kit/core', () => ({
   closestCenter: vi.fn(),
@@ -21,20 +26,9 @@ vi.mock('@dnd-kit/sortable', () => ({
 }));
 
 vi.mock('$hooks/queries/useTasks', () => ({
-  useChildTasks: () => ({
-    data: [
-      makeTask({ id: 'subtask-1', uid: 'subtask-1-uid', parentUid: 'parent-uid' }),
-      makeTask({ id: 'subtask-2', uid: 'subtask-2-uid', parentUid: 'parent-uid' }),
-    ],
-  }),
+  useChildTasks: () => ({ data: children.current }),
   useCreateTask: () => ({ mutate: vi.fn() }),
-  useTasks: () => ({
-    data: [
-      makeTask({ id: 'parent', uid: 'parent-uid' }),
-      makeTask({ id: 'subtask-1', uid: 'subtask-1-uid', parentUid: 'parent-uid' }),
-      makeTask({ id: 'subtask-2', uid: 'subtask-2-uid', parentUid: 'parent-uid' }),
-    ],
-  }),
+  useTasks: () => ({ data: [makeTask(), ...children.current] }),
 }));
 
 vi.mock('$hooks/queries/useUIState', () => ({
@@ -59,6 +53,8 @@ vi.mock('$hooks/ui/useSortableDrag', () => ({
 
 vi.mock('$lib/store/tasks', () => ({
   getSortedTasks: getSortedTasksMock,
+  getTaskById: getTaskByIdMock,
+  toggleTaskCollapsed: toggleTaskCollapsedMock,
 }));
 
 vi.mock('$components/taskEditor/TaskEditorSubtaskItem', () => ({
@@ -82,6 +78,11 @@ describe('TaskEditorSubtasks', () => {
   beforeEach(() => {
     sortMode.current = 'manual';
     getSortedTasksMock.mockClear();
+    toggleTaskCollapsedMock.mockClear();
+    children.current = [
+      makeTask({ id: 'subtask-1', uid: 'subtask-1-uid', parentUid: 'parent-uid' }),
+      makeTask({ id: 'subtask-2', uid: 'subtask-2-uid', parentUid: 'parent-uid' }),
+    ];
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -92,11 +93,11 @@ describe('TaskEditorSubtasks', () => {
     container.remove();
   });
 
-  const renderSubtasks = async () => {
+  const renderSubtasks = async (overrides: Partial<Task> = {}) => {
     await act(async () => {
       root.render(
         createElement(TaskEditorSubtasks, {
-          task: makeTask({ id: 'parent', uid: 'parent-uid' }),
+          task: makeTask({ id: 'parent', uid: 'parent-uid', ...overrides }),
           checkmarkColor: '#fff',
           useAccentColorForCheckboxes: false,
           updateTask: vi.fn(),
@@ -131,5 +132,33 @@ describe('TaskEditorSubtasks', () => {
       mode: 'title',
       direction: 'asc',
     });
+  });
+
+  it('toggles the edited task collapse from the subtask section header', async () => {
+    await renderSubtasks();
+    expect(container.querySelectorAll('[data-subtask-id]')).toHaveLength(2);
+
+    const header = container.querySelector<HTMLButtonElement>('[aria-expanded]');
+    expect(header?.textContent).toContain('Subtasks');
+    expect(header?.getAttribute('aria-expanded')).toBe('true');
+
+    await act(async () => header?.click());
+
+    expect(toggleTaskCollapsedMock).toHaveBeenCalledWith('parent');
+  });
+
+  it('hides the subtask rows while the task is collapsed', async () => {
+    await renderSubtasks({ isCollapsed: true });
+
+    expect(container.querySelectorAll('[data-subtask-id]')).toHaveLength(0);
+    expect(container.querySelector('[aria-expanded]')?.getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('keeps the subtask header inert when the task has no subtasks', async () => {
+    children.current = [];
+    await renderSubtasks();
+
+    expect(container.textContent).toContain('Subtasks');
+    expect(container.querySelector('[aria-expanded]')).toBeNull();
   });
 });

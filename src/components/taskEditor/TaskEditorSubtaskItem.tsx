@@ -1,18 +1,11 @@
 import type { AnimateLayoutChanges } from '@dnd-kit/sortable';
 import { defaultAnimateLayoutChanges, useSortable } from '@dnd-kit/sortable';
 import Check from 'lucide-react/icons/check';
+import ChevronDown from 'lucide-react/icons/chevron-down';
 import ChevronRight from 'lucide-react/icons/chevron-right';
 import Minus from 'lucide-react/icons/minus';
 import X from 'lucide-react/icons/x';
-import {
-  type CSSProperties,
-  type Dispatch,
-  type KeyboardEvent,
-  type MouseEvent,
-  type SetStateAction,
-  useRef,
-  useState,
-} from 'react';
+import { type CSSProperties, type KeyboardEvent, type MouseEvent, useRef, useState } from 'react';
 import { useSettingsStore } from '$context/settingsContext';
 import { useChildTasks } from '$hooks/queries/useTasks';
 import { usePrefersReducedMotion } from '$hooks/ui/usePrefersReducedMotion';
@@ -86,8 +79,7 @@ interface TaskEditorSubtaskItemProps {
   depth: number;
   checkmarkColor: string;
   useAccentColorForCheckboxes: boolean;
-  expandedSubtasks: Set<string>;
-  setExpandedSubtasks: Dispatch<SetStateAction<Set<string>>>;
+  onToggleCollapsed: (taskId: string) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   moveTaskToRecentlyDeleted: (id: string) => Promise<boolean>;
   isDragEnabled: boolean;
@@ -100,8 +92,7 @@ export const TaskEditorSubtaskItem = ({
   depth,
   checkmarkColor,
   useAccentColorForCheckboxes,
-  expandedSubtasks,
-  setExpandedSubtasks,
+  onToggleCollapsed,
   updateTask,
   moveTaskToRecentlyDeleted,
   isDragEnabled,
@@ -111,7 +102,7 @@ export const TaskEditorSubtaskItem = ({
   const childTaskFilter = task.deletedAt ? 'deleted' : 'active';
   const { data: children = [] } = useChildTasks(task.uid, childTaskFilter);
   const hasChildren = children.length > 0;
-  const isExpanded = expandedSubtasks.has(task.id);
+  const isExpanded = !task.isCollapsed;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(task.title);
@@ -140,14 +131,7 @@ export const TaskEditorSubtaskItem = ({
     pointerEvents: isDragging ? 'none' : undefined,
   };
 
-  const toggleExpanded = () => {
-    setExpandedSubtasks((prev) => {
-      const next = new Set(prev);
-      if (next.has(task.id)) next.delete(task.id);
-      else next.add(task.id);
-      return next;
-    });
-  };
+  const handleToggleExpanded = () => onToggleCollapsed(task.id);
 
   const handleStartEdit = () => {
     if (readOnly) return;
@@ -213,13 +197,15 @@ export const TaskEditorSubtaskItem = ({
         {hasChildren ? (
           <button
             type="button"
-            onClick={toggleExpanded}
+            onClick={handleToggleExpanded}
             className="flex h-4 w-4 shrink-0 cursor-pointer items-center justify-center rounded-sm text-surface-500 outline-hidden transition-colors hover:bg-surface-200 hover:text-surface-600 focus-visible:ring-2 focus-visible:ring-primary-ink dark:text-surface-400 dark:hover:bg-surface-700 dark:hover:text-surface-300"
             aria-label={isExpanded ? 'Collapse subtasks' : 'Expand subtasks'}
           >
-            <ChevronRight
-              className={`h-3 w-3 motion-safe:transition-transform motion-safe:duration-150 ${isExpanded ? 'rotate-90' : ''}`}
-            />
+            {isExpanded ? (
+              <ChevronDown className="h-3 w-3" />
+            ) : (
+              <ChevronRight className="h-3 w-3" />
+            )}
           </button>
         ) : depth > 0 ? (
           <div className="h-4 w-4 shrink-0" aria-hidden="true" />

@@ -2,7 +2,10 @@ import { act, createElement } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TaskEditorSubtaskItem } from '$components/taskEditor/TaskEditorSubtaskItem';
+import type { Task } from '$types/task/model';
 import { makeTask } from '../fixtures';
+
+const { childTasks } = vi.hoisted(() => ({ childTasks: { current: [] as { id: string }[] } }));
 
 vi.mock('@dnd-kit/sortable', () => ({
   defaultAnimateLayoutChanges: vi.fn(),
@@ -19,14 +22,15 @@ vi.mock('$context/settingsContext', () => ({
 }));
 
 vi.mock('$hooks/queries/useTasks', () => ({
-  useChildTasks: () => ({ data: [] }),
+  useChildTasks: () => ({ data: childTasks.current }),
 }));
 
 vi.mock('$hooks/ui/usePrefersReducedMotion', () => ({
   usePrefersReducedMotion: () => false,
 }));
 
-vi.mock('$lib/task/status', () => ({
+vi.mock('$lib/task/status', async () => ({
+  ...(await vi.importActual<typeof import('$lib/task/status')>('$lib/task/status')),
   buildStatusUpdates: vi.fn(() => ({})),
 }));
 
@@ -44,6 +48,7 @@ describe('TaskEditorSubtaskItem', () => {
   let root: Root;
 
   beforeEach(() => {
+    childTasks.current = [];
     container = document.createElement('div');
     document.body.append(container);
     root = createRoot(container);
@@ -59,6 +64,40 @@ describe('TaskEditorSubtaskItem', () => {
     vi.unstubAllGlobals();
   });
 
+  it('reflects and toggles the shared collapse flag for its children', async () => {
+    childTasks.current = [{ id: 'child' }];
+    const onToggleCollapsed = vi.fn();
+
+    const renderItem = async (overrides: Partial<Task>) =>
+      await act(async () => {
+        root.render(
+          createElement(TaskEditorSubtaskItem, {
+            task: makeTask({ id: 'subtask-4', title: 'Parent subtask', ...overrides }),
+            depth: 0,
+            checkmarkColor: '#fff',
+            useAccentColorForCheckboxes: false,
+            onToggleCollapsed,
+            updateTask: vi.fn(),
+            moveTaskToRecentlyDeleted: vi.fn(async () => true),
+            isDragEnabled: false,
+          }),
+        );
+      });
+
+    await renderItem({ isCollapsed: true });
+    expect(container.querySelector('[aria-label="Expand subtasks"]')).not.toBeNull();
+    expect(container.querySelector('[aria-label="Collapse subtasks"]')).toBeNull();
+
+    await renderItem({});
+    const collapseButton = container.querySelector<HTMLButtonElement>(
+      '[aria-label="Collapse subtasks"]',
+    );
+    expect(collapseButton).not.toBeNull();
+
+    await act(async () => collapseButton?.click());
+    expect(onToggleCollapsed).toHaveBeenCalledWith('subtask-4');
+  });
+
   it('does not move an already-untitled subtask to Recently Deleted on blur', async () => {
     const moveTaskToRecentlyDeleted = vi.fn(async () => true);
     const task = makeTask({ id: 'subtask-1', title: '', parentUid: 'parent-uid' });
@@ -70,8 +109,7 @@ describe('TaskEditorSubtaskItem', () => {
           depth: 0,
           checkmarkColor: '#fff',
           useAccentColorForCheckboxes: false,
-          expandedSubtasks: new Set<string>(),
-          setExpandedSubtasks: vi.fn(),
+          onToggleCollapsed: vi.fn(),
           updateTask: vi.fn(),
           moveTaskToRecentlyDeleted,
           isDragEnabled: false,
@@ -103,8 +141,7 @@ describe('TaskEditorSubtaskItem', () => {
           depth: 0,
           checkmarkColor: '#fff',
           useAccentColorForCheckboxes: false,
-          expandedSubtasks: new Set<string>(),
-          setExpandedSubtasks: vi.fn(),
+          onToggleCollapsed: vi.fn(),
           updateTask,
           moveTaskToRecentlyDeleted,
           isDragEnabled: false,
@@ -138,6 +175,30 @@ describe('TaskEditorSubtaskItem', () => {
     expect(updateTask).toHaveBeenCalledWith(task.id, { title: '' });
   });
 
+  it('shows the in-process state on the status checkbox', async () => {
+    const task = makeTask({ id: 'subtask-5', title: 'In progress', status: 'in-process' });
+
+    await act(async () => {
+      root.render(
+        createElement(TaskEditorSubtaskItem, {
+          task,
+          depth: 0,
+          checkmarkColor: '#fff',
+          useAccentColorForCheckboxes: false,
+          onToggleCollapsed: vi.fn(),
+          updateTask: vi.fn(),
+          moveTaskToRecentlyDeleted: vi.fn(async () => true),
+          isDragEnabled: false,
+        }),
+      );
+    });
+
+    const statusButton = container.querySelector('button');
+    expect(statusButton?.className).toContain('bg-status-in-process');
+    expect(statusButton?.querySelector('svg')).not.toBeNull();
+    expect(statusButton?.getAttribute('aria-label')).toBe('In Progress');
+  });
+
   it('does not start editing when a subtask control is clicked', async () => {
     const updateTask = vi.fn();
     const task = makeTask({ id: 'subtask-3', title: 'Existing title', parentUid: 'parent-uid' });
@@ -149,8 +210,7 @@ describe('TaskEditorSubtaskItem', () => {
           depth: 0,
           checkmarkColor: '#fff',
           useAccentColorForCheckboxes: false,
-          expandedSubtasks: new Set<string>(),
-          setExpandedSubtasks: vi.fn(),
+          onToggleCollapsed: vi.fn(),
           updateTask,
           moveTaskToRecentlyDeleted: vi.fn(async () => true),
           isDragEnabled: false,
