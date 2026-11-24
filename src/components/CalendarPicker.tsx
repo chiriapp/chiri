@@ -67,7 +67,7 @@ export const CalendarPicker = ({
         </div>
       </div>
 
-      <div className="max-h-72 overflow-y-auto px-2 pt-1 pb-4">
+      <div className="max-h-96 overflow-y-auto px-2 pt-1 pb-4">
         {filteredGroups.length === 0 ? (
           <div className="p-4 text-center text-sm text-surface-500 dark:text-surface-400">
             {searchQuery.trim() ? 'No calendars match your search.' : emptyMessage}

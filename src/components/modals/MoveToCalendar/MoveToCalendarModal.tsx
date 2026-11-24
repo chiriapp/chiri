@@ -1,7 +1,6 @@
 import AlertTriangle from 'lucide-react/icons/triangle-alert';
 import { useMemo } from 'react';
 import { CalendarPicker } from '$components/CalendarPicker';
-import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import type { Account } from '$types/account';
 import type { Task } from '$types/task/model';
@@ -40,11 +39,6 @@ export const MoveToCalendarModal = ({
       zIndex={zIndex}
       className="max-w-sm"
       contentPadding={false}
-      footer={
-        <ModalButton variant="secondary" onClick={onClose}>
-          Cancel
-        </ModalButton>
-      }
     >
       {task?.parentUid && (
         <div className="mx-4 mt-4 flex items-start gap-2 rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 px-3 py-2 text-sm text-surface-700 dark:text-surface-300">
