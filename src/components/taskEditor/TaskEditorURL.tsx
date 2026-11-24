@@ -8,12 +8,12 @@ import { TaskEditorEmptyState } from '$components/taskEditor/TaskEditorEmptyStat
 import { useDebouncedTaskUpdate } from '$hooks/ui/useDebouncedTaskUpdate';
 import type { Task } from '$types/task/model';
 
-interface UrlProps {
+interface URLProps {
   task: Task;
   readOnly?: boolean;
 }
 
-export const TaskEditorUrl = ({ task, readOnly = false }: UrlProps) => {
+export const TaskEditorURL = ({ task, readOnly = false }: URLProps) => {
   const [pendingUrl, updatePendingUrl] = useDebouncedTaskUpdate(task.id, 'url', task.url ?? '');
 
   const urlRef = useRef<HTMLTextAreaElement>(null);

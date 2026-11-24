@@ -10,7 +10,7 @@ import { TaskEditorRepeat } from '$components/taskEditor/TaskEditorRepeat';
 import { TaskEditorStatus } from '$components/taskEditor/TaskEditorStatus';
 import { TaskEditorSubtasks } from '$components/taskEditor/TaskEditorSubtasks';
 import { TaskEditorTags } from '$components/taskEditor/TaskEditorTags';
-import { TaskEditorUrl } from '$components/taskEditor/TaskEditorUrl';
+import { TaskEditorURL } from '$components/taskEditor/TaskEditorURL';
 import type { TaskEditorActions } from '$hooks/ui/useTaskEditorActions';
 import type { TaskEditorModalsState } from '$hooks/ui/useTaskEditorModals';
 import type { Account } from '$types/account';
@@ -103,7 +103,7 @@ export const TaskEditorFields = ({
       ) : null,
     url: () =>
       isReadOnly || editorFieldVisibility.url ? (
-        <TaskEditorUrl task={task} readOnly={isReadOnly} />
+        <TaskEditorURL task={task} readOnly={isReadOnly} />
       ) : null,
     dates: () =>
       isReadOnly || editorFieldVisibility.dates ? (
