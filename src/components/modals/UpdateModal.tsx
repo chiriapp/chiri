@@ -196,6 +196,7 @@ export const UpdateModal = ({
         <ChangelogModal
           version={updateInfo.version}
           changelog={updateInfo.body || ''}
+          date={updateInfo.date}
           onClose={() => setShowChangelogModal(false)}
         />
       )}

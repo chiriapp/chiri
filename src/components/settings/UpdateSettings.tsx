@@ -247,6 +247,7 @@ export const UpdateSettings = () => {
         <ChangelogModal
           version={updateAvailable.version}
           changelog={updateAvailable.body || ''}
+          date={updateAvailable.date}
           onClose={() => setShowChangelogModal(false)}
         />
       )}

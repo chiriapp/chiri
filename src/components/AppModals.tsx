@@ -244,6 +244,7 @@ export const AppModals = ({
         <ChangelogModal
           version={changelogData.version}
           changelog={changelogData.body}
+          date={changelogData.date}
           onClose={closeChangelog}
         />
       )}
