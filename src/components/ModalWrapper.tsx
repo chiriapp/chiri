@@ -1,8 +1,8 @@
-import X from 'lucide-react/icons/x';
 import type { CSSProperties, DragEventHandler, ReactNode, Ref } from 'react';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ModalBackdrop } from '$components/ModalBackdrop';
+import { ModalHeader } from '$components/ModalHeader';
 import { MODAL_SIZE_CLASSES } from '$constants';
 import type { DismissableLayerType } from '$context/dismissableLayerContext';
 import { useModalState } from '$context/modalStateContext';
@@ -26,6 +26,8 @@ interface ModalWrapperProps {
   description?: ReactNode;
   /** optional content rendered before the title, e.g. a back button */
   headerLeft?: ReactNode;
+  /** optional content rendered before the close button, e.g. a header action */
+  headerRight?: ReactNode;
   children: ReactNode;
   /** footer content - rendered in a flex container with gap-3. use footerLeft for split layouts */
   footer?: ReactNode;
@@ -61,6 +63,7 @@ export const ModalWrapper = ({
   title,
   description,
   headerLeft,
+  headerRight,
   children,
   footer,
   footerLeft,
@@ -168,33 +171,14 @@ export const ModalWrapper = ({
         style={dialogAnimationStyle}
       >
         {title && (
-          <div
-            className={`flex shrink-0 justify-between rounded-t-xl border-surface-300 border-b bg-white p-4 dark:border-surface-700 dark:bg-surface-800 ${description ? 'items-start' : 'items-center'}`}
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              {headerLeft}
-              <div className="min-w-0">
-                <h2 className="font-semibold text-lg text-surface-900 dark:text-surface-100">
-                  {title}
-                </h2>
-                {description && (
-                  <p className="mt-1 text-sm text-surface-600 dark:text-surface-400">
-                    {description}
-                  </p>
-                )}
-              </div>
-            </div>
-            {!preventClose && (
-              <button
-                type="button"
-                onClick={handleClose}
-                className="shrink-0 rounded-lg p-2 text-surface-500 outline-hidden transition-colors hover:bg-surface-100 hover:text-surface-700 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:hover:bg-surface-700 dark:hover:text-surface-300"
-                aria-label="Close"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            )}
-          </div>
+          <ModalHeader
+            title={title}
+            description={description}
+            headerLeft={headerLeft}
+            headerRight={headerRight}
+            preventClose={preventClose}
+            onClose={handleClose}
+          />
         )}
 
         <div

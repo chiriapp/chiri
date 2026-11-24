@@ -55,22 +55,23 @@ export const ChangelogModal = ({ version, changelog, date, onClose }: ChangelogM
   return (
     <ModalWrapper
       onClose={onClose}
-      title={`What's new in ${version}`}
+      title={`What's new in Chiri ${version}`}
       description={date ? `Released on ${formatDate(new Date(date), true, dateFormat)}` : undefined}
       zIndex="z-60"
       className="max-h-[80vh] max-w-2xl"
-      footerLeft={
+      headerRight={
         <ModalButton
           variant="secondary"
+          size="icon"
+          aria-label="View release on GitHub"
           onClick={() => {
             openUrl(`https://github.com/chiriapp/chiri/releases/tag/app-v${version}`);
           }}
+          className="shrink-0"
         >
           <ExternalLink className="h-4 w-4" />
-          View on GitHub
         </ModalButton>
       }
-      footer={<ModalButton onClick={onClose}>Close</ModalButton>}
     >
       {hasContent ? (
         <ChangelogProse html={renderedHtml} contentRef={contentRef} />

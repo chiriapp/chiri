@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, forwardRef, type ReactNode } from 'react';
 import { LoadingSpinner } from '$components/LoadingSpinner';
 
 type ButtonVariant = 'primary' | 'secondary' | 'destructive';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 interface ModalButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -24,6 +24,7 @@ const sizeClasses: Record<ButtonSize, string> = {
   sm: 'px-3 py-1.5 text-xs',
   md: 'px-4 py-2 text-sm',
   lg: 'px-5 py-2.5 text-base',
+  icon: 'p-2.5',
 };
 
 export const ModalButton = forwardRef<HTMLButtonElement, ModalButtonProps>(
