@@ -1,11 +1,6 @@
 import { useCallback, useState } from 'react';
+import type { ChangelogData } from '$types/changelog';
 import { fetchReleaseNotes } from '$utils/meta';
-
-interface ChangelogData {
-  version: string;
-  body: string;
-  date?: string;
-}
 
 export const useChangelog = () => {
   const [isLoading, setIsLoading] = useState(false);

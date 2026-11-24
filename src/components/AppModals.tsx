@@ -12,6 +12,7 @@ import type { FileDropResult } from '$hooks/system/useFileDrop';
 import type { UpdateError, UpdateInfo } from '$hooks/system/useUpdateChecker';
 import { getTasksByCalendar } from '$lib/store/tasks';
 import type { Account } from '$types/account';
+import type { ChangelogData } from '$types/changelog';
 import type {
   MobileConfigCalDAVSettings,
   MobileConfigImportProfile,
@@ -49,7 +50,7 @@ interface AppModalsFileDrop {
 }
 
 interface AppModalsUpdates {
-  changelogData: { version: string; body: string } | null;
+  changelogData: ChangelogData | null;
   showUpdateModal: boolean;
   updateAvailable: UpdateInfo | null;
   isDownloading: boolean;
