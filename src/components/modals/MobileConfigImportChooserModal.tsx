@@ -1,5 +1,4 @@
 import CalendarDays from 'lucide-react/icons/calendar-days';
-import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { MobileConfigImportSkippedWarning } from '$components/modals/MobileConfigImportSkippedWarning';
 import { MobileConfigSignatureWarning } from '$components/modals/MobileConfigSignatureWarning';
@@ -43,11 +42,6 @@ export const MobileConfigImportChooserModal = ({
     title="Choose CalDAV Account"
     description="This configuration profile contains more than one CalDAV account."
     size="md"
-    footer={
-      <ModalButton variant="secondary" onClick={onClose}>
-        Cancel
-      </ModalButton>
-    }
   >
     <MobileConfigSignatureWarning signature={profile.signature} signer={profile.signer} />
     <MobileConfigImportSkippedWarning skippedCandidates={profile.skippedCandidates} />
