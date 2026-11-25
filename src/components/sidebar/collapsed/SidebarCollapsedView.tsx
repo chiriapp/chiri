@@ -266,21 +266,29 @@ export const SidebarCollapsedView = ({
           aria-hidden="true"
           className="my-1 h-px w-8 shrink-0 bg-surface-200 dark:bg-surface-700"
         />
-        {footer.updateAvailable && (
-          <Tooltip
-            content="Update available!"
-            position="right"
-            disabled={isAnyCollapsedItemDragging}
+        <div
+          className={`grid w-full motion-safe:transition-[grid-template-rows,opacity] motion-safe:duration-200 motion-safe:ease-in-out ${footer.updateAvailable ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+        >
+          <div
+            className="flex min-h-0 justify-center overflow-hidden"
+            aria-hidden={!footer.updateAvailable}
+            inert={!footer.updateAvailable}
           >
-            <button
-              type="button"
-              onClick={() => footer.onUpdateClick?.()}
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+            <Tooltip
+              content="Update available!"
+              position="right"
+              disabled={isAnyCollapsedItemDragging}
             >
-              <Download className="h-5 w-5 text-primary-ink" />
-            </button>
-          </Tooltip>
-        )}
+              <button
+                type="button"
+                onClick={() => footer.onUpdateClick?.()}
+                className="flex size-9 shrink-0 items-center justify-center rounded-lg text-surface-500 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+              >
+                <Download className="h-5 w-5 text-primary-ink" />
+              </button>
+            </Tooltip>
+          </div>
+        </div>
         <div className="flex flex-col items-center gap-1">
           <Tooltip content={importTooltip} position="right" disabled={isAnyCollapsedItemDragging}>
             <button

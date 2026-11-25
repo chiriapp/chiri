@@ -31,16 +31,24 @@ export const SidebarExpandedFooter = ({
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-surface-200 dark:bg-surface-700"
       />
-      {updateAvailable && (
-        <button
-          type="button"
-          onClick={() => onUpdateClick?.()}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 font-medium text-sm text-surface-600 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+      <div
+        className={`grid motion-safe:transition-[grid-template-rows,opacity] motion-safe:duration-200 motion-safe:ease-in-out ${updateAvailable ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
+      >
+        <div
+          className="min-h-0 overflow-hidden"
+          aria-hidden={!updateAvailable}
+          inert={!updateAvailable}
         >
-          <Download className="h-4 w-4 text-primary-ink" />
-          Update available!
-        </button>
-      )}
+          <button
+            type="button"
+            onClick={() => onUpdateClick?.()}
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 font-medium text-sm text-surface-600 outline-hidden transition-colors hover:bg-surface-200 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset dark:text-surface-400 dark:hover:bg-surface-700"
+          >
+            <Download className="h-4 w-4 shrink-0 text-primary-ink" />
+            <span className="min-w-0 truncate">Update available!</span>
+          </button>
+        </div>
+      </div>
       <div className="flex flex-col gap-1">
         <button
           type="button"
