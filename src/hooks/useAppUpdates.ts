@@ -14,6 +14,7 @@ export const useAppUpdates = () => {
     dismissUpdate,
     isDownloading,
     downloadProgress,
+    isInstalling,
     error: updateError,
   } = useUpdateChecker();
 
@@ -43,6 +44,7 @@ export const useAppUpdates = () => {
     updateAvailable,
     isDownloading,
     downloadProgress,
+    isInstalling,
     updateError,
     downloadAndInstall,
     dismissUpdate,

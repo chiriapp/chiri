@@ -55,6 +55,7 @@ interface AppModalsUpdates {
   updateAvailable: UpdateInfo | null;
   isDownloading: boolean;
   downloadProgress: number;
+  isInstalling: boolean;
   updateError: UpdateError | null;
   closeChangelog: () => void;
   downloadAndInstall: () => void;
@@ -122,6 +123,7 @@ export const AppModals = ({
     updateAvailable,
     isDownloading,
     downloadProgress,
+    isInstalling,
     updateError,
     closeChangelog,
     downloadAndInstall,
@@ -154,6 +156,10 @@ export const AppModals = ({
       {showSettings && (
         <SettingsModal
           onClose={closeSettings}
+          onInstallUpdate={() => {
+            setShowUpdateModal(true);
+            downloadAndInstall();
+          }}
           onAddAccount={() => openAccountAboveModal()}
           onEditAccount={openAccountAboveModal}
           onRunOnboarding={onRunOnboarding}
@@ -260,6 +266,7 @@ export const AppModals = ({
           onClose={() => setShowUpdateModal(false)}
           isDownloading={isDownloading}
           downloadProgress={downloadProgress}
+          isInstalling={isInstalling}
           error={updateError}
         />
       )}

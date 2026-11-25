@@ -73,6 +73,7 @@ export default defineConfig({
             'src/tests/hooks/useSidebarActions.test.tsx',
             'src/tests/hooks/useAccountConnectionTestRunner.test.tsx',
             'src/tests/hooks/ui/useDateTimePickerDraft.test.tsx',
+            'src/tests/hooks/ui/useEasedValue.test.tsx',
             'src/tests/components/DateTimePickerModals.test.tsx',
             'src/tests/components/AccountModal.test.tsx',
             'src/tests/components/ImportModal.test.tsx',

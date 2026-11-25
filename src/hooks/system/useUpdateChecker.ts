@@ -34,6 +34,7 @@ interface UseUpdateCheckerResult {
   dismissUpdate: () => void;
   isDownloading: boolean;
   downloadProgress: number;
+  isInstalling: boolean;
 }
 
 const UPDATE_AVAILABLE_QUERY_KEY = ['system', 'updater', 'available'] as const;
@@ -157,6 +158,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
   const [error, setError] = useState<UpdateError | null>(null);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isInstalling, setIsInstalling] = useState(false);
 
   const checkForUpdatesMutation = useMutation<void, unknown, CheckForUpdatesArgs>({
     mutationKey: CHECK_UPDATES_MUTATION_KEY,
@@ -246,6 +248,8 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
       let downloaded = 0;
       let contentLength = 0;
+      let lastProgressAt = 0;
+      let downloadFinishedAt = 0;
 
       await update.downloadAndInstall((event) => {
         switch (event.event) {
@@ -255,16 +259,32 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
             break;
           case 'Progress': {
             downloaded += event.data.chunkLength;
-            const progress = contentLength > 0 ? (downloaded / contentLength) * 100 : 0;
-            setDownloadProgress(progress);
+            if (contentLength <= 0) {
+              break;
+            }
+            const now = performance.now();
+            // chunks arrive far faster than frames can render
+            if (now - lastProgressAt < 100) {
+              break;
+            }
+            lastProgressAt = now;
+            setDownloadProgress(Math.min(100, (downloaded / contentLength) * 100));
             break;
           }
           case 'Finished':
             log.info('Download finished');
+            downloadFinishedAt = performance.now();
+            setIsInstalling(true);
             setDownloadProgress(100);
             break;
         }
       });
+
+      // covers the bar's full-range easing after the last byte; an install usually takes longer
+      const remainingDwell = 600 - (performance.now() - downloadFinishedAt);
+      if (remainingDwell > 0) {
+        await new Promise((resolve) => setTimeout(resolve, remainingDwell));
+      }
 
       log.info('Update installed, relaunching...');
       await flushLocalState();
@@ -331,6 +351,7 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
 
     setError(null);
     setDownloadProgress(0);
+    setIsInstalling(false);
 
     try {
       await downloadUpdateMutation.mutateAsync(updateAvailable);
@@ -392,5 +413,6 @@ export const useUpdateChecker = (): UseUpdateCheckerResult => {
     dismissUpdate,
     isDownloading,
     downloadProgress,
+    isInstalling,
   };
 };

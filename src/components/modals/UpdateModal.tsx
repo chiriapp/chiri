@@ -6,6 +6,7 @@ import { ModalButton } from '$components/ModalButton';
 import { ModalWrapper } from '$components/ModalWrapper';
 import { ChangelogModal } from '$components/modals/ChangelogModal';
 import type { UpdateError, UpdateInfo } from '$hooks/system/useUpdateChecker';
+import { useEasedValue } from '$hooks/ui/useEasedValue';
 import { useChangelog } from '$hooks/useChangelog';
 
 interface UpdateModalProps {
@@ -15,6 +16,7 @@ interface UpdateModalProps {
   onClose: () => void;
   isDownloading: boolean;
   downloadProgress: number;
+  isInstalling: boolean;
   error: UpdateError | null;
 }
 
@@ -25,19 +27,23 @@ export const UpdateModal = ({
   onClose,
   isDownloading,
   downloadProgress,
+  isInstalling,
   error,
 }: UpdateModalProps) => {
   const { openChangelog, closeChangelog, changelogData } = useChangelog();
 
   const boundedProgress = Math.min(100, Math.max(0, downloadProgress));
+  const displayedProgress = useEasedValue(boundedProgress);
+  // the download is over as soon as the last byte lands, but the bar still eases up to full
+  const isProgressFull = Math.round(displayedProgress) >= 100;
   const primaryLabel = error?.kind === 'download' ? 'Retry download' : 'Install update';
 
   return (
     <>
       <ModalWrapper
         onClose={onClose}
-        title={`New update available`}
-        zIndex="z-60"
+        title={isDownloading ? 'Update in progress' : 'New update available'}
+        zIndex={zIndex}
         size="md"
         preventClose={isDownloading}
         footer={
@@ -72,17 +78,19 @@ export const UpdateModal = ({
         )}
 
         {isDownloading ? (
-          <div className="space-y-2" aria-live="polite">
+          <div className="space-y-2">
             <div className="flex items-baseline justify-between gap-3 text-sm">
-              <span className="text-surface-600 dark:text-surface-400">Downloading update</span>
+              <span className="text-surface-600 dark:text-surface-400" aria-live="polite">
+                {isInstalling && isProgressFull ? 'Installing update' : 'Downloading update'}
+              </span>
               <span className="font-medium text-surface-800 tabular-nums dark:text-surface-200">
-                {Math.round(boundedProgress)}%
+                {Math.round(displayedProgress)}%
               </span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-surface-200 dark:bg-surface-700">
               <div
-                className="h-full rounded-full bg-primary-500 transition-all duration-300 ease-out"
-                style={{ width: `${boundedProgress}%` }}
+                className="h-full rounded-full bg-primary-500"
+                style={{ width: `${displayedProgress}%` }}
               />
             </div>
           </div>
