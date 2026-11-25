@@ -566,7 +566,7 @@ jobs:
 
       - name: Upload signed Windows MSI to Backblaze B2
         if: vars.B2_BUCKET_NAME != ''
-        uses: backblaze-labs/b2-action@1678a4d7217a31606ec58d046be5ad189e1ee5cc # v1.1.0
+        uses: backblaze-labs/b2-action@fd2a0aa50a27f009d5dcf395047234ac39412eac # v1.2.0
         with:
           action: upload
           application-key-id: ${{ secrets.B2_APPLICATION_KEY_ID }}
