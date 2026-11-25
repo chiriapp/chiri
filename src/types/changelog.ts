@@ -1,5 +1,5 @@
 export interface ChangelogData {
   version: string;
-  body: string;
+  html: string;
   date?: string;
 }

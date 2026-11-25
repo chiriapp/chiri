@@ -1,24 +1,32 @@
 import { useCallback, useState } from 'react';
 import type { ChangelogData } from '$types/changelog';
+import { renderChangelogHtml } from '$utils/markdown';
 import { fetchReleaseNotes } from '$utils/meta';
+
+interface PrefetchedRelease {
+  body: string;
+  date?: string;
+}
 
 export const useChangelog = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [changelogData, setChangelogData] = useState<ChangelogData | null>(null);
 
-  const openChangelog = useCallback(
-    async (version: string, prefetchedBody?: string, prefetchedDate?: string) => {
-      if (prefetchedBody !== undefined) {
-        setChangelogData({ version, body: prefetchedBody, date: prefetchedDate });
-        return;
-      }
-      setIsLoading(true);
-      const releaseData = await fetchReleaseNotes(version);
+  const openChangelog = useCallback(async (version: string, prefetched?: PrefetchedRelease) => {
+    setIsLoading(true);
+
+    try {
+      const { body, date } = prefetched ?? (await fetchReleaseNotes(version));
+      const html = await renderChangelogHtml(body).catch((error) => {
+        console.error('failed to render changelog:', error);
+        return '';
+      });
+
+      setChangelogData({ version, html, date });
+    } finally {
       setIsLoading(false);
-      setChangelogData({ version, body: releaseData.body, date: releaseData.date });
-    },
-    [],
-  );
+    }
+  }, []);
 
   const closeChangelog = useCallback(() => setChangelogData(null), []);
 

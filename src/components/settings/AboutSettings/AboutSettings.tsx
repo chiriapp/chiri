@@ -198,7 +198,7 @@ export const AboutSettings = ({ onNavigateToUpdates }: AboutSettingsProps) => {
       {changelogData && (
         <ChangelogModal
           version={changelogData.version}
-          changelog={changelogData.body}
+          html={changelogData.html}
           date={changelogData.date}
           onClose={closeChangelog}
         />
