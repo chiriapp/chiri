@@ -49,6 +49,7 @@ import type { SettingsCategory, SettingsSubtab } from '$types/settings/categorie
 
 interface SettingsModalProps {
   onClose: () => void;
+  onInstallUpdate: () => void;
   onRunOnboarding: () => void;
   onAddAccount: () => void;
   onEditAccount: (accountId: string) => void;
@@ -71,6 +72,7 @@ const DEFAULT_SUBTAB_BY_CATEGORY: Record<SettingsCategory, SettingsSubtab> = {
 
 export const SettingsModal = ({
   onClose,
+  onInstallUpdate,
   onRunOnboarding,
   onAddAccount,
   onEditAccount,
@@ -272,7 +274,7 @@ export const SettingsModal = ({
 
           {activeCategory === 'misc' && (
             <>
-              {currentSubtab === 'updates' && <UpdateSettings />}
+              {currentSubtab === 'updates' && <UpdateSettings onInstallUpdate={onInstallUpdate} />}
               {currentSubtab === 'about' && (
                 <AboutSettings
                   onNavigateToUpdates={() => {

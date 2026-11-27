@@ -268,6 +268,7 @@ export const AppModals = ({
           downloadProgress={downloadProgress}
           isInstalling={isInstalling}
           error={updateError}
+          zIndex={showSettings ? 'z-70' : 'z-60'}
         />
       )}
     </>

@@ -3,7 +3,6 @@ import CircleX from 'lucide-react/icons/circle-x';
 import Download from 'lucide-react/icons/download';
 import FileText from 'lucide-react/icons/file-text';
 import Info from 'lucide-react/icons/info';
-import Loader from 'lucide-react/icons/loader-circle';
 import RefreshCw from 'lucide-react/icons/refresh-cw';
 import X from 'lucide-react/icons/x';
 import { useState } from 'react';
@@ -16,7 +15,7 @@ import { useChangelog } from '$hooks/useChangelog';
 import { getAppInfo } from '$utils/meta';
 import { getPackageManagerName } from '$utils/platform';
 
-export const UpdateSettings = () => {
+export const UpdateSettings = ({ onInstallUpdate }: { onInstallUpdate: () => void }) => {
   const { version } = getAppInfo();
   const { checkForUpdatesAutomatically, setCheckForUpdatesAutomatically } = useSettingsStore();
   const {
@@ -24,15 +23,7 @@ export const UpdateSettings = () => {
     installType,
     isLoading: isManagedInstallLoading,
   } = useManagedInstallation();
-  const {
-    updateAvailable,
-    isChecking,
-    error,
-    checkForUpdates,
-    downloadAndInstall,
-    isDownloading,
-    downloadProgress,
-  } = useUpdateChecker();
+  const { updateAvailable, isChecking, error, checkForUpdates } = useUpdateChecker();
   const [hasManuallyChecked, setHasManuallyChecked] = useState(false);
   const [isStatusDismissed, setIsStatusDismissed] = useState(false);
   const { openChangelog, closeChangelog, changelogData } = useChangelog();
@@ -44,11 +35,7 @@ export const UpdateSettings = () => {
   };
 
   const showError =
-    !isManagedInstall &&
-    !isChecking &&
-    !isStatusDismissed &&
-    error &&
-    (hasManuallyChecked || error.kind === 'download');
+    !isManagedInstall && !isChecking && !isStatusDismissed && error && hasManuallyChecked;
   const showUpToDate =
     !isManagedInstall &&
     hasManuallyChecked &&
@@ -197,41 +184,14 @@ export const UpdateSettings = () => {
 
               <button
                 type="button"
-                onClick={downloadAndInstall}
-                disabled={isDownloading}
-                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-500 px-2.5 py-1.5 font-medium text-primary-contrast text-xs outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={onInstallUpdate}
+                className="flex shrink-0 items-center gap-1.5 rounded-lg bg-primary-500 px-2.5 py-1.5 font-medium text-primary-contrast text-xs outline-hidden transition-colors hover:bg-primary-600 focus-visible:ring-2 focus-visible:ring-primary-ink focus-visible:ring-inset"
               >
-                {isDownloading ? (
-                  <>
-                    <Loader className="size-3.5 motion-safe:animate-spin" />
-                    Downloading
-                  </>
-                ) : (
-                  <>
-                    <Download className="size-3.5" />
-                    Install
-                  </>
-                )}
+                <Download className="size-3.5" />
+                Install
               </button>
             </div>
           </div>
-
-          {isDownloading && (
-            <div className="mt-2">
-              <div className="mb-1.5 flex items-center justify-between text-xs">
-                <span>Downloading update...</span>
-                <span className="font-medium text-surface-800 dark:text-surface-200">
-                  {Math.round(downloadProgress)}%
-                </span>
-              </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-primary-500/20">
-                <div
-                  className="h-full bg-primary-500 transition-all duration-300"
-                  style={{ width: `${downloadProgress}%` }}
-                />
-              </div>
-            </div>
-          )}
         </div>
       )}
 

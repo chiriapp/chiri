@@ -18,6 +18,7 @@ interface UpdateModalProps {
   downloadProgress: number;
   isInstalling: boolean;
   error: UpdateError | null;
+  zIndex?: 'z-60' | 'z-70';
 }
 
 export const UpdateModal = ({
@@ -29,6 +30,7 @@ export const UpdateModal = ({
   downloadProgress,
   isInstalling,
   error,
+  zIndex = 'z-60',
 }: UpdateModalProps) => {
   const { openChangelog, closeChangelog, changelogData } = useChangelog();
 
