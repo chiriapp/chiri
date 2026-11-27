@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { WorkingDay } from '$types/settings/categories/scheduling';
 
 // recurrence imports formatDate from $utils/date, which depends on the
@@ -334,6 +334,35 @@ describe('getNextOccurrence', () => {
     const after = new Date(Date.UTC(2025, 1, 1));
     const result = getNextOccurrence('FREQ=DAILY;UNTIL=20250110T000000Z', after, dtstart);
     expect(result).toBeNull();
+  });
+
+  describe('in the local time zone', () => {
+    const originalTZ = process.env.TZ;
+    afterEach(() => {
+      if (originalTZ === undefined) delete process.env.TZ;
+      else process.env.TZ = originalTZ;
+    });
+
+    it('keeps BYDAY on the local weekday for an all-day task east of UTC', () => {
+      process.env.TZ = 'Asia/Tokyo';
+      const monday = new Date(2026, 10, 23);
+      const result = getNextOccurrence('FREQ=WEEKLY;BYDAY=MO,WE', monday);
+      expect(result).toEqual(new Date(2026, 10, 25));
+    });
+
+    it('keeps BYDAY on the local weekday for an evening task west of UTC', () => {
+      process.env.TZ = 'America/New_York';
+      const monday = new Date(2026, 10, 23, 20);
+      const result = getNextOccurrence('FREQ=WEEKLY;BYDAY=MO,WE', monday);
+      expect(result).toEqual(new Date(2026, 10, 25, 20));
+    });
+
+    it('keeps the local time of day across a DST change', () => {
+      process.env.TZ = 'America/New_York';
+      const tuesday = new Date(2026, 9, 27, 9);
+      const result = getNextOccurrence('FREQ=WEEKLY', tuesday);
+      expect(result).toEqual(new Date(2026, 10, 3, 9));
+    });
   });
 });
 
